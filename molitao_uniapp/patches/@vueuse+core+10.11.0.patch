@@ -1,0 +1,12 @@
+diff --git a/node_modules/@vueuse/core/index.mjs b/node_modules/@vueuse/core/index.mjs
+index 63b8399..22a1545 100644
+--- a/node_modules/@vueuse/core/index.mjs
++++ b/node_modules/@vueuse/core/index.mjs
+@@ -1,6 +1,6 @@
+ import { noop, makeDestructurable, camelize, toValue, isClient, isObject, tryOnScopeDispose, isIOS, tryOnMounted, notNullish, objectOmit, promiseTimeout, until, increaseWithUnit, objectEntries, createSingletonPromise, useTimeoutFn, pausableWatch, toRef, createEventHook, computedWithControl, timestamp, pausableFilter, watchIgnorable, debounceFilter, createFilterWrapper, bypassFilter, toRefs, useIntervalFn, containsProp, hasOwn, throttleFilter, useDebounceFn, useThrottleFn, clamp, syncRef, objectPick, tryOnUnmounted, watchWithFilter, tryOnBeforeUnmount, identity, isDef, isWorker } from '@vueuse/shared';
+ export * from '@vueuse/shared';
+-import { isRef, ref, shallowRef, watchEffect, computed, inject, isVue3, version, defineComponent, h, TransitionGroup, shallowReactive, Fragment, watch, getCurrentInstance, customRef, onUpdated, onMounted, isVue2, readonly, nextTick, reactive, markRaw, unref, getCurrentScope, set, del, isReadonly, onBeforeUpdate } from 'vue-demi';
++import { isRef, ref, shallowRef, watchEffect, computed, inject, isVue3, version, defineComponent, h, shallowReactive, Fragment, watch, getCurrentInstance, customRef, onUpdated, onMounted, isVue2, readonly, nextTick, reactive, markRaw, unref, getCurrentScope, set, del, isReadonly, onBeforeUpdate } from 'vue-demi';
+ 
+ function computedAsync(evaluationCallback, initialState, optionsOrRef) {
+   let options;
