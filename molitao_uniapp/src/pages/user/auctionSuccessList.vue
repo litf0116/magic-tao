@@ -40,7 +40,7 @@ const showItem = ref<AuctionItemDto | null>(null)
 const popup = ref(null as any)
 
 onLoad(() => {
-    api.auctionItem.getMySuccessList({ skipCount: 0, maxResultCount: 50 }).then((res) => {
+    api.auctionItem.getMySuccessList({ skipCount: 0, MaxResultCount: 50 }).then((res) => {
         list.value = res.items
     })
 })

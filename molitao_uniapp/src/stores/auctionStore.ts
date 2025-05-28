@@ -34,13 +34,13 @@ export const useAuctionStore = defineStore('auction', () => {
     function getList(status: number | undefined = undefined) {
         return new Promise<void>((resolve) => {
             if (!status) {
-                api.auctionItem.getPublicList({ maxResultCount: 20 }).then((res) => {
+                api.auctionItem.getPublicList({ MaxResultCount: 100 }).then((res) => {
                     list.value = res.items!
                     // Tips.success('拍卖列表已刷新')
                     return resolve()
                 })
             } else if (status === 4) {
-                api.auctionItem.getPublicList({ status, maxResultCount: 20 }).then((res) => {
+                api.auctionItem.getPublicList({ status, MaxResultCount: 100 }).then((res) => {
                     list4.value = res.items!
                     // Tips.success('拍卖列表已刷新')
                     return resolve()

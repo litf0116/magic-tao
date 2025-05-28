@@ -68,6 +68,8 @@ namespace TtWork.Project.PostBar
             try
             {
                 var items = await _sqlSugarClient.Queryable<tb_hotWordsEntity>()
+                       .WhereIF(!string.IsNullOrEmpty(input.Keyword), a => a.Title.Contains(input.Keyword))
+                     .OrderByDescending(a => a.Id)
                    .ToPagedListAsync(input.SkipCount, input.MaxResultCount);
                 return new { totalCount = items.TotalCount, items = items.Items, HasNextPages=items.HasNextPages };
             }

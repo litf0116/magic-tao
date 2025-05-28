@@ -421,7 +421,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                     time = message.GetNowTime(),
                 }
             };
-            //移除‘玩家xxxxx加入群聊’的提示
+            //移除'玩家xxxxx加入群聊'的提示
             //只显示已经修改过名字和头像的玩家的提示   
             if (input.Message is { type: ChatMessageType.Welcome })
             {
@@ -737,6 +737,11 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     [DisableAuditing]
     public async Task<ListResultDto<AuctionItemDto>> GetPublicList(AppResultRequestDto input)
     {
+        // 如果没有传递 MaxResultCount，设置默认值 100
+        if (input.MaxResultCount <= 0)
+        {
+            input.MaxResultCount = 100;
+        }
         var query = Repository.GetAll().AsNoTracking()
                 .WhereIf(!input.Status.HasValue, x => x.Status == AuctionStatusEnum.上架 || x.Status == AuctionStatusEnum.拍卖中)
                 .WhereIf(input.Status.HasValue, x => (int)x.Status == input.Status!.Value)
@@ -749,7 +754,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         }
         else if (input.Status == (int)AuctionStatusEnum.已成交)
         {
-            query = query.OrderByDescending(x => x.DealTime).Take(50);
+            query = query.OrderByDescending(x => x.DealTime).Take(input.MaxResultCount);
         }
         else
         {
