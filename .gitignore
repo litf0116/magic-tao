@@ -1,0 +1,17 @@
+**/.DS_Store
+**/.idea
+
+pnpm-lock.yaml
+
+**/dist
+**/node_modules
+**/dist
+backend/.vs
+
+node_modules
+
+S4_注册机 - 副本
+
+*.sql
+
+README2.md

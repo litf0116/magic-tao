@@ -1,0 +1,38 @@
+{
+    "root": true,
+    "parser": "vue-eslint-parser",
+    "parserOptions": {
+        "parser": "@typescript-eslint/parser"
+    },
+    "extends": [
+        // "plugin:vue/strongly-recommended",
+        // "@vue/typescript/recommended",
+        // "prettier",
+        "plugin:vue/vue3-recommended",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:prettier/recommended"
+    ],
+    "plugins": ["@typescript-eslint", "prettier"],
+    "rules": {
+        "prettier/prettier": [
+            "error",
+            {
+                "endOfLine": "auto"
+            }
+        ],
+        "vue/no-v-model-argument": "off",
+        "vue/multi-word-component-names": "off",
+        "vue/v-on-event-hyphenation": "off",
+        "vue/no-multiple-template-root": "off",
+        "@typescript-eslint/ban-ts-comment": "off",
+        "@typescript-eslint/no-non-null-assertion": "off",
+        "no-irregular-whitespace": "off"
+        // not needed for vue 3
+        // "prettier/prettier": [
+        //     "error",
+        //     {
+        //         "endOfLine": "auto"
+        //     },
+        // ],
+    }
+}

@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <Version>1.0.6</Version>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Authors>YeXiangQin</Authors>
+        <Description>.NET websocket 实现简易、高性能、集群即时通讯组件，支持点对点通讯、群聊通讯、上线下线事件消息等众多实用性功能.</Description>
+        <PackageProjectUrl>https://github.com/2881099/FreeIM</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/2881099/FreeIM</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageTags>im;websocket;signalr</PackageTags>
+        <PackageId>$(AssemblyName)</PackageId>
+        <Title>$(AssemblyName)</Title>
+        <IsPackable>true</IsPackable>
+        <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+        <LangVersion>12</LangVersion>
+        <TargetFramework>netstandard2.0</TargetFramework>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+        <DocumentationFile>FreeIM.xml</DocumentationFile>
+        <WarningLevel>3</WarningLevel>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="FreeRedis" Version="1.2.15"/>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.1"/>
+        <PackageReference Include="System.ValueTuple" Version="4.5.0"/>
+        <PackageReference Include="System.Memory" Version="4.5.5"/>
+        <PackageReference Include="Serilog" Version="3.1.1"/>
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+        <PackageReference Include="Microsoft.AspNetCore.WebSockets" Version="2.2.1"/>
+    </ItemGroup>
+
+    <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+        <DefineConstants>ns20;netstandard20</DefineConstants>
+    </PropertyGroup>
+
+</Project>

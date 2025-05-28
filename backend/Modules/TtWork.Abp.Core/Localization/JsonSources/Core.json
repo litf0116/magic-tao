@@ -1,0 +1,9 @@
+﻿{
+  "culture": "zh-Hans",
+  "texts": {
+    "Permission:Pages": "页面",
+    "Permission:Administration": "超级管理员权限",
+    "Permission:ChatManager": "聊天室管理员",
+    "Permission:AuctionManager": "拍卖师"
+  }
+}

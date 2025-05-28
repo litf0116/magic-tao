@@ -1,0 +1,32 @@
+stages:
+  - build
+  - deploy
+  - test
+
+build_image:
+  stage: build
+  when: manual
+  allow_failure: false
+  only:
+    - main
+  script:
+    - cd backend
+    - ls
+    - docker build -f ./src/TtWork.Project.Web.Host/Dockerfile --network=host --build-arg HTTP_PROXY=http://192.168.3.50:10809 --build-arg HTTPS_PROXY=http://192.168.3.50:10809 -t gitlab.somall.top:8090/molitao/api:latest .
+    - docker push gitlab.somall.top:8090/molitao/api:latest
+
+deploys:
+  stage: deploy
+  needs:
+    - build_image
+  allow_failure: false
+  script:
+    - ./plink.exe -ssh root@8.130.178.251 -pw "lZ9C&NC3" -batch "docker pull gitlab.somall.top:8090/molitao/api:latest;docker stop api ; docker rm api; docker run -d --network=app --restart=always -v /www/certs:/app/cert -v /www/wwwroot/www.molitao.top/wwwroot:/app/wwwroot -p 5000:5000  -e TZ='Asia/Shanghai' --name api gitlab.somall.top:8090/molitao/api:latest"
+
+tests:
+  stage: test
+  needs:
+    - deploys
+  script:
+    - $hash = @{"msgtype"="text";"text"= @{ "content"= "[molitao] gitlab finish";}}
+    - curl -uri https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=e3c308bf-df87-46f4-95b8-2920ef050987 -Method POST -Headers @{"Content-Type"="application/json"} -Body ($hash | convertto-json)

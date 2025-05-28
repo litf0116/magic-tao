@@ -1,0 +1,71 @@
+import Upyun from './upyun-wxapp-sdk.js'
+const upyun = new Upyun.Upyun({
+    bucket: 'molitao',
+    operator: 'molitao',
+    domainHost: 'https://cdn.molitao.top',
+    getSignatureUrl: import.meta.env.VITE_APP_BASE_API + '/api/services/app/Upload/GetSignature',
+})
+
+export function uploadImage(file) {
+    return new Promise((resolve, reject) => {
+        const imageSrc = file
+        // const fileExt = imageSrc.replace(/.+\./, '')
+        // const fileName = dayjs(new Date()).format('YYYYMMHHmmss') + '.' + fileExt
+        const path = `wxapp/${uni.getStorageSync('unionid') || uni.getStorageSync('openid') || 'unknow'}/`
+        upyun.upload({
+            localPath: imageSrc,
+            remotePath: path,
+            success: (res) => {
+                console.log('upload finish:', res)
+                if (res.statusCode == 401) {
+                    uni.removeStorageSync(Upyun.CACHE_KEY)
+                    return reject('上传失败，请重新上传')
+                } else {
+                    var jsonData = JSON.parse(res.data)
+                    console.log('upload success:', jsonData)
+                    console.log(upyun.domainHost)
+                    console.log(jsonData.url)
+                    console.log(`${upyun.domainHost}${jsonData.url}`)
+                    return resolve(`${upyun.domainHost}${jsonData.url}`)
+                }
+            },
+            fail: ({ errMsg }) => {
+                console.log('upload fail:', errMsg)
+                return reject(errMsg)
+            },
+        })
+    })
+}
+
+export function upload(count = 1) {
+    return new Promise<object>((resolve, reject) => {
+        uni.chooseImage({
+            count: count,
+            // sizeType: ["compressed"],
+            sourceType: ['album', 'camera'],
+            //成功
+            success: (res) => {
+                const imageSrc = res!.tempFilePaths![0]
+                upyun.upload({
+                    localPath: imageSrc,
+                    success: (res: any) => {
+                        console.log('upload success:', res)
+                        const jsonData = JSON.parse(res.data)
+                        return resolve(jsonData)
+                    },
+                    fail: ({ errMsg }: any) => {
+                        console.log('upload fail:', errMsg)
+                        return reject(errMsg)
+                    },
+                })
+            },
+            //失败
+            fail: ({ errMsg }: any) => {
+                return reject(errMsg)
+            },
+        })
+    })
+}
+export default {
+    upload,
+}

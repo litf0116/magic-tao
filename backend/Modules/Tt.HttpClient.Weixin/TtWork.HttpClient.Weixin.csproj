@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <PackageId>TT.HttpClient.Weixin</PackageId>
+        <LangVersion>default</LangVersion>
+        <AssemblyName>TtWork.HttpClient.Weixin</AssemblyName>
+        <RootNamespace>TtWork.HttpClient.Weixin</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="AutoMapper" Version="13.0.1" />
+        <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2"/>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
+        <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
+        <!--        <PackageReference Include="Serilog" Version="3.1.1" />-->
+
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\TtWork.Lib\TtWork.Lib.csproj"/>
+    </ItemGroup>
+</Project>

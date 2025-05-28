@@ -1,0 +1,25 @@
+﻿using System.Threading.Tasks;
+using TtWork.HttpClient.Weixin.WeixiinResult;
+
+namespace TtWork.HttpClient.Weixin {
+    public interface IWeixinApi {
+        Task<WeixinTokenResult> GetToken(string appid, string appSecret);
+        Task<WeixinUserInfoResult> GetUserInfo(string token, string openid);
+        Task<MiniSessionResult> Mini_Code2Session(string code, string appid, string appSeret);
+        Task<byte[]> WxacodeGet(string token, string path, int width = 430, bool is_hyaline = false);
+
+        Task<byte[]> WxacodeGetUnlimit(string token, string scene, string page = "pages/index/index", int width = 430,
+            bool is_hyaline = false);
+
+        Task<TicketResult> GetTicket(string token);
+
+        Task<OAuth2Result> GetOAuth2Token(string appid, string appsec, string code);
+
+        Task<WeixinUserInfoResult> SnsUserInfo(string access_token, string openid);
+
+        Task<BaseWeChatReulst> CustomSend(string accessToken, string openid, string msgtype, object body);
+
+        Task<string> GetQrCode(string accessToken, string sceneStr, QrCodeType type = QrCodeType.QR_STR_SCENE,
+            int expireSeconds = 604800);
+    }
+}

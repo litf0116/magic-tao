@@ -1,0 +1,18 @@
+diff --git a/dist/vue.runtime.esm.js b/dist/vue.runtime.esm.js
+index c456e2e48afe3fdb81ec39f94040d98414703c09..99b297df52e38dd68cea22a3d3dca33f42a759a9 100644
+--- a/dist/vue.runtime.esm.js
++++ b/dist/vue.runtime.esm.js
+@@ -8080,4 +8080,13 @@ function createApp(rootComponent, rootProps = null) {
+ }
+ const createSSRApp = createApp;
+ 
++function createMockComponet(name){
++  return {
++    setup(){
++      throw new Error('[vue-demi]'+ name +'is not ')
++    }
++  }
++}
++export var TransitionGroup=/*#__PURE__*/createMockComponet('TransitionGroup')
++
+ export { EffectScope, Fragment, ReactiveEffect, Text, c, callWithAsyncErrorHandling, callWithErrorHandling, computed, createApp, createPropsRestProxy, createSSRApp, createVNode, createVueApp, customRef, d, defineAsyncComponent, defineComponent, defineEmits, defineExpose, defineProps, devtoolsComponentAdded, devtoolsComponentRemoved, devtoolsComponentUpdated, diff, e, effect, effectScope, f, findComponentPropsData, getCurrentInstance, getCurrentScope, getExposeProxy, guardReactiveProps, h, hasInjectionContext, hasQueueJob, inject, injectHook, invalidateJob, isInSSRComponentSetup, isProxy, isReactive, isReadonly, isRef, isShallow, j, logError, m, markRaw, mergeDefaults, mergeModels, mergeProps, n, nextTick$1 as nextTick, o, onActivated, onBeforeMount, onBeforeUnmount, onBeforeUpdate, onDeactivated, onErrorCaptured, onMounted, onRenderTracked, onRenderTriggered, onScopeDispose, onServerPrefetch, onUnmounted, onUpdated, p, patch, provide, proxyRefs, pruneComponentPropsCache, queuePostFlushCb, r, reactive, readonly, ref, resolveComponent, resolveDirective, resolveFilter, s, setCurrentRenderingInstance, setTemplateRef, setupDevtoolsPlugin, shallowReactive, shallowReadonly, shallowRef, sr, stop, t, toHandlers, toRaw, toRef, toRefs, toValue, triggerRef, unref, updateProps, useAttrs, useCssModule, useCssVars, useModel, useSSRContext, useSlots, version, w, warn, watch, watchEffect, watchPostEffect, watchSyncEffect, withAsyncContext, withCtx, withDefaults, withDirectives, withModifiers, withScopeId };

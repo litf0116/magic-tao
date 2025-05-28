@@ -1,0 +1,127 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>%(DocumentTitle)</title>
+    <!-- 引入Google字体 -->
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700|Source+Code+Pro:300,600|Titillium+Web:400,600,700"
+          rel="stylesheet">
+    <!-- 引入Swagger UI的CSS -->
+    <link rel="stylesheet" type="text/css" href="./swagger-ui.css">
+    <!-- 设置网站图标 -->
+    <link rel="icon" type="image/png" href="./favicon-32x32.png" sizes="32x32" />
+    <link rel="icon" type="image/png" href="./favicon-16x16.png" sizes="16x16" />
+    <style>
+        /* 基本样式设置 */
+        html {
+            box-sizing: border-box;
+            overflow: -moz-scrollbars-vertical;
+            overflow-y: scroll;
+        }
+
+        *,
+        *:before,
+        *:after {
+            box-sizing: inherit;
+        }
+
+        body {
+            margin: 0;
+            background: #fafafa;
+        }
+    </style>
+    %(HeadContent)
+</head>
+
+<body>
+    <!-- Swagger UI将被渲染到这个div中 -->
+    <div id="swagger-ui"></div>
+
+    <!-- 引入Swagger UI所需的JavaScript文件 -->
+    <script src="swagger-ui-bundle.js"></script>
+    <script src="swagger-ui-standalone-preset.js"></script>
+    <!-- 引入自定义的认证处理脚本 -->
+    <script src="/swagger//sm-crypto-v2/crypto-js.js"></script>
+    <script src="/swagger/sm-crypto-v2/sm2.js"></script>
+    <script src="/swagger/ui/auth.js"></script>
+    <script>
+        window.onload = function () {
+            // 解析配置对象
+            var configObject = JSON.parse('%(ConfigObject)');
+
+            // 设置必要的参数
+            configObject.dom_id = "#swagger-ui";
+            configObject.presets = [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset];
+            configObject.layout = "StandaloneLayout";
+
+            // 添加请求拦截器，用于在每个请求中添加认证token
+            configObject.requestInterceptor = function (request) {
+                var token = localStorage.getItem("token");
+                if (token) {
+                    request.headers['Authorization'] = 'Bearer ' + token;
+                }
+                return request;
+            };
+
+            // 设置OAuth2重定向URL（如果未设置）
+            if (!configObject.hasOwnProperty("oauth2RedirectUrl")) {
+                configObject.oauth2RedirectUrl = window.location + "oauth2-redirect.html";
+            }
+
+            // 获取授权按钮文本
+            function getAuthorizeButtonText() {
+                return auth.hasLogin() ? 'Logout' : 'Authorize';
+            }
+
+            // 获取授权按钮CSS类
+            function getAuthorizeButtonCssClass() {
+                return auth.hasLogin() ? 'cancel' : 'authorize';
+            }
+
+            // 添加自定义插件来处理授权按钮
+            configObject.plugins = [
+                function (system) {
+                    return {
+                        components: {
+                            authorizeBtn: function () {
+                                return system.React.createElement("button",
+                                    {
+                                        id: "authorize",
+                                        className: "btn " + getAuthorizeButtonCssClass(),
+                                        style: {
+                                            lineHeight: "normal"
+                                        },
+                                        onClick: function () {
+                                            var authorizeButton = document.getElementById('authorize');
+                                            if (auth.hasLogin()) {
+                                                // 如果已登录，则执行登出操作
+                                                auth.logout(function () {
+                                                    authorizeButton.innerText = getAuthorizeButtonText();
+                                                    authorizeButton.className = 'btn ' + getAuthorizeButtonCssClass();
+                                                    // 清除token
+                                                    localStorage.removeItem("token");
+                                                });
+                                            } else {
+                                                // 如果未登录，则打开登录对话框
+                                                auth.openAuthDialog(function () {
+                                                    authorizeButton.innerText = getAuthorizeButtonText();
+                                                    authorizeButton.className = 'btn ' + getAuthorizeButtonCssClass();
+                                                    auth.closeAuthDialog();
+                                                });
+                                            }
+                                        }
+                                    }, getAuthorizeButtonText());
+                            }
+                        }
+                    }
+                }
+            ];
+
+            // 初始化Swagger UI
+            SwaggerUIBundle(configObject);
+        }
+    </script>
+</body>
+
+</html>

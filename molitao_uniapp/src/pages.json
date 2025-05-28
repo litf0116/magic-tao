@@ -1,0 +1,185 @@
+{
+	"easycom": {
+		"autoscan": true,
+		"custom": {
+			"^(?!z-paging-refresh|z-paging-load-more)z-paging(.*)": "z-paging/components/z-paging$1/z-paging$1.vue",
+			"^uv-(.*)": "@climblee/uv-ui/components/uv-$1/uv-$1.vue"
+		}
+	},
+	"pages": [
+		{
+			"path": "pages/tabbar/index",
+			"type": "home",
+			"layout": "main",
+			"style": {
+				"navigationBarTitleText": "魔力淘"
+			}
+		},
+		{
+			"path": "pages/index/index",
+			"type": "home",
+			"layout": "main",
+			"style": {
+				"navigationBarTitleText": "魔力淘"
+			}
+		},
+		{
+			"path": "pages/announce/list",
+			"type": "page",
+			"style": {
+				"navigationBarTitleText": "公告"
+			}
+		},
+		{
+			"path": "pages/chat/auction",
+			"type": "page",
+			"style": {
+				"navigationBarTitleText": "拍卖行"
+			}
+		},
+		{
+			"path": "pages/chat/contacts",
+			"type": "page",
+			"style": {
+				"navigationBarTitleText": "联系人"
+			}
+		},
+		{
+			"path": "pages/chat/groupChat",
+			"type": "page",
+			"style": {
+				"navigationBarTitleText": "群聊"
+			}
+		},
+		{
+			"path": "pages/chat/index",
+			"type": "page",
+			"style": {
+				"navigationBarTitleText": "会话"
+			}
+		},
+		// {
+		// 	"path": "pages/chat/lobby",
+		// 	"type": "page",
+		// 	"style": {
+		// 		"navigationBarTitleText": "勇者招募所"
+		// 	}
+		// },
+		{
+			"path": "pages/chat/privateChat",
+			"type": "page",
+			"style": {
+				"navigationBarTitleText": "私聊"
+			}
+		},
+		{
+			"path": "pages/index/login",
+			"type": "page",
+			"layout": "main",
+			"style": {
+				"navigationBarTitleText": "用户登录"
+			}
+		},
+		{
+			"path": "pages/index/my",
+			"type": "page",
+			"layout": "main",
+			"style": {
+				"navigationBarTitleText": "个人中心",
+				"navigationBarBackgroundColor": "#f6f6f6",
+				"navigationBarTextStyle": "black"
+			}
+		},
+		{
+			"path": "pages/tradingPost/index",
+			"type": "page",
+			"style": {
+				"navigationBarTitleText": "交易站"
+			}
+		},
+		{
+			"path": "pages/tradingPost/postDetail",
+			"type": "page",
+			"style": {
+				"navigationBarTitleText": "帖子详情"
+			}
+		},
+		{
+			"path": "pages/tradingPost/addPost",
+			"type": "page",
+			"style": {
+				"navigationBarTitleText": "发帖"
+			}
+		},
+		{
+			"path": "pages/user/auctionSuccessList",
+			"type": "page"
+		},
+		{
+			"path": "pages/user/balanceLog",
+			"type": "page",
+			"style": {
+				"navigationBarTitleText": "余额明细",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
+			"path": "pages/user/depositLog",
+			"type": "page",
+			"style": {
+				"navigationBarTitleText": "保证金明细",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
+			"path": "pages/user/info",
+			"type": "page",
+			"style": {
+				"navigationBarTitleText": "用户信息编辑"
+			}
+		},
+		{
+			"path": "pages/user/list",
+			"type": "page",
+			"style": {
+				"navigationBarTitleText": "用户列表",
+				"enablePullDownRefresh": true
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "white",
+		"navigationBarTitleText": "魔力淘",
+		"navigationBarBackgroundColor": "#f4835a"
+	},
+	// "tabBar": {
+	// 	"custom": true,
+	// 	"backgroundColor": "#ffffff",
+	// 	"selectedColor": "#F4835a",
+	// 	"color": "#999999",
+	// 	"borderStyle": "black",
+	// 	"list": [
+	// 		{
+	// 			"pagePath": "pages/index/index",
+	// 			"text": "首页"
+	// 		},
+	// 		{
+	// 			"pagePath": "pages/chat/index",
+	// 			"text": "会话列表"
+	// 		},
+	// 		{
+	// 			"pagePath": "pages/tradingPost/index",
+	// 			"text": "交易站"
+	// 		},
+	// 		{
+	// 			"pagePath": "pages/chat/contacts",
+	// 			"text": "通讯录"
+	// 		},
+	// 		{
+	// 			"pagePath": "pages/index/my",
+	// 			"text": "个人中心"
+	// 		}
+	// 	]
+	// },
+	"subPackages": []
+}
