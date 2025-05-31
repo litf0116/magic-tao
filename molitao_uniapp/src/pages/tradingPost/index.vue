@@ -60,10 +60,47 @@
                 />
                 <image src="../../static/搜索.png" class="search-icon" mode="aspectFit" @tap="loadData"></image>
             </view>
+            <!-- 此处是置顶帖子的位置    -->
+            <view class="section top-posts">
+                <view class="post-list" v-if="topPostList.length > 0">
+                    <view
+                        class="post-item"
+                        v-for="(item, index) in topPostList"
+                        :key="index"
+                        @tap="toDetail(item.postId)"
+                    >
+                        <view class="post-left">
+                            <view class="post-title">{{ item.title }}</view>
+                            <view class="post-meta">
+                                <view class="meta-left">
+                                    <text
+                                        v-if="item.category"
+                                        class="category-tag"
+                                        :class="'category-' + item.categoryType"
+                                    >
+                                        {{ item.category }}
+                                    </text>
+                                    <text class="username">{{ item.userName }}</text>
+                                </view>
+                                <text class="update-time">{{ item.createdAt }}</text>
+                            </view>
+                        </view>
+                        <view class="post-avatar">
+                            <image class="avatar" :src="item.userAvatar" mode="aspectFill"></image>
+                        </view>
+                    </view>
+                </view>
+                <!-- 空状态显示 -->
+                <view class="empty-state" v-else>
+                    <image class="empty-image" src="../../static/nodata.png" mode="aspectFit"></image>
+                    <text class="empty-text">暂无置顶帖子</text>
+                </view>
+            </view>
+            <!-- 热词区域 -->
             <view class="hotWords">
                 <view
-                    class="hotWords-item"
                     v-for="item in hotWordsList"
+                    class="hotWords-item"
                     :class="{ active: hotWordsActiveKey === item.id }"
                     @tap="switchHotWords(item)"
                 >
