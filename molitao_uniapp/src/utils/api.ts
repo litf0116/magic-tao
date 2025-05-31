@@ -199,7 +199,7 @@ export default {
         //编辑数据
         Edit: (data: any) => request('POST', `/api/Post/Edit`, data),
         //热词
-        GetHotWordsList: () => request('GET', `/api/HotWords/GetList`),
+        GetHotWordsList: () => request('GET', `/api/HotWords/GetList?MaxResultCount=999`),
     },
     /**又拍云上传 */
     upload: {
