@@ -119,6 +119,7 @@ const activeKey = ref(-1)
 const keywords = ref('')
 const page = ref(1)
 const pageSize = ref(20)
+const topPostList: any = ref([]) //置顶帖子列表
 const postList: any = ref([]) //帖子列表
 const hasNextPages = ref(false) //是否有下一页
 const latestBulletin: any = ref({}) //最新公告
@@ -148,6 +149,8 @@ onMounted(() => {
     console.log('onMounted 执行，准备加载热词...')
     loadCategoryList()
     loadLatestBulletin()
+    loadData(true)
+    // 初始化热词
     loadHotWords()
     loadData()
     uni.hideHomeButton()
@@ -198,7 +201,7 @@ const onLoadMore = async () => {
     }
 }
 //加载数据
-const loadData = () => {
+const loadData = async (isTop: boolean = false) => {
     if (keywords.value === '') {
         if (isSwitchHotWords.value) {
             postList.value.length = 0
@@ -207,17 +210,40 @@ const loadData = () => {
         hotWordsActiveKey.value = -1
     }
     console.log('调用 loadData 方法')
-    api.post
-        .GetPostAll({
-            type: activeKey.value,
-            Keyword: keywords.value,
-            SkipCount: page.value,
-            MaxResultCount: pageSize.value,
-        })
-        .then((res: any) => {
-            hasNextPages.value = res.hasNextPages
-            postList.value.push(...res.items)
-        })
+    const res: any = await api.post.GetPostAll({
+        Type: activeKey.value,
+        IsTop: isTop || false,
+        Keyword: keywords.value,
+        SkipCount: page.value,
+        MaxResultCount: pageSize.value,
+    })
+    if (isTop) {
+        // 如果是加载置顶帖子
+        console.log('加载置顶帖子')
+        topPostList.value = res.items
+    } else {
+        // 如果是加载普通帖子
+        console.log('加载普通帖子')
+        if (page.value === 1 && postList.value.length > 0) {
+            Tips.info('已是最新数据')
+            return
+        }
+        if (page.value === 1 && postList.value.length === 0 && res.items.length === 0) {
+            Tips.info('暂无数据')
+            return
+        }
+        if (page.value === 1) {
+            postList.value.length = 0 // 清空列表
+        }
+        // 合并新数据到现有列表
+        if (res.items.length === 0) {
+            Tips.info('没有更多数据了')
+            return
+        }
+        console.log('帖子接口返回：', res)
+        hasNextPages.value = res.hasNextPages
+        postList.value.push(...res.items)
+    }
 }
 //加载最新公告
 const loadLatestBulletin = () => {
