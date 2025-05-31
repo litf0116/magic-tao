@@ -39,26 +39,37 @@
                         <view class="content">
                             <!-- 如果当前群聊是私聊 则不展示用户等级信息 -->
                             <div
-                                v-if="chatOptions?.chatType !== 'private'"
                                 class="message-fromName"
                                 style="display: flex"
                                 :class="[message.fromAdmin ? ' !text-red-500' : '']"
                                 @tap="showGroupChatRules = true"
                             >
-                                <span
-                                    v-if="message.fromAdmin && message.fromTag"
-                                    :class="[message.tagClass ? message.tagClass : '']"
-                                    >{{ message.fromTag }}
-                                </span>
-                                <div
-                                    v-else
-                                    class="tag_AuctionManager"
-                                    :style="{
-                                        background: `linear-gradient(90deg,${message.userChatLevel.borderColor},${message.userChatLevel.rightBorderColor})`,
-                                    }"
-                                    style="margin-right: 5px; color: #fff"
-                                >
-                                    {{ message.userChatLevel.name }}
+                                <div v-if="chatOptions.chatType === 'private'">
+                                    <!-- 私有聊天是特有的 标签显示规则 只显示自己的标签 他人的标签不显示-->
+                                    <span
+                                        v-if="
+                                            message.fromAdmin && message.fromTag
+                                        "
+                                        :class="[message.tagClass ? message.tagClass : '']"
+                                        >{{ message.fromTag }}
+                                    </span>
+                                </div>
+                                <div v-else>
+                                    <span
+                                        v-if="message.fromAdmin && message.fromTag"
+                                        :class="[message.tagClass ? message.tagClass : '']"
+                                        >{{ message.fromTag }}
+                                    </span>
+                                    <div
+                                        v-else
+                                        class="tag_AuctionManager"
+                                        :style="{
+                                            background: `linear-gradient(90deg,${message.userChatLevel.borderColor},${message.userChatLevel.rightBorderColor})`,
+                                        }"
+                                        style="margin-right: 5px; color: #fff"
+                                    >
+                                        {{ message.userChatLevel.name }}
+                                    </div>
                                 </div>
                                 {{ message.fromName }}
                             </div>
