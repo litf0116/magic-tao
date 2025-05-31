@@ -10,6 +10,7 @@ namespace TtWork.Abp.Applications.Dtos {
         [CanBeNull] public string AppName { get; set; }
         public int? Type { get; set; }
         public bool? Self { get; set; }
+        public bool? IsTop { get; set; }
 
         public long? OrganizationUnitId { get; set; }
         public long? ShopId { get; set; }

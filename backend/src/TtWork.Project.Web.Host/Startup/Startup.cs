@@ -187,17 +187,17 @@ namespace TtWork.Project.Web.Host.Startup
             {
                 // 启用Swagger中间件
                 app.UseSwaggerMiddleware(_hostingEnvironment);
-                //if (_hostingEnvironment.IsDevelopment())
-                //{
+                if (_hostingEnvironment.IsDevelopment())
+               {
                 // Enable middleware to serve generated Swagger as a JSON endpoint
-                //app.UseSwagger();
+                app.UseSwagger();
                 // Enable middleware to serve swagger-ui assets (HTML, JS, CSS etc.)
 
-                //app.UseSwaggerUI(options =>
-                //{
-                //    options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1 Docs");
-                //    options.RoutePrefix = "swagger";
-                //});
+                app.UseSwaggerUI(options =>
+                {
+                    options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1 Docs");
+                    options.RoutePrefix = "swagger";
+                });
 
                 //app.UseReDoc(c =>
                 //{
@@ -217,7 +217,7 @@ namespace TtWork.Project.Web.Host.Startup
                 //    c.OnlyRequiredInSamples();
                 //    c.SortPropsAlphabetically();
                 //});
-                //}
+                }
             }
 
             app.UseMiddleware<RealIpMiddleware>();

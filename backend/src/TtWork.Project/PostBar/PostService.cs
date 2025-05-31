@@ -103,6 +103,7 @@ namespace TtWork.Project.PostBar
                    .LeftJoin<UserInfoEntity>((a, c) => a.userId == c.Id)
                    .WhereIF(!string.IsNullOrEmpty(input.Keyword), (a, c) => a.title.Contains(input.Keyword)||a.content.Contains(input.Keyword))
                    .WhereIF(input.Type != -1, (a, c) => a.categoryId.Contains(input.Type.ToString()))
+                  .WhereIF(input.IsTop.HasValue, (a, c) => a.isTop == input.IsTop.Value) // New filter condition
                    .Select((a, c) => new PostDto
                    {
                        title = a.title,

@@ -85,7 +85,7 @@ namespace TtWork.Project.Web.Controllers
             string password, string tenancyName)
         {
             var loginResult = await logInManager.LoginAsync(usernameOrEmailAddress, password, tenancyName);
-            //var password1 = passwordHasher.HashPassword(loginResult.User, "123456");
+         //   var password1 = passwordHasher.HashPassword(loginResult.User, "123456");
             switch (loginResult.Result)
             {
                 case AbpLoginResultType.Success:
@@ -689,6 +689,14 @@ namespace TtWork.Project.Web.Controllers
         private string GetEncrpyedAccessToken(string accessToken)
         {
             return SimpleStringCipher.Instance.Encrypt(accessToken, AppConsts.DefaultPassPhrase);
+        }
+
+        [HttpGet]
+        public string GenerateHashedPassword(string plainPassword = "123456")
+        {
+            var user = new User(); // 创建一个空的 User 实例
+            var hashedPassword = passwordHasher.HashPassword(user, plainPassword);
+            return hashedPassword;
         }
     }
 }
