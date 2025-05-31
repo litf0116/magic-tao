@@ -5,14 +5,13 @@
             scroll-y="true"
             refresher-enabled="true"
             :refresher-triggered="refresh"
-            @refresherrefresh="onRefresh"
-            @scrolltolower="onLoadMore"
-            @scroll="onScroll"
             :lower-threshold="150"
             :enhanced="true"
             :bounce="true"
             :show-scrollbar="true"
             fast-deceleration
+            @refresherrefresh="onRefresh"
+            @scrolltolower="onLoadMore"
         >
             <!-- 顶部筛选区 -->
             <view class="filter-section">
@@ -20,9 +19,9 @@
                 <scroll-view scroll-x class="category-scroll" :show-scrollbar="false">
                     <view class="category-list">
                         <view
-                            class="category-item"
                             v-for="item in postCategoryList"
                             :key="item.key"
+                            class="category-item"
                             :class="{ active: activeKey === item.categoryId }"
                             @tap="switchCategory(item.categoryId)"
                         >
@@ -42,7 +41,7 @@
                         ></image>
                     </view>
                     <view class="notice-content barrage-box" @tap="getMore(latestBulletin.content)">
-                        <view class="notice-text text" v-if="latestBulletin">
+                        <view v-if="latestBulletin" class="notice-text text">
                             <hbxw-roll-text :list="bulletinList" :duration="50"></hbxw-roll-text>
                         </view>
                     </view>
@@ -53,10 +52,10 @@
             <view class="search-box">
                 <input
                     type="text"
+                    v-model="keywords"
                     class="search-input"
                     placeholder="请输入关键词"
                     placeholder-class="placeholder-style"
-                    v-model="keywords"
                 />
                 <image src="../../static/搜索.png" class="search-icon" mode="aspectFit" @tap="loadData"></image>
             </view>
