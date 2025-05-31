@@ -60,13 +60,17 @@
                 />
                 <image src="../../static/搜索.png" class="search-icon" mode="aspectFit" @tap="loadData"></image>
             </view>
-            <!-- 此处是置顶帖子的位置    -->
+            <!-- 此处是置顶帖子的位置 -->
             <view class="section top-posts">
-                <view class="post-list" v-if="topPostList.length > 0">
+                <!-- 添加区域镖旗 -->
+                <view class="section-header">
+                    <text class="section-title">置顶帖子</text>
+                </view>
+                <view v-if="topPostList.length > 0" class="post-list">
                     <view
-                        class="post-item"
                         v-for="(item, index) in topPostList"
                         :key="index"
+                        class="post-item"
                         @tap="toDetail(item.postId)"
                     >
                         <view class="post-left">
@@ -75,8 +79,8 @@
                                 <view class="meta-left">
                                     <text
                                         v-if="item.category"
-                                        class="category-tag"
                                         :class="'category-' + item.categoryType"
+                                        class="category-tag"
                                     >
                                         {{ item.category }}
                                     </text>
@@ -91,7 +95,7 @@
                     </view>
                 </view>
                 <!-- 空状态显示 -->
-                <view class="empty-state" v-else>
+                <view v-else class="empty-state">
                     <image class="empty-image" src="../../static/nodata.png" mode="aspectFit"></image>
                     <text class="empty-text">暂无置顶帖子</text>
                 </view>
@@ -149,7 +153,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import api from '@/utils/api'
 
 const activeKey = ref(-1)
@@ -211,8 +215,6 @@ const switchHotWords = (key: any) => {
     isSwitchHotWords.value = true
     loadData()
 }
-// 监听滚动
-const onScroll = (e: any) => {}
 
 //下拉刷新
 const onRefresh = async () => {
@@ -338,14 +340,6 @@ const getMore = (text: any) => {
     modalConfig.show = true
     modalConfig.content = text
     emit('updateModalConfig', modalConfig)
-}
-const onCancel = () => {
-    console.log('调用 onCancel 方法')
-    modalConfig.show = false
-}
-const onConfirm = () => {
-    console.log('调用 onConfirm 方法')
-    modalConfig.show = false
 }
 </script>
 <style>
@@ -523,6 +517,7 @@ uni-modal .uni-modal__bd {
     margin-bottom: 8rpx;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -697,5 +692,18 @@ uni-modal .uni-modal__bd {
 .normal-posts {
     min-height: 400rpx;
     /* 可根据实际需求调整 */
+}
+
+.section-header {
+    padding: 10rpx 20rpx;
+    background-color: #f5f5f5;
+    border-radius: 8rpx;
+    margin-bottom: 10rpx;
+}
+
+.section-title {
+    font-size: 28rpx;
+    font-weight: bold;
+    color: #333;
 }
 </style>
