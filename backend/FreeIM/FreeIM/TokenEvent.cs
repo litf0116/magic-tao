@@ -31,6 +31,9 @@ namespace FreeIM {
         AuctionStart = 1000,
         AuctionBid = 1002,
         AuctionEnd = 1010,
+
+        // 卡秒状态
+        KasecStatusChanged = 2000,
     }
 
     public enum ChatMessageStatus {

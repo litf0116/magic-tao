@@ -13,8 +13,13 @@
             </div>
             <template v-if="activeName === '1'">
                 <div class="grid grid-cols-1 gap-2">
-                    <list-auction-item v-for="(x, index) in waitList" :key="x.id" :item="x" :index="getItemIndex(x)"
-                        @showDetail="showDetail" />
+                    <list-auction-item
+                        v-for="(x, index) in waitList"
+                        :key="x.id"
+                        :item="x"
+                        :index="getItemIndex(x)"
+                        @showDetail="showDetail"
+                    />
                     <div class="h-4"></div>
                 </div>
             </template>
@@ -27,16 +32,24 @@
             </template> -->
             <template v-else-if="activeName === '3'">
                 <div class="grid grid-cols-1 gap-2">
-                    <list-auction-item v-for="(x, index) in auctionStore.list4" :key="x.id" :item="x" :index="index + 1"
-                        @showDetail="showDetail" />
+                    <list-auction-item
+                        v-for="(x, index) in auctionStore.list4"
+                        :key="x.id"
+                        :item="x"
+                        :index="index + 1"
+                        @showDetail="showDetail"
+                    />
                     <div class="h-4"></div>
                 </div>
             </template>
         </div>
 
-
-        <div v-if="onAuctionItem && onAuctionItem.id" v-motion-fade-visible
-            class="h-250px flex flex-col justify-between relative" style="height: 250px">
+        <div
+            v-if="onAuctionItem && onAuctionItem.id"
+            v-motion-fade-visible
+            class="h-250px flex flex-col justify-between relative"
+            style="height: 250px"
+        >
             <!-- {{ onAuctionItem }} -->
             <div class="relative h-48 overflow-hidden" @click.stop="showDetail(onAuctionItem.id)">
                 <img :src="`${onAuctionItem.imageUrl}`" class="w-full h-48 cursor-pointer object-cover" />
@@ -69,16 +82,28 @@
         <div class="fixed bottom-24 right-4 flex flex-col z-99 space-y-4">
             <!-- //管理员菜单 -->
             <template v-if="userStore.isAuctionAdmin">
+                <!-- 卡秒按钮 -->
+                <el-tooltip :content="isKasec ? '关闭卡秒' : '开启卡秒'" effect="customized">
+                    <div class="bg-blue-5 size-12 rounded-full flex flex-center cursor-pointer mb-2">
+                        <div
+                            :class="['i-mdi:timer', isKasec ? 'text-red-500' : 'text-white']"
+                            @click.stop="toggleKasec"
+                        ></div>
+                    </div>
+                </el-tooltip>
+                <!-- 结束竞拍按钮 -->
                 <el-tooltip v-if="onAuctionItem" content="结束当前竞拍并发送得主" effect="customized">
                     <div class="bg-red-5 size-12 rounded-full flex flex-center cursor-pointer">
                         <div class="i-carbon:stop-filled-alt size-6 text-white" @click.stop="end"></div>
                     </div>
                 </el-tooltip>
+                <!-- 新增拍品按钮 -->
                 <el-tooltip content="新增拍品" effect="customized">
                     <div class="bg-orange-5 size-12 rounded-full flex flex-center cursor-pointer">
                         <div class="i-mdi:add size-6 text-white" @click.stop="addNew"></div>
                     </div>
-                </el-tooltip></template>
+                </el-tooltip>
+            </template>
             <!-- //用户菜单 -->
             <el-tooltip content="刷新拍品" effect="customized">
                 <div class="bg-gray-3 size-12 rounded-full flex flex-center cursor-pointer">
@@ -103,6 +128,9 @@ import PerfectScrollbar from 'perfect-scrollbar'
 import withdrawalApprovaltem from '@/components/Chat/withdrawalApprovaltem.vue'
 import addMsgConfiguration from '@/components/Chat/addMsgConfiguration.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Tips } from '@/composables'
+import { useChatStore } from '@/stores/chatStore'
+import { ChatMessageType } from '@/api/appService'
 
 let ps: PerfectScrollbar | null = null
 
@@ -114,7 +142,6 @@ const detailRef = ref<InstanceType<typeof auctionItemDetail> | null>(null)
 const withdrawalApprovaRef = ref<InstanceType<typeof auctionItemDetail> | null>(null)
 const addMsgRef = ref<InstanceType<typeof editAuctionItem> | null>(null)
 
-
 const activeName = ref('1')
 
 const waitList = computed(() => {
@@ -125,6 +152,7 @@ const onAuctionItem = computed(() => {
     return auctionStore.list.find((item) => item.status === '拍卖中') || null
 })
 
+const chatStore = useChatStore()
 
 onMounted(() => {
     ps = new PerfectScrollbar('#ps_container', {
@@ -134,8 +162,8 @@ onMounted(() => {
     })
     auctionStore.getList().then(() => {
         ps!.update()
+        if (onAuctionItem.value) auctionStore.syncKasecStatus(onAuctionItem.value.id)
     })
-    // startTimer()
 })
 
 watch(
@@ -149,12 +177,18 @@ watch(
             auctionStore.getList(2).then(() => {
                 ps!.update()
             })
-        }
-        else if (val === '3') {
+        } else if (val === '3') {
             auctionStore.getList(4).then(() => {
                 ps!.update()
             })
         }
+    }
+)
+
+watch(
+    () => onAuctionItem.value && onAuctionItem.value.id,
+    (id) => {
+        if (id) auctionStore.syncKasecStatus(id)
     }
 )
 
@@ -187,99 +221,94 @@ function getListHeight() {
     return onAuctionItem.value ? '354px' : '624px'
 }
 
-
-let normalIndex = 0;
+let normalIndex = 0
 const getItemIndex = (item) => {
     if (item.name.includes('空降')) {
-        return '';
+        return ''
     }
-    normalIndex++;
-    return normalIndex;
+    normalIndex++
+    return normalIndex
 }
-// 当数据变化时重置计数器
-watch(() => waitList, () => {
-    normalIndex = 0
-}, { deep: true })
 
 //LINK - 结束竞拍
 function end() {
     if (!onAuctionItem.value) {
-        ElMessage.error('没有正在拍卖的商品');
-        return;
+        ElMessage.error('没有正在拍卖的商品')
+        return
     }
     ElMessageBox.confirm('确定结束当前竞拍并发送得主？', '结束竞拍', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning',
-    }).then(() => {
-        auctionStore.end(onAuctionItem.value!.id!);
-    }).catch(() => {
-        Tips.info('取消结束');
     })
+        .then(() => {
+            auctionStore.end(onAuctionItem.value!.id!)
+        })
+        .catch(() => {
+            Tips.info('取消结束')
+        })
 }
 // LINK 出价
 function bid() {
     auctionStore.getList().then(() => {
         if (!onAuctionItem.value) {
-            ElMessage.error('没有正在拍卖的商品');
-            return;
+            ElMessage.error('没有正在拍卖的商品')
+            return
         }
-
-        let minPrice = 0;
+        let minPrice = 0
         if (onAuctionItem.value.currentPrice) {
-            // 算法：
-            // 100以内，1R一加
-            // 100~1000，5R一加
-            // 1000-2000，10R一加
-            // 2000-5000，20R一加
-            // 50000-1W，50一加
-            // 1W以上，100一加
             if (onAuctionItem.value.currentPrice < 100) {
-                minPrice = onAuctionItem.value.currentPrice + 1;
+                minPrice = onAuctionItem.value.currentPrice + 1
             } else if (onAuctionItem.value.currentPrice < 1000) {
-                minPrice = onAuctionItem.value.currentPrice + 5;
+                minPrice = onAuctionItem.value.currentPrice + 5
             } else if (onAuctionItem.value.currentPrice < 2000) {
-                minPrice = onAuctionItem.value.currentPrice + 10;
+                minPrice = onAuctionItem.value.currentPrice + 10
             } else if (onAuctionItem.value.currentPrice < 5000) {
-                minPrice = onAuctionItem.value.currentPrice + 20;
+                minPrice = onAuctionItem.value.currentPrice + 20
             } else if (onAuctionItem.value.currentPrice < 10000) {
-                minPrice = onAuctionItem.value.currentPrice + 50;
+                minPrice = onAuctionItem.value.currentPrice + 50
             } else {
-                minPrice = onAuctionItem.value.currentPrice + 100;
+                minPrice = onAuctionItem.value.currentPrice + 100
             }
         }
-
-        ElMessageBox.prompt(`请输入出价金额(最低出价${minPrice})`, '出价', {
+        if (auctionStore.isKasec) {
+            minPrice = onAuctionItem.value.currentPrice + (minPrice - onAuctionItem.value.currentPrice) * 3
+        }
+        let message = `请输入出价金额(最低出价${minPrice})`
+        if (auctionStore.isKasec) {
+            message =
+                `<div style='color:red;border:1px solid red;padding:4px;margin-bottom:8px;'>您已卡秒出价，需加够三倍竞拍价才有效（最低出价：${minPrice}）</div>` +
+                message
+        }
+        ElMessageBox.prompt(message, '出价', {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
             inputPattern: /\d+/,
             inputValue: '',
-            // inputValue: minPrice ? minPrice.toString() : '',
             inputType: 'number',
             inputErrorMessage: '请输入正确的金额',
+            dangerouslyUseHTMLString: true,
         })
             .then(({ value }) => {
-                console.log('value', value, typeof value);
-                // if (parseInt(value) < minPrice) {
-                //     ElMessageBox.alert(
-                //         '100以内，1R一加。100~1000，5R一加。1000-2000，10R一加。2000-5000，20R一加。50000-1W，50一加。1W以上，100一加',
-                //         '不能低于最低出价',
-                //         {
-                //             // if you want to disable its autofocus
-                //             // autofocus: false,
-                //             confirmButtonText: 'OK',
-                //         }
-                //     )
-                //     return
-                // }
-                auctionStore.bid(onAuctionItem.value!.id!, parseInt(value));
+                auctionStore.bid(onAuctionItem.value!.id!, parseInt(value))
             })
             .catch(() => {
-                Tips.info('取消出价');
+                Tips.info('取消出价')
             })
     })
 }
 
+function toggleKasec() {
+    if (!onAuctionItem.value) return
+    auctionStore.setKasec(onAuctionItem.value.id, !auctionStore.isKasec)
+    if (!auctionStore.isKasec) {
+        // 发送卡秒提示消息到拍卖群
+        chatStore.sendChannelMsg('商品进入成交倒计时，卡秒出价需加够三倍一口价！', '-1_auction', ChatMessageType.Text, {
+            highlight: true,
+            border: 'red',
+        })
+    }
+}
 </script>
 
 <style>

@@ -22,6 +22,7 @@ export enum ChatMessageType {
     'AuctionBid' = 'AuctionBid',
     'AuctionEnd' = 'AuctionEnd',
     'Error' = 'Error',
+    'KasecStatusChanged' = 'KasecStatusChanged',
 }
 
 export interface ChatMessage {
@@ -300,10 +301,10 @@ export interface BidHistoryCreateDto {
 export interface ChatEmojiDto {
     /**  */
     url?: string;
-  
+
     /**  */
     payload?: string;
-  
+
     /**  */
     id?: number;
   }

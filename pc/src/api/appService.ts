@@ -6374,6 +6374,8 @@ export enum ChatMessageType {
     'AuctionBid' = 'AuctionBid',
     'AuctionEnd' = 'AuctionEnd',
     'Error' = 'Error',
+    'KasecStatusChanged' = 'KasecStatusChanged',
+    'System' = "System",
 }
 
 export enum FromClient {

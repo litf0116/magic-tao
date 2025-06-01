@@ -8,7 +8,22 @@ export const useAuctionStore = defineStore('auction', () => {
     const userStore = useUserStore()
     const list = ref<AuctionItemDto[]>([])
     const list4 = ref<AuctionItemDto[]>([])
-	const auctionMidList=ref<AuctionItemDto[]>([])
+    const auctionMidList = ref<AuctionItemDto[]>([])
+    // 当前拍卖品ID
+    const currentAuctionId = ref<number | null>(null)
+    // 卡秒状态
+    const isKasec = ref(false)
+
+    function setCurrentAuctionId(auctionId: number) {
+        currentAuctionId.value = auctionId
+        syncKasecStatus(auctionId)
+    }
+
+    async function syncKasecStatus(auctionId: number) {
+        // 假设有 getKasecStatus API
+        const res = await api.auctionItem.getKasecStatus(auctionId)
+        isKasec.value = !!res
+    }
 
     function end(auctionItemId: number) {
         api.auctionItem.endAuction({ id: auctionItemId }).then((res) => {
@@ -69,11 +84,15 @@ export const useAuctionStore = defineStore('auction', () => {
     return {
         list,
         list4,
+        auctionMidList,
         bid,
         end,
         startAuction,
         startNotify,
         getList,
-		auctionMidList
+        currentAuctionId,
+        setCurrentAuctionId,
+        isKasec,
+        syncKasecStatus,
     }
 })

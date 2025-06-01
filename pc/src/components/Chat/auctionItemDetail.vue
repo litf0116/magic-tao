@@ -1,6 +1,14 @@
 <template>
-    <el-dialog v-if="item" v-model="dialogVisible" :title="item.name" width="600" draggable :destroy-on-close="true"
-        append-to-body @close="onClose">
+    <el-dialog
+        v-if="item"
+        v-model="dialogVisible"
+        :title="item.name"
+        width="600"
+        draggable
+        :destroy-on-close="true"
+        append-to-body
+        @close="onClose"
+    >
         <div v-if="userStore.isChatAdmin && item.sellerInfo" class="text-blue my-2">
             卖家信息[仅管理可见]: {{ item.sellerInfo }}
         </div>
@@ -11,8 +19,12 @@
                 <img :src="item.imageUrl" class="size-128 auctionDesc" />
             </div>
         </div> -->
-        <div v-if="item && item.id" v-motion-fade-visible class="h-250px flex flex-col justify-between relative"
-            style="min-height: 300px;overflow-y: scroll;">
+        <div
+            v-if="item && item.id"
+            v-motion-fade-visible
+            class="h-250px flex flex-col justify-between relative"
+            style="min-height: 300px; overflow-y: scroll"
+        >
             <!-- {{ onAuctionItem }} -->
             <div>
                 <div v-if="item.description" id="auctionDesc" v-html="item.description"></div>
@@ -22,15 +34,22 @@
             </div>
         </div>
         <template #footer>
-            <div v-if="item.status != '已成交' && userStore.isChatAdmin === false" style="margin-top: 50px;"
-                class="absolute top-0 left-0 bg-[#f4835a] text-white shadow rounded-rb-lg px-2 font-bold">
-                {{ item.status != '拍卖中' ? "等待竞拍" : "竞拍中" }}
+            <div
+                v-if="item.status != '已成交' && userStore.isChatAdmin === false"
+                style="margin-top: 50px"
+                class="absolute top-0 left-0 bg-[#f4835a] text-white shadow rounded-rb-lg px-2 font-bold"
+            >
+                {{ item.status != '拍卖中' ? '等待竞拍' : '竞拍中' }}
             </div>
             <div v-if="userStore.isChatAdmin" class="dialog-footer">
                 <el-button v-if="item.status != '拍卖中'" type="danger" @click="toDelete(item)"> 删除 </el-button>
 
                 <el-button type="primary" @click="toEdit(item)"> 修改 </el-button>
-                <el-button :disabled="item.status === '拍卖中' ? true : false" type="success" @click="startAuction(item)">
+                <el-button
+                    :disabled="item.status === '拍卖中' ? true : false"
+                    type="success"
+                    @click="startAuction(item)"
+                >
                     开始拍卖
                 </el-button>
                 <el-button v-if="item.status === '拍卖中'" type="success" @click="end(item)"> 结束竞拍 </el-button>
@@ -50,6 +69,7 @@ import { AuctionItemDto } from '@/api/appService'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { GetAuctionMidList } from '@/api/auctionMidAPI'
 import { GetDetail } from '@/api/auctionItemAPI'
+import { Tips } from '@/composables'
 
 const userStore = useUserStore()
 const emit = defineEmits(['onEdit'])
@@ -57,7 +77,7 @@ const emit = defineEmits(['onEdit'])
 const auctionStore = useAuctionStore()
 
 const dialogVisible = ref(false)
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 function toEdit(item: AuctionItemDto) {
     emit('onEdit', item.id)
@@ -86,41 +106,41 @@ function startAuction(item: AuctionItemDto) {
 function end(item: AuctionItemDto) {
     if (!item) {
         ElMessage.error('没有正在拍卖的商品')
-        return;
+        return
     }
 
     ElMessageBox.confirm('确定结束当前竞拍并发送得主？', '结束竞拍', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning',
-    }).then(async () => {
-        auctionStore.end(item!.id!);
-        dialogVisible.value = false;
-        await sleep(1000);
-        GetAuctionMidList({ status: 2, maxResultCount: 20 }).then((res) => {
-            if (res.status == 200) {
-                console.log(res);
-                auctionStore.auctionMid.length = 0;
-                auctionStore.auctionMid = res.data.items;
-            }
-        })
-    }).catch(() => {
-        Tips.info('取消结束');
     })
+        .then(async () => {
+            auctionStore.end(item!.id!)
+            dialogVisible.value = false
+            await sleep(1000)
+            GetAuctionMidList({ status: 2, maxResultCount: 20 }).then((res) => {
+                if (res.status == 200) {
+                    console.log(res)
+                    auctionStore.auctionMid.length = 0
+                    auctionStore.auctionMid = res.data.items
+                }
+            })
+        })
+        .catch(() => {
+            Tips.info('取消结束')
+        })
 }
-
-
 
 //出价
 function bid(id) {
     auctionStore.getList(2).then((res) => {
-        var info = auctionStore.auctionMid.find((item) => item.id === id);
+        var info = auctionStore.auctionMid.find((item) => item.id === id)
         if (!info) {
             ElMessage.error('没有正在拍卖的商品')
-            return;
+            return
         }
 
-        let minPrice = 0;
+        let minPrice = 0
         if (info.currentPrice) {
             // 算法：
             // 100以内，1R一加
@@ -130,17 +150,17 @@ function bid(id) {
             // 50000-1W，50一加
             // 1W以上，100一加
             if (info.currentPrice < 100) {
-                minPrice = info.currentPrice + 1;
+                minPrice = info.currentPrice + 1
             } else if (info.currentPrice < 1000) {
-                minPrice = info.currentPrice + 5;
+                minPrice = info.currentPrice + 5
             } else if (info.currentPrice < 2000) {
-                minPrice = info.currentPrice + 10;
+                minPrice = info.currentPrice + 10
             } else if (info.currentPrice < 5000) {
-                minPrice = info.currentPrice + 20;
+                minPrice = info.currentPrice + 20
             } else if (info.currentPrice < 10000) {
-                minPrice = info.currentPrice + 50;
+                minPrice = info.currentPrice + 50
             } else {
-                minPrice = info.currentPrice + 100;
+                minPrice = info.currentPrice + 100
             }
         }
 
@@ -152,22 +172,23 @@ function bid(id) {
             // inputValue: minPrice ? minPrice.toString() : '',
             inputType: 'number',
             inputErrorMessage: '请输入正确的金额',
-        }).then(async ({ value }) => {
-            console.log('value', value, typeof value);
-            dialogVisible.value = false;
-            auctionStore.bid(info!.id!, parseInt(value));
-            await sleep(1000);
-            GetAuctionMidList({ status: 2, maxResultCount: 20 }).then((res) => {
-                if (res.status == 200) {
-                    console.log(res);
-                    auctionStore.auctionMid.length = 0;;
-                    auctionStore.auctionMid = res.data.items;
-                }
-            })
-
-        }).catch(() => {
-            Tips.info('取消出价');
         })
+            .then(async ({ value }) => {
+                console.log('value', value, typeof value)
+                dialogVisible.value = false
+                auctionStore.bid(info!.id!, parseInt(value))
+                await sleep(1000)
+                GetAuctionMidList({ status: 2, maxResultCount: 20 }).then((res) => {
+                    if (res.status == 200) {
+                        console.log(res)
+                        auctionStore.auctionMid.length = 0
+                        auctionStore.auctionMid = res.data.items
+                    }
+                })
+            })
+            .catch(() => {
+                Tips.info('取消出价')
+            })
     })
 }
 
@@ -186,14 +207,14 @@ watch(
 const showImageViewer = inject('showImageViewer') as (list: string[]) => void
 
 const show = (e: boolean, id: number) => {
-    dialogVisible.value = e;
+    dialogVisible.value = e
     if (e) {
         GetDetail(id).then((res) => {
             // if (res.status != "拍卖中" && userStore.isChatAdmin == false) {
             //     dialogVisible.value = false;
             //     return;
             // }
-            item.value = res.data;
+            item.value = res.data
             nextTick(() => {
                 const images = document.querySelectorAll('#auctionDesc img')
                 images.forEach((img) => {

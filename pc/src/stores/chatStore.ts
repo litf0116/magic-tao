@@ -5,6 +5,7 @@ import { BASE_API_URL } from '@/utils/request'
 import { ChatGroupDto, ChatMessage, ChatMessageType, UserDtoBase } from '@/api/appService'
 import { uniqBy, orderBy } from 'lodash'
 import { useEventBus } from '@vueuse/core'
+import { useAuctionStore } from '@/stores/auctionStore'
 
 export const onmessageKey = Symbol('onmessageKey')
 
@@ -73,6 +74,8 @@ export const useChatStore = defineStore('chat', () => {
     const websocketId = useLocalStorage('websocketId', 0)
     const qrUrl = ref('')
     const pubQrUrl = ref('')
+
+    const auctionStore = useAuctionStore()
 
     //getter
 
@@ -317,6 +320,29 @@ export const useChatStore = defineStore('chat', () => {
             } else {
                 chatMap.value.set(`${msg.from}`, [msg])
             }
+        }
+
+        // 处理卡秒状态变更系统消息
+        if (msg.type === ChatMessageType.KasecStatusChanged && msg.payload) {
+            const { auctionItemId, isKasec } = msg.payload
+            // 只处理当前拍卖频道
+            if (currentChat.value.id === -1) {
+                auctionStore.syncKasecStatus(auctionItemId)
+                // 插入系统提示
+                const sysMsg: ChatMessage = {
+                    type: ChatMessageType.Text,
+                    chan: '-1_auction',
+                    msg: isKasec ? '拍卖师已开启卡秒，需三倍加价！' : '卡秒已关闭，恢复正常加价',
+                    time: Date.now(),
+                    payload: { auctionItemId, isKasec },
+                }
+                if (chatMap.value.has('-1')) {
+                    chatMap.value.get('-1')!.push(sysMsg)
+                } else {
+                    chatMap.value.set('-1', [sysMsg])
+                }
+            }
+            return
         }
     }
 

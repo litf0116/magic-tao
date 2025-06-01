@@ -65,11 +65,3 @@ const checkIncludes = computed(() => {
     font-weight: 600;
 }
 </style>
-
-function defineProps(arg0: { item: { type: PropType<AuctionItemDto>; required: boolean }; index: { required: boolean } }): any {
-  throw new Error('Function not implemented.')
-}
-
-function defineEmits(arg0: string[]) {
-  throw new Error('Function not implemented.')
-}

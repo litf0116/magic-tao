@@ -2,8 +2,9 @@ import api from '@/utils/api'
 import { defineStore } from 'pinia'
 import { uniqBy, orderBy } from 'lodash'
 import { useEventBus } from '@vueuse/core'
-import { ChatMessageStatus, type ChatListItem, type ChatMessage, type UserDtoBase } from '../composables/types'
+import { ChatMessageStatus, type ChatListItem, type ChatMessage, type UserDtoBase, ChatMessageType } from '../composables/types'
 import { useStorageRef } from '@/composables/useStorageRef'
+import { useAuctionStore } from './auctionStore'
 type ChannelType = { chan: string; online: number }
 
 const LobbyChat: ChatListItem = {
@@ -101,6 +102,7 @@ export const useChatStore = defineStore('chatStore', () => {
                         }
                         if (msg.type === 'Error') {
                             // alert(msg.receipt)
+                            console.log('websocket message error', msg)
                             return
                         }
                         onmessage(msg)
@@ -150,6 +152,8 @@ export const useChatStore = defineStore('chatStore', () => {
             })
         })
     }
+
+    const auctionStore = useAuctionStore()
 
     const onmessage = function (msg: ChatMessage) {
         console.log('onmessage', msg)
@@ -243,6 +247,31 @@ export const useChatStore = defineStore('chatStore', () => {
             } else {
                 chatMap.value.set(`${msg.from}`, [msg])
             }
+        }
+
+        // 处理卡秒状态变更系统消息
+        if (msg.type === ChatMessageType.KasecStatusChanged && msg.payload) {
+            const { auctionItemId, isKasec } = msg.payload
+            // 只处理当前拍卖频道
+            if (currentChat.value.id === -1) {
+                if (typeof auctionStore.syncKasecStatus === 'function') {
+                    auctionStore.syncKasecStatus(auctionItemId)
+                }
+                // 插入系统提示
+                const sysMsg: ChatMessage = {
+                    type: ChatMessageType.Text,
+                    chan: '-1_auction',
+                    msg: isKasec ? '拍卖师已开启卡秒，需三倍加价！' : '卡秒已关闭，恢复正常加价',
+                    time: Date.now(),
+                    payload: { auctionItemId, isKasec },
+                }
+                if (chatMap.value.has('-1')) {
+                    chatMap.value.get('-1')!.push(sysMsg)
+                } else {
+                    chatMap.value.set('-1', [sysMsg])
+                }
+            }
+            return
         }
     }
 

@@ -275,9 +275,16 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
 
             #endregion
 
+            // 读取卡秒状态，若为 true，最低加价三倍
+            var kasecVal = await _redisClient.Database.StringGetAsync($"Auction:Kasec:{input.AuctionItemId}");
+            if (kasecVal.HasValue && kasecVal == "true")
+            {
+                minPrice = find.CurrentPrice.Value + ((minPrice - find.CurrentPrice.Value) * 3);
+            }
+
             if (input.BidPrice < minPrice)
                 throw new UserFriendlyException(1,
-                    "出价必须大于最低加价\n 100以内，1R一加。100~1000，5R一加。1000-2000，10R一加。2000-5000，20R一加。50000-1W，50一加。1W以上，100一加");
+                    "出价必须大于最低加价\n 100以内，1R一加。100~1000，5R一加。1000-2000，10R一加。2000-5000，20R一加。50000-1W，50一加。1W以上，100一加" + (kasecVal.HasValue && kasecVal == "true" ? "\n卡秒期间需三倍加价" : ""));
 
             // if (find.CurrentPrice >= input.BidPrice) throw new UserFriendlyException(1, "出价必须大于当前价格");
 
@@ -670,8 +677,23 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             var bidUser = await _userCache.GetAsync(result.DealUserId!.Value);
 
             result.DealUserAvatar = bidUser.HeadImgUrl;
-
-            //
+            // 结束后自动关闭卡秒状态
+            await _redisClient.Database.StringSetAsync($"Auction:Kasec:{input.Id}", false);
+            // 广播卡秒状态变更消息
+            var msg = new ChatMessage
+            {
+                type = ChatMessageType.KasecStatusChanged,
+                chan = "-1_auction",
+                msg = "",
+                payload = new { auctionItemId = input.Id, isKasec = false },
+                time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+            };
+            await _webSocketController.SendChannelMsg(new SendChangeMsgInput
+            {
+                Chan = "-1_auction",
+                From = AbpSession.UserId.Value,
+                Message = msg
+            });
             return result;
         }
         catch (Exception ex)
@@ -886,5 +908,36 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 Count = grp.Count()
             }).ToListAsync();
         return query.OrderBy(x => x.Year).ThenBy(x => x.Month).ThenBy(x => x.Date);
+    }
+
+    // 1. 设置卡秒状态（管理员权限）
+    [HttpPost]
+    [AbpAuthorize(AppPermissions.Pages.ChatManager)]
+    public async Task SetKasecStatus(long auctionItemId, bool isKasec)
+    {
+        await _redisClient.Database.StringSetAsync($"Auction:Kasec:{auctionItemId}", isKasec);
+        // 广播卡秒状态变更消息
+        var msg = new ChatMessage
+        {
+            type = ChatMessageType.KasecStatusChanged,
+            chan = "-1_auction",
+            msg = "",
+            payload = new { auctionItemId, isKasec },
+            time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+        };
+        await _webSocketController.SendChannelMsg(new SendChangeMsgInput
+        {
+            Chan = "-1_auction",
+            From = AbpSession.UserId.Value,
+            Message = msg
+        });
+    }
+
+    // 2. 获取卡秒状态（所有用户）
+    [HttpGet]
+    public async Task<bool> GetKasecStatus(long auctionItemId)
+    {
+        var val = await _redisClient.Database.StringGetAsync($"Auction:Kasec:{auctionItemId}");
+        return val.HasValue && val == "true";
     }
 }

@@ -4,6 +4,7 @@ import { ref } from 'vue'
 import { AuctionItemDto, ChatMessageType } from '@/api/appService'
 import api from '@/api'
 import { GetAuctionMidList } from '@/api/auctionMidAPI'
+import { setKasecStatus, getKasecStatus } from '@/api/auctionItemAPI'
 
 export const useAuctionStore = defineStore('auction', () => {
     const chatStore = useChatStore()
@@ -20,6 +21,20 @@ export const useAuctionStore = defineStore('auction', () => {
      * 拍卖中的物品
      */
     const auctionMid = ref<AuctionItemDto[]>([])
+    // 卡秒状态
+    const isKasec = ref(false)
+
+    // 设置卡秒状态（管理员）
+    async function setKasec(auctionItemId, kasec) {
+        await setKasecStatus(auctionItemId, kasec)
+        isKasec.value = kasec
+    }
+    // 获取卡秒状态
+    async function syncKasecStatus(auctionItemId) {
+        const res = await getKasecStatus(auctionItemId)
+        isKasec.value = !!res
+    }
+
     //结束竞拍
     function end(auctionItemId: number) {
         api.auctionItem.endAuction({ id: auctionItemId }).then((res) => {
@@ -30,6 +45,8 @@ export const useAuctionStore = defineStore('auction', () => {
             if(res.dealUserId){
                 chatStore.sendMsg(res.dealUserId, res.dealUserName, res.dealUserAvatar, res.toUserMsg, ChatMessageType.Text, res)
             }
+            // 结束后自动关闭卡秒
+            isKasec.value = false
         })
     }
 
@@ -108,5 +125,8 @@ export const useAuctionStore = defineStore('auction', () => {
         startNotify,
         startAuction,
         getList,
+        isKasec,
+        setKasec,
+        syncKasecStatus,
     }
 })
