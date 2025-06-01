@@ -132,21 +132,11 @@
                                 </div>
 
                                 <!-- 公布得主 -->
-                                <div
+                                <AuctionEndMessage
                                     v-if="message.type === ChatMessageType.AuctionEnd && message.payload"
-                                    class="border-amber border-2 border-solid py-2 px-4 rounded-lg relative"
-                                >
-                                    <div
-                                        class="absolute top-0 right-0 bg-amber text-white rounded-lb-lg px-2 font-bold text-xs"
-                                    >
-                                        成功竞拍
-                                    </div>
-                                    <div
-                                        class="max-w-350px min-w-200px"
-                                        @tap="showDetails(message)"
-                                        v-html="getEndContent(message)"
-                                    ></div>
-                                </div>
+                                    :message="message"
+                                    @showDetails="showDetails"
+                                />
                             </view>
                         </view>
                     </view>
@@ -296,6 +286,7 @@
 
 <script setup lang="ts">
 import userProfile from './userProfile.vue'
+import AuctionEndMessage from './AuctionEndMessage.vue'
 import { upload } from '@/utils/upload'
 import dayjs from 'dayjs'
 import { useDebounceFn } from '@vueuse/core'
@@ -323,7 +314,7 @@ const popupDetailRef = ref(null as any)
 const emit = defineEmits(['loadHistoryMessage', 'onSend', 'showDetail'])
 
 const isLoadingHistory = ref(false)
-//是否展示‘其他消息类型面板’
+//是否展示'其他消息类型面板'
 const otherTypesMessagePanelVisible = ref(false)
 
 function loadHistoryMessage(isScrollToBottom: boolean) {

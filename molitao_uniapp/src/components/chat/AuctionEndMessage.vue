@@ -5,8 +5,9 @@
             <!-- 已成交状态 -->
             <div v-if="payloadData.status === '已成交'">
                 <div class="text-red-500">
-                    恭喜 {{ payloadData.dealUserName }} 最终以
-                    <b class="text-lg">￥{{ payloadData.finalPrice }}</b> 拍得商品
+                    <text>恭喜 {{ payloadData.dealUserName }} 最终以 </text>
+                    <text class="text-lg">￥{{ payloadData.finalPrice }}</text>
+                    <text> 拍得商品</text>
                 </div>
                 <div class="text-sm">商品名称: {{ payloadData.name }}</div>
                 <div class="text-sm">{{ formattedDealTime }}</div>
@@ -45,6 +46,7 @@ export default {
             if (typeof payload === 'string') {
                 payload = JSON.parse(payload!)
             }
+            console.log('payloadData', payload)
             return payload
         })
 
