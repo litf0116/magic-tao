@@ -44,7 +44,7 @@
                                 :class="[message.fromAdmin ? ' !text-red-500' : '']"
                                 @tap="showGroupChatRules = true"
                             >
-                                <div v-if="chatOptions.chatType === 'private'">
+                                <div v-if="chatOptions?.chatType === 'private'">
                                     <!-- 私有聊天是特有的 标签显示规则 只显示自己的标签 他人的标签不显示-->
                                     <span
                                         v-if="message.fromAdmin && message.fromTag"
