@@ -1,7 +1,7 @@
 <template>
     <div class="border-amber border-2 border-solid py-2 px-4 rounded-lg relative">
         <div class="absolute top-0 right-0 bg-amber text-white rounded-lb-lg px-2 font-bold text-xs">成功竞拍</div>
-        <div class="max-w-350px min-w-200px" @tap="handleAction">
+        <div class="max-w-350px min-w-200px" @click="handleAction">
             <!-- 已成交状态 -->
             <div v-if="payloadData.status === '已成交'">
                 <div class="text-red-500">

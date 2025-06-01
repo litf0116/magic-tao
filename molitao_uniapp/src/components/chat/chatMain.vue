@@ -135,7 +135,7 @@
                                 <AuctionEndMessage
                                     v-if="message.type === ChatMessageType.AuctionEnd && message.payload"
                                     :message="message"
-                                    @showDetails="showDetails"
+                                    @action="onAuctionEndAction"
                                 />
                             </view>
                         </view>
@@ -831,6 +831,10 @@ function goShowDetails(item: any) {
         popupDetailRef.value.open('bottom')
         showItem.value = item.payload
     }
+}
+
+function onAuctionEndAction({ message, payload }) {
+    showDetails(message)
 }
 </script>
 
