@@ -22,7 +22,7 @@ onLoad(async (pamams: any) => {
         chatStore.connectServer().then(async () => {
             if (chatStore.hasGroup(t)) {
                 await chatStore.SetCurrentChatId(parseInt(t.split('_')[0]), t.split('_')[1], true).then(() => {
-                    initGroup(t)
+                    initGroup()
                 })
             } else {
                 Tips.error('未找到该群聊')
@@ -32,7 +32,7 @@ onLoad(async (pamams: any) => {
     }
 })
 
-const initGroup = async (name: string) => {
+const initGroup = async () => {
     await loadHistoryMessage(true)
 }
 
