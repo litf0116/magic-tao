@@ -196,17 +196,21 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         var user = await _userCache.GetAsync(AbpSession.UserId!.Value);
         //获取消息提示
         var msgConfiguration = await _sqlSugarClient.Queryable<MsgConfigurationEntity>().Where(w => w.Type == 1).FirstAsync();
+        // 查询用户群聊等级（只针对0级用户判断保证金）
+        var userGroupLevel = await _sqlSugarClient.Queryable<UserGroupLevelEntity>()
+            .LeftJoin<GroupChatLevelSettingsEntity>((a, b) => a.GroupChatId == b.Id)
+            .Where((a, b) => a.UserId == user.Id)
+            .Select((a, b) => new { a.UserId, b.Level })
+            .FirstAsync();
+        int userLevel = userGroupLevel?.Level ?? 0;
+        if (userLevel == 0 && user.DepositBalance < 50)
+        {
+            throw new UserFriendlyException(msgConfiguration != null ? msgConfiguration.Msg : $"当前用户保证金不足50，请先去充值保证金！");
+        }
         //拍卖场不修改名字头像不给出价权限
         if (Regex.IsMatch(input.BidUserName, @"^玩家\d{5}"))
         {
             throw new UserFriendlyException("请先修改昵称后再进行出价");
-        }
-        //获取用户保证金
-        DateTime currentDate = DateTime.Now;
-        TimeSpan difference = currentDate - user.CreationTime;
-        if (difference.Days < 3 && user.DepositBalance < 50)
-        {
-            throw new UserFriendlyException(msgConfiguration != null ? msgConfiguration.Msg : $"当前用户保证金不足50，请先去充值保证金！");
         }
         var isChatAdmin = await CheckIsChatAdmin();
         if (!isChatAdmin.Item1)
