@@ -9,8 +9,19 @@
                     <text class="text-lg">￥{{ payloadData.finalPrice }}</text>
                     <text> 拍得商品</text>
                 </div>
-                <div class="text-sm">商品名称: {{ payloadData.name }}</div>
-                <div class="text-sm">{{ formattedDealTime }}</div>
+                <div
+                    class="auction-item-box"
+                    style="
+                        border: 1px solid #ffb673;
+                        border-radius: 10px;
+                        padding: 8px 12px;
+                        margin: 8px 0;
+                        display: inline-block;
+                    "
+                >
+                    <span style="font-weight: bold; font-size: 20px">{{ payloadData.name }}</span>
+                </div>
+                <div class="text-sm" style="margin-left: 12px">{{ formattedDealTime }}</div>
                 <div class="mt-2 text-sm text-gray-600">
                     买卖双方私聊拍卖师确认交易!<br />
                     认准星标小心冒充<br />
