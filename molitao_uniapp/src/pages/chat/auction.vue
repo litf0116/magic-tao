@@ -236,22 +236,45 @@ function showGoods() {
     popupRef.value.open()
 }
 //出价
-function bid() {
+async function bid() {
+    const userId = userStore.user.id
+    const deposit = userStore.user.depositBalance || 0
+    // 获取用户等级
+    const res = await api.groupChatLevel.GetUserGroupLevel(userId)
+    const userLevel = res.data?.level ?? 0
+
+    if (userLevel === 0 && deposit < 50) {
+        uni.showModal({
+            title: '出价须知',
+            content: '新用户参与拍卖，需要缴纳50元保证金\n老用户回归参与拍卖，需向拍卖师-老淡，提供以往QQ群成交聊天记录截图',
+            showCancel: true,
+            confirmText: '缴纳保证金',
+            cancelText: '提供聊天记录截图',
+            success: (res) => {
+                if (res.confirm) {
+                    // 跳转到保证金缴纳页面
+                    uni.navigateTo({
+                        url: '/pages/user/deposit' // 替换为实际保证金充值页面路径
+                    })
+                } else if (res.cancel) {
+                    // 跳转到与管理员私信页面
+                    uni.navigateTo({
+                        url: '/pages/chat/privateChat?userId=10001' // 替换为实际管理员ID
+                    })
+                }
+            }
+        })
+        return
+    }
+
+    // 满足条件，弹出原有出价输入框
     auctionStore.getList().then(() => {
         if (!onAuctionItem.value) {
             Tips.error('没有正在拍卖的商品')
             return
         }
-
         let minPrice = 0
         if (onAuctionItem.value.currentPrice) {
-            // 算法：
-            // 100以内，1R一加
-            // 100~1000，5R一加
-            // 1000-2000，10R一加
-            // 2000-5000，20R一加
-            // 50000-1W，50一加
-            // 1W以上，100一加
             if (onAuctionItem.value.currentPrice < 100) {
                 minPrice = onAuctionItem.value.currentPrice + 1
             } else if (onAuctionItem.value.currentPrice < 1000) {
@@ -269,7 +292,6 @@ function bid() {
 
         uni.showModal({
             title: `请输入出价金额(最低出价${minPrice})`,
-            // content: minPrice ? minPrice.toString() : '',
             content: '',
             editable: true,
             placeholderText: '请输入出价金额',
@@ -280,13 +302,6 @@ function bid() {
                         Tips.noCancelModal('请输入数字')
                         return
                     }
-                    // if (value < minPrice) {
-                    //     Tips.noCancelModal(
-                    //         '100以内，1R一加。100~1000，5R一加。1000-2000，10R一加。2000-5000，20R一加。50000-1W，50一加。1W以上，100一加',
-                    //         '不能低于最低出价'
-                    //     )
-                    //     return
-                    // }
                     auctionStore.bid(onAuctionItem.value!.id!, value)
                 }
             },

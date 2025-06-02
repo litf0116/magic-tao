@@ -13,6 +13,7 @@ using TtWork.Project.Applications;
 using TtWork.Project.Core;
 using TtWork.Project.Domains.Pays;
 using TtWork.Project.Events.Commands;
+using SqlSugar;
 
 namespace TtWork.Project.Jobs;
 
@@ -22,7 +23,8 @@ public class UserDepositJob(
     IRepository<UserDepositLog, Ulid> userDepositLogRepository,
     UserManager userManager,
     IMediator mediator,
-    IUnitOfWorkManager unitOfWorkManager) : IAsyncBackgroundJob<UserDepositLog>, ITransientDependency {
+    IUnitOfWorkManager unitOfWorkManager,
+    ISqlSugarClient sqlSugarClient) : IAsyncBackgroundJob<UserDepositLog>, ITransientDependency {
     [UnitOfWork]
     public virtual async Task ExecuteAsync(UserDepositLog log) {
         using (unitOfWorkManager.Current.DisableFilter(AbpDataFilters.MayHaveTenant, AbpDataFilters.MustHaveTenant)) {
@@ -68,6 +70,38 @@ public class UserDepositJob(
             await userManager.AddToRoleAsync(user, ProjectRoles.竞拍用户);
             // await unitOfWorkManager.Current.SaveChangesAsync();
 
+            #endregion
+
+            #region 自动升级群聊等级
+            // 查询用户当前等级
+            var userGroupLevel = await sqlSugarClient.Queryable<TtWork.Abp.Entity.UserGroupLevelEntity>()
+                .LeftJoin<TtWork.Abp.Entity.GroupChatLevelSettingsEntity>((a, b) => a.GroupChatId == b.Id)
+                .Where((a, b) => a.UserId == log.CreatorUserId)
+                .Select((a, b) => new { a.UserId, b.Level, a.CumulativeAmount })
+                .FirstAsync();
+            int userLevel = userGroupLevel?.Level ?? 0;
+            if (userLevel == 0) {
+                // 自动累计金额到88元并升级
+                decimal newCumulative = userGroupLevel?.CumulativeAmount >= 88 ? userGroupLevel.CumulativeAmount : 88;
+                var groupChatLevelSettings = await sqlSugarClient.Queryable<TtWork.Abp.Entity.GroupChatLevelSettingsEntity>()
+                    .Where(w => w.AmountRequired <= newCumulative)
+                    .OrderByDescending(o => o.AmountRequired)
+                    .FirstAsync();
+                if (userGroupLevel != null && userGroupLevel.UserId != 0) {
+                    await sqlSugarClient.Updateable<TtWork.Abp.Entity.UserGroupLevelEntity>()
+                        .SetColumns(u => u.CumulativeAmount == newCumulative)
+                        .SetColumns(u => u.GroupChatId == groupChatLevelSettings.Id)
+                        .Where(u => u.UserId == log.CreatorUserId)
+                        .ExecuteCommandAsync();
+                } else {
+                    await sqlSugarClient.Insertable(new TtWork.Abp.Entity.UserGroupLevelEntity {
+                        UserId = log.CreatorUserId.Value,
+                        CumulativeAmount = newCumulative,
+                        GroupChatId = groupChatLevelSettings.Id
+                    }).ExecuteCommandAsync();
+                }
+                logger.LogInformation($"[UserDepositJob]用户:{log.CreatorUserId}保证金到账后自动累计金额并升级等级");
+            }
             #endregion
 
             await mediator.Publish(new MyCountCacheClear(log.CreatorUserId));

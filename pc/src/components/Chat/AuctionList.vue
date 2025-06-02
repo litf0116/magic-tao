@@ -131,6 +131,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Tips } from '@/composables'
 import { useChatStore } from '@/stores/chatStore'
 import { ChatMessageType } from '@/api/appService'
+import { GetUserGroupLevel } from '@/api/groupChatLevel'
 
 let ps: PerfectScrollbar | null = null
 
@@ -250,51 +251,72 @@ function end() {
 }
 // LINK 出价
 function bid() {
-    auctionStore.getList().then(() => {
-        if (!onAuctionItem.value) {
-            ElMessage.error('没有正在拍卖的商品')
+    const userId = userStore.user.id
+    const deposit = userStore.user.depositBalance || 0
+    // 获取用户等级
+    GetUserGroupLevel(userId).then((res) => {
+        const userLevel = res.data?.level ?? 0
+        if (userLevel === 0 && deposit < 50) {
+            ElMessageBox.alert(
+                `<div>
+                    新用户参与拍卖，需要缴纳50元保证金。<br/>
+                    <b>网站无法直接缴纳保证金，请扫码进入微信小程序缴纳。</b>
+                    <div style="margin:10px 0;">
+                        <img src="/images/miniapp_qrcode.png" style="width:150px;" />
+                    </div>
+                </div>`,
+                '出价须知',
+                { dangerouslyUseHTMLString: true }
+            )
             return
         }
-        let minPrice = 0
-        if (onAuctionItem.value.currentPrice) {
-            if (onAuctionItem.value.currentPrice < 100) {
-                minPrice = onAuctionItem.value.currentPrice + 1
-            } else if (onAuctionItem.value.currentPrice < 1000) {
-                minPrice = onAuctionItem.value.currentPrice + 5
-            } else if (onAuctionItem.value.currentPrice < 2000) {
-                minPrice = onAuctionItem.value.currentPrice + 10
-            } else if (onAuctionItem.value.currentPrice < 5000) {
-                minPrice = onAuctionItem.value.currentPrice + 20
-            } else if (onAuctionItem.value.currentPrice < 10000) {
-                minPrice = onAuctionItem.value.currentPrice + 50
-            } else {
-                minPrice = onAuctionItem.value.currentPrice + 100
+        // 原有出价弹窗逻辑
+        auctionStore.getList().then(() => {
+            if (!onAuctionItem.value) {
+                ElMessage.error('没有正在拍卖的商品')
+                return
             }
-        }
-        if (auctionStore.isKasec) {
-            minPrice = onAuctionItem.value.currentPrice + (minPrice - onAuctionItem.value.currentPrice) * 3
-        }
-        let message = `请输入出价金额(最低出价${minPrice})`
-        if (auctionStore.isKasec) {
-            message =
-                `<div style='color:red;border:1px solid red;padding:4px;margin-bottom:8px;'>您已卡秒出价，需加够三倍竞拍价才有效（最低出价：${minPrice}）</div>` +
-                message
-        }
-        ElMessageBox.prompt(message, '出价', {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            inputPattern: /\d+/,
-            inputValue: '',
-            inputType: 'number',
-            inputErrorMessage: '请输入正确的金额',
-            dangerouslyUseHTMLString: true,
+            let minPrice = 0
+            if (onAuctionItem.value.currentPrice) {
+                if (onAuctionItem.value.currentPrice < 100) {
+                    minPrice = onAuctionItem.value.currentPrice + 1
+                } else if (onAuctionItem.value.currentPrice < 1000) {
+                    minPrice = onAuctionItem.value.currentPrice + 5
+                } else if (onAuctionItem.value.currentPrice < 2000) {
+                    minPrice = onAuctionItem.value.currentPrice + 10
+                } else if (onAuctionItem.value.currentPrice < 5000) {
+                    minPrice = onAuctionItem.value.currentPrice + 20
+                } else if (onAuctionItem.value.currentPrice < 10000) {
+                    minPrice = onAuctionItem.value.currentPrice + 50
+                } else {
+                    minPrice = onAuctionItem.value.currentPrice + 100
+                }
+            }
+            if (auctionStore.isKasec) {
+                minPrice = onAuctionItem.value.currentPrice + (minPrice - onAuctionItem.value.currentPrice) * 3
+            }
+            let message = `请输入出价金额(最低出价${minPrice})`
+            if (auctionStore.isKasec) {
+                message =
+                    `<div style='color:red;border:1px solid red;padding:4px;margin-bottom:8px;'>您已卡秒出价，需加够三倍竞拍价才有效（最低出价：${minPrice}）</div>` +
+                    message
+            }
+            ElMessageBox.prompt(message, '出价', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                inputPattern: /\d+/,
+                inputValue: '',
+                inputType: 'number',
+                inputErrorMessage: '请输入正确的金额',
+                dangerouslyUseHTMLString: true,
+            })
+                .then(({ value }) => {
+                    auctionStore.bid(onAuctionItem.value!.id!, parseInt(value))
+                })
+                .catch(() => {
+                    Tips.info('取消出价')
+                })
         })
-            .then(({ value }) => {
-                auctionStore.bid(onAuctionItem.value!.id!, parseInt(value))
-            })
-            .catch(() => {
-                Tips.info('取消出价')
-            })
     })
 }
 
