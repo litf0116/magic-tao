@@ -12,11 +12,13 @@
                 <div
                     class="auction-item-box"
                     style="
-                        border: 1px solid #ffb673;
-                        border-radius: 10px;
-                        padding: 8px 12px;
+                        border: 2.5px solid #ff9800;
+                        border-radius: 12px;
+                        padding: 10px 16px;
                         margin: 8px 0;
                         display: inline-block;
+                        box-shadow: 0 0 8px 2px rgba(255, 152, 0, 0.2);
+                        background: #ffb673;
                     "
                 >
                     <span style="font-weight: bold; font-size: 20px">{{ payloadData.name }}</span>
