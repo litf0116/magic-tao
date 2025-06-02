@@ -1,47 +1,56 @@
 <template>
-    <div class="border-red-500 border-2 border-solid py-2 px-4 rounded-lg relative">
-        <div class="absolute top-0 right-0 bg-red-500 text-white rounded-lb-lg px-2 font-bold text-xs">
-            开始拍卖
-        </div>
+    <div class="auction-start-message border-red-500 border-2 border-solid py-2 px-4 rounded-lg relative">
+        <div class="absolute top-0 right-0 bg-red-500 text-white rounded-lb-lg px-2 font-bold text-xs">开始拍卖</div>
         <div class="max-w-350px min-w-200px" @click="handleAction">
             <div>商品名称: {{ payloadData.name }}</div>
-            <div>{{ payloadData.description }}</div>
+            <RichTextDisplay :content="payloadData.description" @imageClick="handleImageClick" />
         </div>
     </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { computed } from 'vue'
-import { type ChatMessage } from '@/composables/types'
+import { type ChatMessage } from '../../api/appService'
+import RichTextDisplay from './RichTextDisplay.vue'
 
-export default {
-    name: 'AuctionStartMessage',
-    props: {
-        message: {
-            type: Object as () => ChatMessage,
-            required: true,
-        },
-    },
-    emits: ['action'],
-    setup(props, { emit }) {
-        // 解析payload数据
-        const payloadData = computed(() => {
-            let payload = props.message.payload
-            if (typeof payload === 'string') {
-                payload = JSON.parse(payload!)
-            }
-            return payload
-        })
+const props = defineProps<{
+    message: ChatMessage
+}>()
 
-        // 处理点击事件，emit 更通用的 action 事件
-        const handleAction = () => {
-            emit('action', { message: props.message, payload: payloadData.value })
-        }
+const emit = defineEmits<{
+    action: [{ message: ChatMessage; payload: unknown }]
+}>()
 
-        return {
-            payloadData,
-            handleAction,
-        }
-    },
+const payloadData = computed(() => {
+    let payload = props.message.payload
+    if (typeof payload === 'string') {
+        payload = JSON.parse(payload!)
+    }
+    return payload
+})
+
+// 处理点击事件，emit 更通用的 action 事件
+const handleAction = () => {
+    emit('action', { message: props.message, payload: payloadData.value })
+}
+
+// 处理图片点击事件
+const handleImageClick = (event: Event) => {
+    // 阻止事件冒泡，避免触发整个组件的点击事件
+    event.stopPropagation()
+
+    if (event.target instanceof HTMLImageElement) {
+        // 这里可以添加图片预览逻辑
+        console.log('Image clicked:', event.target.src)
+        // 可以emit一个图片点击事件给父组件处理
+        // emit('imageClick', event.target.src)
+    }
 }
 </script>
+
+<style scoped>
+.auction-start-message {
+    margin: 8px 0;
+    background: #fff5f5;
+}
+</style>

@@ -36,6 +36,7 @@ declare module 'vue' {
     OrderQueryFilter: typeof import('./src/components/paged-table/orderQueryFilter.vue')['default']
     PagedTable: typeof import('./src/components/paged-table/index.vue')['default']
     QueryFilter: typeof import('./src/components/paged-table/queryFilter.vue')['default']
+    RichTextDisplay: typeof import('./src/components/Chat/RichTextDisplay.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     StatusTag: typeof import('./src/components/paged-table/statusTag.vue')['default']

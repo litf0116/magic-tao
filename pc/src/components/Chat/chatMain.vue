@@ -232,7 +232,9 @@
     <div v-if="showGroupChatRules" class="action-popup" @click="actionPopup.visible = false">
         <div class="action-popup-main" style="width: 280px; padding: 10px">
             <div>群等级制度，根据成交价金额自动累计</div>
-            <div v-for="(x, index) in groupChatLevel" :key="index">{{ x.level }}级:消费满{{ x.amountRequired }} {{ x.name }}</div>
+            <div v-for="(x, index) in groupChatLevel" :key="index">
+                {{ x.level }}级:消费满{{ x.amountRequired }} {{ x.name }}
+            </div>
             <!-- <div> 1级:消费满100 实习生熊男 </div>
             <div> 2级:消费满1000 试用期露比 </div>
             <div> 3级:消费满5000 转正神兽 </div>
@@ -488,8 +490,6 @@ watch(
         }
     }
 )
-    return ''
-}
 
 const showImageViewer = inject('showImageViewer') as (list: string[]) => void
 
