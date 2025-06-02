@@ -85,60 +85,31 @@
                                         class="content-text"
                                         @click="showDetails(message)"
                                     >
-                                        <div v-html="renderTextMessage(message)"></div>
-                                    </div>
-                                    <!-- 图片消息 -->
-                                    <div
-                                        v-if="message.type === ChatMessageType.Image && message.payload"
-                                        class="content-image"
-                                        @click="showImagePreviewPopup(message)"
-                                        @contextmenu.prevent="showActionPopup(message, true)"
-                                    >
-                                        <img
-                                            :data-url="getImgUrl(message, false)"
-                                            :src="getImgUrl(message)"
-                                            :style="{ maxHeight: getImageHeight(200, 150) + 'px' }"
+                                        <TextMessage
+                                            :message="message"
+                                            :decoder="emoji.value.decoder"
+                                            @action="showDetails"
                                         />
                                     </div>
+                                    <!-- 图片消息 -->
+                                    <ImageMessage
+                                        v-if="message.type === ChatMessageType.Image && message.payload"
+                                        :message="message"
+                                        @action="showImagePreviewPopup"
+                                        @contextMenu="showActionPopup(message, true)"
+                                    />
                                     <!-- 开始拍卖 -->
-                                    <div
+                                    <AuctionStartMessage
                                         v-if="message.type === ChatMessageType.AuctionStart && message.payload"
-                                        class="border-red-500 border-2 border-solid py-2 px-4 rounded-lg relative"
-                                    >
-                                        <div
-                                            class="absolute top-0 right-0 bg-red-500 text-white rounded-lb-lg px-2 font-bold text-xs"
-                                        >
-                                            开始拍卖
-                                        </div>
-
-                                        <div
-                                            class="max-w-350px min-w-200px"
-                                            @click="catchImage(message)"
-                                            v-html="getStartContent(message)"
-                                        ></div>
-                                    </div>
+                                        :message="message"
+                                        @action="catchImage"
+                                    />
                                     <!-- 出价 -->
-                                    <div
+                                    <AuctionBidMessage
                                         v-if="message.type === ChatMessageType.AuctionBid && message.payload"
-                                        @click="showDetails(message)"
-                                        style="cursor: pointer"
-                                        class="border-[#ff7144] bg-[#ffb673] border-2 border-solid py-2 px-4 rounded-xl relative overflow-hidden"
-                                    >
-                                        <div
-                                            class="absolute top-0 right-0 bg-red-500 text-white rounded-lb-lg px-2 font-bold text-xs"
-                                        >
-                                            出价
-                                        </div>
-                                        <div
-                                            class="max-w-350px min-w-200px"
-                                            style="margin-top: 10px"
-                                            v-html="getAuctionBid(message)"
-                                        ></div>
-                                        <!--
-                                            class="max-w-350px min-w-200px h-12 flex flex-center text-white text-[24px]">
-                                            ￥{{ message.msg }}
-                                        </div> -->
-                                    </div>
+                                        :message="message"
+                                        @action="showDetails"
+                                    />
                                     <!-- 公布得主 -->
                                     <AuctionEndMessage
                                         v-if="message.type === ChatMessageType.AuctionEnd && message.payload"
@@ -312,6 +283,10 @@ import { useEventBus } from '@vueuse/core'
 import auctionItemDetail from '@/components/Chat/auctionItemDetail.vue'
 import { GetList } from '@/api/groupChatLevel'
 import AuctionEndMessage from '@/components/Chat/AuctionEndMessage.vue'
+import AuctionBidMessage from '@/components/Chat/AuctionBidMessage.vue'
+import AuctionStartMessage from '@/components/Chat/AuctionStartMessage.vue'
+import ImageMessage from '@/components/Chat/ImageMessage.vue'
+import TextMessage from '@/components/Chat/TextMessage.vue'
 
 import { getImgUrl as getImgUrl2 } from '@/composables'
 
@@ -593,26 +568,8 @@ function getStartContent(message: ChatMessage) {
     return `<div>商品名称: ${message.payload.name}</div><div>${message.payload.description}</div>`
 }
 
-//出价消息
-function getAuctionBid(message: ChatMessage) {
-    if (typeof message.payload === 'string') message.payload = JSON.parse(message.payload!)
-    return `<div>商品名称: ${message.payload.Name}</div>
-    <div style='color: #fff;font-size: 24px;'>当前出价：￥${message.payload.CurrentPrice}</div>`
-}
 //成功竞拍消息
 function getEndContent(message: ChatMessage) {
-    // 	if (typeof message.payload === 'string') message.payload = JSON.parse(message.payload!)
-    // 	if (message.payload.Status === 4 || message.payload.status === '已成交') {
-    // 		return `<div class="text-red-500">恭喜 ${message.payload.dealUserName === undefined ? message.payload.DealUserName : message.payload.dealUserName} 最终以 <b class="text-lg">￥${message.payload.finalPrice === undefined ? message.payload.FinalPrice : message.payload.finalPrice
-    // 			}</b> 拍得商品</div>
-    // <div class="text-sm">商品名称: ${message.payload.name === undefined ? message.payload.Name : message.payload.name}</div>
-    // <div  class="text-sm"text-sm">${dayjs(message.payload.dealTime).format('YYYY-MM-DD HH:mm:ss')}</div>
-    // <div>${message.payload.description === undefined ? message.payload.Description : message.payload.description}</div>
-    // <div class="mt-2 text-sm text-gray-600">买卖双方私聊拍卖师确认交易!<br/>认准星标小心冒充<br/>有请下一件拍品</div>`
-    // 	} else if (message.payload.status === '上架') {
-    // 		return `<div>商品流拍</div>`
-    // 	}
-    // 	return ''
     if (typeof message.payload === 'string') message.payload = JSON.parse(message.payload!)
     if (message.payload.status === '已成交') {
         return `<div class="text-red-500">恭喜 ${message.payload.dealUserName} 最终以 <b class="text-lg">￥${
