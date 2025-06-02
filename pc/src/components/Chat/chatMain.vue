@@ -80,17 +80,12 @@
                                 </div>
 
                                 <div class="message-payload mt-1">
-                                    <div
+                                    <!-- 文本消息 -->
+                                    <TextMessage
                                         v-if="message.type === ChatMessageType.Text"
-                                        class="content-text"
-                                        @click="showDetails(message)"
-                                    >
-                                        <TextMessage
-                                            :message="message"
-                                            :decoder="emoji.value.decoder"
-                                            @action="showDetails"
-                                        />
-                                    </div>
+                                        :message="message"
+                                        @action="showDetails"
+                                    />
                                     <!-- 图片消息 -->
                                     <ImageMessage
                                         v-if="message.type === ChatMessageType.Image && message.payload"
@@ -135,10 +130,10 @@
                     <el-tabs type="card">
                         <el-tab-pane label="系统">
                             <img
-                                v-for="(emojiItem, emojiKey, index) in emoji.map"
+                                v-for="(emojiItem, emojiKey, index) in emojiStore.emojiMap"
                                 :key="index"
                                 class="emoji-item"
-                                :src="emoji.url + emojiItem"
+                                :src="emojiStore.emojiUrl + emojiItem"
                                 @click="chooseEmoji(emojiKey)"
                             />
                         </el-tab-pane>
@@ -160,19 +155,6 @@
                     </el-tabs>
                 </el-popover>
 
-                <!-- 表情 -->
-                <!-- <div class="action-item">
-                    <div v-if="emoji.visible" class="emoji-box">
-                        <img
-                            v-for="(emojiItem, emojiKey, index) in emoji.map"
-                            class="emoji-item"
-                            :key="index"
-                            :src="emoji.url + emojiItem"
-                            @click="chooseEmoji(emojiKey)"
-                        />
-                    </div>
-                    <i class="iconfont icon-smile" title="表情" @click="emoji.visible = !emoji.visible"></i>
-                </div> -->
                 <!-- 图片 -->
                 <div class="action-item">
                     <tt-upload :file-size="2048" :multiple="false" @on-uploaded="sendImageMessage2">
@@ -191,7 +173,7 @@
             <div class="input-box">
                 <chat-input
                     v-model="text"
-                    @focus="emoji.visible = false"
+                    @focus="emojiVisible = false"
                     @file-uploaded="sendImageMessage"
                     @onPressEnter="sendTextMessage"
                 />
@@ -250,7 +232,7 @@
     <div v-if="showGroupChatRules" class="action-popup" @click="actionPopup.visible = false">
         <div class="action-popup-main" style="width: 280px; padding: 10px">
             <div>群等级制度，根据成交价金额自动累计</div>
-            <div v-for="x in groupChatLevel">{{ x.level }}级:消费满{{ x.amountRequired }} {{ x.name }}</div>
+            <div v-for="(x, index) in groupChatLevel" :key="index">{{ x.level }}级:消费满{{ x.amountRequired }} {{ x.name }}</div>
             <!-- <div> 1级:消费满100 实习生熊男 </div>
             <div> 2级:消费满1000 试用期露比 </div>
             <div> 3级:消费满5000 转正神兽 </div>
@@ -270,6 +252,8 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed, watch, onMounted, onUnmounted, inject } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { orderBy, uniqBy, last } from 'lodash'
 import api from '@/api'
 import chatInput from '@/components/Chat/ChatInput.vue'
@@ -278,7 +262,7 @@ import { ChatEmojiDto, ChatMessage, ChatMessageType } from '@/api/appService'
 import userInfoDialog from './userInfoDialog.vue'
 import dayjs from 'dayjs'
 import { useDebounceFn } from '@vueuse/core'
-import { ElMessageBox, ElMessage } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 import { useEventBus } from '@vueuse/core'
 import auctionItemDetail from '@/components/Chat/auctionItemDetail.vue'
 import { GetList } from '@/api/groupChatLevel'
@@ -287,7 +271,11 @@ import AuctionBidMessage from '@/components/Chat/AuctionBidMessage.vue'
 import AuctionStartMessage from '@/components/Chat/AuctionStartMessage.vue'
 import ImageMessage from '@/components/Chat/ImageMessage.vue'
 import TextMessage from '@/components/Chat/TextMessage.vue'
-
+import { useChatStore } from '@/stores/chatStore'
+import { useUserStore } from '@/stores/userStore'
+import { useAuctionStore } from '@/stores/auctionStore'
+import { useEmojiStore } from '@/stores/emojiStore'
+import { Tips } from '@/composables'
 import { getImgUrl as getImgUrl2 } from '@/composables'
 
 const emit = defineEmits(['loadHistoryMessage', 'onSend'])
@@ -320,16 +308,6 @@ const route = useRoute()
 //是否是私聊页面
 const isPrivateChat = ref(false)
 
-/**截图组件 开始**/
-const screenshotStatus = ref<boolean>(false)
-// 销毁组件函数
-const destroyComponent = function (status: boolean) {
-    screenshotStatus.value = status
-}
-// 获取裁剪区域图片信息
-const getImg = function (base64: string) {
-    console.log('截图组件传递的图片信息', base64)
-}
 /**截图组件 结束**/
 
 onMounted(async () => {
@@ -416,14 +394,6 @@ const historyMsgs = computed(() => {
 
 const text = ref('')
 
-//定义表情列表
-const emoji = ref({
-    url: emojiStore.emojiUrl,
-    map: emojiStore.emojiMap,
-    visible: false,
-    decoder: new emojiDecoder(emojiStore.emojiUrl, emojiStore.emojiMap),
-})
-
 // 展示消息删除弹出框
 const actionPopup = ref({
     visible: false,
@@ -488,18 +458,6 @@ function scrollToBottom(force = true) {
 // 		return html += '<span class="text-content">' + emoji.value.decoder.decode(message.msg) + '</span>'
 // 	return ''
 // }
-function renderTextMessage(message: ChatMessage) {
-    if (message && message.msg) {
-        return (
-            '<span class="text-content">' +
-            emoji.value.decoder.decode(message.msg.replaceAll('\n', '<br/>')) +
-            '</span>'
-        )
-    }
-
-    return ''
-}
-
 function renderMessageDate(message: ChatMessage, index: number) {
     if (index === 0) {
         return dayjs(message.time).format('YYYY-MM-DD HH:mm:ss')
@@ -530,57 +488,6 @@ watch(
         }
     }
 )
-
-/**
- * 核心就是设置高度，产生明确占位
- *
- * 小  (宽度和高度都小于预设尺寸)
- *    设高=原始高度
- * 宽 (宽度>高度)
- *    高度= 根据宽度等比缩放
- * 窄  (宽度<高度)或方(宽度=高度)
- *    设高=MAX height
- *
- * @param width,height
- * @returns number
- */
-const IMAGE_MAX_WIDTH = 200
-const IMAGE_MAX_HEIGHT = 150
-
-function getImageHeight(width: number, height: number) {
-    if (width < IMAGE_MAX_WIDTH && height < IMAGE_MAX_HEIGHT) {
-        return height
-    } else if (width > height) {
-        return (IMAGE_MAX_WIDTH / width) * height
-    } else if (width === height || width < height) {
-        return IMAGE_MAX_HEIGHT
-    }
-}
-
-function getImgUrl(message: ChatMessage, thub = true) {
-    if (typeof message.payload === 'string') message.payload = JSON.parse(message.payload!)
-    if (message.payload.url.startsWith('http')) return message.payload.url + `${thub ? '!w300' : ''}`
-    return `${import.meta.env.VITE_APP_UPYUN_IMG_URL}${message.payload.url}${thub ? '!w300' : ''}`
-}
-//开始拍卖消息
-function getStartContent(message: ChatMessage) {
-    if (typeof message.payload === 'string') message.payload = JSON.parse(message.payload!)
-    return `<div>商品名称: ${message.payload.name}</div><div>${message.payload.description}</div>`
-}
-
-//成功竞拍消息
-function getEndContent(message: ChatMessage) {
-    if (typeof message.payload === 'string') message.payload = JSON.parse(message.payload!)
-    if (message.payload.status === '已成交') {
-        return `<div class="text-red-500">恭喜 ${message.payload.dealUserName} 最终以 <b class="text-lg">￥${
-            message.payload.finalPrice
-        }</b> 拍得商品</div>
-<div class="text-sm">商品名称: ${message.payload.name}</div>
-<div  class="text-sm"text-sm">${dayjs(message.payload.dealTime).format('YYYY-MM-DD HH:mm:ss')}</div>
-<div class="mt-2 text-sm text-gray-600">买卖双方私聊拍卖师确认交易!<br/>认准星标小心冒充<br/>有请下一件拍品</div>`
-    } else if (message.payload.status === '上架') {
-        return `<div>商品流拍</div>`
-    }
     return ''
 }
 
@@ -598,7 +505,7 @@ function showImagePreviewPopup(message: ChatMessage) {
 
 function chooseEmoji(emojiKey: string) {
     text.value += emojiKey
-    emoji.value.visible = false
+    emojiVisible.value = false
 }
 
 const emojiVisible = ref(false)
@@ -766,7 +673,7 @@ function showDetails(e) {
     detailRef.value?.show(true, id)
 }
 
-function onAuctionEndAction({ message, payload }) {
+function onAuctionEndAction({ message }) {
     showDetails(message)
 }
 </script>
@@ -908,22 +815,6 @@ function onAuctionEndAction({ message, payload }) {
     width: 18px;
     height: 18px;
     margin-right: 3px;
-}
-
-.content-text {
-    display: flex;
-    align-items: center;
-    text-align: left;
-    background: #eeeeee;
-    font-size: 14px;
-    font-weight: 500;
-    padding: 6px 8px;
-    margin: 3px 0;
-    line-height: 25px;
-    white-space: pre-line;
-    overflow-wrap: anywhere;
-    border-radius: 8px;
-    word-break: break-all;
 }
 
 .content-image {
