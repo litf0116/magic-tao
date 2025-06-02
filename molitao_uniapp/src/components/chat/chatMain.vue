@@ -11,25 +11,26 @@
                 <view class="time-lag">
                     {{ renderMessageDate(message, index) }}
                 </view>
-                <view class="message-item">
-                    <div
-                        v-if="message.type === ChatMessageType.Welcome"
-                        class="text-center flex-1 text-gray-600 text-sm"
-                    >
-                        {{ message.fromName }} 加入群聊
-                    </div>
-                    <div
+                <view
+                    class="message-item"
+                    :class="{
+                        'system-center':
+                            message.type === ChatMessageType.Welcome ||
+                            message.type === ChatMessageType.BanUser ||
+                            message.type === ChatMessageType.Backout
+                    }"
+                >
+                    <WelcomeMessage v-if="message.type === ChatMessageType.Welcome" :fromName="message.fromName" />
+                    <SystemMessage
                         v-else-if="message.type === ChatMessageType.BanUser"
-                        class="text-center flex-1 text-gray-600 text-sm"
-                    >
-                        {{ message.msg }}
-                    </div>
-                    <div
+                        :type="'BanUser'"
+                        :msg="message.msg"
+                    />
+                    <SystemMessage
                         v-else-if="message.type === ChatMessageType.Backout"
-                        class="text-center flex-1 text-gray-600 text-sm"
-                    >
-                        {{ message.msg }}
-                    </div>
+                        :type="'Backout'"
+                        :msg="message.msg"
+                    />
 
                     <view v-else class="message-item-content" :class="{ self: message.from === userStore.user.id }">
                         <view class="avatar" @tap="showActionPopup(message)">
@@ -72,26 +73,17 @@
                                 {{ message.fromName }}
                             </div>
                             <view class="message-payload mt-1">
-                                <view
+                                <TextMessage
                                     v-if="message.type === 'Text'"
-                                    :data-data="message"
+                                    :message="message"
                                     @tap="goShowDetails(message)"
-                                    v-html="renderTextMessage(message)"
-                                ></view>
-                                <template v-if="message.type === 'Image'">
-                                    <image
-                                        class="image-content"
-                                        mode="heightFix"
-                                        :src="getImgUrl(message)"
-                                        :style="{
-                                            height:
-                                                getImageHeight(message.payload.width, message.payload.height) + 'rpx',
-                                        }"
-                                        :data-url="getImgUrl(message, false)"
-                                        @tap.stop="showImageFullScreen"
-                                        @longpress.stop="showActionPopup(message, true)"
-                                    ></image>
-                                </template>
+                                />
+                                <ImageMessage
+                                    v-else-if="message.type === 'Image'"
+                                    :message="message"
+                                    :showImageFullScreen="showImageFullScreen"
+                                    :showActionPopup="showActionPopup"
+                                />
 
                                 <!-- 开始拍卖 -->
                                 <div
@@ -287,6 +279,10 @@
 <script setup lang="ts">
 import userProfile from './userProfile.vue'
 import AuctionEndMessage from './AuctionEndMessage.vue'
+import WelcomeMessage from './WelcomeMessage.vue'
+import SystemMessage from './SystemMessage.vue'
+import TextMessage from './TextMessage.vue'
+import ImageMessage from './ImageMessage.vue'
 import { upload } from '@/utils/upload'
 import dayjs from 'dayjs'
 import { useDebounceFn } from '@vueuse/core'
@@ -411,7 +407,13 @@ const history = ref<{ allLoaded: boolean; loading: boolean }>({
 defineExpose({ history })
 
 const historyMsgs: any = computed(() => {
-    return orderBy(uniqBy(chatStore.chatMap.get(`${chatStore.currentChat.id}`) || [], 'id'), ['time'], ['asc'])
+    // mock 数据，便于前端开发调试
+    return [
+        { id: 1, type: ChatMessageType.Welcome, fromName: '小明', time: Date.now() - 600000 },
+        { id: 2, type: ChatMessageType.BanUser, msg: '用户小红被禁言10分钟', time: Date.now() - 500000 },
+        { id: 3, type: ChatMessageType.Backout, msg: '小刚撤回了一条消息', time: Date.now() - 400000 },
+        ...orderBy(uniqBy(chatStore.chatMap.get(`${chatStore.currentChat.id}`) || [], 'id'), ['time'], ['asc']),
+    ]
 })
 
 const text = ref('')
@@ -871,6 +873,7 @@ function onAuctionEndAction({ message, payload }) {
 
         .message-item {
             display: flex;
+            justify-content: center;
             margin: 20rpx 0;
 
             .message-item-checkbox {
@@ -1394,6 +1397,11 @@ function onAuctionEndAction({ message, payload }) {
         margin-left: 10rpx;
         color: #d02129;
     }
+}
+
+.message-item.system-center {
+    display: flex;
+    justify-content: center;
 }
 </style>
 
