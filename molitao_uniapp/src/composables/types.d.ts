@@ -296,15 +296,13 @@ export interface BidHistoryCreateDto {
     id?: number
 }
 
-
-
 export interface ChatEmojiDto {
     /**  */
-    url?: string;
+    url?: string
 
     /**  */
-    payload?: string;
+    payload?: string
 
     /**  */
-    id?: number;
-  }
+    id?: number
+}
