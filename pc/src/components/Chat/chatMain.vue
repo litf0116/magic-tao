@@ -272,7 +272,7 @@
 <script setup lang="ts">
 import { orderBy, uniqBy, last } from 'lodash'
 import api from '@/api'
-import chatInput from '@/components/Chat/chatInput.vue'
+import chatInput from '@/components/Chat/ChatInput.vue'
 import ttUpload from '@/components/tt-upload/index.vue'
 import { ChatEmojiDto, ChatMessage, ChatMessageType } from '@/api/appService'
 import userInfoDialog from './userInfoDialog.vue'

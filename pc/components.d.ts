@@ -18,7 +18,7 @@ declare module 'vue' {
     AuctionList: typeof import('./src/components/Chat/AuctionList.vue')['default']
     AuctionStartMessage: typeof import('./src/components/Chat/AuctionStartMessage.vue')['default']
     AuditQueryFilter: typeof import('./src/components/paged-table/auditQueryFilter.vue')['default']
-    ChatInput: typeof import('./src/components/Chat/chatInput.vue')['default']
+    ChatInput: typeof import('./src/components/Chat/ChatInput.vue')['default']
     ChatMain: typeof import('./src/components/Chat/chatMain.vue')['default']
     ContextMenu: typeof import('./src/components/ContextMenu/index.vue')['default']
     CreateGroupDislog: typeof import('./src/components/Chat/createGroupDislog.vue')['default']
