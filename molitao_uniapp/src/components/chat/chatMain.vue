@@ -86,23 +86,11 @@
                                 />
 
                                 <!-- 开始拍卖 -->
-                                <div
-                                    v-if="message.type === ChatMessageType.AuctionStart && message.payload"
-                                    class="border-red-500 border-2 border-solid py-2 px-4 rounded-lg relative"
-                                >
-                                    <div
-                                        class="absolute top-0 right-0 bg-red-500 text-white rounded-lb-lg px-2 font-bold text-xs"
-                                    >
-                                        开始拍卖
-                                    </div>
-
-                                    <div
-                                        class="max-w-350px min-w-200px"
-                                        :data-data="message"
-                                        @tap="catchImage"
-                                        v-html="getStartContent(message)"
-                                    ></div>
-                                </div>
+                                <AuctionStartMessage
+                                    v-else-if="message.type === ChatMessageType.AuctionStart && message.payload"
+                                    :message="message"
+                                    :catchImage="catchImage"
+                                />
 
                                 <!-- 出价 -->
                                 <div
@@ -279,6 +267,7 @@
 <script setup lang="ts">
 import userProfile from './userProfile.vue'
 import AuctionEndMessage from './AuctionEndMessage.vue'
+import AuctionStartMessage from './AuctionStartMessage.vue'
 import WelcomeMessage from './WelcomeMessage.vue'
 import SystemMessage from './SystemMessage.vue'
 import TextMessage from './TextMessage.vue'
