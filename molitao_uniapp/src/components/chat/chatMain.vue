@@ -93,23 +93,11 @@
                                 />
 
                                 <!-- 出价 -->
-                                <div
-                                    v-if="message.type === ChatMessageType.AuctionBid && message.payload"
-                                    class="border-[#ff7144] bg-[#ffb673] border-2 border-solid py-2 px-4 rounded-xl relative overflow-hidden"
-                                    @tap="showDetails(message)"
-                                >
-                                    <div
-                                        class="absolute top-0 right-0 bg-[#ff7144] text-white rounded-lb-lg px-2 font-bold text-xs"
-                                    >
-                                        出价
-                                    </div>
-
-                                    <div
-                                        class="max-w-350px min-w-200px"
-                                        :data-data="message"
-                                        v-html="getBitContent(message)"
-                                    ></div>
-                                </div>
+                                <AuctionBidMessage
+                                    v-else-if="message.type === ChatMessageType.AuctionBid && message.payload"
+                                    :message="message"
+                                    :onTap="showDetails"
+                                />
 
                                 <!-- 公布得主 -->
                                 <AuctionEndMessage
@@ -268,6 +256,7 @@
 import userProfile from './userProfile.vue'
 import AuctionEndMessage from './AuctionEndMessage.vue'
 import AuctionStartMessage from './AuctionStartMessage.vue'
+import AuctionBidMessage from './AuctionBidMessage.vue'
 import WelcomeMessage from './WelcomeMessage.vue'
 import SystemMessage from './SystemMessage.vue'
 import TextMessage from './TextMessage.vue'
