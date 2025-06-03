@@ -73,11 +73,13 @@
                                 {{ message.fromName }}
                             </div>
                             <view class="message-payload mt-1">
+                                <!-- 文本 -->
                                 <TextMessage
                                     v-if="message.type === 'Text'"
                                     :message="message"
                                     @tap="goShowDetails(message)"
                                 />
+                                <!-- 图片 -->
                                 <ImageMessage
                                     v-else-if="message.type === 'Image'"
                                     :message="message"
@@ -107,7 +109,7 @@
                                 />
                                 <!-- 交易通知 -->
                                 <AuctionDealMessage
-                                    v-if="message.type === ChatMessageType.AuctionDeal && message.payload"
+                                    v-if="message.type === ChatMessageType.AuctionDeal"
                                     :message="message"
                                     @action="onAuctionDealAction"
                                 />
@@ -275,11 +277,12 @@ import { useEventBus } from '@vueuse/core'
 import api from '@/utils/api'
 import { orderBy, uniqBy, last } from 'lodash'
 import { onLoad, onUnload } from '@dcloudio/uni-app'
-import { ChatMessageType, type ChatEmojiDto, type ChatMessage } from '@/composables/types'
+import { ChatListItemType, ChatMessageType, type ChatEmojiDto, type ChatMessage } from '@/composables/types'
 import type { AuctionItemDto } from '@/composables/types'
 import { getImgUrl as getImgUrl2 } from '@/composables'
 import type { ChatOptions } from './types'
 import { defineEmits, defineProps } from 'vue'
+import { Goto } from '@/composables/goto'
 
 // 接收 options 属性
 const props = defineProps<{

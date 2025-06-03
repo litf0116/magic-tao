@@ -22,7 +22,7 @@
             <div class="text-lg font-bold text-red-500">
                 <text>成交价: ￥{{ message.payload.finalPrice }}</text>
             </div>
-            <div class="text-sm" style="margin-left: 12px">{{ message.payload.dealTime }}</div>
+            <div class="text-sm" style="margin-left: 12px">{{ formattedDealTime }}</div>
             <div class="mt-2 text-sm text-gray-600">
                 请联系拍卖师确认交易详情<br />
                 认准星标，小心冒充<br />
@@ -33,6 +33,8 @@
 </template>
 
 <script lang="ts">
+import { computed } from 'vue'
+import dayjs from 'dayjs'
 import { type ChatMessage } from '@/api/appService'
 
 export default {
@@ -45,12 +47,18 @@ export default {
     },
     emits: ['action'],
     setup(props: any, { emit }: any) {
+        // 格式化成交时间
+        const formattedDealTime = computed(() => {
+            return dayjs(props.message.payload.dealTime).format('YYYY-MM-DD HH:mm:ss')
+        })
+
         // 处理点击事件，emit 更通用的 action 事件
         const handleAction = () => {
             emit('action', { message: props.message, payload: props.message.payload })
         }
 
         return {
+            formattedDealTime,
             handleAction,
         }
     },
