@@ -6373,6 +6373,7 @@ export enum ChatMessageType {
     'AuctionStart' = 'AuctionStart',
     'AuctionBid' = 'AuctionBid',
     'AuctionEnd' = 'AuctionEnd',
+    'AuctionDeal' = 'AuctionDeal',
     'Error' = 'Error',
     'KasecStatusChanged' = 'KasecStatusChanged',
     'System' = "System",

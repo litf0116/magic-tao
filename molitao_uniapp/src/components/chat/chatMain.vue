@@ -105,6 +105,13 @@
                                     :message="message"
                                     @action="onAuctionEndAction"
                                 />
+
+                                <!-- 交易通知 -->
+                                <AuctionDealMessage
+                                    v-if="message.type === ChatMessageType.AuctionDeal && message.payload"
+                                    :message="message"
+                                    @action="onAuctionDealAction"
+                                />
                             </view>
                         </view>
                     </view>
@@ -257,6 +264,7 @@ import userProfile from './userProfile.vue'
 import AuctionEndMessage from './AuctionEndMessage.vue'
 import AuctionStartMessage from './AuctionStartMessage.vue'
 import AuctionBidMessage from './AuctionBidMessage.vue'
+import AuctionDealMessage from './AuctionDealMessage.vue'
 import WelcomeMessage from './WelcomeMessage.vue'
 import SystemMessage from './SystemMessage.vue'
 import TextMessage from './TextMessage.vue'
@@ -814,6 +822,10 @@ function goShowDetails(item: any) {
 }
 
 function onAuctionEndAction({ message, payload }) {
+    showDetails(message)
+}
+
+function onAuctionDealAction({ message, payload }) {
     showDetails(message)
 }
 </script>

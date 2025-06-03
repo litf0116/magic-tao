@@ -111,6 +111,12 @@
                                         :message="message"
                                         @action="onAuctionEndAction"
                                     />
+                                    <!-- 交易通知 -->
+                                    <AuctionDealMessage
+                                        v-if="message.type === ChatMessageType.AuctionDeal && message.payload"
+                                        :message="message"
+                                        @action="onAuctionDealAction"
+                                    />
                                 </div>
                             </div>
                         </template>
@@ -271,6 +277,7 @@ import { GetList } from '@/api/groupChatLevel'
 import AuctionEndMessage from '@/components/Chat/AuctionEndMessage.vue'
 import AuctionBidMessage from '@/components/Chat/AuctionBidMessage.vue'
 import AuctionStartMessage from '@/components/Chat/AuctionStartMessage.vue'
+import AuctionDealMessage from '@/components/Chat/AuctionDealMessage.vue'
 import ImageMessage from '@/components/Chat/ImageMessage.vue'
 import TextMessage from '@/components/Chat/TextMessage.vue'
 import { useChatStore } from '@/stores/chatStore'
@@ -674,6 +681,10 @@ function showDetails(e) {
 }
 
 function onAuctionEndAction({ message }) {
+    showDetails(message)
+}
+
+function onAuctionDealAction({ message }) {
     showDetails(message)
 }
 </script>

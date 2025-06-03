@@ -39,11 +39,18 @@ export const useAuctionStore = defineStore('auction', () => {
     function end(auctionItemId: number) {
         api.auctionItem.endAuction({ id: auctionItemId }).then((res) => {
             if (res.toUserMsg === '已成交商品不能再次拍卖') {
-                return;
+                return
             }
             chatStore.sendChannelMsg('', '-1_auction', ChatMessageType.AuctionEnd, res)
-            if(res.dealUserId){
-                chatStore.sendMsg(res.dealUserId, res.dealUserName, res.dealUserAvatar, res.toUserMsg, ChatMessageType.Text, res)
+            if (res.dealUserId) {
+                chatStore.sendMsg(
+                    res.dealUserId,
+                    res.dealUserName,
+                    res.dealUserAvatar,
+                    res.toUserMsg,
+                    ChatMessageType.AuctionDeal,
+                    res
+                )
             }
             // 结束后自动关闭卡秒
             isKasec.value = false
@@ -82,7 +89,7 @@ export const useAuctionStore = defineStore('auction', () => {
             else if (status === 2) {
                 GetAuctionMidList({ status, maxResultCount: 20 }).then((res) => {
                     if (res.status == 200) {
-                        auctionMid.value.length = 0;
+                        auctionMid.value.length = 0
                         auctionMid.value = res.data.items
                     }
                     // Tips.success('拍卖列表已刷新')
