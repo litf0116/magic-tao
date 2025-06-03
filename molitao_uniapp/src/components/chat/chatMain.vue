@@ -454,19 +454,23 @@ const actionPopup = ref({
     isImg: false,
 })
 
-function catchImage(e: any) {
-    console.log('catchImage', e)
+function catchImage(e: any, payload: any) {
+    console.log('catchImage', e.currentTarget, payload)
+    debugger;
     try {
-        var description
-        if (e.currentTarget != undefined) {
-            description = e.currentTarget.dataset.data.payload.description
-            if (description == undefined) {
-                description = e.currentTarget.dataset.data.payload.Description
-            }
-        } else {
-            description = e.description === undefined ? e.Description : e.description
+        const { description } = JSON.parse(payload)
+        // var description = payload.description
+        // if (e.currentTarget != undefined) {
+        //     description = e.currentTarget.dataset.data.payload.description
+        //     if (description == undefined) {
+        //         description = e.currentTarget.dataset.data.payload.Description
+        //     }
+        // } else {
+        //     description = e.description === undefined ? e.Description : e.description
+        // }
+        if (!description) {
+            return
         }
-        if (!description) return
         const list = []
         //从 string中img标签中获取data-url的属性放入数组中
         const reg = /<img.*?data-url=['"](.*?)['"].*?>/g
@@ -832,6 +836,7 @@ function showDetails(item: any) {
 }
 //跳转到详情
 function goShowDetails(item: any) {
+    console.log('goShowDetails', item)
     if (typeof item.payload === 'string') {
         item.payload = JSON.parse(item.payload!)
     }
