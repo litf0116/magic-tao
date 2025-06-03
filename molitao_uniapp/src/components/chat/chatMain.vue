@@ -242,7 +242,7 @@
         <view v-if="showGroupChatRules" class="action-popup" @touchmove.stop.prevent>
             <view class="action-list" style="width: 275px; padding: 10px; color: #fff">
                 <div>群等级制度，根据成交价金额自动累计</div>
-                <div v-for="x in groupChatLevel">{{ x.level }}级:消费满{{ x.amountRequired }} {{ x.name }}</div>
+                <div v-for="x in groupChatLevel" :key="x.level">{{ x.level }}级:消费满{{ x.amountRequired }} {{ x.name }}</div>
                 <div class="action-item" @click="showGroupChatRules = false">取消</div>
             </view>
         </view>
@@ -279,9 +279,9 @@ import { orderBy, uniqBy, last } from 'lodash'
 import { onLoad, onUnload } from '@dcloudio/uni-app'
 import { ChatListItemType, ChatMessageType, type ChatEmojiDto, type ChatMessage } from '@/composables/types'
 import type { AuctionItemDto } from '@/composables/types'
-import { getImgUrl as getImgUrl2 } from '@/composables'
+import { getImgUrl as getImgUrl2, Tips } from '@/composables'
 import type { ChatOptions } from './types'
-import { defineEmits, defineProps } from 'vue'
+import { computed, defineEmits, defineProps, reactive, ref, watch } from 'vue'
 import { Goto } from '@/composables/goto'
 
 // 接收 options 属性
@@ -455,19 +455,8 @@ const actionPopup = ref({
 })
 
 function catchImage(e: any, payload: any) {
-    console.log('catchImage', e.currentTarget, payload)
-    debugger;
     try {
         const { description } = JSON.parse(payload)
-        // var description = payload.description
-        // if (e.currentTarget != undefined) {
-        //     description = e.currentTarget.dataset.data.payload.description
-        //     if (description == undefined) {
-        //         description = e.currentTarget.dataset.data.payload.Description
-        //     }
-        // } else {
-        //     description = e.description === undefined ? e.Description : e.description
-        // }
         if (!description) {
             return
         }
@@ -624,64 +613,6 @@ watch(
         }
     }
 )
-
-/**
- * 核心就是设置高度，产生明确占位
- *
- * 小  (宽度和高度都小于预设尺寸)
- *    设高=原始高度
- * 宽 (宽度>高度)
- *    高度= 根据宽度等比缩放
- * 窄  (宽度<高度)或方(宽度=高度)
- *    设高=MAX height
- *
- * @param width,height
- * @returns number
- */
-const IMAGE_MAX_WIDTH = 200
-const IMAGE_MAX_HEIGHT = 150
-
-function getImageHeight(width: number, height: number) {
-    if (width < IMAGE_MAX_WIDTH && height < IMAGE_MAX_HEIGHT) {
-        return height
-    } else if (width > height) {
-        return (IMAGE_MAX_WIDTH / width) * height
-    } else if (width === height || width < height) {
-        return IMAGE_MAX_HEIGHT
-    }
-}
-
-function getImgUrl(message: ChatMessage, thub = true) {
-    if (typeof message.payload === 'string') message.payload = JSON.parse(message.payload!)
-    if (message.payload.url.startsWith('http')) return message.payload.url + `${thub ? '!w300' : ''}`
-    return `${import.meta.env.VITE_APP_UPYUN_IMG_URL}${message.payload.url}${thub ? '!w300' : ''}`
-}
-//拍卖通知
-function getStartContent(message: ChatMessage) {
-    if (typeof message.payload === 'string') message.payload = JSON.parse(message.payload!)
-    return `<div>商品名称: ${message.payload.name}</div><div>${message.payload.description}</div>`
-}
-//出价通知
-function getBitContent(message: ChatMessage) {
-    if (typeof message.payload === 'string') message.payload = JSON.parse(message.payload!)
-    return `<div>商品名称: ${message.payload.Name}</div>
-       <div style='color: #fff;font-size: 24px;'>当前出价：￥${message.payload.CurrentPrice}</div>`
-}
-//成交通知
-function getEndContent(message: ChatMessage) {
-    if (typeof message.payload === 'string') message.payload = JSON.parse(message.payload!)
-    if (message.payload.status === '已成交') {
-        return `<div class="text-red-500">恭喜 ${message.payload.dealUserName} 最终以 <b class="text-lg">￥${
-            message.payload.finalPrice
-        }</b> 拍得商品</div>
-<div class="text-sm">商品名称: ${message.payload.name}</div>
-<div  class="text-sm"text-sm">${dayjs(message.payload.dealTime).format('YYYY-MM-DD HH:mm:ss')}</div>
-<div class="mt-2 text-sm text-gray-600">买卖双方私聊拍卖师确认交易!<br/>认准星标小心冒充<br/>有请下一件拍品</div>`
-    } else if (message.payload.status === '上架') {
-        return `<div>商品流拍</div>`
-    }
-    return ''
-}
 
 function chooseEmoji(emojiKey: string) {
     text.value += emojiKey

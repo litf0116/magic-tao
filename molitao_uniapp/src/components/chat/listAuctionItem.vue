@@ -31,6 +31,7 @@
 import type { AuctionItemDto } from '@/composables/types'
 import { getImgUrl } from '@/composables/index'
 import dayjs from 'dayjs'
+import type { PropType } from 'vue'
 const props = defineProps({
     item: {
         type: Object as PropType<AuctionItemDto>,
@@ -55,7 +56,7 @@ function formatTime(item: AuctionItemDto) {
 }
 
 const checkIncludes = computed(() => {
-    return props.item.name.includes('空降') // true
+    return props.item?.name?.includes('空降')
 })
 </script>
 <style>
