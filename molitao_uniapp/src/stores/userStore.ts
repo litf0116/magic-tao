@@ -14,6 +14,7 @@ export interface IUser {
     emailAddress?: string
     tenantId?: string
     roles?: string[]
+    depositBalance?: number
 }
 
 export interface IUserInfo {

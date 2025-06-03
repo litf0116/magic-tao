@@ -209,4 +209,13 @@ export default {
     groupChatLevelSettings: {
         getList: () => request('GET', `/api/GroupChatLevelSettings/GetList`),
     },
+    /** 获取用户群聊等级信息**/
+    userGroupLevel: {
+        /**
+         * 获取指定用户的群聊等级信息
+         * @param id 用户ID
+         * @returns Promise<any>
+         */
+        getUserGroupLevel: (id: number): Promise<any> => request('GET', `/api/GroupChatLevelSettings/GetUserGroupLevel/${id}`),
+    },
 }
