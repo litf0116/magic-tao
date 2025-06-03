@@ -398,7 +398,35 @@ const history = ref<{ allLoaded: boolean; loading: boolean }>({
 defineExpose({ history })
 
 const historyMsgs = computed(() => {
-    return orderBy(uniqBy(chatStore.chatMap.get(`${chatStore.currentChat.id}`) || [], 'id'), ['time'], ['asc'])
+    // mock 数据，便于前端开发调试
+    const mockData = [
+        { id: 1, type: ChatMessageType.Welcome, fromName: '小明', time: Date.now() - 600000 },
+        { id: 2, type: ChatMessageType.BanUser, msg: '用户小红被禁言10分钟', time: Date.now() - 500000 },
+        { id: 3, type: ChatMessageType.Backout, msg: '小刚撤回了一条消息', time: Date.now() - 400000 },
+        {
+            id: 4,
+            type: ChatMessageType.AuctionDeal,
+            fromName: '拍卖师',
+            fromAdmin: true,
+            fromTag: '拍卖师',
+            tagClass: 'tag_AuctionManager',
+            time: Date.now() - 300000,
+            payload: {
+                name: '清代和田玉手镯',
+                finalPrice: 8888,
+                dealTime: Date.now() - 300000,
+                dealUserName: '张三',
+                status: '已成交',
+            },
+        },
+    ]
+
+    const realData = orderBy(
+        uniqBy(chatStore.chatMap.get(`${chatStore.currentChat.id}`) || [], 'id'),
+        ['time'],
+        ['asc']
+    )
+    return [...mockData, ...realData]
 })
 
 const text = ref('')

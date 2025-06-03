@@ -17,7 +17,7 @@
                         'system-center':
                             message.type === ChatMessageType.Welcome ||
                             message.type === ChatMessageType.BanUser ||
-                            message.type === ChatMessageType.Backout
+                            message.type === ChatMessageType.Backout,
                     }"
                 >
                     <WelcomeMessage v-if="message.type === ChatMessageType.Welcome" :fromName="message.fromName" />
@@ -105,7 +105,6 @@
                                     :message="message"
                                     @action="onAuctionEndAction"
                                 />
-
                                 <!-- 交易通知 -->
                                 <AuctionDealMessage
                                     v-if="message.type === ChatMessageType.AuctionDeal && message.payload"
@@ -398,6 +397,23 @@ const historyMsgs: any = computed(() => {
         { id: 1, type: ChatMessageType.Welcome, fromName: '小明', time: Date.now() - 600000 },
         { id: 2, type: ChatMessageType.BanUser, msg: '用户小红被禁言10分钟', time: Date.now() - 500000 },
         { id: 3, type: ChatMessageType.Backout, msg: '小刚撤回了一条消息', time: Date.now() - 400000 },
+        {
+            id: 4,
+            avatar: 'https://cdn.molitao.top/avater.png',
+            type: ChatMessageType.AuctionDeal,
+            fromName: '拍卖师',
+            fromAdmin: true,
+            fromTag: '拍卖师',
+            tagClass: 'tag_AuctionManager',
+            time: Date.now() - 300000,
+            payload: {
+                name: '清代和田玉手镯',
+                finalPrice: 8888,
+                dealTime: Date.now() - 300000,
+                dealUserName: '张三',
+                status: '已成交',
+            },
+        },
         ...orderBy(uniqBy(chatStore.chatMap.get(`${chatStore.currentChat.id}`) || [], 'id'), ['time'], ['asc']),
     ]
 })
@@ -863,7 +879,7 @@ function onAuctionDealAction({ message, payload }) {
 
         .message-item {
             display: flex;
-            justify-content: center;
+            // justify-content: center;
             margin: 20rpx 0;
 
             .message-item-checkbox {

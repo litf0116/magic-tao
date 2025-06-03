@@ -1,6 +1,6 @@
 <template>
-    <div class="border-green border-2 border-solid py-2 px-4 rounded-lg relative">
-        <div class="absolute top-0 right-0 bg-green text-white rounded-lb-lg px-2 font-bold text-xs">交易通知</div>
+    <div class="border-green-500 border-2 border-solid py-2 px-4 rounded-lg relative">
+        <div class="absolute top-0 right-0 bg-green-500 text-white rounded-lb-lg px-2 font-bold text-xs">交易通知</div>
         <div class="max-w-350px min-w-200px" @click="handleAction">
             <div class="text-green-600">
                 <text>恭喜您成功拍得商品！</text>
@@ -17,12 +17,12 @@
                     background: #86efac;
                 "
             >
-                <span style="font-weight: bold; font-size: 20px">{{ payloadData.name }}</span>
+                <span style="font-weight: bold; font-size: 20px">{{ message.payload.name }}</span>
             </div>
             <div class="text-lg font-bold text-red-500">
-                <text>成交价: ￥{{ payloadData.finalPrice }}</text>
+                <text>成交价: ￥{{ message.payload.finalPrice }}</text>
             </div>
-            <div class="text-sm" style="margin-left: 12px">{{ formattedDealTime }}</div>
+            <div class="text-sm" style="margin-left: 12px">{{ message.payload.dealTime }}</div>
             <div class="mt-2 text-sm text-gray-600">
                 请联系拍卖师确认交易详情<br />
                 认准星标，小心冒充<br />
@@ -33,9 +33,7 @@
 </template>
 
 <script lang="ts">
-import { computed } from 'vue'
 import { type ChatMessage } from '@/api/appService'
-import dayjs from 'dayjs'
 
 export default {
     name: 'AuctionDealMessage',
@@ -47,31 +45,12 @@ export default {
     },
     emits: ['action'],
     setup(props: any, { emit }: any) {
-        // 解析payload数据
-        const payloadData = computed(() => {
-            let payload = props.message.payload
-            if (typeof payload === 'string') {
-                payload = JSON.parse(payload!)
-            }
-            return payload
-        })
-
-        // 格式化交易时间
-        const formattedDealTime = computed(() => {
-            if (payloadData.value.dealTime) {
-                return dayjs(payloadData.value.dealTime).format('YYYY-MM-DD HH:mm:ss')
-            }
-            return ''
-        })
-
         // 处理点击事件，emit 更通用的 action 事件
         const handleAction = () => {
-            emit('action', { message: props.message, payload: payloadData.value })
+            emit('action', { message: props.message, payload: props.message.payload })
         }
 
         return {
-            payloadData,
-            formattedDealTime,
             handleAction,
         }
     },

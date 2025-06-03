@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ChatMessage } from '@/composables/types.d'
+import type { ChatMessage } from '@/composables/types'
 import { defineProps } from 'vue'
 const props = defineProps<{ message: ChatMessage }>()
 const { message } = props
