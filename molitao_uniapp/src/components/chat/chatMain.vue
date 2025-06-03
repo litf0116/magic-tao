@@ -369,9 +369,12 @@ const bus = useEventBus(onmessageKey)
 const unsubscribe = bus.on((msg: any) => {
     // console.log('chatMain onmessageKey', msg)
     // scrollToBottom()
-
-    if (msg.type === 'AuctionStart' || msg.type === 'AuctionEnd' || msg.type === 'AuctionBid') {
+    console.log('msg', msg)
+    if (msg.type === 'AuctionStart' || msg.type === 'AuctionEnd') {
         auctionStore.getList()
+    }
+    if (msg.type === 'AuctionBid') {
+        // auctionStore.getList()
     }
 
     if (msg.type === 'Backout' && msg.chan === '-1_auction') {
@@ -821,6 +824,7 @@ function ban() {
 
 //显示详情
 function showDetails(item: any) {
+    console.log('showDetails', item)
     if (typeof item.payload === 'string') {
         item.payload = JSON.parse(item.payload!)
     }

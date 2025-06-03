@@ -45,6 +45,6 @@ export default defineConfig({
     ],
     css: {},
     esbuild: {
-        drop: ['console', 'debugger'],
+        // drop: ['console', 'debugger'],
     },
 })

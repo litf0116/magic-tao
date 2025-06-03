@@ -17,7 +17,10 @@ const props = defineProps<{
 
 const payloadData = computed(() => {
     let payload = props.message.payload
-    if (typeof payload === 'string') payload = JSON.parse(payload)
+    if (typeof payload === 'string') {
+        payload = JSON.parse(payload)
+        console.log('payload', payload)
+    }
     return payload
 })
 </script>
