@@ -26,8 +26,10 @@ export const useAuctionStore = defineStore('auction', () => {
 
     // 设置卡秒状态（管理员）
     async function setKasec(auctionItemId, kasec) {
-        await setKasecStatus(auctionItemId, kasec)
+        const res = await setKasecStatus(auctionItemId, kasec)
+        console.log('setKasec', res)
         isKasec.value = kasec
+        return res
     }
     // 获取卡秒状态
     async function syncKasecStatus(auctionItemId) {

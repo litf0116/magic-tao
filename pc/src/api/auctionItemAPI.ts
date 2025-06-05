@@ -17,7 +17,7 @@ export function GetDetail(id) {
  */
 export function setKasecStatus(auctionItemId, isKasec) {
     return axios({
-        url: '/api/AuctionItem/SetKasecStatus',
+        url: '/api/services/app/AuctionItem/SetKasecStatus',
         method: 'post',
         data: { auctionItemId, isKasec },
     })
@@ -28,7 +28,7 @@ export function setKasecStatus(auctionItemId, isKasec) {
  */
 export function getKasecStatus(auctionItemId) {
     return axios({
-        url: '/api/AuctionItem/GetKasecStatus?auctionItemId=' + auctionItemId,
+        url: '/api/services/app/AuctionItem/GetKasecStatus?auctionItemId=' + auctionItemId,
         method: 'get',
     })
 }

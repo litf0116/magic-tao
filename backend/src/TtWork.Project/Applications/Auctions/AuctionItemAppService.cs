@@ -702,6 +702,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         }
         catch (Exception ex)
         {
+            _logger.LogError("error:", ex);
             throw new UserFriendlyException(1, ex.Message);
         }
         //finally
@@ -915,26 +916,17 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     }
 
     // 1. 设置卡秒状态（管理员权限）
+    public class SetKasecStatusInput {
+        public long AuctionItemId { get; set; }
+        public bool IsKasec { get; set; }
+    }
+
     [HttpPost]
     [AbpAuthorize(AppPermissions.Pages.ChatManager)]
-    public async Task SetKasecStatus(long auctionItemId, bool isKasec)
+    public async Task<bool> SetKasecStatus([FromBody] SetKasecStatusInput input)
     {
-        await _redisClient.Database.StringSetAsync($"Auction:Kasec:{auctionItemId}", isKasec);
-        // 广播卡秒状态变更消息
-        var msg = new ChatMessage
-        {
-            type = ChatMessageType.KasecStatusChanged,
-            chan = "-1_auction",
-            msg = "",
-            payload = new { auctionItemId, isKasec },
-            time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
-        };
-        await _webSocketController.SendChannelMsg(new SendChangeMsgInput
-        {
-            Chan = "-1_auction",
-            From = AbpSession.UserId.Value,
-            Message = msg
-        });
+        await _redisClient.Database.StringSetAsync($"Auction:Kasec:{input.AuctionItemId}", input.IsKasec);
+        return true;
     }
 
     // 2. 获取卡秒状态（所有用户）

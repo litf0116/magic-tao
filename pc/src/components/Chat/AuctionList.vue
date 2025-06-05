@@ -320,14 +320,25 @@ function bid() {
     })
 }
 
-function toggleKasec() {
-    if (!onAuctionItem.value) return
-    auctionStore.setKasec(onAuctionItem.value.id, !auctionStore.isKasec)
-    if (!auctionStore.isKasec) {
+async function toggleKasec() {
+    if (!onAuctionItem.value) {
+        ElMessage.error('没有正在拍卖的商品')
+        return
+    }
+    const isKasec = !auctionStore.isKasec
+    console.log('isKasec', isKasec)
+    const result = await auctionStore.setKasec(onAuctionItem.value.id, isKasec)
+    if (isKasec) {
         // 发送卡秒提示消息到拍卖群
         chatStore.sendChannelMsg('商品进入成交倒计时，卡秒出价需加够三倍一口价！', '-1_auction', ChatMessageType.Text, {
             highlight: true,
             border: 'red',
+        })
+    } else {
+        // 发送卡秒结束消息到拍卖群
+        chatStore.sendChannelMsg('卡秒结束，竞拍继续！', '-1_auction', ChatMessageType.Text, {
+            highlight: true,
+            border: 'green',
         })
     }
 }
