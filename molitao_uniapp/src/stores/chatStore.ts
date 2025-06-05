@@ -161,7 +161,7 @@ export const useChatStore = defineStore('chatStore', () => {
         //未读消息数量
         const unreadCount = uni.getStorageSync('unreadCount')
         if (msg.chan == null) {
-            var count = unreadCount === '' ? 1 : Number(unreadCount) + 1
+            const count = unreadCount === '' ? 1 : Number(unreadCount) + 1
             uni.setStorageSync('unreadCount', count.toString())
             uni.$emit('eventUnread')
         }

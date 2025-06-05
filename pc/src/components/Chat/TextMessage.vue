@@ -20,6 +20,8 @@ export default {
     },
     emits: ['action'],
     setup(props, { emit }) {
+        console.log('TextMessage setup 执行了')
+        console.log('props.message:', props.message)
         const emojiStore = useEmojiStore()
 
         // 创建内部的emoji解码器
@@ -27,8 +29,12 @@ export default {
 
         // 渲染文本内容，支持表情解码和换行
         const renderedText = computed(() => {
+            console.log('props.message:', props.message)
             if (props.message && props.message.msg) {
-                return decoder.decode(props.message.msg.replaceAll('\n', '<br/>'))
+                console.log('msg:', props.message.msg)
+                const html = decoder.decode(props.message.msg.replaceAll('\n', '<br/>'))
+                console.log('decode:', html)
+                return html
             }
             return ''
         })

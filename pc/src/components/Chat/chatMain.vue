@@ -426,7 +426,7 @@ const historyMsgs = computed(() => {
         ['time'],
         ['asc']
     )
-    return [...mockData, ...realData]
+    return [...realData]
 })
 
 const text = ref('')

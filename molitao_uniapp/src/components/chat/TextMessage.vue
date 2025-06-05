@@ -1,19 +1,32 @@
 <template>
     <view class="text-content" @tap="handleTap">
-        <text>{{ message.msg || '' }}</text>
+        <rich-text :nodes="renderedText"></rich-text>
     </view>
 </template>
 
 <script setup lang="ts">
-import type { ChatMessage } from '@/composables/types'
+import { computed } from 'vue'
 import { defineProps, defineEmits } from 'vue'
+import { useChatEmojiStore } from '@/stores/chatEmojiStore'
+import EmojiDecoder from '@/composables/emojiDecoder'
+import type { ChatMessage } from '@/composables/types' // 路径以实际为准
+
 const props = defineProps<{ message: ChatMessage }>()
 const emit = defineEmits(['tap'])
-const { message } = props
 
 function handleTap(e) {
     emit('tap', props.message)
 }
+
+// 获取 emoji 配置
+const emojiStore = useChatEmojiStore()
+const decoder = new EmojiDecoder(emojiStore.emojiUrl, emojiStore.emojiMap)
+
+const renderedText = computed(() => {
+    if (!props.message?.msg) return ''
+    // 解析 emoji 并处理换行
+    return decoder.decode(props.message.msg.replace(/\n/g, '<br/>'))
+})
 </script>
 
 <style scoped>

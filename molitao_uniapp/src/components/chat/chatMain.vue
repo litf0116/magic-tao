@@ -75,7 +75,7 @@
                             <view class="message-payload mt-1">
                                 <!-- 文本 -->
                                 <TextMessage
-                                    v-if="message.type === 'Text'"
+                                    v-if="message.type === ChatMessageType.Text"
                                     :message="message"
                                     @tap="goShowDetails(message)"
                                 />
@@ -242,7 +242,9 @@
         <view v-if="showGroupChatRules" class="action-popup" @touchmove.stop.prevent>
             <view class="action-list" style="width: 275px; padding: 10px; color: #fff">
                 <div>群等级制度，根据成交价金额自动累计</div>
-                <div v-for="x in groupChatLevel" :key="x.level">{{ x.level }}级:消费满{{ x.amountRequired }} {{ x.name }}</div>
+                <div v-for="x in groupChatLevel" :key="x.level">
+                    {{ x.level }}级:消费满{{ x.amountRequired }} {{ x.name }}
+                </div>
                 <div class="action-item" @click="showGroupChatRules = false">取消</div>
             </view>
         </view>
@@ -399,29 +401,7 @@ defineExpose({ history })
 
 const historyMsgs: any = computed(() => {
     // mock 数据，便于前端开发调试
-    return [
-        { id: 1, type: ChatMessageType.Welcome, fromName: '小明', time: Date.now() - 600000 },
-        { id: 2, type: ChatMessageType.BanUser, msg: '用户小红被禁言10分钟', time: Date.now() - 500000 },
-        { id: 3, type: ChatMessageType.Backout, msg: '小刚撤回了一条消息', time: Date.now() - 400000 },
-        {
-            id: 4,
-            avatar: 'https://cdn.molitao.top/avater.png',
-            type: ChatMessageType.AuctionDeal,
-            fromName: '拍卖师',
-            fromAdmin: true,
-            fromTag: '拍卖师',
-            tagClass: 'tag_AuctionManager',
-            time: Date.now() - 300000,
-            payload: {
-                name: '清代和田玉手镯',
-                finalPrice: 8888,
-                dealTime: Date.now() - 300000,
-                dealUserName: '张三',
-                status: '已成交',
-            },
-        },
-        ...orderBy(uniqBy(chatStore.chatMap.get(`${chatStore.currentChat.id}`) || [], 'id'), ['time'], ['asc']),
-    ]
+    return [...orderBy(uniqBy(chatStore.chatMap.get(`${chatStore.currentChat.id}`) || [], 'id'), ['time'], ['asc'])]
 })
 
 const text = ref('')
