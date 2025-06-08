@@ -205,7 +205,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         int userLevel = userGroupLevel?.Level ?? 0;
         if (userLevel == 0 && user.DepositBalance < 50)
         {
-            throw new UserFriendlyException(msgConfiguration != null ? msgConfiguration.Msg : $"当前用户保证金不足50，请先去充值保证金！");
+            throw new UserFriendlyException(msgConfiguration != null ? msgConfiguration.Msg : $"当前用户保证金不足50元，请先去充值保证金（需支付51元，包含1元提现手续费）！");
         }
         //拍卖场不修改名字头像不给出价权限
         if (Regex.IsMatch(input.BidUserName, @"^玩家\d{5}"))

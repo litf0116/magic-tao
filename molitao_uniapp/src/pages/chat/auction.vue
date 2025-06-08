@@ -282,21 +282,30 @@ async function bid() {
                 await new Promise((resolve, reject) => {
                     uni.showModal({
                         title: '出价须知',
-                        content: '新用户参与拍卖，需要缴纳50元保证金\n老用户回归参与拍卖，需向拍卖师-老淡，提供以往QQ群成交聊天记录截图',
+                        content: '新用户参与拍卖，需要缴纳51元（50元保证金+1元提现手续费）\n老用户回归参与拍卖，需向拍卖师-老淡，提供以往QQ群成交聊天记录截图',
                         showCancel: true,
                         confirmText: '去缴纳',
                         cancelText: '提供记录',
                         success: (res) => {
                             console.log('保证金弹窗结果:', res)
                             if (res.confirm) {
-                                // 跳转到保证金缴纳页面
-                                uni.navigateTo({
-                                    url: '/pages/user/deposit', // 替换为实际保证金充值页面路径
+                                // 显示提示信息
+                                uni.showModal({
+                                    title: '缴纳保证金',
+                                    content: '请通过微信小程序联系管理员缴纳保证金',
+                                    showCancel: false,
+                                    confirmText: '我知道了',
+                                    success: () => {
+                                        // 跳转到与管理员私信页面
+                                        uni.navigateTo({
+                                            url: '/pages/chat/privateChat?userId=14',
+                                        })
+                                    }
                                 })
                             } else if (res.cancel) {
                                 // 跳转到与管理员私信页面
                                 uni.navigateTo({
-                                    url: '/pages/chat/privateChat?userId=14', // 替换为实际管理员ID
+                                    url: '/pages/chat/privateChat?userId=14',
                                 })
                             }
                             resolve(res)

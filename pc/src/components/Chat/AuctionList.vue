@@ -288,7 +288,7 @@ async function bid() {
             console.log('新用户保证金不足:', { userLevel, deposit })
             ElMessageBox.alert(
                 `<div>
-                    新用户参与拍卖，需要缴纳50元保证金。<br/>
+                    新用户参与拍卖，需要缴纳51元（50元保证金+1元提现手续费）。<br/>
                     <b>网站无法直接缴纳保证金，请扫码进入微信小程序缴纳。</b>
                     <div style="margin:10px 0;">
                         <img src="/images/miniapp_qrcode.png" style="width:150px;" />

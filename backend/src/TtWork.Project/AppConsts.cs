@@ -31,7 +31,7 @@ namespace TtWork.Project {
         public const string UserDefaultAvatar = "https://cdn.molitao.top/avater.png";
 
 
-        public const decimal 保证金 = 50m;
+        public const decimal 保证金 = 51m;
 
 
         public static class CacheKeys {

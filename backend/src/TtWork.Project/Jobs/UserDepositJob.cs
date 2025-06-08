@@ -24,7 +24,8 @@ public class UserDepositJob(
     UserManager userManager,
     IMediator mediator,
     IUnitOfWorkManager unitOfWorkManager,
-    ISqlSugarClient sqlSugarClient) : IAsyncBackgroundJob<UserDepositLog>, ITransientDependency {
+    ISqlSugarClient sqlSugarClient,
+    GroupChatLevelSettingsService groupChatLevelSettingsService) : IAsyncBackgroundJob<UserDepositLog>, ITransientDependency {
     [UnitOfWork]
     public virtual async Task ExecuteAsync(UserDepositLog log) {
         using (unitOfWorkManager.Current.DisableFilter(AbpDataFilters.MayHaveTenant, AbpDataFilters.MustHaveTenant)) {
@@ -42,7 +43,6 @@ public class UserDepositJob(
             };
 
             #region 余额操作
-
             var cnt = await userRepository.GetAll().Where(x => x.Id == log.CreatorUserId).ExecuteUpdateAsync(setter =>
                 setter.SetProperty(b => b.DepositBalance, b => b.DepositBalance + doAmount));
 
@@ -61,12 +61,12 @@ public class UserDepositJob(
             else {
                 throw new Exception("[UserDepositJob]用户余额操作失败");
             }
-
             #endregion
 
-            #region 加权限
-
+            #region 加权限和更新等级
             var user = await userManager.GetUserByIdAsync(log.CreatorUserId!.Value);
+            
+            // 添加竞拍权限
             await userManager.AddToRoleAsync(user, ProjectRoles.竞拍用户);
             // await unitOfWorkManager.Current.SaveChangesAsync();
 
