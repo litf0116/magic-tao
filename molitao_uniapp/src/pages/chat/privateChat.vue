@@ -37,7 +37,12 @@ const user = ref<UserDto | null>(null)
 
 onLoad((query: any) => {
     if (query != undefined) {
-        friend.id = parseInt(query.id + '')
+        const id = parseInt(query.id + '')
+        if (isNaN(id)) {
+            console.error('Invalid friend id:', query.id)
+            return
+        }
+        friend.id = id
         friend.name = decodeURIComponent(query.name)
         friend.avatar = decodeURIComponent(query.avatar)
 

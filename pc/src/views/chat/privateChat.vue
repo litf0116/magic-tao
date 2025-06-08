@@ -37,7 +37,12 @@ const friend = reactive({
 
 onMounted(() => {
     console.log('onMounted', route.params, route.query)
-    friend.id = parseInt(route.params.id + '')
+    const id = parseInt(route.params.id + '')
+    if (isNaN(id)) {
+        console.error('Invalid friend id:', route.params.id)
+        return
+    }
+    friend.id = id
     friend.name = route.query.name as string
     friend.avatar = route.query.avatar as string
 

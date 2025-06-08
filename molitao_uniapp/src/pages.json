@@ -24,6 +24,13 @@
 			}
 		},
 		{
+			"path": "pages/deposit/index",
+			"type": "page",
+			"style": {
+				"navigationBarTitleText": "保证金缴费"
+			}
+		},
+		{
 			"path": "pages/announce/list",
 			"type": "page",
 			"style": {

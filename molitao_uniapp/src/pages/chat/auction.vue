@@ -289,24 +289,30 @@ async function bid() {
                         success: (res) => {
                             console.log('保证金弹窗结果:', res)
                             if (res.confirm) {
-                                // 显示提示信息
-                                uni.showModal({
-                                    title: '缴纳保证金',
-                                    content: '请通过微信小程序联系管理员缴纳保证金',
-                                    showCancel: false,
-                                    confirmText: '我知道了',
+                                // 保存状态
+                                const depositStatus = {
+                                    status: 'pending',
+                                    timestamp: new Date().getTime(),
+                                    userId: userStore.user.id,
+                                    from: 'auction'
+                                }
+                                uni.setStorageSync('depositStatus', depositStatus)
+
+                                // 直接跳转到保证金支付页面
+                                uni.navigateTo({
+                                    url: '/pages/deposit/index',
                                     success: () => {
-                                        // 跳转到与管理员私信页面
-                                        uni.navigateTo({
-                                            url: '/pages/chat/privateChat?userId=14',
-                                        })
+                                        console.log('跳转到保证金支付页面成功')
+                                    },
+                                    fail: (err) => {
+                                        console.error('跳转失败:', err)
+                                        Tips.error('跳转失败，请重试')
+                                        // 清除状态
+                                        uni.removeStorageSync('depositStatus')
                                     }
                                 })
                             } else if (res.cancel) {
-                                // 跳转到与管理员私信页面
-                                uni.navigateTo({
-                                    url: '/pages/chat/privateChat?userId=14',
-                                })
+                                navigateToAdminChat('record_provided')
                             }
                             resolve(res)
                         },
@@ -489,6 +495,44 @@ function catchImage(e: any) {
     } catch (e) {
         console.log('catchImage', e)
     }
+}
+
+// 添加路由跳转函数
+const navigateToAdminChat = (status: 'pending' | 'record_provided') => {
+    // 保存状态
+    const depositStatus = {
+        status,
+        timestamp: new Date().getTime(),
+        userId: userStore.user.id,
+        from: 'auction'
+    }
+    uni.setStorageSync('depositStatus', depositStatus)
+
+    // 构建路由参数
+    const params = {
+        id: 14,
+        name: encodeURIComponent('管理员'),
+        avatar: encodeURIComponent('/images/admin_avatar.png'),
+        from: 'auction',
+        status
+    }
+
+    // 构建完整URL
+    const url = `/pages/chat/privateChat?id=${params.id}&name=${params.name}&avatar=${params.avatar}&from=${params.from}&status=${params.status}`
+
+    // 执行跳转
+    uni.navigateTo({
+        url,
+        success: () => {
+            console.log('跳转到管理员私信页面成功', { params })
+        },
+        fail: (err) => {
+            console.error('跳转失败:', err)
+            Tips.error('跳转失败，请重试')
+            // 清除状态
+            uni.removeStorageSync('depositStatus')
+        }
+    })
 }
 </script>
 <style lang="scss" scoped>

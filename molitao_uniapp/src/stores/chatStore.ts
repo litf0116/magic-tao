@@ -340,6 +340,10 @@ export const useChatStore = defineStore('chatStore', () => {
     }
 
     const getPrivateHistory = (id: number, lastTime: number | null = null, reload = false) => {
+        if (isNaN(id)) {
+            console.error('Invalid id for getPrivateHistory:', id)
+            return Promise.resolve([])
+        }
         lastTime = lastTime || new Date().getTime()
         return new Promise<ChatMessage[]>((resolve) => {
             api.message.getPrivateHistory({ id: id, lastTime: lastTime! }).then((res) => {
