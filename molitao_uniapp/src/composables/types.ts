@@ -121,6 +121,9 @@ export interface UserDto {
 
     /**  */
     id?: number
+
+    /**  */
+    depositBalance?: number
 }
 
 export interface UserDtoBase {

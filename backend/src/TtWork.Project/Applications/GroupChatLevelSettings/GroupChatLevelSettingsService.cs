@@ -186,4 +186,78 @@ public class GroupChatLevelSettingsService : AbpAppServiceBase
             throw new UserFriendlyException($"删除失败，错误信息：" + ex.Message);
         }
     }
+
+    /// <summary>
+    /// 获取用户等级信息（包含等级配置）
+    /// </summary>
+    /// <param name="id">用户ID</param>
+    /// <returns>用户等级信息和等级配置</returns>
+    [HttpGet("GetUserLevelInfo/{id}")]
+    [AbpAuthorize]
+    public async Task<UserLevelInfoDto> GetUserLevelInfo(int id)
+    {
+        try
+        {
+            // 查询用户等级信息
+            var userLevel = await _sqlSugarClient.Queryable<UserGroupLevelEntity>()
+                .Where(w => w.UserId == id)
+                .FirstAsync();
+
+            // 如果用户没有等级信息，返回默认等级0的信息
+            if (userLevel == null)
+            {
+                var defaultLevel = await _sqlSugarClient.Queryable<GroupChatLevelSettingsEntity>()
+                    .Where(w => w.Level == 0)
+                    .FirstAsync();
+
+                return new UserLevelInfoDto
+                {
+                    UserLevel = new UserGroupLevelEntity
+                    {
+                        UserId = id,
+                        CumulativeAmount = 0,
+                        GroupChatId = defaultLevel?.Id ?? 0
+                    },
+                    LevelSettings = defaultLevel ?? new GroupChatLevelSettingsEntity
+                    {
+                        Level = 0,
+                        Name = "普通用户",
+                        AmountRequired = 0,
+                        BorderColor = "#000000",
+                        RightBorderColor = "#000000"
+                    }
+                };
+            }
+
+            // 查询对应的等级配置信息
+            var levelSettings = await _sqlSugarClient.Queryable<GroupChatLevelSettingsEntity>()
+                .Where(w => w.Id == userLevel.GroupChatId)
+                .FirstAsync();
+
+            // 如果找不到对应的等级配置，返回默认等级0的配置
+            if (levelSettings == null)
+            {
+                levelSettings = await _sqlSugarClient.Queryable<GroupChatLevelSettingsEntity>()
+                    .Where(w => w.Level == 0)
+                    .FirstAsync() ?? new GroupChatLevelSettingsEntity
+                    {
+                        Level = 0,
+                        Name = "普通用户",
+                        AmountRequired = 0,
+                        BorderColor = "#000000",
+                        RightBorderColor = "#000000"
+                    };
+            }
+
+            return new UserLevelInfoDto
+            {
+                UserLevel = userLevel,
+                LevelSettings = levelSettings
+            };
+        }
+        catch (Exception ex)
+        {
+            throw new UserFriendlyException($"获取用户等级信息失败，错误信息：" + ex.Message);
+        }
+    }
 }

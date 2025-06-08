@@ -212,6 +212,12 @@ export default {
     /** 获取用户群聊等级信息**/
     userGroupLevel: {
         /**
+         * 获取指定用户的群聊等级信息（包含等级配置）
+         * @param id 用户ID
+         * @returns Promise<any>
+         */
+        getUserLevelInfo: (id: number): Promise<any> => request('GET', `/api/GroupChatLevelSettings/GetUserLevelInfo/${id}`),
+        /**
          * 获取指定用户的群聊等级信息
          * @param id 用户ID
          * @returns Promise<any>

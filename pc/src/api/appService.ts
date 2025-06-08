@@ -6250,6 +6250,16 @@ export interface UserLoginInfoDto {
 
     /**  */
     id?: number
+
+    /**
+     * 余额
+     */
+    balance: number
+
+    /**
+     * 保证金
+     */
+    depositBalance: number
 }
 
 export interface UserRoleDto {

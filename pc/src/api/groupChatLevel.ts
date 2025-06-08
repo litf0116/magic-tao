@@ -1,6 +1,30 @@
 import { useRequest } from '@/utils/request'
 const axios = useRequest()
 
+// 用户群等级实体
+export interface UserGroupLevelEntity {
+    id: number;
+    userId: number;
+    groupChatId: number;
+    cumulativeAmount: number;
+}
+
+// 群聊等级配置实体
+export interface GroupChatLevelSettingsEntity {
+    id: number;
+    name: string;
+    level: number;
+    amountRequired: number;
+    borderColor: string;
+    rightBorderColor: string;
+}
+
+// 用户等级信息（包含等级配置）
+export interface UserLevelInfo {
+    userLevel: UserGroupLevelEntity
+    levelSettings: GroupChatLevelSettingsEntity
+}
+
 /**
  * 添加用户群聊等级信息
  * @returns
@@ -12,14 +36,27 @@ export function GroupChatLevelAdd(data) {
         data: data,
     })
 }
+
 /**
  * 获取用户群聊等级信息
- * @param id
- * @returns
+ * @param id 用户ID
+ * @returns Promise<UserGroupLevelEntity | null>
  */
-export function GetUserGroupLevel(id) {
+export function GetUserGroupLevel(id: number): Promise<{ data: UserGroupLevelEntity | null }> {
     return axios({
         url: '/api/GroupChatLevelSettings/GetUserGroupLevel/' + id,
+        method: 'get',
+    })
+}
+
+/**
+ * 获取用户等级信息（包含等级配置）
+ * @param id 用户ID
+ * @returns Promise<UserLevelInfo | null>
+ */
+export function GetUserLevelInfo(id: number): Promise<{ data: UserLevelInfo | null }> {
+    return axios({
+        url: '/api/GroupChatLevelSettings/GetUserLevelInfo/' + id,
         method: 'get',
     })
 }
@@ -34,6 +71,7 @@ export function GetList() {
         method: 'get',
     })
 }
+
 /**
  * 添加群聊等级信息列表
  * @returns
@@ -57,6 +95,7 @@ export function EditGroupChatLevelSetting(data) {
         data: data,
     })
 }
+
 /**
  * 删除群聊等级信息列表
  * @returns

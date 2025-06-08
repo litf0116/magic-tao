@@ -78,12 +78,13 @@
 
 <script setup lang="ts">
 import chatMain from '@/components/chat/chatMain.vue'
-import { getImgUrl } from '@/composables'
+import { getImgUrl, Tips } from '@/composables'
 import type { AnnounceDto, AuctionItemDto } from '@/composables/types'
 import auctionList from '@/components/chat/auctionList.vue'
 import api from '@/utils/api'
 import { onLoad, onShow, onReady } from '@dcloudio/uni-app'
 import { ChatMessageType } from '@/composables/types'
+import { nextTick } from 'vue'
 
 // import AuctionList from '@/components/chat/AuctionList.vue'
 const chatStore = useChatStore()
@@ -238,42 +239,97 @@ function showGoods() {
 //出价
 async function bid() {
     const userId = userStore.user.id
-    const deposit = userStore.user.depositBalance || 0
-    // 获取用户等级
-    const res = await api.userGroupLevel.getUserGroupLevel(userId!)
-    const userLevel = res.data?.level ?? 0
+    console.log('开始出价流程 - 用户ID:', userId)
 
-    if (userLevel === 0 && deposit < 50) {
-        uni.showModal({
-            title: '出价须知',
-            content:
-                '新用户参与拍卖，需要缴纳50元保证金\n老用户回归参与拍卖，需向拍卖师-老淡，提供以往QQ群成交聊天记录截图',
-            showCancel: true,
-            confirmText: '缴纳保证金',
-            cancelText: '提供聊天记录截图',
-            success: (res) => {
-                if (res.confirm) {
-                    // 跳转到保证金缴纳页面
-                    uni.navigateTo({
-                        url: '/pages/user/deposit', // 替换为实际保证金充值页面路径
-                    })
-                } else if (res.cancel) {
-                    // 跳转到与管理员私信页面
-                    uni.navigateTo({
-                        url: '/pages/chat/privateChat?userId=10001', // 替换为实际管理员ID
-                    })
-                }
-            },
+    try {
+        // 获取实时用户信息
+        console.log('正在获取实时用户信息...')
+        const currentUser = await api.user.get({ id: userId })
+        console.log('用户信息获取成功:', currentUser)
+        const deposit = currentUser?.depositBalance || 0
+        console.log('用户信息获取成功:', {
+            userId: currentUser?.id,
+            userName: currentUser?.userName,
+            depositBalance: deposit,
+            isActive: currentUser?.isActive,
         })
-        return
-    }
 
-    // 满足条件，弹出原有出价输入框
-    auctionStore.getList().then(() => {
+        // 获取用户等级信息
+        console.log('正在获取用户等级信息...')
+        const levelResponse = await api.userGroupLevel.getUserLevelInfo(userId!)
+        const levelInfo = levelResponse.data
+        const userLevel = levelInfo?.levelSettings?.level ?? 0
+        const cumulativeAmount = levelInfo?.userLevel?.cumulativeAmount ?? 0
+        console.log('用户等级信息:', {
+            userLevel,
+            cumulativeAmount,
+            levelSettings: levelInfo?.levelSettings,
+            userLevelInfo: levelInfo?.userLevel,
+        })
+
+        // 新用户且保证金不足的情况
+        if (userLevel === 0 && deposit < 50) {
+            console.log('新用户保证金不足:', { userLevel, deposit })
+            // 先显示一个提示
+            uni.showToast({
+                title: '新用户需要缴纳保证金',
+                icon: 'none',
+                duration: 2000,
+            })
+
+            console.log('准备显示保证金弹窗...')
+            try {
+                await new Promise((resolve, reject) => {
+                    uni.showModal({
+                        title: '出价须知',
+                        content: '新用户参与拍卖，需要缴纳50元保证金\n老用户回归参与拍卖，需向拍卖师-老淡，提供以往QQ群成交聊天记录截图',
+                        showCancel: true,
+                        confirmText: '去缴纳',
+                        cancelText: '提供记录',
+                        success: (res) => {
+                            console.log('保证金弹窗结果:', res)
+                            if (res.confirm) {
+                                // 跳转到保证金缴纳页面
+                                uni.navigateTo({
+                                    url: '/pages/user/deposit', // 替换为实际保证金充值页面路径
+                                })
+                            } else if (res.cancel) {
+                                // 跳转到与管理员私信页面
+                                uni.navigateTo({
+                                    url: '/pages/chat/privateChat?userId=14', // 替换为实际管理员ID
+                                })
+                            }
+                            resolve(res)
+                        },
+                        fail: (err) => {
+                            console.error('保证金弹窗失败:', err)
+                            reject(err)
+                        }
+                    })
+                })
+            } catch (error) {
+                console.error('显示保证金弹窗出错:', error)
+                Tips.error('显示弹窗失败，请重试')
+            }
+            return
+        }
+
+        // 满足条件，弹出原有出价输入框
+        console.log('正在获取拍卖列表...')
+        await auctionStore.getList()
         if (!onAuctionItem.value) {
+            console.log('没有正在拍卖的商品')
             Tips.error('没有正在拍卖的商品')
             return
         }
+
+        console.log('当前拍卖商品信息:', {
+            id: onAuctionItem.value.id,
+            name: onAuctionItem.value.name,
+            currentPrice: onAuctionItem.value.currentPrice,
+            status: onAuctionItem.value.status,
+        })
+
         let minPrice = 0
         if (onAuctionItem.value.currentPrice) {
             if (onAuctionItem.value.currentPrice < 100) {
@@ -291,23 +347,67 @@ async function bid() {
             }
         }
 
-        uni.showModal({
-            title: `请输入出价金额(最低出价${minPrice})`,
-            content: '',
-            editable: true,
-            placeholderText: '请输入出价金额',
-            success: (res) => {
-                if (res.confirm) {
-                    const value = Number(res.content)
-                    if (!value) {
-                        Tips.noCancelModal('请输入数字')
-                        return
-                    }
-                    auctionStore.bid(onAuctionItem.value!.id!, value)
-                }
-            },
+        console.log('计算最低出价:', {
+            currentPrice: onAuctionItem.value.currentPrice,
+            minPrice,
+            isKasec: auctionStore.isKasec,
         })
-    })
+
+        if (auctionStore.isKasec) {
+            minPrice = onAuctionItem.value.currentPrice + (minPrice - onAuctionItem.value.currentPrice) * 3
+            console.log('卡秒模式 - 调整后最低出价:', minPrice)
+        }
+
+        let message = `请输入出价金额(最低出价${minPrice})`
+        if (auctionStore.isKasec) {
+            message = `您已卡秒出价，需加够三倍竞拍价才有效（最低出价：${minPrice}）\n${message}`
+        }
+
+        console.log('准备显示出价弹窗...')
+        // 先显示一个提示
+        uni.showToast({
+            title: '请输入出价金额',
+            icon: 'none',
+            duration: 2000,
+        })
+
+        try {
+            await new Promise((resolve, reject) => {
+                uni.showModal({
+                    title: '出价',
+                    content: message,
+                    editable: true,
+                    placeholderText: '请输入出价金额',
+                    success: (res) => {
+                        console.log('出价弹窗结果:', res)
+                        if (res.confirm) {
+                            const value = Number(res.content)
+                            if (!value) {
+                                Tips.noCancelModal('请输入数字')
+                                return
+                            }
+                            console.log('用户输入出价金额:', value)
+                            auctionStore.bid(onAuctionItem.value!.id!, value)
+                        }
+                        resolve(res)
+                    },
+                    fail: (err) => {
+                        console.error('出价弹窗失败:', err)
+                        reject(err)
+                    }
+                })
+            })
+        } catch (error) {
+            console.error('显示出价弹窗出错:', error)
+            Tips.error('显示弹窗失败，请重试')
+        }
+    } catch (error) {
+        console.error('出价过程发生错误:', error)
+        uni.showToast({
+            title: '获取用户信息失败，请稍后重试',
+            icon: 'none',
+        })
+    }
 }
 
 function showonAuctionDetail() {

@@ -354,7 +354,7 @@ function delayloadhistory() {
                 historyMsgs.value.filter((x) => x.type !== 'Welcome' && x.type !== 'BanUser' && x.type !== 'Backout')
             )
             console.log('chatStore.getServerLastId', res, hisLast)
-            if (res != api.guid && res !== hisLast.id) {
+            if (res != api.guid && res !== hisLast?.id) {
                 console.log('服务器消息与本地不同')
                 chatStore.connectServer(true).then(() => {
                     loadHistoryMessage(true)
