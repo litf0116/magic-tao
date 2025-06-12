@@ -32,11 +32,8 @@
                     <view>保证金</view>
                 </view>
             </view>
-            <view
-                v-if="userStore.user.id"
-                class="absolute right-4 top-4 size-6 zoom-in i-solar:settings-linear"
-                @click.stop="navTo.navTo('/pages/user/info')"
-            ></view>
+            <view v-if="userStore.user.id" class="absolute right-4 top-4 size-6 zoom-in i-solar:settings-linear"
+                @click.stop="navTo.navTo('/pages/user/info')"></view>
         </view>
 
         <view class="my-4 flex items-center">
@@ -132,16 +129,9 @@
         </view>
         <view class="text-center w-full text-gray-300">{{ version.version }}</view>
 
-        <custom-modal
-            v-model:show="modalVisible"
-            title="提示"
-            :showCancel="false"
-            confirmText="确定"
-            @confirm="handleConfirm"
-        >
-            <view
-                >平台提现功能尚未完善，保证金退款，请加管理员老淡QQ：383875411，微信：18845639111，私信扫码退款。</view
-            >
+        <custom-modal v-model:show="modalVisible" title="提示" :showCancel="false" confirmText="确定"
+            @confirm="handleConfirm">
+            <view>平台提现功能尚未完善，保证金退款，请加管理员老淡QQ：383875411，微信：18845639111，私信扫码退款。</view>
         </custom-modal>
     </view>
 </template>
@@ -174,7 +164,7 @@ function getMyCount() {
 }
 //保证金充值
 function payDeposit() {
-    api.client.payDeposit({ openid: userStore.openid }).then((res: any) => {
+    api.client.payDeposit({ openid: userStore.openid, amount: 50 }).then((res: any) => {
         wx.requestPayment({
             provider: 'wxpay',
             timeStamp: `${res.timeStamp}`,
@@ -299,13 +289,11 @@ function toIndex() {
     @apply bg-white rounded-4;
 }
 </style>
-<route lang="json">
-{
+<route lang="json">{
     "layout": "main",
     "style": {
         "navigationBarTitleText": "个人中心",
         "navigationBarBackgroundColor": "#f6f6f6",
         "navigationBarTextStyle": "black"
     }
-}
-</route>
+}</route>

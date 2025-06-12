@@ -182,7 +182,7 @@ main() {
             4)
                 run_migration
                 start_im
-                sleep 2
+                sleep 2 1
                 start_api
                 echo
                 echo -e "${GREEN}所有服务已启动!${NC}"

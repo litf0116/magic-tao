@@ -69,11 +69,13 @@ public class ClientAppService(
     /// 保证金支付
     /// </summary>
     /// <param name="openid"></param>
+    /// <param name="type"></param>
+    /// <param name="amount">支付金额，如果不指定则使用默认保证金金额</param>
     /// <returns></returns>
     /// <exception cref="UserFriendlyException"></exception>
     [HttpGet]
     [AbpAuthorize]
-    public async Task<object> PayDeposit(string openid, string type = "jsapi")
+    public async Task<object> PayDeposit(string openid, string type = "jsapi", decimal? amount = null)
     {
         var app = await mediator.Send(new QueryApp());
         var appid = app.GetValue("appid");
@@ -83,8 +85,9 @@ public class ClientAppService(
         // 组合文件路径
         string certPath = wwwrootPath + app.GetValue("certPath");
 
+        var finalAmount = amount ?? AppConsts.保证金;
         var payOrder = new PayOrder();
-        payOrder.CreateDepositPay(AppConsts.保证金, AbpSession.UserId!.Value, openid, app.Name, appid, mchid, AbpSession.TenantId!.Value);
+        payOrder.CreateDepositPay(finalAmount, AbpSession.UserId!.Value, openid, app.Name, appid, mchid, AbpSession.TenantId!.Value);
         // payOrder.CreateDepositPay(0.01m, AbpSession.UserId!.Value, openid, app.Name, appid, mchid, AbpSession.TenantId!.Value);
         await payOrderRepository.InsertAsync(payOrder);
         try

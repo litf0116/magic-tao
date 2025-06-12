@@ -65,12 +65,12 @@ export function getConfigs(method: string, contentType: string, url: string, opt
 
 export const basePath = ''
 
-export interface IList<T> extends Array<T> {}
-export interface List<T> extends Array<T> {}
+export interface IList<T> extends Array<T> { }
+export interface List<T> extends Array<T> { }
 export interface IDictionary<TValue> {
     [key: string]: TValue
 }
-export interface Dictionary<TValue> extends IDictionary<TValue> {}
+export interface Dictionary<TValue> extends IDictionary<TValue> { }
 
 export interface IListResult<T> {
     items?: T[]
@@ -2218,6 +2218,8 @@ export class ClientService {
             openid?: string
             /**  */
             type?: string
+            /** 支付金额，如果不指定则使用默认保证金金额 */
+            amount?: number
         } = {} as any,
         options: IRequestOptions = {}
     ): Promise<any> {
@@ -2225,7 +2227,7 @@ export class ClientService {
             let url = basePath + '/api/services/app/Client/PayDeposit'
 
             const configs: IRequestConfig = getConfigs('get', 'application/json', url, options)
-            configs.params = { openid: params['openid'], type: params['type'] }
+            configs.params = { openid: params['openid'], type: params['type'], amount: params['amount'] }
 
             /** 适配ios13，get请求不允许带body */
 
