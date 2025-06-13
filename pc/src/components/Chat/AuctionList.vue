@@ -133,7 +133,7 @@ import { useChatStore } from '@/stores/chatStore'
 import { ChatMessageType } from '@/api/appService'
 import { GetUserLevelInfo } from '@/api/groupChatLevel'
 import type { UserLevelInfo } from '@/api/groupChatLevel'
-import { api } from '@/api'
+import api from '@/api'
 import type { UserDto } from '@/api/user'
 
 let ps: PerfectScrollbar | null = null

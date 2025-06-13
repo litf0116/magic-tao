@@ -14,6 +14,7 @@ using TtWork.Project.Core;
 using TtWork.Project.Domains.Pays;
 using TtWork.Project.Events.Commands;
 using SqlSugar;
+using TtWork.Project.Web.Controllers;
 
 namespace TtWork.Project.Jobs;
 
