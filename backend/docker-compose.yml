@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  ttwork-web-host:
+    image: ttwork-web-host:latest
+    container_name: ttwork-web-host
+    ports:
+      - "5000:5000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5000
+    volumes:
+      - ./cert:/app/cert
+      - ./wwwroot:/app/wwwroot
+    restart: unless-stopped
+    networks:
+      - magic-tao-network
+
+  freeim-imserver:
+    image: freeim-imserver:latest
+    container_name: freeim-imserver
+    ports:
+      - "6001:6001"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:6001
+    restart: unless-stopped
+    networks:
+      - magic-tao-network
+
+networks:
+  magic-tao-network:
+    driver: bridge
+
+volumes:
+  cert-data:
+  wwwroot-data:

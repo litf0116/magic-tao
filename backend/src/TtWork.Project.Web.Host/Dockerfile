@@ -1,6 +1,6 @@
 #See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
-FROM gitlab.somall.top:8090/library/aspnet:8.0-skiasharp AS base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 USER app
 WORKDIR /app
 EXPOSE 5000
@@ -32,8 +32,10 @@ RUN dotnet publish "./TtWork.Project.Web.Host.csproj" -c $BUILD_CONFIGURATION -o
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+USER root
 RUN rm -rf /app/wwwroot
 RUN mkdir -p /app/wwwroot
 RUN mkdir -p /app/cert
 RUN chmod -R 777 /app/wwwroot
-EntityPOINT ["dotnet", "TtWork.Project.Web.Host.dll"]
+USER app
+ENTRYPOINT ["dotnet", "TtWork.Project.Web.Host.dll"]
