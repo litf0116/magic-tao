@@ -1,11 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Castle.Windsor.MsDependencyInjection;
 using Abp.Dependency;
-using TTWork.Abp.Core.Identity;
-using TTWork.Abp.Identity;
-using TtWork.SoMall.Identity;
+using TtWork.Abp.Identity;
 
-namespace TtWork.SoMall.Migrator.DependencyInjection
+namespace TtWork.Project.Migrator.DependencyInjection
 {
     public static class ServiceCollectionRegistrar
     {

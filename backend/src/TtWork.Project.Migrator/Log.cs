@@ -3,7 +3,7 @@ using Castle.Core.Logging;
 using Abp.Dependency;
 using Abp.Timing;
 
-namespace TtWork.SoMall.Migrator
+namespace TtWork.Project.Migrator
 {
     public class Log : ITransientDependency
     {

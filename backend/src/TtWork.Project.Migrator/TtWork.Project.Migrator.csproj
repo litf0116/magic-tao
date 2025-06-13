@@ -16,6 +16,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TtWork.Project.Core\TtWork.Project.Core.csproj" />
-    <ProjectReference Include="..\TtWork.Project.EntityFrameworkCore\TtWork.Project.EntityFrameworkCore.csproj" />
+    <ProjectReference
+      Include="..\TtWork.Project.EntityFrameworkCore\TtWork.Project.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="..\..\Modules\TtWork.Abp.Core\TtWork.Abp.Core.csproj" />
   </ItemGroup>
 </Project>

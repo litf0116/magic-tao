@@ -5,9 +5,8 @@ using Castle.MicroKernel.Registration;
 using Microsoft.Extensions.Configuration;
 using TtWork.Project.Core;
 using TtWork.Project.EntityFrameworkCore;
-using TtWork.SoMall;
-using TtWork.SoMall.Configuration;
-using TtWork.SoMall.Migrator.DependencyInjection;
+using TtWork.Project.Core.Configuration;
+using TtWork.Project.Migrator.DependencyInjection;
 
 namespace TtWork.Project.Migrator
 {
@@ -33,7 +32,7 @@ namespace TtWork.Project.Migrator
 
             Configuration.BackgroundJobs.IsJobExecutionEnabled = false;
             Configuration.ReplaceService(
-                typeof(IEventBus), 
+                typeof(IEventBus),
                 () => IocManager.IocContainer.Register(
                     Component.For<IEventBus>().Instance(NullEventBus.Instance)
                 )

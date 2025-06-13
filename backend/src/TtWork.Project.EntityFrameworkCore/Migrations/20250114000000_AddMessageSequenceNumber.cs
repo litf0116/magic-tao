@@ -53,4 +53,4 @@ namespace TtWork.Project.Migrations
                 table: "T_Message");
         }
     }
-} 
+}

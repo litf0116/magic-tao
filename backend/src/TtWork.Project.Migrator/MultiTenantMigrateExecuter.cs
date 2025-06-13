@@ -8,12 +8,11 @@ using Abp.Domain.Uow;
 using Abp.Extensions;
 using Abp.MultiTenancy;
 using Abp.Runtime.Security;
-using TtWork.SoMall.EntityFrameworkCore;
-using TtWork.SoMall.EntityFrameworkCore.Seed;
-using TTWork.Abp.Core.MultiTenancy;
 using TtWork.Project.EntityFrameworkCore;
+using TtWork.Project.EntityFrameworkCore.Seed;
+using TtWork.Abp.Core.MultiTenancy;
 
-namespace TtWork.SoMall.Migrator
+namespace TtWork.Project.Migrator
 {
     public class MultiTenantMigrateExecuter : ITransientDependency
     {
