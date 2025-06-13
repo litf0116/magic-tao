@@ -28,7 +28,6 @@ using TtWork.Project.Domains;
 using TtWork.Project.Events;
 using TtWork.Project.Events.Commands;
 using static FreeSql.Internal.GlobalFilter;
-using TtWork.Abp.Entity;
 using TtWork.Project.Applications.GroupChatLevelSettings.Dto;
 using TtWork.Project.Services;
 
@@ -319,10 +318,10 @@ namespace TtWork.Project.Controllers
                     throw new UserFriendlyException($"您已被禁言,结束时间 {banedUser.EndTime:yyyy-MM-dd HH:mm:ss}");
                 }
             }
-            
+
             // 生成序列号
             var sequenceNumber = await messageSequenceService.GetNextSequenceNumberForChannelAsync(input.Chan);
-            
+
             #region 设置用户群聊等级信息
             //群聊等级信息
             var groupChatLevel = await _sqlSugarClient.Queryable<GroupChatLevelSettingsEntity>().FirstAsync(f => f.Level == 0);
@@ -375,7 +374,7 @@ namespace TtWork.Project.Controllers
                 };
                 await messageRepository.InsertAsync(entity);
                 await CurrentUnitOfWork.SaveChangesAsync();
-                
+
                 // 关键修改：使用服务端生成的时间戳和序列号更新消息
                 input.Message.time = entity.Time;
                 input.Message.sequenceNumber = entity.SequenceNumber;
@@ -416,7 +415,7 @@ namespace TtWork.Project.Controllers
 
             // 生成序列号
             var sequenceNumber = await messageSequenceService.GetNextSequenceNumberForPrivateAsync(input.From, input.To);
-            
+
             //TODO 判断是否是好友,管理员可以随便发送
             //var loginUser = 发送者;
             //var recieveUser = User.Get(receiveWebsocketId);
@@ -461,7 +460,7 @@ namespace TtWork.Project.Controllers
                 };
             }
             #endregion
-            
+
             //loginUser.保存记录(message);
             //recieveUser.保存记录(message);
 
@@ -479,7 +478,7 @@ namespace TtWork.Project.Controllers
             // 关键修改：使用服务端生成的时间戳和序列号更新消息
             input.Message.time = entity.Time;
             input.Message.sequenceNumber = entity.SequenceNumber;
-            
+
             ImHelper.SendMessage(input.From, [input.To], input.Message,
                 input.IsReceipt);
 

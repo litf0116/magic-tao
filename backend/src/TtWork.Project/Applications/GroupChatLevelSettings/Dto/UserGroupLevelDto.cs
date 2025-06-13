@@ -37,7 +37,6 @@ namespace TtWork.Project.Applications.GroupChatLevelSettings.Dto
         /// </summary>
         public int Level { get; set; }
         /// <summary>
-        /// <summary>
         /// 所需金额
         /// </summary>
         public decimal AmountRequired { get; set; }

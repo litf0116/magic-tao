@@ -32,10 +32,8 @@ RUN dotnet publish "./TtWork.Project.Web.Host.csproj" -c $BUILD_CONFIGURATION -o
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-USER root
 RUN rm -rf /app/wwwroot
 RUN mkdir -p /app/wwwroot
 RUN mkdir -p /app/cert
 RUN chmod -R 777 /app/wwwroot
-USER app
 ENTRYPOINT ["dotnet", "TtWork.Project.Web.Host.dll"]

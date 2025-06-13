@@ -5,6 +5,7 @@ using Abp.Runtime.Caching;
 using FreeIM;
 using StackExchange.Redis;
 using Abp.Logging;
+using Castle.Core.Logging;
 
 namespace TtWork.Project.Services
 {
@@ -20,14 +21,14 @@ namespace TtWork.Project.Services
         /// <param name="channelKey">频道标识（群聊频道或私聊用户对）</param>
         /// <returns>序列号</returns>
         Task<long> GetNextSequenceNumberAsync(string channelKey);
-        
+
         /// <summary>
         /// 为群聊消息生成序列号
         /// </summary>
         /// <param name="chan">群聊频道</param>
         /// <returns>序列号</returns>
         Task<long> GetNextSequenceNumberForChannelAsync(string chan);
-        
+
         /// <summary>
         /// 为私聊消息生成序列号
         /// </summary>
@@ -42,7 +43,7 @@ namespace TtWork.Project.Services
         private readonly ICacheManager _cacheManager;
         private readonly ILogger _logger;
         private const string SEQUENCE_KEY_PREFIX = "msg_seq:";
-        
+
         // Redis Lua脚本，确保原子性操作
         private const string REDIS_SCRIPT = @"
             local key = KEYS[1]
@@ -58,7 +59,7 @@ namespace TtWork.Project.Services
         public MessageSequenceService(ICacheManager cacheManager)
         {
             _cacheManager = cacheManager;
-            _logger = LogManager.GetLogger(typeof(MessageSequenceService));
+            _logger = NullLogger.Instance;
         }
 
         public async Task<long> GetNextSequenceNumberAsync(string channelKey)
@@ -66,7 +67,7 @@ namespace TtWork.Project.Services
             try
             {
                 var redisKey = $"{SEQUENCE_KEY_PREFIX}{channelKey}";
-                
+
                 // 尝试使用Redis原子操作
                 var database = GetRedisDatabase();
                 if (database != null)
@@ -81,20 +82,20 @@ namespace TtWork.Project.Services
                         _logger.Warn($"Redis操作失败，使用备用方案: {redisEx.Message}");
                     }
                 }
-                
+
                 // Redis不可用时的备用方案：使用内存缓存
                 var cache = _cacheManager.GetCache("MessageSequence");
-                var currentValue = await cache.GetAsync(redisKey, () => Task.FromResult(0L));
-                var nextValue = currentValue + 1;
+                var currentValue = await cache.GetAsync(redisKey, async (key) => await Task.FromResult((object)0L));
+                var nextValue = (long)currentValue + 1;
                 await cache.SetAsync(redisKey, nextValue);
-                
+
                 _logger.Info($"使用内存缓存生成序列号: {channelKey} -> {nextValue}");
                 return nextValue;
             }
             catch (Exception ex)
             {
                 _logger.Error($"序列号生成失败: {channelKey}", ex);
-                
+
                 // 最后的备用方案：使用时间戳
                 var fallbackValue = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                 _logger.Warn($"使用时间戳作为序列号备用方案: {channelKey} -> {fallbackValue}");
@@ -108,7 +109,7 @@ namespace TtWork.Project.Services
             {
                 throw new ArgumentException("Channel cannot be null or empty", nameof(chan));
             }
-            
+
             return await GetNextSequenceNumberAsync($"chan:{chan}");
         }
 
@@ -136,4 +137,4 @@ namespace TtWork.Project.Services
             }
         }
     }
-} 
+}

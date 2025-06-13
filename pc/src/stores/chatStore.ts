@@ -366,7 +366,10 @@ export const useChatStore = defineStore('chat', () => {
                     if (_id > 0) _id = -_id
                     const _name = _t[1]
                     if (chatMap.value.has(`${_id}`) && !reload) {
-                        chatMap.value.set(`${_id}`, uniqBy([...res.items, ...chatMap.value.get(`${_id}`)!], 'time'))
+                        chatMap.value.set(
+                            `${_id}`,
+                            uniqBy(orderBy([...res.items, ...chatMap.value.get(`${_id}`)!], [(msg) => msg.sequenceNumber || msg.time], ['asc']), 'id')
+                        )
                     } else {
                         chatMap.value.set(`${_id}`, res.items)
                     }
@@ -390,7 +393,7 @@ export const useChatStore = defineStore('chat', () => {
                     if (chatMap.value.has(`${id}`) && !reload) {
                         chatMap.value.set(
                             `${id}`,
-                            orderBy(uniqBy([...res.items, ...chatMap.value.get(`${id}`)!], 'time'), ['time'], ['asc'])
+                            uniqBy(orderBy([...res.items, ...chatMap.value.get(`${id}`)!], [(msg) => msg.sequenceNumber || msg.time], ['asc']), 'id')
                         )
                     } else {
                         chatMap.value.set(`${id}`, res.items)

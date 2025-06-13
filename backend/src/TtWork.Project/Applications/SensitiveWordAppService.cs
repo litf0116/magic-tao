@@ -15,14 +15,16 @@ using TtWork.Project.Events;
 namespace TtWork.Project.Applications;
 
 public class SensitiveWordAppService : AbpAsyncCrudAppService<SensitiveWord, SensitiveWordDto, long, AppResultRequestDto
-    , SensitiveWordDto, SensitiveWordDto> {
-    private readonly IMediator _mediator;
+    , SensitiveWordDto, SensitiveWordDto>
+{
+    private new readonly IMediator _mediator;
 
     public SensitiveWordAppService(
         IMediator mediator,
         IRepository<SensitiveWord, long> repository,
         IocManager iocManager) : base(
-        repository, iocManager) {
+        repository, iocManager)
+    {
         _mediator = mediator;
         base.CreatePermissionName = AppPermissions.Pages.ChatManager;
         base.UpdatePermissionName = AppPermissions.Pages.ChatManager;
@@ -31,27 +33,32 @@ public class SensitiveWordAppService : AbpAsyncCrudAppService<SensitiveWord, Sen
     }
 
     [HttpPost]
-    public async Task BatchCreateAsync(BatchCreateRequest input) {
+    public async Task BatchCreateAsync(BatchCreateRequest input)
+    {
         var entities = input.Words.Split(',')
             .Where(x => !string.IsNullOrEmpty(x))
             .Select(x => new SensitiveWord { Content = x }).ToList();
-        foreach (var entity in entities) {
+        foreach (var entity in entities)
+        {
             await Repository.InsertAsync(entity);
         }
     }
 
     [HttpPost]
-    public async Task ReBuildCache() {
+    public async Task ReBuildCache()
+    {
         await _mediator.Send(new QueryCacheWords(true));
     }
 
 
-    protected override IQueryable<SensitiveWord> CreateFilteredQuery(AppResultRequestDto input) {
+    protected override IQueryable<SensitiveWord> CreateFilteredQuery(AppResultRequestDto input)
+    {
         return base.CreateFilteredQuery(input)
             .WhereIf(!input.Keyword.IsNullOrEmptyOrWhiteSpace(), x => x.Content.Contains(input.Keyword));
     }
 
-    public class BatchCreateRequest {
+    public class BatchCreateRequest
+    {
         public string Words { get; set; }
     }
 }

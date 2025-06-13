@@ -6,15 +6,17 @@ using Abp.AutoMapper;
 using Abp.Domain.Entities;
 using TtWork.Abp.Authorization.Users;
 
-namespace TtWork.Project.Applications.Core.Users.Dto {
+namespace TtWork.Project.Applications.Core.Users.Dto
+{
     //Mapped to/from User in CustomDtoMapper
     [AutoMapTo(typeof(User))]
     [AutoMapFrom(typeof(User))]
-    public class UserEditDto : EntityDto<long>, IPassivable {
+    public class UserEditDto : EntityDto<long>, IPassivable
+    {
         /// <summary>
         /// Set null to create a new user. Set user's Id to update a user
         /// </summary>
-        public long Id { get; set; }
+        public new long Id { get; set; }
 
         [Required]
         [StringLength(AbpUserBase.MaxUserNameLength)]

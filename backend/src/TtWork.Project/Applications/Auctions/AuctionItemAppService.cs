@@ -59,7 +59,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
 {
     private readonly IRedisClient _redisClient;
     private readonly UserCache _userCache;
-    private readonly IMediator _mediator;
+    private new readonly IMediator _mediator;
     private readonly IRepository<AuctionItem, long> _repository;
     private readonly IRepository<BanedUser, long> _banedUserRepository;
     private readonly IRepository<BidHistory, long> _bidHistoryRepository;
@@ -293,7 +293,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             // if (find.CurrentPrice >= input.BidPrice) throw new UserFriendlyException(1, "出价必须大于当前价格");
 
             var addInfo = ObjectMapper.Map<BidHistory>(input);
-           
+
             await _bidHistoryRepository.InsertAsync(addInfo);
 
             find.SetBid(input.BidPrice, AbpSession.UserId!.Value, input.BidUserName);
@@ -325,7 +325,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 Message = msg
             });
             var ip = GetIp;
-            
+
             return result;
         }
         finally
@@ -615,9 +615,9 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     /// <param name="id"></param>
     /// <returns></returns>
     [HttpGet("api/AuctionItem/GetDetail")]
-    public  async Task<AuctionItemDto> GetDetail(long id)
+    public async Task<AuctionItemDto> GetDetail(long id)
     {
-        var info=await _sqlSugarClient.Queryable<AuctionItemEntity>().Where(x => x.Id == id).FirstAsync();
+        var info = await _sqlSugarClient.Queryable<AuctionItemEntity>().Where(x => x.Id == id).FirstAsync();
 
         return info.MapTo<AuctionItemDto>();
     }
@@ -644,7 +644,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             {
                 return new AuctionItemDto() { ToUserMsg = "已成交商品不能再次拍卖" };
             }
-           
+
             // 如果还没有人出价,重新放回待拍卖状态
             if (find.CurrentPrice == null)
             {
@@ -916,7 +916,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     }
 
     // 1. 设置卡秒状态（管理员权限）
-    public class SetKasecStatusInput {
+    public class SetKasecStatusInput
+    {
         public long AuctionItemId { get; set; }
         public bool IsKasec { get; set; }
     }
