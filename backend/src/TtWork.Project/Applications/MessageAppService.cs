@@ -23,15 +23,18 @@ namespace TtWork.Project.Applications;
 public class MessageAppService(IRepository<Message, Guid> repository, ISqlSugarClient _sqlSugarClient) : AbpAppServiceBase
 {
 
-
     [HttpGet]
     [AbpAuthorize]
     [DisableAuditing]
     public async Task<ListResultDto<ChatMessage>> GetChanHistory(string chan, long lastTime, int size = 20)
     {
+        // 优先使用序列号查询，如果没有序列号则使用时间戳
         var result = await repository.GetAll().AsNoTracking()
             .Where(x => x.Chan == chan && x.Time < lastTime)
-            .OrderByDescending(x => x.Time).Take(size).ToListAsync();
+            .OrderByDescending(x => x.SequenceNumber != 0 ? x.SequenceNumber : x.Time)
+            .Take(size)
+            .ToListAsync();
+            
         //群聊等级信息
         var groupChatLevel = await _sqlSugarClient.Queryable<GroupChatLevelSettingsEntity>().FirstAsync(f => f.Level == 0);
         //
@@ -50,7 +53,10 @@ public class MessageAppService(IRepository<Message, Guid> repository, ISqlSugarC
                 })
                 .ToListAsync();
         //
-        var list= new ListResultDto<ChatMessage>(ObjectMapper.Map<List<ChatMessage>>(result.OrderBy(x => x.Time)));
+        // 按序列号升序排列，确保消息顺序正确
+        var orderedResult = result.OrderBy(x => x.SequenceNumber != 0 ? x.SequenceNumber : x.Time).ToList();
+        var list = new ListResultDto<ChatMessage>(ObjectMapper.Map<List<ChatMessage>>(orderedResult));
+        
         foreach (var item in list.Items)
         {
             var info = userGroupLevel.Where(w => w.UserId == item.from).FirstOrDefault();
@@ -86,7 +92,7 @@ public class MessageAppService(IRepository<Message, Guid> repository, ISqlSugarC
     {
         var find = await repository.GetAll().AsNoTracking()
             .Where(x => x.Chan == chan)
-            .OrderByDescending(x => x.Time)
+            .OrderByDescending(x => x.SequenceNumber != 0 ? x.SequenceNumber : x.Time)
             .Select(x => x.Id)
             .FirstOrDefaultAsync();
         return find;
@@ -101,7 +107,9 @@ public class MessageAppService(IRepository<Message, Guid> repository, ISqlSugarC
         var result = await repository.GetAll().AsNoTracking()
             .Where(x =>
                 ((x.From == id && x.To == myId) || (x.From == myId && x.To == id)) && x.Time < lastTime)
-            .OrderByDescending(x => x.Time).Take(size).ToListAsync();
+            .OrderByDescending(x => x.SequenceNumber != 0 ? x.SequenceNumber : x.Time)
+            .Take(size)
+            .ToListAsync();
 
         //群聊等级信息
         var groupChatLevel = await _sqlSugarClient.Queryable<GroupChatLevelSettingsEntity>().FirstAsync(f => f.Level == 0);
@@ -121,7 +129,10 @@ public class MessageAppService(IRepository<Message, Guid> repository, ISqlSugarC
                 })
                 .ToListAsync();
         //
-        var list = new ListResultDto<ChatMessage>(ObjectMapper.Map<List<ChatMessage>>(result.OrderBy(x => x.Time)));
+        // 按序列号升序排列，确保消息顺序正确
+        var orderedResult = result.OrderBy(x => x.SequenceNumber != 0 ? x.SequenceNumber : x.Time).ToList();
+        var list = new ListResultDto<ChatMessage>(ObjectMapper.Map<List<ChatMessage>>(orderedResult));
+        
         foreach (var item in list.Items)
         {
             var info = userGroupLevel.Where(w => w.UserId == item.from).FirstOrDefault();
@@ -161,7 +172,7 @@ public class MessageAppService(IRepository<Message, Guid> repository, ISqlSugarC
             .Where(x =>
                 (x.From == id && x.To == myId) ||
                 (x.From == myId && x.To == id))
-            .OrderByDescending(x => x.Time)
+            .OrderByDescending(x => x.SequenceNumber != 0 ? x.SequenceNumber : x.Time)
             .Select(x => x.Id)
             .FirstOrDefaultAsync();
         return find;

@@ -327,7 +327,7 @@ export const useChatStore = defineStore('chatStore', () => {
                     if (chatMap.value.has(`${_id}`) && !reload) {
                         chatMap.value.set(
                             `${_id}`,
-                            uniqBy(orderBy([...res.items, ...chatMap.value.get(`${_id}`)!], ['time'], ['asc']), 'id')
+                            uniqBy(orderBy([...res.items, ...chatMap.value.get(`${_id}`)!], [(msg) => msg.sequenceNumber || msg.time], ['asc']), 'id')
                         )
                     } else {
                         chatMap.value.set(`${_id}`, res.items)
@@ -351,7 +351,7 @@ export const useChatStore = defineStore('chatStore', () => {
                     if (chatMap.value.has(`${id}`) && !reload) {
                         chatMap.value.set(
                             `${id}`,
-                            uniqBy(orderBy([...res.items, ...chatMap.value.get(`${id}`)!], ['time'], ['asc']), 'id')
+                            uniqBy(orderBy([...res.items, ...chatMap.value.get(`${id}`)!], [(msg) => msg.sequenceNumber || msg.time], ['asc']), 'id')
                         )
                     } else {
                         chatMap.value.set(`${id}`, res.items)
@@ -440,7 +440,6 @@ export const useChatStore = defineStore('chatStore', () => {
                 avatar: userStore.user.headImgUrl,
                 msg: msg,
                 payload: payload,
-                time: new Date().getTime(),
             }
 
             await api.ws
@@ -473,7 +472,6 @@ export const useChatStore = defineStore('chatStore', () => {
                 msg: msg,
                 to: to,
                 payload: payload,
-                time: new Date().getTime(),
             }
 
             await api.ws
@@ -543,7 +541,7 @@ export const useChatStore = defineStore('chatStore', () => {
     const deleteChat = (x: ChatListItem) => {
         console.log('deleteChat', x)
         if (x.type === 1) {
-            api.client.DeleteChatList({ id: x.id }).then(() => {})
+            api.client.DeleteChatList({ id: x.id }).then(() => { })
         }
         chatList.value = chatList.value.filter((item) => item.id !== null)
         if (x.id) chatList.value = chatList.value.filter((item) => item.id !== x.id)

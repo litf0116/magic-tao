@@ -524,24 +524,26 @@ export const useChatStore = defineStore('chat', () => {
                     },
                 })
                 .then((res) => {
+                    // 使用服务端返回的消息数据，包含正确的时间戳和序列号
+                    const serverMessage = res.data.message
                     chatList.value = [
                         {
                             id: to,
                             name: toName,
                             type: ChatListItemType.user,
-                            time: data.time,
-                            lastMsg: data.msg,
+                            time: serverMessage.time, // 使用服务端时间戳
+                            lastMsg: serverMessage.msg,
                             avatar: avatar,
                             unread: 0,
                             order: 0,
-                            msg: res.data,
+                            msg: serverMessage,
                         },
                         ...chatList.value.filter((item) => item.id !== to),
                     ]
                     if (chatMap.value.has(`${to}`)) {
-                        chatMap.value.get(`${to}`)!.push(res.data.message)
+                        chatMap.value.get(`${to}`)!.push(serverMessage)
                     } else {
-                        chatMap.value.set(`${to}`, [res.data.message])
+                        chatMap.value.set(`${to}`, [serverMessage])
                     }
 
                     return resolve(res)
@@ -583,7 +585,9 @@ export const useChatStore = defineStore('chat', () => {
     const deleteChat = (x: ChatListItem) => {
         console.log('deleteChat', x)
         if (x.type === 1) {
-            api.client.deleteChatList({ id: x.id }).then(() => {})
+            api.client.deleteChatList({ id: x.id }).then(() => {
+                // 删除聊天记录成功
+            })
         }
         chatList.value = chatList.value.filter((item) => item.id !== null)
         if (x.id) chatList.value = chatList.value.filter((item) => item.id !== x.id)

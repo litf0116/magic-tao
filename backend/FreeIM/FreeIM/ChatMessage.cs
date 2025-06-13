@@ -35,6 +35,10 @@ public record ChatMessage
     public string receipt { get; set; }
 
     public dynamic userChatLevel { get; set; }
+    
+    // 新增：消息序列号，用于确保消息顺序
+    public long sequenceNumber { get; set; } = 0;
+    
     public long GetNowTime()
     {
         return (long)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalMilliseconds;

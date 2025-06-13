@@ -13,8 +13,7 @@ public class Message : Entity<Guid> {
     public Message() {
     }
 
-
-    public Message(ChatMessage msg) {
+    public Message(ChatMessage msg, long sequenceNumber = 0) {
         this.Id = msg.id ?? Guid.NewGuid();
         Type = msg.type;
         Chan = msg.chan;
@@ -22,10 +21,14 @@ public class Message : Entity<Guid> {
         FromName = msg.fromName;
         Avatar = msg.avatar;
         To = msg.to;
+        // 关键修改：完全忽略客户端时间戳，统一使用服务端时间
+        // 这确保了所有消息（PC端、小程序端）都有一致的时间基准
         Time = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalMilliseconds;
         Msg = msg.msg;
         Payload = msg.payload.ToJsonString();
         Receipt = msg.receipt;
+        // 设置序列号，如果传入0则表示需要生成
+        SequenceNumber = sequenceNumber;
     }
 
     public ChatMessageType Type { get; set; }
@@ -46,6 +49,9 @@ public class Message : Entity<Guid> {
     [StringLength(64)] public string Receipt { get; set; }
 
     [StringLength(64)] public string Ip { get; set; }
+    
+    // 新增：消息序列号，用于确保消息顺序
+    public long SequenceNumber { get; set; }
 }
 
 [Table("T_UserFriend")]

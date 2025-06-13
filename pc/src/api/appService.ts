@@ -5469,6 +5469,9 @@ export interface ChatMessage {
 
     /**  */
     receipt?: string
+
+    /**  */
+    sequenceNumber?: number
 }
 
 export interface ChatMessageListResultDto {
