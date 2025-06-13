@@ -300,7 +300,9 @@ export const useChatStore = defineStore('chat', () => {
         } else if (msg.type === 'Text' || msg.type === 'Image' || msg.type === 'File') {
             //处理私聊消息
             const old = chatList.value.find((item) => item.id === msg.from && item.id !== currentChat.value.id)
-            if (msg.from === null) return
+            if (msg.from === null) {
+                return
+            }
             chatList.value = [
                 {
                     id: msg.from,

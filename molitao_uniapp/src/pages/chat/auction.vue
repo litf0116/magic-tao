@@ -236,6 +236,73 @@ function send(e: { type: ChatMessageType; data: string | object }) {
 function showGoods() {
     popupRef.value.open()
 }
+
+function doPayment(params: { amount: number; type: string; from: string }, callback: { success: () => void; fail: () => void }) {
+    api.client.payDeposit({ openid: userStore.openid, amount: params.amount }).then((res: any) => {
+        wx.requestPayment({
+            provider: 'wxpay',
+            timeStamp: `${res.timeStamp}`,
+            nonceStr: res.nonceStr,
+            package: res.package,
+            signType: res.signType,
+            paySign: res.paySign,
+            success: async (res) => {
+                console.log('支付成功:', JSON.stringify(res))
+                
+                // 清除支付状态
+                uni.removeStorageSync('depositStatus')
+                
+                // 更新用户信息
+                try {
+                    await userStore.checkLogin(false, true)
+                    console.log('用户信息更新成功')
+                } catch (error) {
+                    console.error('更新用户信息失败:', error)
+                }
+                
+                callback.success()
+                Tips.success('支付成功，保证金已到账')
+                
+                // 支付成功后，询问用户是否立即出价
+                setTimeout(() => {
+                    uni.showModal({
+                        title: '支付成功',
+                        content: '保证金已到账，是否立即出价？',
+                        showCancel: true,
+                        confirmText: '立即出价',
+                        cancelText: '稍后出价',
+                        success: (modalRes) => {
+                            if (modalRes.confirm) {
+                                // 延迟一下再调用出价，确保用户信息已更新
+                                setTimeout(() => {
+                                    bid()
+                                }, 500)
+                            }
+                        }
+                    })
+                }, 1500)
+            },
+            fail: (err) => {
+                console.log('支付失败:', JSON.stringify(err))
+                
+                // 清除支付状态
+                uni.removeStorageSync('depositStatus')
+                
+                callback.fail()
+                Tips.info('用户取消支付')
+            },
+        })
+    }).catch((error) => {
+        console.error('获取支付参数失败:', error)
+        
+        // 清除支付状态
+        uni.removeStorageSync('depositStatus')
+        
+        callback.fail()
+        Tips.error('获取支付参数失败，请重试')
+    })
+}
+
 //出价
 async function bid() {
     const userId = userStore.user.id
@@ -299,16 +366,17 @@ async function bid() {
                                 uni.setStorageSync('depositStatus', depositStatus)
 
                                 // 直接跳转到保证金支付页面
-                                uni.navigateTo({
-                                    url: '/pages/deposit/index',
+                                doPayment({
+                                    amount: 51,
+                                    type: 'deposit',
+                                    from: 'auction'
+                                },{
                                     success: () => {
-                                        console.log('跳转到保证金支付页面成功')
+                                        console.log('支付成功')
+                                      
                                     },
-                                    fail: (err) => {
-                                        console.error('跳转失败:', err)
-                                        Tips.error('跳转失败，请重试')
-                                        // 清除状态
-                                        uni.removeStorageSync('depositStatus')
+                                    fail: () => {
+                                        console.log('支付失败')
                                     }
                                 })
                             } else if (res.cancel) {

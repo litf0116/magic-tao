@@ -164,7 +164,7 @@ function getMyCount() {
 }
 //保证金充值
 function payDeposit() {
-    api.client.payDeposit({ openid: userStore.openid, amount: 50 }).then((res: any) => {
+    api.client.payDeposit({ openid: userStore.openid, amount: 51 }).then((res: any) => {
         wx.requestPayment({
             provider: 'wxpay',
             timeStamp: `${res.timeStamp}`,
@@ -172,10 +172,20 @@ function payDeposit() {
             package: res.package,
             signType: res.signType,
             paySign: res.paySign,
-            success: (res) => {
+            success: async (res) => {
                 console.log('success:' + JSON.stringify(res))
-                getMyCount()
-                Tips.info('支付成功')
+                
+                // 更新用户信息和统计数据
+                try {
+                    await userStore.checkLogin(false, true)
+                    getMyCount()
+                    console.log('用户信息更新成功')
+                } catch (error) {
+                    console.error('更新用户信息失败:', error)
+                    getMyCount() // 即使更新失败也要更新统计数据
+                }
+                
+                Tips.success('支付成功，保证金已到账')
             },
             fail: (err) => {
                 console.log('fail:' + JSON.stringify(err))
