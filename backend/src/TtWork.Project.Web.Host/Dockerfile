@@ -32,8 +32,15 @@ RUN dotnet publish "./TtWork.Project.Web.Host.csproj" -c $BUILD_CONFIGURATION -o
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
+# 临时切换到root用户进行文件系统操作
+USER root
 RUN rm -rf /app/wwwroot
 RUN mkdir -p /app/wwwroot
 RUN mkdir -p /app/cert
 RUN chmod -R 777 /app/wwwroot
+RUN chown -R app:app /app/wwwroot /app/cert
+
+# 切换回app用户以确保安全性
+USER app
 ENTRYPOINT ["dotnet", "TtWork.Project.Web.Host.dll"]

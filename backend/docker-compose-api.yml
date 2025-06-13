@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  alpha:
+    image: gitlab.somall.top:8090/molitao/api:alpha
+    container_name: api
+    restart: always
+    ports:
+      - "5000:5000"
+    volumes:
+      - /www/certs:/app/cert
+      - /www/wwwroot/www.molitao.top/wwwroot:/app/wwwroot
+    environment:
+      - TZ=Asia/Shanghai
+    networks:
+      - app
+  production:
+    image: gitlab.somall.top:8090/molitao/api:latest
+    container_name: api
+    restart: always
+    ports:
+      - "5000:5000"
+    volumes:
+      - /www/certs:/app/cert
+      - /www/wwwroot/www.molitao.top/wwwroot:/app/wwwroot
+    environment:
+      - TZ=Asia/Shanghai
+    networks:
+      - app
+
+networks:
+  app:
+    external: true
