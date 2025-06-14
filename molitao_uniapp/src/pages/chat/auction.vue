@@ -71,6 +71,7 @@ import { getImgUrl, Tips } from '@/composables'
 import type { AnnounceDto, AuctionItemDto } from '@/composables/types'
 import auctionList from '@/components/chat/auctionList.vue'
 import api from '@/utils/api'
+import { calculateMinBidPrice } from '@/utils/auction'
 import { onLoad, onShow, onReady } from '@dcloudio/uni-app'
 import { ChatMessageType } from '@/composables/types'
 import { nextTick } from 'vue'
@@ -405,33 +406,8 @@ async function bid() {
 
         // 满足条件，弹出原有出价输入框
 
-        let minPrice = 0
-        if (onAuctionItem.value.currentPrice) {
-            if (onAuctionItem.value.currentPrice < 100) {
-                minPrice = onAuctionItem.value.currentPrice + 1
-            } else if (onAuctionItem.value.currentPrice < 1000) {
-                minPrice = onAuctionItem.value.currentPrice + 5
-            } else if (onAuctionItem.value.currentPrice < 2000) {
-                minPrice = onAuctionItem.value.currentPrice + 10
-            } else if (onAuctionItem.value.currentPrice < 5000) {
-                minPrice = onAuctionItem.value.currentPrice + 20
-            } else if (onAuctionItem.value.currentPrice < 10000) {
-                minPrice = onAuctionItem.value.currentPrice + 50
-            } else {
-                minPrice = onAuctionItem.value.currentPrice + 100
-            }
-        }
-
-        console.log('计算最低出价:', {
-            currentPrice: onAuctionItem.value.currentPrice,
-            minPrice,
-            isKasec: auctionStore.isKasec,
-        })
-
-        if (auctionStore.isKasec) {
-            minPrice = onAuctionItem.value.currentPrice + (minPrice - onAuctionItem.value.currentPrice) * 3
-            console.log('卡秒模式 - 调整后最低出价:', minPrice)
-        }
+        // 使用工具方法计算最低出价
+        const minPrice = calculateMinBidPrice(onAuctionItem.value.currentPrice, auctionStore.isKasec)
 
         let message = `请输入出价金额(最低出价${minPrice})`
         if (auctionStore.isKasec) {

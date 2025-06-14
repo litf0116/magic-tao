@@ -70,6 +70,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { GetAuctionMidList } from '@/api/auctionMidAPI'
 import { GetDetail } from '@/api/auctionItemAPI'
 import { Tips } from '@/composables'
+import { calculateMinBidPrice } from '@/utils/auction'
 
 const userStore = useUserStore()
 const emit = defineEmits(['onEdit'])
@@ -142,26 +143,8 @@ function bid(id) {
 
         let minPrice = 0
         if (info.currentPrice) {
-            // 算法：
-            // 100以内，1R一加
-            // 100~1000，5R一加
-            // 1000-2000，10R一加
-            // 2000-5000，20R一加
-            // 50000-1W，50一加
-            // 1W以上，100一加
-            if (info.currentPrice < 100) {
-                minPrice = info.currentPrice + 1
-            } else if (info.currentPrice < 1000) {
-                minPrice = info.currentPrice + 5
-            } else if (info.currentPrice < 2000) {
-                minPrice = info.currentPrice + 10
-            } else if (info.currentPrice < 5000) {
-                minPrice = info.currentPrice + 20
-            } else if (info.currentPrice < 10000) {
-                minPrice = info.currentPrice + 50
-            } else {
-                minPrice = info.currentPrice + 100
-            }
+            // 使用工具方法计算最低出价
+            minPrice = calculateMinBidPrice(info.currentPrice, false) // 这里没有卡秒模式，所以传false
         }
 
         ElMessageBox.prompt(`请输入出价金额(最低出价${minPrice})`, '出价', {
