@@ -1,13 +1,8 @@
 <template>
     <view>
         <view v-if="item" class="sticky top-0 left-0 right-0 z-99">
-            <uv-notice-bar
-                mode="link"
-                bgColor="#f4835a"
-                color="#ffffff"
-                :text="announceContent"
-                :url="`/pages/announce/list?id=2`"
-            ></uv-notice-bar>
+            <uv-notice-bar mode="link" bgColor="#f4835a" color="#ffffff" :text="announceContent"
+                :url="`/pages/announce/list?id=2`"></uv-notice-bar>
         </view>
 
         <view :class="{ show: showUnread }" class="message-notification fixed right-0 top-140rpx z-100">
@@ -23,11 +18,8 @@
         </view>
 
         <view v-if="onAuctionItem && onAuctionItem.id" class="fixed right-2 bottom-500rpx z-100">
-            <view
-                class="flex text-sm justify-center underline text-white bg-[#ff7144] py-2 mb-2 rounded-lg opacity-80"
-                @click.stop="showonAuctionDetail"
-                >拍品详情</view
-            >
+            <view class="flex text-sm justify-center underline text-white bg-[#ff7144] py-2 mb-2 rounded-lg opacity-80"
+                @click.stop="showonAuctionDetail">拍品详情</view>
             <view class="py-4 px-3 bg-red-500 rounded-lg text-center opacity-80" @click.stop="bid">
                 <view class="text-sm text-white mb-2">拍卖中</view>
                 <view class="text-32rpx text-white font-700 underline">出价</view>
@@ -55,11 +47,8 @@
                     <uv-button type="success" @click="sub(showItem)">开拍通知</uv-button>
                 </view>
             </view>
-            <div
-                class="mt-2 min-w-200px max-h-50vh overflow-scroll"
-                @tap="catchImage"
-                v-html="getStartContent(showItem!)"
-            ></div>
+            <div class="mt-2 min-w-200px max-h-50vh overflow-scroll" @tap="catchImage"
+                v-html="getStartContent(showItem!)"></div>
             <view class="h-8"></view>
         </view>
     </uv-popup>
@@ -225,7 +214,7 @@ async function loadHistoryMessage(force = false) {
 //LINK[epic=消息发送] - 拍卖消息发送逻辑
 function send(e: { type: ChatMessageType; data: string | object }) {
     if (e.type === ChatMessageType.Image) {
-        chatStore.sendChannelMsg('[图片]', '', ChatMessageType.Image, e.data).then(() => {})
+        chatStore.sendChannelMsg('[图片]', '', ChatMessageType.Image, e.data).then(() => { })
     } else if (e.type === ChatMessageType.Text) {
         chatStore.sendChannelMsg(e.data as string, '', ChatMessageType.Text).then(() => {
             //
@@ -248,10 +237,10 @@ function doPayment(params: { amount: number; type: string; from: string }, callb
             paySign: res.paySign,
             success: async (res) => {
                 console.log('支付成功:', JSON.stringify(res))
-                
+
                 // 清除支付状态
                 uni.removeStorageSync('depositStatus')
-                
+
                 // 更新用户信息
                 try {
                     await userStore.checkLogin(false, true)
@@ -259,10 +248,10 @@ function doPayment(params: { amount: number; type: string; from: string }, callb
                 } catch (error) {
                     console.error('更新用户信息失败:', error)
                 }
-                
+
                 callback.success()
                 Tips.success('支付成功，保证金已到账')
-                
+
                 // 支付成功后，询问用户是否立即出价
                 setTimeout(() => {
                     uni.showModal({
@@ -284,20 +273,20 @@ function doPayment(params: { amount: number; type: string; from: string }, callb
             },
             fail: (err) => {
                 console.log('支付失败:', JSON.stringify(err))
-                
+
                 // 清除支付状态
                 uni.removeStorageSync('depositStatus')
-                
+
                 callback.fail()
                 Tips.info('用户取消支付')
             },
         })
     }).catch((error) => {
         console.error('获取支付参数失败:', error)
-        
+
         // 清除支付状态
         uni.removeStorageSync('depositStatus')
-        
+
         callback.fail()
         Tips.error('获取支付参数失败，请重试')
     })
@@ -309,6 +298,23 @@ async function bid() {
     console.log('开始出价流程 - 用户ID:', userId)
 
     try {
+        console.log('正在获取拍卖列表...')
+        await auctionStore.getList()
+        
+        if (!onAuctionItem.value) {
+            console.log('没有正在拍卖的商品')
+            Tips.error('没有正在拍卖的商品')
+            return
+        }
+
+        console.log('当前拍卖商品信息:', {
+            id: onAuctionItem.value.id,
+            name: onAuctionItem.value.name,
+            currentPrice: onAuctionItem.value.currentPrice,
+            status: onAuctionItem.value.status,
+        })
+ 
+
         // 获取实时用户信息
         console.log('正在获取实时用户信息...')
         const currentUser = await api.user.get({ id: userId })
@@ -370,10 +376,10 @@ async function bid() {
                                     amount: 51,
                                     type: 'deposit',
                                     from: 'auction'
-                                },{
+                                }, {
                                     success: () => {
                                         console.log('支付成功')
-                                      
+
                                     },
                                     fail: () => {
                                         console.log('支付失败')
@@ -398,20 +404,6 @@ async function bid() {
         }
 
         // 满足条件，弹出原有出价输入框
-        console.log('正在获取拍卖列表...')
-        await auctionStore.getList()
-        if (!onAuctionItem.value) {
-            console.log('没有正在拍卖的商品')
-            Tips.error('没有正在拍卖的商品')
-            return
-        }
-
-        console.log('当前拍卖商品信息:', {
-            id: onAuctionItem.value.id,
-            name: onAuctionItem.value.name,
-            currentPrice: onAuctionItem.value.currentPrice,
-            status: onAuctionItem.value.status,
-        })
 
         let minPrice = 0
         if (onAuctionItem.value.currentPrice) {
@@ -457,7 +449,7 @@ async function bid() {
         try {
             await new Promise((resolve, reject) => {
                 uni.showModal({
-                    title: '出价',
+                    title: `出价`,
                     content: message,
                     editable: true,
                     placeholderText: '请输入出价金额',
@@ -660,10 +652,8 @@ const navigateToAdminChat = (status: 'pending' | 'record_provided') => {
     width: 100px;
 }
 </style>
-<route lang="json">
-{
+<route lang="json">{
     "style": {
         "navigationBarTitleText": "拍卖行"
     }
-}
-</route>
+}</route>

@@ -81,7 +81,7 @@
                                 />
                                 <!-- 图片 -->
                                 <ImageMessage
-                                    v-else-if="message.type === 'Image'"
+                                    v-else-if="message.type === ChatMessageType.Image"
                                     :message="message"
                                     :showImageFullScreen="showImageFullScreen"
                                     :showActionPopup="showActionPopup"
@@ -400,7 +400,6 @@ const history = ref<{ allLoaded: boolean; loading: boolean }>({
 defineExpose({ history })
 
 const historyMsgs: any = computed(() => {
-    // mock 数据，便于前端开发调试
     return [...orderBy(uniqBy(chatStore.chatMap.get(`${chatStore.currentChat.id}`) || [], 'id'), ['time'], ['asc'])]
 })
 
@@ -802,7 +801,6 @@ function onAuctionDealAction({ message, payload }) {
 
         .message-item {
             display: flex;
-            // justify-content: center;
             margin: 20rpx 0;
 
             .message-item-checkbox {

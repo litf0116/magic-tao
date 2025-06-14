@@ -175,7 +175,7 @@ watch(
     (val) => {
         // 重置索引计数器
         normalIndex = 0
-        
+
         if (val === '1') {
             auctionStore.getList().then(() => {
                 ps!.update()
@@ -270,6 +270,22 @@ async function bid() {
     console.log('开始出价流程 - 用户ID:', userId)
 
     try {
+
+        console.log('正在获取拍卖列表...')
+        await auctionStore.getList()
+        if (!onAuctionItem.value) {
+            console.log('没有正在拍卖的商品')
+            ElMessage.error('没有正在拍卖的商品')
+            return
+        }
+
+        console.log('当前拍卖商品信息:', {
+            id: onAuctionItem.value.id,
+            name: onAuctionItem.value.name,
+            currentPrice: onAuctionItem.value.currentPrice,
+            status: onAuctionItem.value.status
+        })
+
         // 获取实时用户信息
         console.log('正在获取实时用户信息...')
         const userResponse = await api.user.get({ id: userId })
@@ -313,20 +329,7 @@ async function bid() {
         }
 
         // 原有出价弹窗逻辑
-        console.log('正在获取拍卖列表...')
-        await auctionStore.getList()
-        if (!onAuctionItem.value) {
-            console.log('没有正在拍卖的商品')
-            ElMessage.error('没有正在拍卖的商品')
-            return
-        }
 
-        console.log('当前拍卖商品信息:', {
-            id: onAuctionItem.value.id,
-            name: onAuctionItem.value.name,
-            currentPrice: onAuctionItem.value.currentPrice,
-            status: onAuctionItem.value.status
-        })
 
         let minPrice = 0
         if (onAuctionItem.value.currentPrice) {

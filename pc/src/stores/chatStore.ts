@@ -537,6 +537,7 @@ export const useChatStore = defineStore('chat', () => {
                 .then((res) => {
                     // 使用服务端返回的消息数据，包含正确的时间戳
                     const serverMessage = res.data.message
+                    console.log("server message: {}",serverMessage);
                     chatList.value = [
                         {
                             id: to,

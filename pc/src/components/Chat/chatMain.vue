@@ -88,32 +88,32 @@
                                     />
                                     <!-- 图片消息 -->
                                     <ImageMessage
-                                        v-if="message.type === ChatMessageType.Image && message.payload"
+                                        v-if="message.type === ChatMessageType.Image"
                                         :message="message"
                                         @action="showImagePreviewPopup"
                                         @contextMenu="showActionPopup(message, true)"
                                     />
                                     <!-- 开始拍卖 -->
                                     <AuctionStartMessage
-                                        v-if="message.type === ChatMessageType.AuctionStart && message.payload"
+                                        v-if="message.type === ChatMessageType.AuctionStart"
                                         :message="message"
                                         @action="catchImage"
                                     />
                                     <!-- 出价 -->
                                     <AuctionBidMessage
-                                        v-if="message.type === ChatMessageType.AuctionBid && message.payload"
+                                        v-if="message.type === ChatMessageType.AuctionBid"
                                         :message="message"
                                         @action="showDetails"
                                     />
                                     <!-- 公布得主 -->
                                     <AuctionEndMessage
-                                        v-if="message.type === ChatMessageType.AuctionEnd && message.payload"
+                                        v-if="message.type === ChatMessageType.AuctionEnd"
                                         :message="message"
                                         @action="onAuctionEndAction"
                                     />
                                     <!-- 交易通知 -->
                                     <AuctionDealMessage
-                                        v-if="message.type === ChatMessageType.AuctionDeal && message.payload"
+                                        v-if="message.type === ChatMessageType.AuctionDeal"
                                         :message="message"
                                         @action="onAuctionDealAction"
                                     />
@@ -398,29 +398,6 @@ const history = ref<{ allLoaded: boolean; loading: boolean }>({
 defineExpose({ history })
 
 const historyMsgs = computed(() => {
-    // mock 数据，便于前端开发调试
-    const mockData = [
-        { id: 1, type: ChatMessageType.Welcome, fromName: '小明', time: Date.now() - 600000 },
-        { id: 2, type: ChatMessageType.BanUser, msg: '用户小红被禁言10分钟', time: Date.now() - 500000 },
-        { id: 3, type: ChatMessageType.Backout, msg: '小刚撤回了一条消息', time: Date.now() - 400000 },
-        {
-            id: 4,
-            type: ChatMessageType.AuctionDeal,
-            fromName: '拍卖师',
-            fromAdmin: true,
-            fromTag: '拍卖师',
-            tagClass: 'tag_AuctionManager',
-            time: Date.now() - 300000,
-            payload: {
-                name: '清代和田玉手镯',
-                finalPrice: 8888,
-                dealTime: Date.now() - 300000,
-                dealUserName: '张三',
-                status: '已成交',
-            },
-        },
-    ]
-
     const realData = orderBy(
         uniqBy(chatStore.chatMap.get(`${chatStore.currentChat.id}`) || [], 'id'),
         [(msg) => msg.time], // 使用时间戳排序
