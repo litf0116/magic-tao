@@ -173,6 +173,9 @@ onMounted(() => {
 watch(
     () => activeName.value,
     (val) => {
+        // 重置索引计数器
+        normalIndex = 0
+        
         if (val === '1') {
             auctionStore.getList().then(() => {
                 ps!.update()
@@ -187,6 +190,15 @@ watch(
             })
         }
     }
+)
+
+watch(
+    () => waitList.value,
+    () => {
+        // 当待拍卖列表变化时重置索引计数器
+        normalIndex = 0
+    },
+    { deep: true }
 )
 
 watch(
