@@ -423,7 +423,7 @@ const historyMsgs = computed(() => {
 
     const realData = orderBy(
         uniqBy(chatStore.chatMap.get(`${chatStore.currentChat.id}`) || [], 'id'),
-        [(msg) => msg.sequenceNumber || msg.time], // 优先使用序列号，如果没有则使用时间戳
+        [(msg) => msg.time], // 使用时间戳排序
         ['asc']
     )
     return [...realData]

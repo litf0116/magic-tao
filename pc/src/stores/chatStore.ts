@@ -370,7 +370,10 @@ export const useChatStore = defineStore('chat', () => {
                     if (chatMap.value.has(`${_id}`) && !reload) {
                         chatMap.value.set(
                             `${_id}`,
-                            uniqBy(orderBy([...res.items, ...chatMap.value.get(`${_id}`)!], [(msg) => msg.sequenceNumber || msg.time], ['asc']), 'id')
+                            uniqBy(
+                                orderBy([...res.items, ...chatMap.value.get(`${_id}`)!], [(msg) => msg.time], ['asc']),
+                                'id'
+                            )
                         )
                     } else {
                         chatMap.value.set(`${_id}`, res.items)
@@ -395,7 +398,10 @@ export const useChatStore = defineStore('chat', () => {
                     if (chatMap.value.has(`${id}`) && !reload) {
                         chatMap.value.set(
                             `${id}`,
-                            uniqBy(orderBy([...res.items, ...chatMap.value.get(`${id}`)!], [(msg) => msg.sequenceNumber || msg.time], ['asc']), 'id')
+                            uniqBy(
+                                orderBy([...res.items, ...chatMap.value.get(`${id}`)!], [(msg) => msg.time], ['asc']),
+                                'id'
+                            )
                         )
                     } else {
                         chatMap.value.set(`${id}`, res.items)
@@ -529,7 +535,7 @@ export const useChatStore = defineStore('chat', () => {
                     },
                 })
                 .then((res) => {
-                    // 使用服务端返回的消息数据，包含正确的时间戳和序列号
+                    // 使用服务端返回的消息数据，包含正确的时间戳
                     const serverMessage = res.data.message
                     chatList.value = [
                         {

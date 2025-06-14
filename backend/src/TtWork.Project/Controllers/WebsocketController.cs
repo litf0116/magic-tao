@@ -375,7 +375,7 @@ namespace TtWork.Project.Controllers
                 await messageRepository.InsertAsync(entity);
                 await CurrentUnitOfWork.SaveChangesAsync();
 
-                // 关键修改：使用服务端生成的时间戳和序列号更新消息
+                // 使用服务端生成的时间戳更新消息
                 input.Message.time = entity.Time;
                 input.Message.sequenceNumber = entity.SequenceNumber;
             }
@@ -475,7 +475,7 @@ namespace TtWork.Project.Controllers
             await messageRepository.InsertAsync(entity);
             await CurrentUnitOfWork.SaveChangesAsync();
 
-            // 关键修改：使用服务端生成的时间戳和序列号更新消息
+            // 使用服务端生成的时间戳更新消息
             input.Message.time = entity.Time;
             input.Message.sequenceNumber = entity.SequenceNumber;
 
