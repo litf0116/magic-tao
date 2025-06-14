@@ -134,7 +134,7 @@ import { ChatMessageType } from '@/api/appService'
 import { GetUserLevelInfo } from '@/api/groupChatLevel'
 import type { UserLevelInfo } from '@/api/groupChatLevel'
 import api from '@/api'
-import type { UserDto } from '@/api/user'
+import type { UserDto } from '@/api/appService'
 import { calculateMinBidPrice } from '@/utils/auction'
 
 let ps: PerfectScrollbar | null = null
@@ -146,6 +146,11 @@ const editRef = ref<InstanceType<typeof editAuctionItem> | null>(null)
 const detailRef = ref<InstanceType<typeof auctionItemDetail> | null>(null)
 const withdrawalApprovaRef = ref<InstanceType<typeof auctionItemDetail> | null>(null)
 const addMsgRef = ref<InstanceType<typeof editAuctionItem> | null>(null)
+const isKasec = computed(() => auctionStore.isKasec)
+import { ref, computed, onMounted, watch } from 'vue'
+import { useUserStore } from '@/stores/userStore'
+import { useAuctionStore } from '@/stores/auctionStore'
+import { ElRadioGroup, ElRadioButton, ElButton } from 'element-plus'
 
 const activeName = ref('1')
 
@@ -271,7 +276,6 @@ async function bid() {
     console.log('开始出价流程 - 用户ID:', userId)
 
     try {
-
         console.log('正在获取拍卖列表...')
         await auctionStore.getList()
         if (!onAuctionItem.value) {
@@ -284,19 +288,19 @@ async function bid() {
             id: onAuctionItem.value.id,
             name: onAuctionItem.value.name,
             currentPrice: onAuctionItem.value.currentPrice,
-            status: onAuctionItem.value.status
+            status: onAuctionItem.value.status,
         })
 
         // 获取实时用户信息
         console.log('正在获取实时用户信息...')
-        const userResponse = await api.user.get({ id: userId })
+        const userResponse: UserDto = await api.user.get({ id: userId })
         const currentUser = userResponse.data
         const deposit = currentUser.depositBalance || 0
         console.log('用户信息获取成功:', {
             userId: currentUser.id,
             userName: currentUser.userName,
             depositBalance: deposit,
-            isActive: currentUser.isActive
+            isActive: currentUser.isActive,
         })
 
         // 获取用户等级信息
@@ -309,7 +313,7 @@ async function bid() {
             userLevel,
             cumulativeAmount,
             levelSettings: levelInfo?.levelSettings,
-            userLevelInfo: levelInfo?.userLevel
+            userLevelInfo: levelInfo?.userLevel,
         })
 
         // 新用户且保证金不足的情况

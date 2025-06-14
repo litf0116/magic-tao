@@ -3584,9 +3584,8 @@ export class UserService {
      */
     static get(
         params: {
-            /**  */
             id?: number
-        } = {} as any,
+        },
         options: IRequestOptions = {}
     ): Promise<UserDto> {
         return new Promise((resolve, reject) => {

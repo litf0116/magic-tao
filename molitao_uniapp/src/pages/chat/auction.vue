@@ -1,8 +1,13 @@
 <template>
     <view>
         <view v-if="item" class="sticky top-0 left-0 right-0 z-99">
-            <uv-notice-bar mode="link" bgColor="#f4835a" color="#ffffff" :text="announceContent"
-                :url="`/pages/announce/list?id=2`"></uv-notice-bar>
+            <uv-notice-bar
+                mode="link"
+                bgColor="#f4835a"
+                color="#ffffff"
+                :text="announceContent"
+                :url="`/pages/announce/list?id=2`"
+            ></uv-notice-bar>
         </view>
 
         <view :class="{ show: showUnread }" class="message-notification fixed right-0 top-140rpx z-100">
@@ -18,8 +23,11 @@
         </view>
 
         <view v-if="onAuctionItem && onAuctionItem.id" class="fixed right-2 bottom-500rpx z-100">
-            <view class="flex text-sm justify-center underline text-white bg-[#ff7144] py-2 mb-2 rounded-lg opacity-80"
-                @click.stop="showonAuctionDetail">拍品详情</view>
+            <view
+                class="flex text-sm justify-center underline text-white bg-[#ff7144] py-2 mb-2 rounded-lg opacity-80"
+                @click.stop="showonAuctionDetail"
+                >拍品详情</view
+            >
             <view class="py-4 px-3 bg-red-500 rounded-lg text-center opacity-80" @click.stop="bid">
                 <view class="text-sm text-white mb-2">拍卖中</view>
                 <view class="text-32rpx text-white font-700 underline">出价</view>
@@ -47,8 +55,11 @@
                     <uv-button type="success" @click="sub(showItem)">开拍通知</uv-button>
                 </view>
             </view>
-            <div class="mt-2 min-w-200px max-h-50vh overflow-scroll" @tap="catchImage"
-                v-html="getStartContent(showItem!)"></div>
+            <div
+                class="mt-2 min-w-200px max-h-50vh overflow-scroll"
+                @tap="catchImage"
+                v-html="getStartContent(showItem!)"
+            ></div>
             <view class="h-8"></view>
         </view>
     </uv-popup>
@@ -215,7 +226,7 @@ async function loadHistoryMessage(force = false) {
 //LINK[epic=消息发送] - 拍卖消息发送逻辑
 function send(e: { type: ChatMessageType; data: string | object }) {
     if (e.type === ChatMessageType.Image) {
-        chatStore.sendChannelMsg('[图片]', '', ChatMessageType.Image, e.data).then(() => { })
+        chatStore.sendChannelMsg('[图片]', '', ChatMessageType.Image, e.data).then(() => {})
     } else if (e.type === ChatMessageType.Text) {
         chatStore.sendChannelMsg(e.data as string, '', ChatMessageType.Text).then(() => {
             //
@@ -227,70 +238,76 @@ function showGoods() {
     popupRef.value.open()
 }
 
-function doPayment(params: { amount: number; type: string; from: string }, callback: { success: () => void; fail: () => void }) {
-    api.client.payDeposit({ openid: userStore.openid, amount: params.amount }).then((res: any) => {
-        wx.requestPayment({
-            provider: 'wxpay',
-            timeStamp: `${res.timeStamp}`,
-            nonceStr: res.nonceStr,
-            package: res.package,
-            signType: res.signType,
-            paySign: res.paySign,
-            success: async (res) => {
-                console.log('支付成功:', JSON.stringify(res))
+function doPayment(
+    params: { amount: number; type: string; from: string },
+    callback: { success: () => void; fail: () => void }
+) {
+    api.client
+        .payDeposit({ openid: userStore.openid, amount: params.amount })
+        .then((res: any) => {
+            wx.requestPayment({
+                provider: 'wxpay',
+                timeStamp: `${res.timeStamp}`,
+                nonceStr: res.nonceStr,
+                package: res.package,
+                signType: res.signType,
+                paySign: res.paySign,
+                success: async (res) => {
+                    console.log('支付成功:', JSON.stringify(res))
 
-                // 清除支付状态
-                uni.removeStorageSync('depositStatus')
+                    // 清除支付状态
+                    uni.removeStorageSync('depositStatus')
 
-                // 更新用户信息
-                try {
-                    await userStore.checkLogin(false, true)
-                    console.log('用户信息更新成功')
-                } catch (error) {
-                    console.error('更新用户信息失败:', error)
-                }
+                    // 更新用户信息
+                    try {
+                        await userStore.checkLogin(false, true)
+                        console.log('用户信息更新成功')
+                    } catch (error) {
+                        console.error('更新用户信息失败:', error)
+                    }
 
-                callback.success()
-                Tips.success('支付成功，保证金已到账')
+                    callback.success()
+                    Tips.success('支付成功，保证金已到账')
 
-                // 支付成功后，询问用户是否立即出价
-                setTimeout(() => {
-                    uni.showModal({
-                        title: '支付成功',
-                        content: '保证金已到账，是否立即出价？',
-                        showCancel: true,
-                        confirmText: '立即出价',
-                        cancelText: '稍后出价',
-                        success: (modalRes) => {
-                            if (modalRes.confirm) {
-                                // 延迟一下再调用出价，确保用户信息已更新
-                                setTimeout(() => {
-                                    bid()
-                                }, 500)
-                            }
-                        }
-                    })
-                }, 1500)
-            },
-            fail: (err) => {
-                console.log('支付失败:', JSON.stringify(err))
+                    // 支付成功后，询问用户是否立即出价
+                    setTimeout(() => {
+                        uni.showModal({
+                            title: '支付成功',
+                            content: '保证金已到账，是否立即出价？',
+                            showCancel: true,
+                            confirmText: '立即出价',
+                            cancelText: '稍后出价',
+                            success: (modalRes) => {
+                                if (modalRes.confirm) {
+                                    // 延迟一下再调用出价，确保用户信息已更新
+                                    setTimeout(() => {
+                                        bid()
+                                    }, 500)
+                                }
+                            },
+                        })
+                    }, 1500)
+                },
+                fail: (err) => {
+                    console.log('支付失败:', JSON.stringify(err))
 
-                // 清除支付状态
-                uni.removeStorageSync('depositStatus')
+                    // 清除支付状态
+                    uni.removeStorageSync('depositStatus')
 
-                callback.fail()
-                Tips.info('用户取消支付')
-            },
+                    callback.fail()
+                    Tips.info('用户取消支付')
+                },
+            })
         })
-    }).catch((error) => {
-        console.error('获取支付参数失败:', error)
+        .catch((error) => {
+            console.error('获取支付参数失败:', error)
 
-        // 清除支付状态
-        uni.removeStorageSync('depositStatus')
+            // 清除支付状态
+            uni.removeStorageSync('depositStatus')
 
-        callback.fail()
-        Tips.error('获取支付参数失败，请重试')
-    })
+            callback.fail()
+            Tips.error('获取支付参数失败，请重试')
+        })
 }
 
 //出价
@@ -301,7 +318,7 @@ async function bid() {
     try {
         console.log('正在获取拍卖列表...')
         await auctionStore.getList()
-        
+
         if (!onAuctionItem.value) {
             console.log('没有正在拍卖的商品')
             Tips.error('没有正在拍卖的商品')
@@ -314,7 +331,6 @@ async function bid() {
             currentPrice: onAuctionItem.value.currentPrice,
             status: onAuctionItem.value.status,
         })
- 
 
         // 获取实时用户信息
         console.log('正在获取实时用户信息...')
@@ -356,7 +372,8 @@ async function bid() {
                 await new Promise((resolve, reject) => {
                     uni.showModal({
                         title: '出价须知',
-                        content: '新用户参与拍卖，需要缴纳51元（50元保证金+1元提现手续费）\n老用户回归参与拍卖，需向拍卖师-老淡，提供以往QQ群成交聊天记录截图',
+                        content:
+                            '新用户参与拍卖，需要缴纳51元（50元保证金+1元提现手续费）\n老用户回归参与拍卖，需向拍卖师-老淡，提供以往QQ群成交聊天记录截图',
                         showCancel: true,
                         confirmText: '去缴纳',
                         cancelText: '提供记录',
@@ -368,24 +385,26 @@ async function bid() {
                                     status: 'pending',
                                     timestamp: new Date().getTime(),
                                     userId: userStore.user.id,
-                                    from: 'auction'
+                                    from: 'auction',
                                 }
                                 uni.setStorageSync('depositStatus', depositStatus)
 
                                 // 直接跳转到保证金支付页面
-                                doPayment({
-                                    amount: 51,
-                                    type: 'deposit',
-                                    from: 'auction'
-                                }, {
-                                    success: () => {
-                                        console.log('支付成功')
-
+                                doPayment(
+                                    {
+                                        amount: 51,
+                                        type: 'deposit',
+                                        from: 'auction',
                                     },
-                                    fail: () => {
-                                        console.log('支付失败')
+                                    {
+                                        success: () => {
+                                            console.log('支付成功')
+                                        },
+                                        fail: () => {
+                                            console.log('支付失败')
+                                        },
                                     }
-                                })
+                                )
                             } else if (res.cancel) {
                                 navigateToAdminChat('record_provided')
                             }
@@ -394,7 +413,7 @@ async function bid() {
                         fail: (err) => {
                             console.error('保证金弹窗失败:', err)
                             reject(err)
-                        }
+                        },
                     })
                 })
             } catch (error) {
@@ -442,10 +461,10 @@ async function bid() {
                         }
                         resolve(res)
                     },
-                    fail: (err) => {
+                    fail: (err: any) => {
                         console.error('出价弹窗失败:', err)
                         reject(err)
-                    }
+                    },
                 })
             })
         } catch (error) {
@@ -540,7 +559,7 @@ const navigateToAdminChat = (status: 'pending' | 'record_provided') => {
         status,
         timestamp: new Date().getTime(),
         userId: userStore.user.id,
-        from: 'auction'
+        from: 'auction',
     }
     uni.setStorageSync('depositStatus', depositStatus)
 
@@ -550,7 +569,7 @@ const navigateToAdminChat = (status: 'pending' | 'record_provided') => {
         name: encodeURIComponent('管理员'),
         avatar: encodeURIComponent('/images/admin_avatar.png'),
         from: 'auction',
-        status
+        status,
     }
 
     // 构建完整URL
@@ -567,7 +586,7 @@ const navigateToAdminChat = (status: 'pending' | 'record_provided') => {
             Tips.error('跳转失败，请重试')
             // 清除状态
             uni.removeStorageSync('depositStatus')
-        }
+        },
     })
 }
 </script>
@@ -628,8 +647,10 @@ const navigateToAdminChat = (status: 'pending' | 'record_provided') => {
     width: 100px;
 }
 </style>
-<route lang="json">{
+<route lang="json">
+{
     "style": {
         "navigationBarTitleText": "拍卖行"
     }
-}</route>
+}
+</route>
