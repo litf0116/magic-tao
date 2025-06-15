@@ -47,6 +47,8 @@ using TtWork.HttpClient.Weixin.Signature;
 using TtWork.Project.Web.Authentication.JwtBearer;
 using Nest;
 using TtWork.Abp;
+using TtWork.Project.Web.Host.HealthChecks;
+using TtWork.Project.Web.Host.Services;
 
 namespace TtWork.Project.Web.Host.Startup
 {
@@ -76,6 +78,15 @@ namespace TtWork.Project.Web.Host.Startup
             services.AddSingleton<IPlatformCertificateManager, PlatformCertificateManager>();
             services.AddSingleton<ISignatureGenerator, SignatureGenerator>();
             services.AddSingleton<IWeChatPayAuthorizationGenerator, WeChatPayAuthorizationGenerator>();
+
+            // 添加性能监控服务
+            services.AddHostedService<PerformanceCounterService>();
+
+            // 添加健康检查
+            services.AddHealthChecks()
+                .AddCheck<DatabaseHealthCheck>("database")
+                .AddCheck<RedisHealthCheck>("redis");
+
             // MVC
             services.AddControllersWithViews(opt => { opt.InputFormatters.Add(new XmlSerializerInputFormatter(opt)); })
                 .AddRazorRuntimeCompilation()
@@ -152,9 +163,12 @@ namespace TtWork.Project.Web.Host.Startup
 
         public void Configure(IApplicationBuilder app)
         {
-           
+
             //Initializes ABP framework.
             app.UseAbp(options => { options.UseAbpRequestLocalization = false; }); //used below: UseAbpRequestLocalization
+
+            // 添加请求性能监控中间件
+            app.UseMiddleware<RequestPerformanceMiddleware>();
 
             app.UseStaticFiles();
             app.UseRouting();
@@ -188,35 +202,35 @@ namespace TtWork.Project.Web.Host.Startup
                 // 启用Swagger中间件
                 app.UseSwaggerMiddleware(_hostingEnvironment);
                 if (_hostingEnvironment.IsDevelopment())
-               {
-                // Enable middleware to serve generated Swagger as a JSON endpoint
-                app.UseSwagger();
-                // Enable middleware to serve swagger-ui assets (HTML, JS, CSS etc.)
-
-                app.UseSwaggerUI(options =>
                 {
-                    options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1 Docs");
-                    options.RoutePrefix = "swagger";
-                });
+                    // Enable middleware to serve generated Swagger as a JSON endpoint
+                    app.UseSwagger();
+                    // Enable middleware to serve swagger-ui assets (HTML, JS, CSS etc.)
 
-                //app.UseReDoc(c =>
-                //{
-                //    c.RoutePrefix = "docs";
-                //    c.SpecUrl("/swagger/v1/swagger.json");
-                //    c.EnableUntrustedSpec();
-                //    c.ScrollYOffset(10);
-                //    c.HideHostname();
-                //    c.HideDownloadButton();
-                //    c.ExpandResponses("200,201");
-                //    c.RequiredPropsFirst();
-                //    c.NoAutoAuth();
-                //    c.PathInMiddlePanel();
-                //    c.HideLoading();
-                //    c.NativeScrollbars();
-                //    c.DisableSearch();
-                //    c.OnlyRequiredInSamples();
-                //    c.SortPropsAlphabetically();
-                //});
+                    app.UseSwaggerUI(options =>
+                    {
+                        options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1 Docs");
+                        options.RoutePrefix = "swagger";
+                    });
+
+                    //app.UseReDoc(c =>
+                    //{
+                    //    c.RoutePrefix = "docs";
+                    //    c.SpecUrl("/swagger/v1/swagger.json");
+                    //    c.EnableUntrustedSpec();
+                    //    c.ScrollYOffset(10);
+                    //    c.HideHostname();
+                    //    c.HideDownloadButton();
+                    //    c.ExpandResponses("200,201");
+                    //    c.RequiredPropsFirst();
+                    //    c.NoAutoAuth();
+                    //    c.PathInMiddlePanel();
+                    //    c.HideLoading();
+                    //    c.NativeScrollbars();
+                    //    c.DisableSearch();
+                    //    c.OnlyRequiredInSamples();
+                    //    c.SortPropsAlphabetically();
+                    //});
                 }
             }
 
