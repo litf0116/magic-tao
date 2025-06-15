@@ -287,9 +287,10 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             }
 
             if (input.BidPrice < minPrice)
+            {
                 throw new UserFriendlyException(1,
                     "出价必须大于最低加价\n 100以内，1R一加。100~1000，5R一加。1000-2000，10R一加。2000-5000，20R一加。50000-1W，50一加。1W以上，100一加" + (kasecVal.HasValue && kasecVal == "true" ? "\n卡秒期间需三倍加价" : ""));
-
+            }
             // if (find.CurrentPrice >= input.BidPrice) throw new UserFriendlyException(1, "出价必须大于当前价格");
 
             var addInfo = ObjectMapper.Map<BidHistory>(input);
@@ -570,26 +571,26 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                        _httpContextAccessor!.HttpContext!.Request.HttpContext!.Connection!.RemoteIpAddress!
                            .ToString();
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return "";
             }
         }
     }
-    private async Task<(bool, string, string)> CheckIsChatAdmin(UserDto currentUser)
+    private Task<(bool, string, string)> CheckIsChatAdmin(UserDto currentUser)
     {
         try
         {
             if (currentUser is { RoleNames.Length: > 0 })
             {
                 if (currentUser.RoleNames.Contains("AuctionManager"))
-                    return (true, "拍卖师", "tag_AuctionManager");
+                    return Task.FromResult((true, "拍卖师", "tag_AuctionManager"));
                 if (currentUser.RoleNames.Contains("Manager"))
-                    return (true, "管理员", "tag_Manager");
+                    return Task.FromResult((true, "管理员", "tag_Manager"));
                 if (currentUser.RoleNames.Contains("AuctionUser"))
-                    return (false, "竞拍用户", "tag_AudtionUser");
+                    return Task.FromResult((false, "竞拍用户", "tag_AudtionUser"));
                 if (currentUser.RoleNames.Contains("Admin"))
-                    return (true, "系统管理员", "tag_Admin");
+                    return Task.FromResult((true, "系统管理员", "tag_Admin"));
             }
         }
         catch (Exception e)
@@ -597,7 +598,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             Logger.Error("获取用户缓存信息失败", e);
         }
 
-        return (false, "", "");
+        return Task.FromResult((false, "", ""));
     }
     /// <summary>
     /// 判断时间是否到达指定的时、分、秒
@@ -712,7 +713,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         }
         catch (Exception ex)
         {
-            _logger.LogError("error:", ex);
+            _logger.LogError(ex, "error: {Message}", ex.Message);
             throw new UserFriendlyException(1, ex.Message);
         }
         //finally

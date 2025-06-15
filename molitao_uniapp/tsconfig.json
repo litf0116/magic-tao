@@ -7,7 +7,7 @@
             "@/*": ["./src/*"]
         },
         "lib": ["esnext", "dom"],
-        "types": ["@dcloudio/types", "@types/uni-app", "@types/wechat-miniprogram", "z-paging/global.d.ts"],
+        "types": ["@dcloudio/types", "@types/uni-app", "@types/wechat-miniprogram"],
         "resolveJsonModule": true
     },
     "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "auto-imports.d.ts"]
