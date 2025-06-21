@@ -238,15 +238,33 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             var lockTaken =
                 await _redisClient.Database.LockTakeAsync(lockKey, input.AuctionItemId,
                     TimeSpan.FromSeconds(lockSeconds));
-            if (!lockTaken) throw new UserFriendlyException(1, "后台正在处理上一人出价,请稍后再试");
+            if (!lockTaken)
+            {
+                throw new UserFriendlyException(1, "后台正在处理上一人出价,请稍后再试");
+            }
+
             //查询商品信息
             var find = await Repository.FirstOrDefaultAsync(x => x.Id == input.AuctionItemId);
-            if (find == null) throw new UserFriendlyException(1, "找不到商品");
-            if (find.Status != AuctionStatusEnum.拍卖中) throw new UserFriendlyException(1, "商品不在拍卖中");
+            if (find == null)
+            {
+                throw new UserFriendlyException(1, "找不到商品");
+            }
 
+            if (find.Status != AuctionStatusEnum.拍卖中)
+            {
+                throw new UserFriendlyException(1, "商品不在拍卖中");
+            }
 
-            #region MyRegion
+            var basePrice = find?.StartingPrice ?? 1;
+            if (find.CurrentPrice.HasValue)
+            {
+                basePrice = find.CurrentPrice.Value;
+            } else {
+                basePrice = find.StartingPrice;
+            }
 
+            #region 计算最低出价
+ 
             var minPrice = 0;
             if (find.CurrentPrice.HasValue)
             {
@@ -281,6 +299,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 {
                     minPrice = find.CurrentPrice.Value + 100;
                 }
+            } else {
+                minPrice = basePrice;
             }
 
             #endregion
@@ -289,7 +309,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             var kasecVal = await _redisClient.Database.StringGetAsync($"Auction:Kasec:{input.AuctionItemId}");
             if (kasecVal.HasValue && kasecVal == "true")
             {
-                minPrice = find.CurrentPrice.Value + ((minPrice - find.CurrentPrice.Value) * 3);
+                minPrice = basePrice + ((minPrice - basePrice) * 3);
             }
 
             if (input.BidPrice < minPrice)
@@ -499,7 +519,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 Message = new ChatMessage
                 {
                     chan = null,
-                    type = ChatMessageType.Text,
+                    type = ChatMessageType.AuctionDeal,
                     from = userInfo.LastModifierUserId,
                     fromName = userInfo.Name,
                     avatar = userInfo.HeadImgUrl,
@@ -653,9 +673,40 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     [HttpGet("api/AuctionItem/GetDetail")]
     public async Task<AuctionItemDto> GetDetail(long id)
     {
-        var info = await _sqlSugarClient.Queryable<AuctionItemEntity>().Where(x => x.Id == id).FirstAsync();
+        // 使用Repository获取完整的实体信息
+        var auctionItem = await Repository.GetAll().AsNoTracking()
+            .Where(x => x.Id == id)
+            .FirstOrDefaultAsync();
 
-        return info.MapTo<AuctionItemDto>();
+        if (auctionItem == null)
+        {
+            throw new UserFriendlyException(1, "找不到商品");
+        }
+
+        var result = ObjectMapper.Map<AuctionItemDto>(auctionItem);
+
+        // 如果是拍卖中的商品，获取最新的出价信息
+        if (auctionItem.Status == AuctionStatusEnum.拍卖中)
+        {
+            var latestBid = await _bidHistoryRepository.GetAll().AsNoTracking()
+                .Where(w => w.AuctionItemId == id)
+                .OrderByDescending(o => o.BidTime)
+                .FirstOrDefaultAsync();
+
+            if (latestBid != null)
+            {
+                result.CurrentPrice = latestBid.BidPrice;
+                result.CurrentPriceUserName = latestBid.BidUserName;
+                result.CurrentPriceTime = latestBid.BidTime;
+                result.UseCountdownTime = latestBid.CreationTime;
+            }
+        }
+
+        // 获取卡秒状态
+        var kasecVal = await _redisClient.Database.StringGetAsync($"Auction:Kasec:{id}");
+        result.IsKasec = kasecVal.HasValue && kasecVal == "true";
+
+        return result;
     }
 
     public static object lockObj = new object();
@@ -1066,7 +1117,9 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     [AbpAuthorize(AppPermissions.Pages.ChatManager)]
     public async Task<bool> SetKasecStatus([FromBody] SetKasecStatusInput input)
     {
-        await _redisClient.Database.StringSetAsync($"Auction:Kasec:{input.AuctionItemId}", input.IsKasec);
+        // 将布尔值转换为小写字符串存储到Redis
+        await _redisClient.Database.StringSetAsync($"Auction:Kasec:{input.AuctionItemId}",
+            input.IsKasec.ToString().ToLower());
         return true;
     }
 
@@ -1076,6 +1129,48 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     {
         var val = await _redisClient.Database.StringGetAsync($"Auction:Kasec:{auctionItemId}");
         return val.HasValue && val == "true";
+    }
+
+    /// <summary>
+    /// 获取当前正在拍卖的商品（单个）
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet]
+    [AbpAuthorize]
+    [DisableAuditing]
+    public async Task<AuctionItemDto> GetCurrentAuctionItem()
+    {
+        // 查询当前拍卖中的商品（系统设计为同时只能有一个商品在拍卖）
+        var auctionItem = await Repository.GetAll().AsNoTracking()
+            .Where(x => x.Status == AuctionStatusEnum.拍卖中)
+            .FirstOrDefaultAsync();
+
+        if (auctionItem == null)
+        {
+            return null;
+        }
+
+        var result = ObjectMapper.Map<AuctionItemDto>(auctionItem);
+
+        // 获取最新的出价信息
+        var latestBid = await _bidHistoryRepository.GetAll().AsNoTracking()
+            .Where(w => w.AuctionItemId == auctionItem.Id)
+            .OrderByDescending(o => o.BidTime)
+            .FirstOrDefaultAsync();
+
+        if (latestBid != null)
+        {
+            result.CurrentPrice = latestBid.BidPrice;
+            result.CurrentPriceUserName = latestBid.BidUserName;
+            result.CurrentPriceTime = latestBid.BidTime;
+            result.UseCountdownTime = latestBid.CreationTime;
+        }
+
+        // 获取卡秒状态
+        var kasecVal = await _redisClient.Database.StringGetAsync($"Auction:Kasec:{auctionItem.Id}");
+        result.IsKasec = kasecVal.HasValue && kasecVal == "true";
+
+        return result;
     }
 
     // 重写CRUD方法，在数据变更时清理缓存

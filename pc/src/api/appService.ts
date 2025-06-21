@@ -4694,7 +4694,7 @@ export class WebSocketService {
     ): Promise<any> {
         return new Promise((resolve, reject) => {
             let url = basePath + '/ws/send-msg'
-
+            debugger;
             const configs: IRequestConfig = getConfigs('post', 'application/json', url, options)
 
             let data = params.body
@@ -5062,6 +5062,9 @@ export interface AuctionItemDto {
 
     /**  */
     id?: number
+
+    /**  */
+    isKasec?: boolean
 }
 
 export interface AuctionItemDtoListResultDto {

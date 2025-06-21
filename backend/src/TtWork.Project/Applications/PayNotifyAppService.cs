@@ -108,7 +108,7 @@ public class WeChatPayController(
         // 获取 wwwroot 完整路径
         string wwwrootPath = _env.WebRootPath;
         // 组合文件路径
-        string certPath = wwwrootPath + app.GetValue("certPath");
+        string certPath = Path.Combine(wwwrootPath, app.GetValue("certPath").TrimStart('/', '\\'));
         var certificate =
             await platformCertificateManager.GetPlatformCertificateAsync(app.GetValue("mchId"), inputDto.HttpHeader.SerialNumber, app.GetValue("mchKey"), certPath);
         var sb = new StringBuilder();

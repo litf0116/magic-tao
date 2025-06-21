@@ -116,16 +116,18 @@ function end(item: AuctionItemDto) {
         type: 'warning',
     })
         .then(async () => {
-            auctionStore.end(item!.id!)
-            dialogVisible.value = false
-            await sleep(1000)
-            GetAuctionMidList({ status: 2, maxResultCount: 20 }).then((res) => {
-                if (res.status == 200) {
-                    console.log(res)
-                    auctionStore.auctionMid.length = 0
-                    auctionStore.auctionMid = res.data.items
-                }
-            })
+            const success = await auctionStore.end(item!.id!)
+            if (success) {
+                dialogVisible.value = false
+                await sleep(1000)
+                GetAuctionMidList({ status: 2, maxResultCount: 20 }).then((res) => {
+                    if (res.status == 200) {
+                        console.log(res)
+                        auctionStore.auctionMid.length = 0
+                        auctionStore.auctionMid = res.data.items
+                    }
+                })
+            }
         })
         .catch(() => {
             Tips.info('取消结束')

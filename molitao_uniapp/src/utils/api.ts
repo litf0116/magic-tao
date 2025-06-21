@@ -74,8 +74,10 @@ export default {
     ws: {
         sendChannelMsg: (data: { from: number; chan: string; message: ChatMessage }) =>
             request('POST', `/ws/SendChannelMsg`, data),
-        sendMsg: (data: { from: number; to: number; message: ChatMessage; isReceipt: boolean }) =>
-            request('POST', `/ws/send-msg`, data) as Promise<any>,
+        sendMsg: (data: { from: number; to: number; message: ChatMessage; isReceipt: boolean }) => {
+            debugger;
+            return request('POST', `/ws/send-msg`, data) as Promise<any>
+        },
 
         preConnect: () => request('POST', `/ws/pre-connect`),
         offline: (data: { websocketId?: number }) => request('GET', `/ws/offline`, { websocketId: data.websocketId }),
@@ -150,8 +152,12 @@ export default {
             request('GET', `/api/services/app/AuctionItem/GetMySuccessList`, data) as Promise<IListType>,
         subStartNotify: (data: { auctionItemId: number; openid: string }) =>
             request('POST', `/api/services/app/AuctionItem/SubStartNotify`, data),
-        getAuctionMidList: (data) =>
+        getAuctionMidList: (data: any) =>
             request('POST', `/api/services/app/AuctionItem/GetAuctionMidList`, data) as Promise<IListType>,
+        getKasecStatus: (auctionItemId: number) =>
+            request('GET', `/api/services/app/AuctionItem/GetKasecStatus?auctionItemId=${auctionItemId}`) as Promise<boolean>,
+        getDetail: (id: number) =>
+            request('GET', `/api/AuctionItem/GetDetail?id=${id}`) as Promise<AuctionItemDto>,
     },
 
     chatEmoji: {

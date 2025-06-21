@@ -83,7 +83,7 @@ public class ClientAppService(
         // 获取 wwwroot 完整路径
         string wwwrootPath = _env.WebRootPath;
         // 组合文件路径
-        string certPath = wwwrootPath + app.GetValue("certPath");
+        string certPath = Path.Combine(wwwrootPath, app.GetValue("certPath").TrimStart('/', '\\'));
 
         var finalAmount = amount ?? AppConsts.保证金;
         var payOrder = new PayOrder();
@@ -173,8 +173,8 @@ public class ClientAppService(
         // 获取 wwwroot 完整路径
         string wwwrootPath = _env.WebRootPath;
         // 组合文件路径
-        string certPath = wwwrootPath + _configuration["Apps:uniapp:certPem"];
-        string certKey = wwwrootPath + _configuration["Apps:uniapp:certKey"];
+        string certPath = Path.Combine(wwwrootPath, _configuration["Apps:uniapp:certPem"].TrimStart('/', '\\'));
+        string certKey = Path.Combine(wwwrootPath, _configuration["Apps:uniapp:certKey"].TrimStart('/', '\\'));
 
         string serialNumber = RSAUtility.ExportSerialNumberFromCertificate(System.IO.File.ReadAllText(certPath));
         //

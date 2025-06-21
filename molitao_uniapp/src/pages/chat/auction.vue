@@ -316,21 +316,34 @@ async function bid() {
     console.log('开始出价流程 - 用户ID:', userId)
 
     try {
-        console.log('正在获取拍卖列表...')
-        await auctionStore.getList()
-
-        if (!onAuctionItem.value) {
+        // 首先获取当前拍卖商品ID
+        if (!onAuctionItem.value || !onAuctionItem.value.id) {
             console.log('没有正在拍卖的商品')
             Tips.error('没有正在拍卖的商品')
             return
         }
 
-        console.log('当前拍卖商品信息:', {
-            id: onAuctionItem.value.id,
-            name: onAuctionItem.value.name,
-            currentPrice: onAuctionItem.value.currentPrice,
-            status: onAuctionItem.value.status,
-        })
+        const auctionItemId = onAuctionItem.value.id
+        console.log('当前拍卖商品ID:', auctionItemId)
+
+        // 获取实时的拍卖商品信息
+        console.log('正在获取实时拍卖商品信息...')
+        const auctionItemDetail = await api.auctionItem.getDetail(auctionItemId)
+        console.log('拍卖商品详情获取成功:', auctionItemDetail)
+
+        // 验证商品状态
+        if (auctionItemDetail.status !== '拍卖中') {
+            console.log('商品不在拍卖中，状态:', auctionItemDetail.status)
+            Tips.error('商品不在拍卖中')
+            return
+        }
+
+        // 从商品详情中获取卡秒状态
+        const isKasecMode = !!auctionItemDetail.isKasec
+        console.log('卡秒状态:', isKasecMode)
+        
+        // 同步到store（可选，用于UI显示）
+        auctionStore.isKasec = isKasecMode
 
         // 获取实时用户信息
         console.log('正在获取实时用户信息...')
@@ -410,7 +423,7 @@ async function bid() {
                             }
                             resolve(res)
                         },
-                        fail: (err) => {
+                        fail: (err: any) => {
                             console.error('保证金弹窗失败:', err)
                             reject(err)
                         },
@@ -425,12 +438,15 @@ async function bid() {
 
         // 满足条件，弹出原有出价输入框
 
-        // 使用工具方法计算最低出价
-        const minPrice = calculateMinBidPrice(onAuctionItem.value.currentPrice, auctionStore.isKasec)
+        // 使用工具方法计算最低出价（基于实时获取的商品信息）
+        const minPrice = calculateMinBidPrice(auctionItemDetail.currentPrice || auctionItemDetail.startingPrice, isKasecMode)
 
-        let message = `请输入出价金额(最低出价${minPrice})`
-        if (auctionStore.isKasec) {
-            message = `您已卡秒出价，需加够三倍竞拍价才有效（最低出价：${minPrice}）\n${message}`
+        let title = '出价'
+        let placeholderText = `请输入出价金额(最低出价${minPrice})`
+        
+        if (isKasecMode) {
+            title = '卡秒出价'
+            placeholderText = `卡秒模式-需三倍加价(最低出价${minPrice})`
         }
 
         console.log('准备显示出价弹窗...')
@@ -444,10 +460,10 @@ async function bid() {
         try {
             await new Promise((resolve, reject) => {
                 uni.showModal({
-                    title: `出价`,
-                    content: message,
+                    title: title,
+                    content: '', // 清空content，避免作为默认值显示在输入框中
                     editable: true,
-                    placeholderText: '请输入出价金额',
+                    placeholderText: placeholderText,
                     success: (res) => {
                         console.log('出价弹窗结果:', res)
                         if (res.confirm) {
@@ -457,7 +473,7 @@ async function bid() {
                                 return
                             }
                             console.log('用户输入出价金额:', value)
-                            auctionStore.bid(onAuctionItem.value!.id!, value)
+                            auctionStore.bid(auctionItemId, value)
                         }
                         resolve(res)
                     },
@@ -474,7 +490,7 @@ async function bid() {
     } catch (error) {
         console.error('出价过程发生错误:', error)
         uni.showToast({
-            title: '获取用户信息失败，请稍后重试',
+            title: '获取商品信息失败，请稍后重试',
             icon: 'none',
         })
     }

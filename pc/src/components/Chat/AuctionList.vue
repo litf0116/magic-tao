@@ -172,7 +172,9 @@ onMounted(() => {
     })
     auctionStore.getList().then(() => {
         ps!.update()
-        if (onAuctionItem.value) auctionStore.syncKasecStatus(onAuctionItem.value.id)
+        if (onAuctionItem.value && onAuctionItem.value.id) {
+            auctionStore.syncKasecStatus(onAuctionItem.value.id)
+        }
     })
 })
 
@@ -254,8 +256,8 @@ const getItemIndex = (item) => {
 
 //LINK - 结束竞拍
 function end() {
-    if (!onAuctionItem.value) {
-        ElMessage.error('没有正在拍卖的商品')
+    if (!onAuctionItem.value || !onAuctionItem.value.id) {
+        ElMessage.error('没有正在拍卖的商品或商品ID无效')
         return
     }
     ElMessageBox.confirm('确定结束当前竞拍并发送得主？', '结束竞拍', {
@@ -263,8 +265,12 @@ function end() {
         cancelButtonText: '取消',
         type: 'warning',
     })
-        .then(() => {
-            auctionStore.end(onAuctionItem.value!.id!)
+        .then(async () => {
+            const success = await auctionStore.end(onAuctionItem.value!.id!)
+            if (success) {
+                // 刷新拍卖列表
+                await auctionStore.getList()
+            }
         })
         .catch(() => {
             Tips.info('取消结束')
@@ -370,26 +376,30 @@ async function bid() {
 }
 
 async function toggleKasec() {
-    if (!onAuctionItem.value) {
-        ElMessage.error('没有正在拍卖的商品')
+    if (!onAuctionItem.value || !onAuctionItem.value.id) {
+        ElMessage.error('没有正在拍卖的商品或商品ID无效')
         return
     }
     const isKasec = !auctionStore.isKasec
-    console.log('isKasec', isKasec)
+    console.log('卡秒操作:', { auctionItemId: onAuctionItem.value.id, isKasec })
     const result = await auctionStore.setKasec(onAuctionItem.value.id, isKasec)
-    console.log('result', result)
-    if (isKasec) {
-        // 发送卡秒提示消息到拍卖群
-        chatStore.sendChannelMsg('商品进入成交倒计时，卡秒出价需加够三倍一口价！', '-1_auction', ChatMessageType.Text, {
-            highlight: true,
-            border: 'red',
-        })
-    } else {
-        // 发送卡秒结束消息到拍卖群
-        chatStore.sendChannelMsg('卡秒结束，竞拍继续！', '-1_auction', ChatMessageType.Text, {
-            highlight: true,
-            border: 'green',
-        })
+    console.log('卡秒操作结果:', result)
+    
+    // 只在操作成功时发送消息
+    if (result) {
+        if (isKasec) {
+            // 发送卡秒提示消息到拍卖群
+            chatStore.sendChannelMsg('商品进入成交倒计时，卡秒出价需加够三倍一口价！', '-1_auction', ChatMessageType.Text, {
+                highlight: true,
+                border: 'red',
+            })
+        } else {
+            // 发送卡秒结束消息到拍卖群
+            chatStore.sendChannelMsg('卡秒结束，竞拍继续！', '-1_auction', ChatMessageType.Text, {
+                highlight: true,
+                border: 'green',
+            })
+        }
     }
 }
 </script>

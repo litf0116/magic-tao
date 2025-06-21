@@ -3,6 +3,7 @@ using System.Security.Cryptography.X509Certificates;
 using Abp.Dependency;
 using Abp.Runtime.Session;
 using Castle.Core.Logging;
+using System.IO;
 
 namespace TtWork.Project.Web.Host.Startup {
     public class CertificateProvider : ITransientDependency {
@@ -25,7 +26,7 @@ namespace TtWork.Project.Web.Host.Startup {
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 certPath = @"/app/apiclient_cert.p12";
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                certPath = @"/Users/tzc/code/apiclient_cert.p12";
+                certPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "cert", "apiclient_cert.p12");
             else
                 throw new System.Exception("不支持的操作系统");
             var certPwd = "1486627732";

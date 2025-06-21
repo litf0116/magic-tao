@@ -31,6 +31,7 @@ namespace FreeIM {
         AuctionStart = 1000,
         AuctionBid = 1002,
         AuctionEnd = 1010,
+        AuctionDeal = 1011, //拍卖成交通知
 
         // 卡秒状态
         KasecStatusChanged = 2000,

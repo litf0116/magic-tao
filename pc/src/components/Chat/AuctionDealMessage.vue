@@ -17,10 +17,10 @@
                     background: #86efac;
                 "
             >
-                <span style="font-weight: bold; font-size: 20px">{{ message.payload.name }}</span>
+                <span style="font-weight: bold; font-size: 20px">{{ payloadData.name }}</span>
             </div>
             <div class="text-lg font-bold text-red-500">
-                <text>成交价: ￥{{ message.payload.finalPrice }}</text>
+                <text>成交价: ￥{{ payloadData.finalPrice }}</text>
             </div>
             <div class="text-sm" style="margin-left: 12px">{{ formattedDealTime }}</div>
             <div class="mt-2 text-sm text-gray-600">
@@ -47,17 +47,31 @@ export default {
     },
     emits: ['action'],
     setup(props: any, { emit }: any) {
-        // 格式化成交时间
+        // 解析payload数据
+        const payloadData = computed(() => {
+            let payload = props.message.payload
+            if (typeof payload === 'string') {
+                payload = JSON.parse(payload!)
+            }
+            console.log('deal message payload', payload)
+            return payload
+        })
+
+        // 格式化交易时间
         const formattedDealTime = computed(() => {
-            return dayjs(props.message.payload.dealTime).format('YYYY-MM-DD HH:mm:ss')
+            if (payloadData.value.dealTime) {
+                return dayjs(payloadData.value.dealTime).format('YYYY-MM-DD HH:mm:ss')
+            }
+            return ''
         })
 
         // 处理点击事件，emit 更通用的 action 事件
         const handleAction = () => {
-            emit('action', { message: props.message, payload: props.message.payload })
+            emit('action', { message: props.message, payload: payloadData.value })
         }
 
         return {
+            payloadData,
             formattedDealTime,
             handleAction,
         }

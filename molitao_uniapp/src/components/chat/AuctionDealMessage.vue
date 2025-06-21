@@ -53,6 +53,7 @@ export default {
             if (typeof payload === 'string') {
                 payload = JSON.parse(payload!)
             }
+            console.log('deal message payload', payload)
             return payload
         })
 

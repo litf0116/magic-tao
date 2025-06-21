@@ -8,6 +8,7 @@ import { onLoad } from '@dcloudio/uni-app'
 import { ChatMessageType, type UserDto } from '@/composables/types'
 import api from '@/utils/api'
 import type { ChatOptions } from '@/components/chat/types'
+import { nextTick } from 'vue'
 
 const chatOptions: ChatOptions = {
     enableAudio: false,
@@ -56,22 +57,32 @@ onLoad((query: any) => {
             chatStore.addChatList(friend.id, friend.name, friend.avatar)
             chatStore.SetCurrentChatId(friend.id)
 
-            loadHistoryMessage(true)
+            // 使用nextTick确保组件完全挂载后再调用
+            nextTick(() => {
+                loadHistoryMessage(true)
+            })
         })
     }
 })
 
 async function loadHistoryMessage(force = false) {
-    chatRef.value!.history.loading = true
+    if (!chatRef.value) {
+        console.warn('chatRef is not ready')
+        return
+    }
+    
+    chatRef.value.history.loading = true
     let lastTime = new Date().getTime()
     if (!force)
         if (historyMsgs.value && historyMsgs.value.length) {
             lastTime = historyMsgs.value[0].time!
         }
     await chatStore.getPrivateHistory(friend.id, lastTime, force).then((res) => {
-        chatRef.value!.history.loading = false
-        if (res.length < 20) {
-            chatRef.value!.history.allLoaded = true
+        if (chatRef.value) {
+            chatRef.value.history.loading = false
+            if (res.length < 20) {
+                chatRef.value.history.allLoaded = true
+            }
         }
     })
 }

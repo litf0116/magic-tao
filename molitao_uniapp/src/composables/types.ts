@@ -281,6 +281,9 @@ export interface AuctionItemDto {
 
     /**  */
     id?: number
+
+    /**  */
+    isKasec?: boolean
 }
 
 export interface BidHistoryCreateDto {

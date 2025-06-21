@@ -60,7 +60,7 @@
                                         >{{ message.fromTag }}
                                     </span>
                                     <div
-                                        v-else
+                                        v-else-if="message.userChatLevel"
                                         class="tag_AuctionManager"
                                         :style="{
                                             background: `linear-gradient(90deg,${message.userChatLevel.borderColor},${message.userChatLevel.rightBorderColor})`,

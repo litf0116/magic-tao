@@ -153,6 +153,11 @@ public class AuctionItemDto : EntityDto<long>
     //前端使用
     public string ToUserMsg { get; set; }
     public string DealUserAvatar { get; set; } //成交人头像
+    
+    /// <summary>
+    /// 卡秒状态
+    /// </summary>
+    public bool IsKasec { get; set; }
 }
 
 [AutoMapFrom(typeof(AuctionItem))]

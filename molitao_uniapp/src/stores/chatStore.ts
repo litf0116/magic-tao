@@ -473,7 +473,8 @@ export const useChatStore = defineStore('chatStore', () => {
                 to: to,
                 payload: payload,
             }
-
+            debugger;
+            console.log("sendMsg", data)
             await api.ws
                 .sendMsg({
                     from: websocketId.value,
