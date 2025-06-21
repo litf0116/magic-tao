@@ -72,6 +72,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
     private readonly IRepository<ChatListDelete> _chatListDeleteRepository;
+
     public AuctionItemAppService(
         IRedisClient redisClient,
         UserCache userCache,
@@ -90,7 +91,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         IRepository<ChatListDelete> chatListDeleteRepository,
         IUnitOfWorkManager unitOfWorkManager) : base(repository,
         iocManager
-        )
+    )
     {
         _sqlSugarClient = sqlSugarClient;
         _redisClient = redisClient;
@@ -195,7 +196,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     {
         var user = await _userCache.GetAsync(AbpSession.UserId!.Value);
         //获取消息提示
-        var msgConfiguration = await _sqlSugarClient.Queryable<MsgConfigurationEntity>().Where(w => w.Type == 1).FirstAsync();
+        var msgConfiguration =
+            await _sqlSugarClient.Queryable<MsgConfigurationEntity>().Where(w => w.Type == 1).FirstAsync();
         // 查询用户群聊等级（只针对0级用户判断保证金）
         var userGroupLevel = await _sqlSugarClient.Queryable<UserGroupLevelEntity>()
             .LeftJoin<GroupChatLevelSettingsEntity>((a, b) => a.GroupChatId == b.Id)
@@ -205,13 +207,17 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         int userLevel = userGroupLevel?.Level ?? 0;
         if (userLevel == 0 && user.DepositBalance < 50)
         {
-            throw new UserFriendlyException(msgConfiguration != null ? msgConfiguration.Msg : $"当前用户保证金不足50元，请先去充值保证金（需支付51元，包含1元提现手续费）！");
+            throw new UserFriendlyException(msgConfiguration != null
+                ? msgConfiguration.Msg
+                : $"当前用户保证金不足50元，请先去充值保证金（需支付51元，包含1元提现手续费）！");
         }
+
         //拍卖场不修改名字头像不给出价权限
         if (Regex.IsMatch(input.BidUserName, @"^玩家\d{5}"))
         {
             throw new UserFriendlyException("请先修改昵称后再进行出价");
         }
+
         var isChatAdmin = await CheckIsChatAdmin();
         if (!isChatAdmin.Item1)
         {
@@ -289,7 +295,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             if (input.BidPrice < minPrice)
             {
                 throw new UserFriendlyException(1,
-                    "出价必须大于最低加价\n 100以内，1R一加。100~1000，5R一加。1000-2000，10R一加。2000-5000，20R一加。50000-1W，50一加。1W以上，100一加" + (kasecVal.HasValue && kasecVal == "true" ? "\n卡秒期间需三倍加价" : ""));
+                    "出价必须大于最低加价\n 100以内，1R一加。100~1000，5R一加。1000-2000，10R一加。2000-5000，20R一加。50000-1W，50一加。1W以上，100一加" +
+                    (kasecVal.HasValue && kasecVal == "true" ? "\n卡秒期间需三倍加价" : ""));
             }
             // if (find.CurrentPrice >= input.BidPrice) throw new UserFriendlyException(1, "出价必须大于当前价格");
 
@@ -337,18 +344,22 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             await _redisClient.Database.LockReleaseAsync(lockKey, input.AuctionItemId);
         }
     }
+
     public static Scheduler _scheduler;
     public static Dictionary<long, string> _tempTaskId = new Dictionary<long, string>();
+
     /// <summary>
     /// 执行定时任务
     /// </summary>
-    public async virtual void Callback(AuctionItemDto dto, ChatMessage message, UserDto cacheUser, string ip, AuctionItem auctionItem)
+    public async virtual void Callback(AuctionItemDto dto, ChatMessage message, UserDto cacheUser, string ip,
+        AuctionItem auctionItem)
     {
         //手动结束竞拍不在运行
         if (!_tempTaskId.ContainsKey(auctionItem.Id))
         {
             return;
         }
+
         //移除任务
         _scheduler.RemoveTempTask(_tempTaskId[auctionItem.Id]);
         _tempTaskId.Remove(auctionItem.Id);
@@ -388,6 +399,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 //TODO:仅做记录,后面是不是要用到什么通知
                 _logger.LogError("出价记录不一致,{@find},{@maxPrice}", find, maxPrice);
             }
+
             //计算用户群聊等级
             await AddUserGroupChatLevel(new UserGroupLevelDto
             {
@@ -410,19 +422,22 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             result.Status = AuctionStatusEnum.已成交;
             result.DealUserAvatar = bidUser.HeadImgUrl;
             //查询用户信息
-            var userInfo = await _sqlSugarClient.Queryable<RoleEntity, UserRoleEntity, UserInfoEntity>((r, ur, u) => new JoinQueryInfos(
-              JoinType.Inner, r.Id == ur.RoleId, JoinType.Inner, ur.UserId == u.Id
-             ))
-             .Where((r, ur, u) => r.Name == "AuctionManager")
-             .Select((r, ur, u) => new UserInfoEntity
-             {
-                 Id = u.Id,
-                 Name = u.Name,
-                 HeadImgUrl = u.HeadImgUrl,
-                 LastModifierUserId = u.LastModifierUserId,
-             })
-             .FirstAsync();
+            var userInfo = await _sqlSugarClient.Queryable<RoleEntity, UserRoleEntity, UserInfoEntity>((r, ur, u) =>
+                    new JoinQueryInfos(
+                        JoinType.Inner, r.Id == ur.RoleId, JoinType.Inner, ur.UserId == u.Id
+                    ))
+                .Where((r, ur, u) => r.Name == "AuctionManager")
+                .Select((r, ur, u) => new UserInfoEntity
+                {
+                    Id = u.Id,
+                    Name = u.Name,
+                    HeadImgUrl = u.HeadImgUrl,
+                    LastModifierUserId = u.LastModifierUserId,
+                })
+                .FirstAsync();
+
             #region 发送群聊数据
+
             var input = new SendChangeMsgInput()
             {
                 Chan = "-1_auction",
@@ -447,6 +462,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 if (input.Chan is "0_lobby" or "-1_auction")
                     return;
             }
+
             //input.Message = await CheckMsgText(input.Message);
             input.Message.id = Guid.NewGuid();
             //true, "拍卖师", "tag_AuctionManager"
@@ -470,9 +486,11 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 await _messageRepository.InsertAsync(entityChanMessage);
                 await CurrentUnitOfWork.SaveChangesAsync();
             }
+
             #endregion
 
             #region 给指定用户发送数据
+
             var sendMsgInput = new SendMsgInput
             {
                 From = message.from,
@@ -509,12 +527,15 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             await CurrentUnitOfWork.SaveChangesAsync();
 
             await _chatListDeleteRepository.GetAll().Where(x =>
-                (x.UserId == cacheUser.Id && x.ToUserId == entity.To) || (x.UserId == entity.To && x.ToUserId == cacheUser.Id)).ExecuteDeleteAsync();
+                (x.UserId == cacheUser.Id && x.ToUserId == entity.To) ||
+                (x.UserId == entity.To && x.ToUserId == cacheUser.Id)).ExecuteDeleteAsync();
+
             #endregion
+
             await uow.CompleteAsync();
         }
-
     }
+
     /// <summary>
     /// 添加用户群聊等级
     /// </summary>
@@ -525,20 +546,23 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         try
         {
             //查询用户群聊等级信息
-            var info = await _sqlSugarClient.Queryable<UserGroupLevelEntity>().FirstAsync(f => f.UserId == input.UserId);
+            var info = await _sqlSugarClient.Queryable<UserGroupLevelEntity>()
+                .FirstAsync(f => f.UserId == input.UserId);
             if (info == null)
             {
                 info = new UserGroupLevelEntity() { CumulativeAmount = 0 };
             }
+
             //查询群等级信息
             var groupChatLevelSettings = await _sqlSugarClient.Queryable<GroupChatLevelSettingsEntity>()
-             .Where(w => w.AmountRequired <= (input.CumulativeAmount + info.CumulativeAmount))   // 找到小于等于当前累计金额的等级配置
-             .OrderByDescending(o => o.AmountRequired)                       // 按金额要求降序排序，找到最接近的等级
-             .FirstAsync();
+                .Where(w => w.AmountRequired <= (input.CumulativeAmount + info.CumulativeAmount)) // 找到小于等于当前累计金额的等级配置
+                .OrderByDescending(o => o.AmountRequired) // 按金额要求降序排序，找到最接近的等级
+                .FirstAsync();
             if (groupChatLevelSettings == null)
             {
                 throw new UserFriendlyException($"没有匹配的群聊等级信息！");
             }
+
             //存在用户群聊等级信息就修改
             if (info != null && info.Id != 0)
             {
@@ -561,6 +585,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             throw new UserFriendlyException($"添加失败，错误信息：" + ex.Message);
         }
     }
+
     public string GetIp
     {
         get
@@ -577,6 +602,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             }
         }
     }
+
     private Task<(bool, string, string)> CheckIsChatAdmin(UserDto currentUser)
     {
         try
@@ -600,6 +626,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
 
         return Task.FromResult((false, "", ""));
     }
+
     /// <summary>
     /// 判断时间是否到达指定的时、分、秒
     /// </summary>
@@ -612,10 +639,12 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         TimeSpan ts2 = new TimeSpan(0, t2.Hour, t2.Minute, t2.Second);
         return ts1 >= ts2;
     }
+
     public override Task<AuctionItemDto> GetAsync(EntityDto<long> input)
     {
         return base.GetAsync(input);
     }
+
     /// <summary>
     /// 获取详情
     /// </summary>
@@ -628,7 +657,9 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
 
         return info.MapTo<AuctionItemDto>();
     }
+
     public static object lockObj = new object();
+
     /// <summary>
     /// 结束竞拍
     /// </summary>
@@ -640,7 +671,6 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     {
         try
         {
-
             var find = await Repository.FirstOrDefaultAsync(x => x.Id == input.Id);
             if (find == null)
             {
@@ -672,6 +702,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 //TODO:仅做记录,后面是不是要用到什么通知
                 _logger.LogError("出价记录不一致,{@find},{@maxPrice}", find, maxPrice);
             }
+
             //计算用户群聊等级
             await AddUserGroupChatLevel(new UserGroupLevelDto
             {
@@ -721,6 +752,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         //    slimlock.Release();
         //}
     }
+
     /// <summary>
     /// 拍卖物品
     /// </summary>
@@ -732,7 +764,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     public async Task<AuctionItemDto> StartAuction(EntityDto<long> input)
     {
         //获取拍卖中的物品
-        var getAuctionMidList = await Repository.GetAll().AsNoTracking().Where(x => x.Status == AuctionStatusEnum.拍卖中).ToListAsync();
+        var getAuctionMidList = await Repository.GetAll().AsNoTracking().Where(x => x.Status == AuctionStatusEnum.拍卖中)
+            .ToListAsync();
         if (getAuctionMidList.Count > 0)
         {
             throw new UserFriendlyException("已存在拍卖的商品！");
@@ -744,10 +777,12 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         {
             throw new UserFriendlyException(1, "找不到商品");
         }
+
         if (find.Status == AuctionStatusEnum.拍卖中)
         {
             throw new UserFriendlyException("当前商品已在拍卖中");
         }
+
         if (find.Status.HasFlag(AuctionStatusEnum.已成交))
             throw new UserFriendlyException(1, "已成交商品不能再次拍卖");
 
@@ -791,12 +826,14 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         var cachedValue = await _redisClient.Database.StringGetAsync(cacheKey);
         if (cachedValue.HasValue)
         {
-            var cachedResult = Newtonsoft.Json.JsonConvert.DeserializeObject<ListResultDto<AuctionItemDto>>(cachedValue);
+            var cachedResult =
+                Newtonsoft.Json.JsonConvert.DeserializeObject<ListResultDto<AuctionItemDto>>(cachedValue);
             return cachedResult;
         }
 
         var query = Repository.GetAll().AsNoTracking()
-                .WhereIf(!input.Status.HasValue, x => x.Status == AuctionStatusEnum.上架 || x.Status == AuctionStatusEnum.拍卖中)
+                .WhereIf(!input.Status.HasValue,
+                    x => x.Status == AuctionStatusEnum.上架 || x.Status == AuctionStatusEnum.拍卖中)
                 .WhereIf(input.Status.HasValue, x => (int)x.Status == input.Status!.Value)
             ;
 
@@ -891,6 +928,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             _logger.LogError(ex, "清除拍卖列表缓存失败");
         }
     }
+
     /// <summary>
     /// 查询拍卖中的商品
     /// </summary>
@@ -902,7 +940,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     public async Task<ListResultDto<AuctionItemDto>> GetAuctionMidList(AppResultRequestDto input)
     {
         var query = Repository.GetAll().AsNoTracking()
-                .WhereIf(!input.Status.HasValue, x => x.Status == AuctionStatusEnum.上架 || x.Status == AuctionStatusEnum.拍卖中)
+                .WhereIf(!input.Status.HasValue,
+                    x => x.Status == AuctionStatusEnum.上架 || x.Status == AuctionStatusEnum.拍卖中)
                 .WhereIf(input.Status.HasValue, x => (int)x.Status == input.Status!.Value)
             ;
 
@@ -911,17 +950,20 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             query = query.OrderBy(x => x.Order)
                 .ThenBy(x => x.Id);
         }
+
         //查询拍卖中的物品
         var items = await query.ToListAsync();
         var result = new ListResultDto<AuctionItemDto>(ObjectMapper.Map<List<AuctionItemDto>>(items));
         //获取所以商品编号
         var idList = items.Select(x => x.Id).ToList();
         //查询物品出价信息
-        var bidList = _bidHistoryRepository.GetAll().AsNoTracking().Where(w => idList.Contains(w.AuctionItemId)).ToList();
+        var bidList = _bidHistoryRepository.GetAll().AsNoTracking().Where(w => idList.Contains(w.AuctionItemId))
+            .ToList();
         foreach (var item in result.Items)
         {
             //查询最新的出价信息
-            var info = bidList.Where(w => w.AuctionItemId == item.Id).OrderByDescending(o => o.BidTime).FirstOrDefault();
+            var info = bidList.Where(w => w.AuctionItemId == item.Id).OrderByDescending(o => o.BidTime)
+                .FirstOrDefault();
             if (info != null)
             {
                 item.CurrentPrice = info.BidPrice;
@@ -930,8 +972,10 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 item.UseCountdownTime = info.CreationTime;
             }
         }
+
         return result;
     }
+
     [AbpAuthorize]
     public async Task<PagedResultDto<AuctionItemDto>> GetMySuccessList(AppResultRequestDto input)
     {

@@ -250,7 +250,7 @@ const loadData = async (isTop: boolean = false) => {
     console.log('调用 loadData 方法')
     const res: any = await api.post.GetPostAll({
         Type: activeKey.value,
-        IsTop: isTop || false,
+        isTop: isTop,
         Keyword: keywords.value,
         SkipCount: page.value,
         MaxResultCount: pageSize.value,

@@ -156,7 +156,7 @@ namespace TtWork.Project.Web.Controllers
                         var authUserInfo = await externalAuthManager.GetUserInfo(Consts.LoginProvider.WeChatPub,
                             code, appid, appSec);
                         ExternalAuthenticateModel model = new()
-                        { AuthProvider = authUserInfo.Provider, ProviderKey = authUserInfo.ProviderKey };
+                            { AuthProvider = authUserInfo.Provider, ProviderKey = authUserInfo.ProviderKey };
                         var (externalUser, loginResult) = await ExternalLogin(model, authUserInfo);
                         var jwtResult = await ExternalAuthenticateResultModel(loginResult, externalUser, model);
                         await redisClient.Database.StringSetAsync(QrTokenKey + state, jwtResult.AccessToken,
@@ -187,8 +187,10 @@ namespace TtWork.Project.Web.Controllers
         public async Task<AuthenticateResultModel> Authenticate([FromBody] AuthenticateModel model)
         {
             var pwd = model.Password;
+            GenerateHashedPassword(pwd);
             //获取用户信息
-            var loginResult = await GetLoginResultAsync(model.UserNameOrEmailAddress, model.Password, GetTenancyNameOrNull());
+            var loginResult =
+                await GetLoginResultAsync(model.UserNameOrEmailAddress, model.Password, GetTenancyNameOrNull());
 
             var returnUrl = model.ReturnUrl;
 
@@ -361,7 +363,7 @@ namespace TtWork.Project.Web.Controllers
                 openid, app.GetValue("appid"), app.GetValue("appsec"));
 
             ExternalAuthenticateModel model = new()
-            { AuthProvider = authUserInfo.Provider, ProviderKey = authUserInfo.ProviderKey };
+                { AuthProvider = authUserInfo.Provider, ProviderKey = authUserInfo.ProviderKey };
 
             var (externalUser, loginResult) = await ExternalLogin(model, authUserInfo);
 
@@ -385,7 +387,7 @@ namespace TtWork.Project.Web.Controllers
                     await externalAuthManager.GetUserInfo(Consts.LoginProvider.WeChatMiniOpenid,
                         loginModel.ToJsonString(), app.GetValue("appid"), app.GetValue("appsec"));
                 ExternalAuthenticateModel model = new()
-                { AuthProvider = authUserInfo.Provider, ProviderKey = authUserInfo.ProviderKey };
+                    { AuthProvider = authUserInfo.Provider, ProviderKey = authUserInfo.ProviderKey };
 
                 var (externalUser, loginResult) = await ExternalLogin(model, authUserInfo);
 
@@ -414,7 +416,7 @@ namespace TtWork.Project.Web.Controllers
                         loginModel.ToJsonString(), app.GetValue("appid"), app.GetValue("appsec"));
 
                 ExternalAuthenticateModel model = new()
-                { AuthProvider = authUserInfo.Provider, ProviderKey = authUserInfo.ProviderKey };
+                    { AuthProvider = authUserInfo.Provider, ProviderKey = authUserInfo.ProviderKey };
 
                 var (externalUser, loginResult) = await ExternalLogin(model, authUserInfo);
 
@@ -442,7 +444,8 @@ namespace TtWork.Project.Web.Controllers
                 {
                     foreach (var u in notDefualtUserLogin)
                     {
-                        await TryAddUserLogin(new UserLogin(loginResult.User.TenantId, loginResult.User.Id, u.Key, u.Value));
+                        await TryAddUserLogin(new UserLogin(loginResult.User.TenantId, loginResult.User.Id, u.Key,
+                            u.Value));
                     }
                 }
             }
@@ -520,37 +523,25 @@ namespace TtWork.Project.Web.Controllers
             switch (loginResult.Result)
             {
                 case AbpLoginResultType.Success:
-                    {
-                        loginResult.AddWeixinClaim(externalUser);
-                        return await WeixinExtAuthResult(loginResult, externalUser);
-                    }
+                {
+                    loginResult.AddWeixinClaim(externalUser);
+                    return await WeixinExtAuthResult(loginResult, externalUser);
+                }
                 case AbpLoginResultType.UnknownExternalLogin:
+                {
+                    var newUser = await RegisterExternalUserAsync(externalUser);
+                    if (!newUser.IsActive)
                     {
-                        var newUser = await RegisterExternalUserAsync(externalUser);
-                        if (!newUser.IsActive)
-                        {
-                            return new ExternalAuthenticateResultModel { WaitingForActivation = true };
-                        }
-
-                        // Try to login again with newly registered user!
-                        loginResult = await logInManager.LoginAsync(
-                            new UserLoginInfo(model.AuthProvider, model.ProviderKey, model.AuthProvider),
-                            GetTenancyNameOrNull());
-
-
-                        if (loginResult.Result != AbpLoginResultType.Success)
-                        {
-                            throw abpLoginResultTypeHelper.CreateExceptionForFailedLoginAttempt(
-                                loginResult.Result,
-                                model.ProviderKey,
-                                GetTenancyNameOrNull()
-                            );
-                        }
-
-                        loginResult.AddWeixinClaim(externalUser);
-                        return await WeixinExtAuthResult(loginResult, externalUser);
+                        return new ExternalAuthenticateResultModel { WaitingForActivation = true };
                     }
-                default:
+
+                    // Try to login again with newly registered user!
+                    loginResult = await logInManager.LoginAsync(
+                        new UserLoginInfo(model.AuthProvider, model.ProviderKey, model.AuthProvider),
+                        GetTenancyNameOrNull());
+
+
+                    if (loginResult.Result != AbpLoginResultType.Success)
                     {
                         throw abpLoginResultTypeHelper.CreateExceptionForFailedLoginAttempt(
                             loginResult.Result,
@@ -558,6 +549,18 @@ namespace TtWork.Project.Web.Controllers
                             GetTenancyNameOrNull()
                         );
                     }
+
+                    loginResult.AddWeixinClaim(externalUser);
+                    return await WeixinExtAuthResult(loginResult, externalUser);
+                }
+                default:
+                {
+                    throw abpLoginResultTypeHelper.CreateExceptionForFailedLoginAttempt(
+                        loginResult.Result,
+                        model.ProviderKey,
+                        GetTenancyNameOrNull()
+                    );
+                }
             }
         }
 
@@ -647,7 +650,8 @@ namespace TtWork.Project.Web.Controllers
             }
 
             var userIdentifier = new UserIdentifier(AbpSession.TenantId, Convert.ToInt64(nameIdClaim.Value));
-            claims.AddRange(new[] {
+            claims.AddRange(new[]
+            {
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.Now.ToUnixTimeSeconds().ToString(),
                     ClaimValueTypes.Integer64),
@@ -696,6 +700,7 @@ namespace TtWork.Project.Web.Controllers
         {
             var user = new User(); // 创建一个空的 User 实例
             var hashedPassword = passwordHasher.HashPassword(user, plainPassword);
+            Log.Information($"Hashed password: {hashedPassword}");
             return hashedPassword;
         }
     }
