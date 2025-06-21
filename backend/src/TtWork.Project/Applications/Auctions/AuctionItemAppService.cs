@@ -255,13 +255,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 throw new UserFriendlyException(1, "商品不在拍卖中");
             }
 
-            var basePrice = find?.StartingPrice ?? 1;
-            if (find.CurrentPrice.HasValue)
-            {
-                basePrice = find.CurrentPrice.Value;
-            } else {
-                basePrice = find.StartingPrice;
-            }
+            var basePrice = find.CurrentPrice ?? find.StartingPrice ?? 1;
 
             #region 计算最低出价
  
