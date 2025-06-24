@@ -117,6 +117,12 @@
                                         :message="message"
                                         @action="onAuctionDealAction"
                                     />
+                                    <!-- 卡秒状态变更消息 -->
+                                    <KasecStatusMessage
+                                        v-if="message.type === ChatMessageType.KasecStatusChanged"
+                                        :message="message"
+                                        @action="showDetails"
+                                    />
                                 </div>
                             </div>
                         </template>
@@ -277,6 +283,7 @@ import { GetList } from '@/api/groupChatLevel'
 import AuctionEndMessage from '@/components/Chat/AuctionEndMessage.vue'
 import AuctionBidMessage from '@/components/Chat/AuctionBidMessage.vue'
 import AuctionStartMessage from '@/components/Chat/AuctionStartMessage.vue'
+import KasecStatusMessage from '@/components/Chat/KasecStatusMessage.vue'
 import AuctionDealMessage from '@/components/Chat/AuctionDealMessage.vue'
 import ImageMessage from '@/components/Chat/ImageMessage.vue'
 import TextMessage from '@/components/Chat/TextMessage.vue'

@@ -113,6 +113,12 @@
                                     :message="message"
                                     @action="onAuctionDealAction"
                                 />
+                                <!-- 卡秒状态变更消息 -->
+                                <KasecStatusMessage
+                                    v-if="message.type === ChatMessageType.KasecStatusChanged"
+                                    :message="message"
+                                    @tap="goShowDetails(message)"
+                                />
                             </view>
                         </view>
                     </view>
@@ -268,6 +274,7 @@ import AuctionEndMessage from './AuctionEndMessage.vue'
 import AuctionStartMessage from './AuctionStartMessage.vue'
 import AuctionBidMessage from './AuctionBidMessage.vue'
 import AuctionDealMessage from './AuctionDealMessage.vue'
+import KasecStatusMessage from './KasecStatusMessage.vue'
 import WelcomeMessage from './WelcomeMessage.vue'
 import SystemMessage from './SystemMessage.vue'
 import TextMessage from './TextMessage.vue'

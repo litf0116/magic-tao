@@ -1153,10 +1153,25 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         await _redisClient.Database.StringSetAsync($"Auction:Kasec:{input.AuctionItemId}",
             input.IsKasec.ToString().ToLower());
 
+        // 广播卡秒状态变更消息
+        var msg = new ChatMessage
+        {
+            type = ChatMessageType.KasecStatusChanged,
+            chan = "-1_auction",
+            msg = input.IsKasec ? "拍卖师已开启卡秒，需三倍加价！" : "卡秒已关闭，恢复正常加价",
+            payload = new { auctionItemId = input.AuctionItemId, isKasec = input.IsKasec },
+            time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+        };
+        await _webSocketController.SendChannelMsg(new SendChangeMsgInput
+        {
+            Chan = "-1_auction",
+            From = AbpSession.UserId.Value,
+            Message = msg
+        });
+
         // 清除详情缓存，因为卡秒状态改变了
         ClearAuctionDetailCache(input.AuctionItemId);
         ClearCurrentAuctionCache();
-
 
         return true;
     }

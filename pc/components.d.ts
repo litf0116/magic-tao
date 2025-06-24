@@ -31,6 +31,7 @@ declare module 'vue' {
     GroupSidePanel: typeof import('./src/components/Chat/GroupSidePanel.vue')['default']
     Header: typeof import('./src/components/Header.vue')['default']
     ImageMessage: typeof import('./src/components/Chat/ImageMessage.vue')['default']
+    KasecStatusMessage: typeof import('./src/components/Chat/KasecStatusMessage.vue')['default']
     ListAuctionItem: typeof import('./src/components/Chat/listAuctionItem.vue')['default']
     MyButton: typeof import('./src/components/MyButton/index.vue')['default']
     NextButton: typeof import('./src/components/MyButton/NextButton.vue')['default']

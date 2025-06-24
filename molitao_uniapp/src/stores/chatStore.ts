@@ -257,18 +257,14 @@ export const useChatStore = defineStore('chatStore', () => {
                 if (typeof auctionStore.syncKasecStatus === 'function') {
                     auctionStore.syncKasecStatus(auctionItemId)
                 }
-                // 插入系统提示
-                const sysMsg: ChatMessage = {
-                    type: ChatMessageType.Text,
-                    chan: '-1_auction',
-                    msg: isKasec ? '拍卖师已开启卡秒，需三倍加价！' : '卡秒已关闭，恢复正常加价',
-                    time: Date.now(),
-                    payload: { auctionItemId, isKasec },
-                }
+                // 保持原始的KasecStatusChanged类型，设置消息内容
+                msg.msg = isKasec ? '拍卖师已开启卡秒，需三倍加价！' : '卡秒已关闭，恢复正常加价'
+                msg.time = Date.now()
+                // 直接添加到聊天记录中，不转换类型
                 if (chatMap.value.has('-1')) {
-                    chatMap.value.get('-1')!.push(sysMsg)
+                    chatMap.value.get('-1')!.push(msg)
                 } else {
-                    chatMap.value.set('-1', [sysMsg])
+                    chatMap.value.set('-1', [msg])
                 }
             }
             return
