@@ -42,7 +42,6 @@ using static TtWork.HttpClient.Weixin.Models.RefundOrderRequest;
 using SKIT.FlurlHttpClient.Wechat.TenpayV3.Models;
 using SKIT.FlurlHttpClient.Wechat.TenpayV3.Utilities;
 using TtWork.Project.Services;
-
 using TtWork.Project.Services;
 
 namespace TtWork.Project.Applications;
@@ -337,7 +336,8 @@ public class ClientAppService(
         foreach (var id in request.UserIds)
         {
             // 检查是否已经删除过
-            var existingRecord = await chatListDeleteRepository.FirstOrDefaultAsync(x => x.UserId == userId && x.ToUserId == id);
+            var existingRecord =
+                await chatListDeleteRepository.FirstOrDefaultAsync(x => x.UserId == userId && x.ToUserId == id);
             if (existingRecord == null)
             {
                 await chatListDeleteRepository.InsertAsync(new ChatListDelete()
@@ -456,12 +456,11 @@ public class ClientAppService(
     /// 性能更优，支持大量聊天数据
     /// </summary>
     /// <returns>聊天列表</returns>
-    [HttpGet("GetChatListOptimized")]
-    public async Task<List<ChatListItem>> GetChatListOptimized()
+    [HttpGet]
+    public async Task<List<ChatListItem>> GetChatListV2()
     {
         var result = new List<ChatListItem>();
 
-        // 获取用户已删除的聊天用户ID列表
         List<long> deletedUserIds = [];
         if (AbpSession.UserId.HasValue)
         {
@@ -753,8 +752,9 @@ public class ClientAppService(
             PrivateChannels = channels.Count(x => x.ChannelType == ChatChannelType.Private),
             DeletedChats = deletedUserIds.Count,
             TotalMessages = channels.Sum(x => x.MessageCount),
-            LastActivity = channels.Where(x => x.LastMessageTime > 0).Any() ?
-                           channels.Where(x => x.LastMessageTime > 0).Max(x => x.LastMessageTime) : 0
+            LastActivity = channels.Where(x => x.LastMessageTime > 0).Any()
+                ? channels.Where(x => x.LastMessageTime > 0).Max(x => x.LastMessageTime)
+                : 0
         };
     }
 
@@ -780,6 +780,7 @@ public class ClientAppService(
         };
     }
 }
+
 public record ChatListItem
 {
     public long id { get; set; }
