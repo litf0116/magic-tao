@@ -385,22 +385,7 @@ async function toggleKasec() {
     const result = await auctionStore.setKasec(onAuctionItem.value.id, isKasec)
     console.log('卡秒操作结果:', result)
     
-    // 只在操作成功时发送消息
-    if (result) {
-        if (isKasec) {
-            // 发送卡秒提示消息到拍卖群
-            chatStore.sendChannelMsg('商品进入成交倒计时，卡秒出价需加够三倍一口价！', '-1_auction', ChatMessageType.Text, {
-                highlight: true,
-                border: 'red',
-            })
-        } else {
-            // 发送卡秒结束消息到拍卖群
-            chatStore.sendChannelMsg('卡秒结束，竞拍继续！', '-1_auction', ChatMessageType.Text, {
-                highlight: true,
-                border: 'green',
-            })
-        }
-    }
+    // 后端API已经会自动发送KasecStatusChanged系统消息，前端不需要额外发送消息
 }
 </script>
 
