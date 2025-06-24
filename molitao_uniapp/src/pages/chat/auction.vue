@@ -74,6 +74,15 @@
             </view>
         </view>
     </uv-popup>
+    
+    <!-- 出价规则弹窗 -->
+    <BidRulesModal 
+        v-model:show="bidRulesModalVisible" 
+        :message="bidRulesMessage"
+        :currentPrice="bidRulesCurrentPrice"
+        :minBidPrice="bidRulesMinPrice"
+        @confirm="onBidRulesConfirm"
+    />
 </template>
 
 <script setup lang="ts">
@@ -81,11 +90,12 @@ import chatMain from '@/components/chat/chatMain.vue'
 import { getImgUrl, Tips } from '@/composables'
 import type { AnnounceDto, AuctionItemDto } from '@/composables/types'
 import auctionList from '@/components/chat/auctionList.vue'
+import BidRulesModal from '@/components/BidRulesModal.vue'
 import api from '@/utils/api'
 import { calculateMinBidPrice } from '@/utils/auction'
 import { onLoad, onShow, onReady } from '@dcloudio/uni-app'
 import { ChatMessageType } from '@/composables/types'
-import { nextTick } from 'vue'
+import { nextTick, onUnmounted } from 'vue'
 
 // import AuctionList from '@/components/chat/AuctionList.vue'
 const chatStore = useChatStore()
@@ -96,6 +106,12 @@ const popupRef = ref(null as any)
 //公告信息跟弹窗
 const item = ref<AnnounceDto | null>(null)
 const popupShowRef = ref(null as any)
+
+// 出价规则弹窗相关
+const bidRulesModalVisible = ref(false)
+const bidRulesMessage = ref('')
+const bidRulesCurrentPrice = ref(0)
+const bidRulesMinPrice = ref(0)
 
 //未读消息条数
 const unread = ref('')
@@ -125,12 +141,35 @@ onLoad(() => {
             showUnread.value = false
         }, 3000)
     })
+    
+    // 监听出价规则弹窗事件
+    uni.$on('showBidRulesModal', (data: { message: string; needPriceInfo?: boolean }) => {
+        bidRulesMessage.value = data.message
+        
+        // 如果需要价格信息，从当前拍卖商品获取
+        if (data.needPriceInfo && onAuctionItem.value) {
+            bidRulesCurrentPrice.value = onAuctionItem.value.currentPrice || onAuctionItem.value.startingPrice || 0
+            // 计算最低出价
+            bidRulesMinPrice.value = calculateMinBidPrice(
+                bidRulesCurrentPrice.value, 
+                auctionStore.isKasec
+            )
+        }
+        
+        bidRulesModalVisible.value = true
+    })
 })
 
 // 组件销毁时移除监听
 onUnmounted(() => {
     uni.$off('eventUnread')
+    uni.$off('showBidRulesModal')
 })
+
+// 出价规则弹窗确认处理
+function onBidRulesConfirm() {
+    bidRulesModalVisible.value = false
+}
 //关闭公告弹窗
 const onConfirm = () => {
     uni.setStorageSync('auctionNotice', item.value)

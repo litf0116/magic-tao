@@ -16,8 +16,20 @@ const errorPrompt = (err: any) => {
         })
     } else {
         const msg = err.details || err.message
-        if (err.code === 1) Tips.noCancelModal(msg)
-        else Tips.info(msg)
+
+        // 检查是否是出价规则错误，如果是则触发自定义弹窗事件
+        if (err.code === 1 && msg && msg.includes('出价必须大于最低加价')) {
+            // 触发全局事件，让页面组件处理
+            uni.$emit('showBidRulesModal', {
+                message: msg,
+                // 页面组件需要自己获取并传递价格信息
+                needPriceInfo: true
+            })
+        } else if (err.code === 1) {
+            Tips.noCancelModal(msg)
+        } else {
+            Tips.info(msg)
+        }
     }
 }
 

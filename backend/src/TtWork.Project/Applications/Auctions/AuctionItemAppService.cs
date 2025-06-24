@@ -310,9 +310,21 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
 
             if (input.BidPrice < minPrice)
             {
-                throw new UserFriendlyException(1,
-                    "出价必须大于最低加价\n 100以内，1R一加。100~1000，5R一加。1000-2000，10R一加。2000-5000，20R一加。50000-1W，50一加。1W以上，100一加" +
-                    (kasecVal.HasValue && kasecVal == "true" ? "\n卡秒期间需三倍加价" : ""));
+                var priceRules = new[]
+                {
+                    "100以内，1R一加",
+                    "100~1000，5R一加", 
+                    "1000~2000，10R一加",
+                    "2000~5000，20R一加",
+                    "5000~1W，50一加",
+                    "1W以上，100一加"
+                };
+                
+                var formattedMessage = "出价必须大于最低加价：\n\n" + 
+                    string.Join("\n", priceRules) +
+                    (kasecVal.HasValue && kasecVal == "true" ? "\n\n⚠️ 卡秒期间需三倍加价" : "");
+                
+                throw new UserFriendlyException(1, formattedMessage);
             }
             // if (find.CurrentPrice >= input.BidPrice) throw new UserFriendlyException(1, "出价必须大于当前价格");
 
