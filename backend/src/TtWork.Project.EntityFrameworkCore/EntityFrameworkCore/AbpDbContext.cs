@@ -37,6 +37,7 @@ namespace TtWork.Project.EntityFrameworkCore {
         public DbSet<ChatGroup> ChatGroups { get; set; }
         public DbSet<ChatEmoji> ChatEmoji { get; set; }
         public DbSet<ChatListDelete> ChatListDelete { get; set; }
+        public DbSet<ChatChannel> ChatChannels { get; set; }
 
 
         public DbSet<UserDepositLog> UserDepositLog { get; set; }
@@ -93,6 +94,16 @@ namespace TtWork.Project.EntityFrameworkCore {
                 b.HasIndex(ba => new { ba.CreatorUserId, ba.CreationTime })
                     .IsDescending()
                     ;
+            });
+
+            builder.Entity<ChatChannel>(b => {
+                b.HasKey(x => x.Id);
+                b.HasIndex(x => x.ChannelId)
+                    .IsUnique();
+                b.HasIndex(ba => new { ba.ChannelType, ba.IsActive });
+                b.HasIndex(ba => new { ba.User1Id, ba.User2Id });
+                b.HasIndex(x => x.LastMessageTime)
+                    .IsDescending();
             });
 
 

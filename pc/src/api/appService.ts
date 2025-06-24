@@ -2256,11 +2256,11 @@ export class ClientService {
         })
     }
     /**
-     *
+     * 获取聊天列表（优化版本）
      */
     static getChatList(options: IRequestOptions = {}): Promise<ChatListItem[]> {
         return new Promise((resolve, reject) => {
-            let url = basePath + '/api/services/app/Client/GetChatList'
+            let url = basePath + '/api/services/app/Client/GetChatListOptimized'
 
             const configs: IRequestConfig = getConfigs('get', 'application/json', url, options)
 

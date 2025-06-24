@@ -31,6 +31,9 @@ using static FreeSql.Internal.GlobalFilter;
 using TtWork.Project.Applications.GroupChatLevelSettings.Dto;
 using TtWork.Project.Services;
 
+using Abp.Events.Bus;
+using TtWork.Project.EventHandlers;
+
 namespace TtWork.Project.Controllers
 {
     public class SubscrChannelInput
@@ -79,7 +82,8 @@ namespace TtWork.Project.Controllers
         IRepository<ChatListDelete> chatListDeleteRepository,
         IMediator mediator,
         ISqlSugarClient _sqlSugarClient,
-        IMessageSequenceService messageSequenceService
+        IMessageSequenceService messageSequenceService,
+        IEventBus eventBus
     ) : AbpController
     {
         public string Ip
@@ -378,6 +382,9 @@ namespace TtWork.Project.Controllers
                 // 使用服务端生成的时间戳更新消息
                 input.Message.time = entity.Time;
                 input.Message.sequenceNumber = entity.SequenceNumber;
+
+                // 触发聊天消息发送事件，异步更新ChatChannel表
+                await eventBus.TriggerAsync(new ChatMessageSentEvent(entity.Id));
             }
 
             //判断input.form在不在redis的chan里
@@ -478,6 +485,9 @@ namespace TtWork.Project.Controllers
             // 使用服务端生成的时间戳更新消息
             input.Message.time = entity.Time;
             input.Message.sequenceNumber = entity.SequenceNumber;
+
+            // 触发聊天消息发送事件，异步更新ChatChannel表
+            await eventBus.TriggerAsync(new ChatMessageSentEvent(entity.Id));
 
             ImHelper.SendMessage(input.From, [input.To], input.Message,
                 input.IsReceipt);

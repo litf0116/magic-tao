@@ -46,6 +46,9 @@ using TtWork.Project.Jobs;
 using TTWork.WeiXinMiddleware.Utils;
 using static OfficeOpenXml.ExcelErrorValue;
 
+using Abp.Events.Bus;
+using TtWork.Project.EventHandlers;
+
 namespace TtWork.Project.Applications.Auctions;
 
 public class SubStartNotifyRequest
@@ -72,6 +75,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
     private readonly IRepository<ChatListDelete> _chatListDeleteRepository;
+    private readonly IEventBus _eventBus;
 
     public AuctionItemAppService(
         IRedisClient redisClient,
@@ -89,9 +93,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         IRepository<Message, Guid> messageRepository,
         IHttpContextAccessor httpContextAccessor,
         IRepository<ChatListDelete> chatListDeleteRepository,
-        IUnitOfWorkManager unitOfWorkManager) : base(repository,
-        iocManager
-    )
+        IUnitOfWorkManager unitOfWorkManager,
+        IEventBus eventBus) : base(repository, iocManager)
     {
         _sqlSugarClient = sqlSugarClient;
         _redisClient = redisClient;
@@ -113,6 +116,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         _messageRepository = messageRepository;
         _httpContextAccessor = httpContextAccessor;
         _chatListDeleteRepository = chatListDeleteRepository;
+        _eventBus = eventBus;
         // base.GetAllPermissionName = AppPermissions.Pages.ChatManager;
     }
 
@@ -313,17 +317,17 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 var priceRules = new[]
                 {
                     "100以内，1R一加",
-                    "100~1000，5R一加", 
+                    "100~1000，5R一加",
                     "1000~2000，10R一加",
                     "2000~5000，20R一加",
                     "5000~1W，50一加",
                     "1W以上，100一加"
                 };
-                
-                var formattedMessage = "出价必须大于最低加价：\n\n" + 
+
+                var formattedMessage = "出价必须大于最低加价：\n\n" +
                     string.Join("\n", priceRules) +
                     (kasecVal.HasValue && kasecVal == "true" ? "\n\n⚠️ 卡秒期间需三倍加价" : "");
-                
+
                 throw new UserFriendlyException(1, formattedMessage);
             }
             // if (find.CurrentPrice >= input.BidPrice) throw new UserFriendlyException(1, "出价必须大于当前价格");
@@ -517,6 +521,9 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 };
                 await _messageRepository.InsertAsync(entityChanMessage);
                 await CurrentUnitOfWork.SaveChangesAsync();
+
+                // 触发聊天消息发送事件，异步更新ChatChannel表
+                await _eventBus.TriggerAsync(new ChatMessageSentEvent(entityChanMessage.Id));
             }
 
             #endregion
@@ -557,6 +564,9 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
 
             await _messageRepository.InsertAsync(entity);
             await CurrentUnitOfWork.SaveChangesAsync();
+
+            // 触发聊天消息发送事件，异步更新ChatChannel表
+            await _eventBus.TriggerAsync(new ChatMessageSentEvent(entity.Id));
 
             await _chatListDeleteRepository.GetAll().Where(x =>
                 (x.UserId == cacheUser.Id && x.ToUserId == entity.To) ||

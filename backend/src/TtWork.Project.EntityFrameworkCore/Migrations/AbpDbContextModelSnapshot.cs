@@ -2216,6 +2216,9 @@ namespace TtWork.Project.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("varchar(64)");
 
+                    b.Property<long>("SequenceNumber")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("TagClass")
                         .HasMaxLength(32)
                         .HasColumnType("varchar(32)");
