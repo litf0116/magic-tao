@@ -299,8 +299,7 @@ async function bid() {
 
         // 获取实时用户信息
         console.log('正在获取实时用户信息...')
-        const userResponse: UserDto = await api.user.get({ id: userId })
-        const currentUser = userResponse.data
+        const currentUser = await api.user.get({ id: userId })
         const deposit = currentUser.depositBalance || 0
         console.log('用户信息获取成功:', {
             userId: currentUser.id,
