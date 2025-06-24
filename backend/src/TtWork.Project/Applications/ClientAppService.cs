@@ -303,16 +303,13 @@ public class ClientAppService(
 
         var userId = AbpSession.UserId!.Value;
 
-        // 保持原有的删除记录逻辑（用于兼容性）
+        // 在 t_chatlistdelete 表中记录删除操作
+        // 聊天列表查询时会通过此表进行过滤，实现个性化显示
         await chatListDeleteRepository.InsertAsync(new ChatListDelete()
         {
             UserId = userId,
             ToUserId = id
         });
-
-        // 新增：隐藏对应的ChatChannel频道
-        // 当有新消息时，会通过 ChatChannelService.UpdateChannelLastMessageAsync 自动恢复
-        await chatChannelService.HideChannelForUserAsync(id, userId);
 
         await CurrentUnitOfWork.SaveChangesAsync();
     }
@@ -345,9 +342,6 @@ public class ClientAppService(
                     UserId = userId,
                     ToUserId = id
                 });
-
-                // 隐藏对应的ChatChannel频道
-                await chatChannelService.HideChannelForUserAsync(id, userId);
             }
         }
 
@@ -461,18 +455,12 @@ public class ClientAppService(
     {
         var result = new List<ChatListItem>();
 
-        List<long> deletedUserIds = [];
         if (AbpSession.UserId.HasValue)
         {
             var userId = AbpSession.UserId.Value;
-            var chatDeleteList = await chatListDeleteRepository.GetAll().AsNoTracking()
-                .Where(x => x.UserId == userId)
-                .ToListAsync();
 
-            deletedUserIds = chatDeleteList.Select(x => x.ToUserId).ToList();
-
-            // 使用 ChatChannelService 获取可见的频道列表
-            var channels = await chatChannelService.GetVisibleChannelsForUserAsync(userId, deletedUserIds);
+            // 使用 ChatChannelService 获取可见的频道列表（内部已处理删除过滤）
+            var channels = await chatChannelService.GetVisibleChannelsForUserAsync(userId);
 
             foreach (var channel in channels)
             {
@@ -543,7 +531,7 @@ public class ClientAppService(
         else
         {
             // 未登录用户只显示系统频道
-            var systemChannels = await chatChannelService.GetVisibleChannelsForUserAsync(0, null);
+            var systemChannels = await chatChannelService.GetVisibleChannelsForUserAsync(0);
             foreach (var channel in systemChannels.Where(x => x.ChannelType == ChatChannelType.System))
             {
                 var chatItem = new ChatListItem
@@ -736,21 +724,20 @@ public class ClientAppService(
     {
         var userId = AbpSession.UserId!.Value;
 
-        // 获取用户已删除的聊天用户ID列表
-        var chatDeleteList = await chatListDeleteRepository.GetAll().AsNoTracking()
-            .Where(x => x.UserId == userId)
-            .ToListAsync();
-        var deletedUserIds = chatDeleteList.Select(x => x.ToUserId).ToList();
+        // 获取用户可见的频道列表（内部已处理删除过滤）
+        var channels = await chatChannelService.GetVisibleChannelsForUserAsync(userId);
 
-        // 获取用户可见的频道列表
-        var channels = await chatChannelService.GetVisibleChannelsForUserAsync(userId, deletedUserIds);
+        // 获取用户删除的聊天数量
+        var deletedChatsCount = await chatListDeleteRepository.GetAll()
+            .Where(x => x.UserId == userId)
+            .CountAsync();
 
         return new ChatChannelStats
         {
             TotalChannels = channels.Count,
             SystemChannels = channels.Count(x => x.ChannelType == ChatChannelType.System),
             PrivateChannels = channels.Count(x => x.ChannelType == ChatChannelType.Private),
-            DeletedChats = deletedUserIds.Count,
+            DeletedChats = deletedChatsCount,
             TotalMessages = channels.Sum(x => x.MessageCount),
             LastActivity = channels.Where(x => x.LastMessageTime > 0).Any()
                 ? channels.Where(x => x.LastMessageTime > 0).Max(x => x.LastMessageTime)

@@ -173,33 +173,26 @@ public class ChatChannelService : DomainService
     /// 获取用户可见的聊天频道列表（已过滤删除的聊天）
     /// </summary>
     /// <param name="userId">用户ID</param>
-    /// <param name="deletedUserIds">已删除的聊天用户ID列表</param>
     /// <returns>可见的聊天频道列表</returns>
-    public async Task<List<ChatChannel>> GetVisibleChannelsForUserAsync(long userId, List<long> deletedUserIds = null)
+    public async Task<List<ChatChannel>> GetVisibleChannelsForUserAsync(long userId)
     {
-        var query = _chatChannelRepository.GetAll().AsNoTracking()
-            .Where(x => x.IsActive && x.LastMessageId != null);
+        var query = from channel in _chatChannelRepository.GetAll().AsNoTracking()
+                    where channel.IsActive && channel.LastMessageId != null
+                    where channel.ChannelType == ChatChannelType.System ||
+                          channel.User1Id == userId ||
+                          channel.User2Id == userId
+                    // 对于私聊频道，过滤掉用户已删除的聊天
+                    where channel.ChannelType == ChatChannelType.System ||
+                          (channel.ChannelType == ChatChannelType.Private &&
+                           !_chatListDeleteRepository.GetAll().Any(delete =>
+                               delete.UserId == userId &&
+                               delete.ToUserId == (channel.User1Id == userId ? channel.User2Id : channel.User1Id)))
+                    orderby channel.ChannelType,  // 系统频道优先
+                            channel.SortOrder descending,  // 按排序权重
+                            channel.LastMessageTime descending  // 最后按时间
+                    select channel;
 
-        // 过滤用户可见的频道
-        query = query.Where(x =>
-            x.ChannelType == ChatChannelType.System ||
-            x.User1Id == userId ||
-            x.User2Id == userId);
-
-        // 过滤已删除的私聊频道
-        if (deletedUserIds?.Count > 0)
-        {
-            query = query.Where(x =>
-                x.ChannelType == ChatChannelType.System || // 系统频道不受删除影响
-                (x.ChannelType == ChatChannelType.Private &&
-                 !deletedUserIds.Contains(x.User1Id == userId ? x.User2Id.Value : x.User1Id.Value)));
-        }
-
-        return await query
-            .OrderBy(x => x.ChannelType) // 系统频道优先
-            .ThenByDescending(x => x.SortOrder) // 按排序权重
-            .ThenByDescending(x => x.LastMessageTime) // 最后按时间
-            .ToListAsync();
+        return await query.ToListAsync();
     }
 
     /// <summary>
