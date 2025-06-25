@@ -47,6 +47,7 @@ using TTWork.WeiXinMiddleware.Utils;
 using static OfficeOpenXml.ExcelErrorValue;
 using Abp.Events.Bus;
 using TtWork.Project.EventHandlers;
+using TtWork.Project.Services.Cache;
 
 namespace TtWork.Project.Applications.Auctions;
 
@@ -117,6 +118,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     private readonly IUnitOfWorkManager _unitOfWorkManager;
     private readonly IRepository<ChatListDelete> _chatListDeleteRepository;
     private readonly IEventBus _eventBus;
+    private readonly IAuctionItemCacheService _cacheService;
 
     public AuctionItemAppService(
         IRedisClient redisClient,
@@ -135,7 +137,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         IHttpContextAccessor httpContextAccessor,
         IRepository<ChatListDelete> chatListDeleteRepository,
         IUnitOfWorkManager unitOfWorkManager,
-        IEventBus eventBus) : base(repository, iocManager)
+        IEventBus eventBus,
+        IAuctionItemCacheService cacheService) : base(repository, iocManager)
     {
         _sqlSugarClient = sqlSugarClient;
         _redisClient = redisClient;
@@ -158,6 +161,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         _httpContextAccessor = httpContextAccessor;
         _chatListDeleteRepository = chatListDeleteRepository;
         _eventBus = eventBus;
+        _cacheService = cacheService;
         // base.GetAllPermissionName = AppPermissions.Pages.ChatManager;
     }
 
@@ -406,10 +410,13 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             });
             var ip = GetIp;
 
-            // 清除缓存，因为出价改变了商品状态
-            ClearAuctionListCache();
-            ClearAuctionDetailCache(input.AuctionItemId);
-            ClearCurrentAuctionCache();
+                    // 清除缓存，因为出价改变了商品状态
+        await _cacheService.ClearAuctionDetailCacheAsync(input.AuctionItemId);
+        await _cacheService.ClearAuctionListCacheAsync();
+        await _cacheService.ClearCurrentAuctionCacheAsync();
+
+        // 发布出价事件
+        await _mediator.Publish(new BidPlacedEvent(input.AuctionItemId, AbpSession.UserId!.Value, input.BidPrice, input.BidUserName));
 
             return result;
         }
@@ -509,9 +516,9 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 result.AuctionItemDto = ObjectMapper.Map<AuctionItemDto>(find);
 
                 // 清除缓存
-                ClearAuctionListCache();
-                ClearAuctionDetailCache(auctionItemId);
-                ClearCurrentAuctionCache();
+                await _cacheService.ClearAuctionListCacheAsync();
+                await _cacheService.ClearAuctionDetailCacheAsync(auctionItemId);
+                await _cacheService.ClearCurrentAuctionCacheAsync();
 
                 return result;
             }
@@ -687,9 +694,9 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             await _webSocketController.SendMsg(dealMsgInput);
 
             // 13. 清除缓存
-            ClearAuctionListCache();
-            ClearAuctionDetailCache(auctionItemId);
-            ClearCurrentAuctionCache();
+            await _cacheService.ClearAuctionListCacheAsync();
+            await _cacheService.ClearAuctionDetailCacheAsync(auctionItemId);
+            await _cacheService.ClearCurrentAuctionCacheAsync();
 
             // 14. 设置返回结果
             result.Success = true;
@@ -825,54 +832,13 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     [HttpGet("api/AuctionItem/GetDetail")]
     public async Task<AuctionItemDto> GetDetail(long id)
     {
-        // 生成缓存键
-        string cacheKey = GenerateAuctionDetailCacheKey(id);
-
-        // 尝试从缓存获取数据
-        var cachedValue = await _redisClient.Database.StringGetAsync(cacheKey);
-        if (cachedValue.HasValue)
-        {
-            var cachedResult = Newtonsoft.Json.JsonConvert.DeserializeObject<AuctionItemDto>(cachedValue);
-            return cachedResult;
-        }
-
-        // 缓存未命中，从数据库获取
-        var auctionItem = await Repository.GetAll().AsNoTracking()
-            .Where(x => x.Id == id)
-            .FirstOrDefaultAsync();
-
-        if (auctionItem == null)
+        // 使用新的缓存服务
+        var result = await _cacheService.GetAuctionDetailAsync(id);
+        
+        if (result == null)
         {
             throw new UserFriendlyException(1, "找不到商品");
         }
-
-        var result = ObjectMapper.Map<AuctionItemDto>(auctionItem);
-
-        // 如果是拍卖中的商品，获取最新的出价信息
-        if (auctionItem.Status == AuctionStatusEnum.拍卖中)
-        {
-            var latestBid = await _bidHistoryRepository.GetAll().AsNoTracking()
-                .Where(w => w.AuctionItemId == id)
-                .OrderByDescending(o => o.BidTime)
-                .FirstOrDefaultAsync();
-
-            if (latestBid != null)
-            {
-                result.CurrentPrice = latestBid.BidPrice;
-                result.CurrentPriceUserName = latestBid.BidUserName;
-                result.CurrentPriceTime = latestBid.BidTime;
-                result.UseCountdownTime = latestBid.CreationTime;
-            }
-        }
-
-        // 获取卡秒状态
-        var kasecVal = await _redisClient.Database.StringGetAsync($"Auction:Kasec:{id}");
-        result.IsKasec = kasecVal.HasValue && kasecVal == "true";
-
-        // 设置缓存，根据商品状态设置不同的过期时间
-        int cacheMinutes = GetDetailCacheExpireMinutes(auctionItem.Status);
-        string serializedResult = Newtonsoft.Json.JsonConvert.SerializeObject(result);
-        await _redisClient.Database.StringSetAsync(cacheKey, serializedResult, TimeSpan.FromMinutes(cacheMinutes));
 
         return result;
     }
@@ -949,9 +915,13 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         await CurrentUnitOfWork.SaveChangesAsync();
 
         // 清除缓存
-        ClearAuctionListCache();
-        ClearAuctionDetailCache(input.Id);
-        ClearCurrentAuctionCache();
+        await _cacheService.ClearAuctionListCacheAsync();
+        await _cacheService.ClearAuctionDetailCacheAsync(input.Id);
+        await _cacheService.ClearCurrentAuctionCacheAsync();
+
+        // 发布拍卖开始事件
+        var auctionDto = ObjectMapper.Map<AuctionItemDto>(find);
+        await _mediator.Publish(new AuctionStartedEvent(auctionDto));
 
         try
         {
@@ -980,115 +950,11 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             input.MaxResultCount = 100;
         }
 
-        // 生成缓存键
-        string cacheKey = GenerateAuctionListCacheKey(input);
-
-        // 尝试从缓存获取数据
-        var cachedValue = await _redisClient.Database.StringGetAsync(cacheKey);
-        if (cachedValue.HasValue)
-        {
-            var cachedResult =
-                Newtonsoft.Json.JsonConvert.DeserializeObject<ListResultDto<AuctionItemDto>>(cachedValue);
-            return cachedResult;
-        }
-
-        var query = Repository.GetAll().AsNoTracking()
-                .WhereIf(!input.Status.HasValue,
-                    x => x.Status == AuctionStatusEnum.上架 || x.Status == AuctionStatusEnum.拍卖中)
-                .WhereIf(input.Status.HasValue, x => (int)x.Status == input.Status!.Value)
-            ;
-
-        if (!input.Status.HasValue)
-        {
-            query = query.OrderBy(x => x.Order)
-                .ThenBy(x => x.Id);
-        }
-        else if (input.Status == (int)AuctionStatusEnum.已成交)
-        {
-            query = query.OrderByDescending(x => x.DealTime).Take(input.MaxResultCount);
-        }
-        else
-        {
-            query = query.OrderByDescending(x => x.Id);
-        }
-
-        var items = await query.ToListAsync();
-
-        var result = new ListResultDto<AuctionItemDto>(
-            ObjectMapper.Map<List<AuctionItemDto>>(items)
-        );
-
-        // 设置缓存，根据状态设置不同的过期时间
-        int cacheMinutes = GetCacheExpireMinutes(input.Status);
-        string serializedResult = Newtonsoft.Json.JsonConvert.SerializeObject(result);
-        await _redisClient.Database.StringSetAsync(cacheKey, serializedResult, TimeSpan.FromMinutes(cacheMinutes));
-
-        return result;
+        // 使用新的缓存服务
+        return await _cacheService.GetAuctionListAsync(input);
     }
 
-    /// <summary>
-    /// 生成拍卖列表缓存键
-    /// </summary>
-    /// <param name="input"></param>
-    /// <returns></returns>
-    private string GenerateAuctionListCacheKey(AppResultRequestDto input)
-    {
-        string statusKey = input.Status?.ToString() ?? "default";
-        return $"auction:list:{statusKey}:{input.MaxResultCount}";
-    }
 
-    /// <summary>
-    /// 根据状态获取缓存过期时间（分钟）
-    /// </summary>
-    /// <param name="status"></param>
-    /// <returns></returns>
-    private int GetCacheExpireMinutes(int? status)
-    {
-        if (!status.HasValue)
-        {
-            // 待拍卖和拍卖中的商品，缓存2分钟（变化较频繁）
-            return 2;
-        }
-        else if (status == (int)AuctionStatusEnum.已成交)
-        {
-            // 已成交商品，缓存10分钟（相对稳定）
-            return 10;
-        }
-        else
-        {
-            // 其他状态，缓存5分钟
-            return 5;
-        }
-    }
-
-    /// <summary>
-    /// 清除拍卖列表相关缓存
-    /// </summary>
-    /// <param name="auctionItemId">可选，特定商品ID</param>
-    /// <returns></returns>
-    private void ClearAuctionListCache(long? auctionItemId = null)
-    {
-        try
-        {
-            // 清除所有相关的缓存键
-            var patterns = new[]
-            {
-                "auction:list:default:*",
-                $"auction:list:{(int)AuctionStatusEnum.上架}:*",
-                $"auction:list:{(int)AuctionStatusEnum.拍卖中}:*",
-                $"auction:list:{(int)AuctionStatusEnum.已成交}:*"
-            };
-
-            foreach (var pattern in patterns)
-            {
-                _redisClient.DeleteKeysWithPartten(pattern);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "清除拍卖列表缓存失败");
-        }
-    }
 
     /// <summary>
     /// 查询拍卖中的商品
@@ -1100,41 +966,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     [HttpPost]
     public async Task<ListResultDto<AuctionItemDto>> GetAuctionMidList(AppResultRequestDto input)
     {
-        var query = Repository.GetAll().AsNoTracking()
-                .WhereIf(!input.Status.HasValue,
-                    x => x.Status == AuctionStatusEnum.上架 || x.Status == AuctionStatusEnum.拍卖中)
-                .WhereIf(input.Status.HasValue, x => (int)x.Status == input.Status!.Value)
-            ;
-
-        if (!input.Status.HasValue)
-        {
-            query = query.OrderBy(x => x.Order)
-                .ThenBy(x => x.Id);
-        }
-
-        //查询拍卖中的物品
-        var items = await query.ToListAsync();
-        var result = new ListResultDto<AuctionItemDto>(ObjectMapper.Map<List<AuctionItemDto>>(items));
-        //获取所以商品编号
-        var idList = items.Select(x => x.Id).ToList();
-        //查询物品出价信息
-        var bidList = _bidHistoryRepository.GetAll().AsNoTracking().Where(w => idList.Contains(w.AuctionItemId))
-            .ToList();
-        foreach (var item in result.Items)
-        {
-            //查询最新的出价信息
-            var info = bidList.Where(w => w.AuctionItemId == item.Id).OrderByDescending(o => o.BidTime)
-                .FirstOrDefault();
-            if (info != null)
-            {
-                item.CurrentPrice = info.BidPrice;
-                item.CurrentPriceUserName = info.BidUserName;
-                item.CurrentPriceTime = info.BidTime;
-                item.UseCountdownTime = info.CreationTime;
-            }
-        }
-
-        return result;
+        // 使用新的缓存服务
+        return await _cacheService.GetAuctionMidListAsync(input);
     }
 
     [AbpAuthorize]
@@ -1258,8 +1091,11 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         });
 
         // 清除详情缓存，因为卡秒状态改变了
-        ClearAuctionDetailCache(input.AuctionItemId);
-        ClearCurrentAuctionCache();
+        await _cacheService.ClearAuctionDetailCacheAsync(input.AuctionItemId);
+        await _cacheService.ClearCurrentAuctionCacheAsync();
+        
+        // 发布卡秒状态变更事件
+        await _mediator.Publish(new KasecStatusChangedEvent(input.AuctionItemId, input.IsKasec));
 
         return true;
     }
@@ -1281,62 +1117,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     [DisableAuditing]
     public async Task<AuctionItemDto> GetCurrentAuctionItem()
     {
-        // 生成当前拍卖商品缓存键
-        string cacheKey = "auction:current";
-
-        // 尝试从缓存获取数据
-        var cachedValue = await _redisClient.Database.StringGetAsync(cacheKey);
-        if (cachedValue.HasValue)
-        {
-            if (cachedValue == "null")
-            {
-                return null;
-            }
-
-            var cachedResult = Newtonsoft.Json.JsonConvert.DeserializeObject<AuctionItemDto>(cachedValue);
-            if (cachedResult != null)
-            {
-                return cachedResult;
-            }
-        }
-
-        // 缓存未命中，从数据库获取
-        var auctionItem = await Repository.GetAll().AsNoTracking()
-            .Where(x => x.Status == AuctionStatusEnum.拍卖中)
-            .FirstOrDefaultAsync();
-
-        if (auctionItem == null)
-        {
-            // 如果没有拍卖中的商品，缓存null结果30秒
-            await _redisClient.Database.StringSetAsync(cacheKey, "null", TimeSpan.FromSeconds(30));
-            return null;
-        }
-
-        var result = ObjectMapper.Map<AuctionItemDto>(auctionItem);
-
-        // 获取最新的出价信息
-        var latestBid = await _bidHistoryRepository.GetAll().AsNoTracking()
-            .Where(w => w.AuctionItemId == auctionItem.Id)
-            .OrderByDescending(o => o.BidTime)
-            .FirstOrDefaultAsync();
-
-        if (latestBid != null)
-        {
-            result.CurrentPrice = latestBid.BidPrice;
-            result.CurrentPriceUserName = latestBid.BidUserName;
-            result.CurrentPriceTime = latestBid.BidTime;
-            result.UseCountdownTime = latestBid.CreationTime;
-        }
-
-        // 获取卡秒状态
-        var kasecVal = await _redisClient.Database.StringGetAsync($"Auction:Kasec:{auctionItem.Id}");
-        result.IsKasec = kasecVal.HasValue && kasecVal == "true";
-
-        // 缓存结果，拍卖中的商品缓存30秒（变化频繁）
-        string serializedResult = Newtonsoft.Json.JsonConvert.SerializeObject(result);
-        await _redisClient.Database.StringSetAsync(cacheKey, serializedResult, TimeSpan.FromSeconds(30));
-
-        return result;
+        // 使用新的缓存服务
+        return await _cacheService.GetCurrentAuctionItemAsync();
     }
 
     // 重写CRUD方法，在数据变更时清理缓存
@@ -1344,9 +1126,12 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     {
         var result = await base.CreateAsync(input);
 
-        // 清除缓存
-        ClearAuctionListCache();
-        ClearAuctionDetailCache(result.Id);
+        // 清除缓存和发布事件
+        await _cacheService.ClearAuctionListCacheAsync();
+        await _cacheService.ClearAuctionDetailCacheAsync(result.Id);
+        
+        // 发布拍卖品创建事件
+        await _mediator.Publish(new AuctionItemCreatedEvent(result));
 
         return result;
     }
@@ -1355,9 +1140,12 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     {
         var result = await base.UpdateAsync(input);
 
-        // 清除缓存
-        ClearAuctionListCache();
-        ClearAuctionDetailCache(result.Id);
+        // 清除缓存和发布事件
+        await _cacheService.ClearAuctionListCacheAsync();
+        await _cacheService.ClearAuctionDetailCacheAsync(result.Id);
+        
+        // 发布拍卖品更新事件
+        await _mediator.Publish(new AuctionItemUpdatedEvent(result));
 
         return result;
     }
@@ -1366,79 +1154,13 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     {
         await base.DeleteAsync(input);
 
-        // 清除缓存
-        ClearAuctionListCache();
-        ClearAuctionDetailCache(input.Id);
+        // 清除缓存和发布事件
+        await _cacheService.ClearAuctionListCacheAsync();
+        await _cacheService.ClearAuctionDetailCacheAsync(input.Id);
+        
+        // 发布拍卖品删除事件
+        await _mediator.Publish(new AuctionItemDeletedEvent(input.Id));
     }
 
-    /// <summary>
-    /// 生成拍卖品详情缓存键
-    /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
-    private string GenerateAuctionDetailCacheKey(long id)
-    {
-        return $"auction:detail:{id}";
-    }
 
-    /// <summary>
-    /// 根据拍卖品状态获取详情缓存过期时间（分钟）
-    /// </summary>
-    /// <param name="status"></param>
-    /// <returns></returns>
-    private int GetDetailCacheExpireMinutes(AuctionStatusEnum status)
-    {
-        return status switch
-        {
-            AuctionStatusEnum.拍卖中 => 1, // 拍卖中的商品变化频繁，缓存1分钟
-            AuctionStatusEnum.上架 => 5, // 待拍卖商品相对稳定，缓存5分钟
-            AuctionStatusEnum.已成交 => 30, // 已成交商品基本不变，缓存30分钟
-            AuctionStatusEnum.交易成功 => 60, // 交易完成的商品，缓存1小时
-            AuctionStatusEnum.卖家失约 => 60, // 失约状态商品，缓存1小时
-            AuctionStatusEnum.买家失约 => 60, // 失约状态商品，缓存1小时
-            AuctionStatusEnum.交易关闭 => 60, // 关闭状态商品，缓存1小时
-            _ => 10 // 其他状态，缓存10分钟
-        };
-    }
-
-    /// <summary>
-    /// 清除拍卖品详情缓存
-    /// </summary>
-    /// <param name="auctionItemId">拍卖品ID，如果为null则清除所有详情缓存</param>
-    private void ClearAuctionDetailCache(long? auctionItemId = null)
-    {
-        try
-        {
-            if (auctionItemId.HasValue)
-            {
-                // 清除指定商品的详情缓存
-                string cacheKey = GenerateAuctionDetailCacheKey(auctionItemId.Value);
-                _redisClient.Database.KeyDelete(cacheKey);
-            }
-            else
-            {
-                // 清除所有商品详情缓存
-                _redisClient.DeleteKeysWithPartten("auction:detail:*");
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "清除拍卖品详情缓存失败，商品ID: {AuctionItemId}", auctionItemId);
-        }
-    }
-
-    /// <summary>
-    /// 清除当前拍卖商品缓存
-    /// </summary>
-    private void ClearCurrentAuctionCache()
-    {
-        try
-        {
-            _redisClient.Database.KeyDelete("auction:current");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "清除当前拍卖商品缓存失败");
-        }
-    }
 }

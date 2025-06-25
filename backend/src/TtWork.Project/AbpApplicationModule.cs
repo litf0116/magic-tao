@@ -34,6 +34,9 @@ namespace TtWork.Project {
         public override void Initialize() {
             IocManager.RegisterAssemblyByConvention(typeof(AbpApplicationModule).GetAssembly());
             IocManager.RegisterMediatRAssembly<AbpApplicationModule>();
+            
+            // 缓存服务会自动注册，因为实现了ITransientDependency
+            // 事件处理器会自动注册，因为实现了ITransientDependency
         }
 
         public override void PostInitialize() {
