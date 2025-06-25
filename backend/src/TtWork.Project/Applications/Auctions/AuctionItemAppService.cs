@@ -541,18 +541,21 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             // 6. 设置商品为已成交状态
             find.SetDeal();
             await CurrentUnitOfWork.SaveChangesAsync();
-
+            
             // 7. 构建返回结果
             var auctionResult = ObjectMapper.Map<AuctionItemDto>(find);
             auctionResult.ToUserMsg = "恭喜您,您拍得了" + find.Name + ",成交价:" + find.FinalPrice +
                                       ",\n老板请稍等\n    拍卖师正在联系卖家确认是否交易\n    以及交易的时间地点\n    请耐心等待";
 
             var bidUser = await _userCache.GetAsync(auctionResult.DealUserId!.Value);
-            auctionResult.Status = AuctionStatusEnum.已成交;
             auctionResult.DealUserAvatar = bidUser.HeadImgUrl;
 
-            // 8. 统一处理卡秒状态（两种结束方式都需要关闭卡秒）
-            await _redisClient.Database.StringSetAsync($"Auction:Kasec:{auctionItemId}", false);
+            // 8. 获取并处理卡秒状态
+            var kasecVal = await _redisClient.Database.StringGetAsync($"Auction:Kasec:{auctionItemId}");
+            bool wasInKasecMode = kasecVal.HasValue && kasecVal == "true";
+            
+            // 无论什么方式结束拍卖，都将卡秒状态设置为false
+            await _redisClient.Database.StringSetAsync($"Auction:Kasec:{auctionItemId}", "false");
 
             // 9. 获取操作用户信息（根据不同情况获取不同用户）
             UserInfoEntity operatorInfo;
@@ -587,32 +590,47 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                     .FirstAsync();
             }
 
-            // 10. 发送卡秒关闭消息（如果是手动结束）
-            if (endType == AuctionEndType.Manual && operatorUserId.HasValue)
+            // 10. 发送卡秒关闭消息（如果当前处于卡秒状态）
+            if (wasInKasecMode)
             {
-                var currentUser = await _userCache.GetAsync(operatorUserId.Value);
-                var (isAdmin, adminTag, tagClass) = await CheckIsChatAdmin();
+                // 获取发送者角色信息
+                var senderId = operatorUserId ?? operatorInfo.Id;
+                var (isAdmin, adminTag, tagClass) = operatorUserId.HasValue 
+                    ? await CheckIsChatAdmin() 
+                    : (true, "拍卖师", "tag_AuctionManager");
+                
+                // 如果是通过定时任务结束的，获取消息所需的用户信息
+                var senderName = operatorInfo.Name;
+                var senderAvatar = operatorInfo.HeadImgUrl;
 
                 var kasecMsg = new ChatMessage
                 {
                     type = ChatMessageType.KasecStatusChanged,
                     chan = "-1_auction",
-                    from = operatorUserId.Value,
-                    fromName = currentUser.Name,
-                    avatar = currentUser.HeadImgUrl,
+                    from = senderId,
+                    fromName = senderName,
+                    avatar = senderAvatar,
                     fromAdmin = isAdmin,
                     fromTag = adminTag,
                     tagClass = tagClass,
-                    msg = "卡秒已关闭，恢复正常加价",
+                    msg = endType == AuctionEndType.Manual 
+                        ? "卡秒已关闭，恢复正常加价" 
+                        : "拍卖已结束，卡秒自动关闭",
                     payload = new { auctionItemId = auctionItemId, isKasec = false },
                     time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
                 };
+                
                 await _webSocketController.SendChannelMsg(new SendChangeMsgInput
                 {
                     Chan = "-1_auction",
-                    From = operatorUserId.Value,
+                    From = senderId,
                     Message = kasecMsg
                 });
+                
+                // 记录卡秒关闭日志
+                _logger.LogInformation(
+                    "卡秒状态已关闭，拍卖ID: {AuctionItemId}, 结束类型: {EndType}, 操作者: {OperatorName}", 
+                    auctionItemId, endType, senderName);
             }
 
             // 11. 发送拍卖结束消息（统一发送）
@@ -1425,3 +1443,4 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         }
     }
 }
+

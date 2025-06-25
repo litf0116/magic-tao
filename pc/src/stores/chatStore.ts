@@ -224,6 +224,29 @@ export const useChatStore = defineStore('chat', () => {
     const router = useRouter()
 
     const onmessage = function (msg: ChatMessage) {
+        // 转换消息类型：将数值类型转换为字符串类型
+        if (typeof msg.type === 'number') {
+            const typeMap: { [key: number]: ChatMessageType } = {
+                1: ChatMessageType.Text,
+                2: ChatMessageType.Image,
+                3: ChatMessageType.File,
+                10: ChatMessageType.Receipt,
+                100: ChatMessageType.Welcome,
+                101: ChatMessageType.Goodbye,
+                102: ChatMessageType.BanUser,
+                110: ChatMessageType.Backout,
+                1000: ChatMessageType.AuctionStart,
+                1002: ChatMessageType.AuctionBid,
+                1010: ChatMessageType.AuctionEnd,
+                1011: ChatMessageType.AuctionDeal,
+                2000: ChatMessageType.KasecStatusChanged,
+                '-1': ChatMessageType.Error,
+            }
+            if (typeMap[msg.type as number]) {
+                msg.type = typeMap[msg.type as number]
+            }
+        }
+
         bus.emit(msg)
         // console.log('onmessage', msg)
         if (msg.receipt) {

@@ -9,6 +9,9 @@ using Abp.Json;
 using Abp.UI;
 using FluentValidation;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using TtWork.Lib;
 
 namespace TtWork.Project.Domains;
@@ -34,36 +37,46 @@ public class AuctionItem : FullAuditedAggregateRoot<long>
     [StringLength(256)] public string ImageUrl { get; set; }
     public string Description { get; set; }
     public int StartingPrice { get; set; }
+
     /// <summary>
     /// 当前出价
     /// </summary>
     public int? CurrentPrice { get; set; }
+
     /// <summary>
     /// 当前出价人
     /// </summary>
     public long? CurrentPriceUserId { get; set; }
+
     /// <summary>
     /// 当前出价人
     /// </summary>
-    [StringLength(64)] public string CurrentPriceUserName { get; set; }
+    [StringLength(64)]
+    public string CurrentPriceUserName { get; set; }
+
     /// <summary>
     /// 成交价
     /// </summary>
     public int? FinalPrice { get; private set; }
+
     /// <summary>
     /// 成交时间
     /// </summary>
     public DateTime? DealTime { get; private set; }
+
     /// <summary>
     /// 成交人
     /// </summary>
     public long? DealUserId { get; private set; }
+
     /// <summary>
     /// 成交人
     /// </summary>
-    [StringLength(64)] public string DealUserName { get; private set; }
+    [StringLength(64)]
+    public string DealUserName { get; private set; }
 
     [StringLength(256)] public string SellerInfo { get; set; }
+
     /// <summary>
     /// 出售人
     /// </summary>
@@ -114,8 +127,13 @@ public record PriceRecord(int? CurrentPrice, long? CurrentPriceUserId, string Cu
 [AutoMapFrom(typeof(AuctionItem))]
 public class AuctionItemDto : EntityDto<long>
 {
+    [JsonProperty("name")]
     public string Name { get; set; }
+
+    [JsonProperty("status")]
+    [JsonConverter(typeof(StringEnumConverter))]
     public AuctionStatusEnum Status { get; set; }
+
     public string ImageUrl { get; set; }
     public string Description { get; set; }
     public int StartingPrice { get; set; }
@@ -173,7 +191,7 @@ public class AuctionItemCreateOrUpdateDto : EntityDto<long>
     public string SellerInfo { get; set; }
     public int Order { get; set; }
 
-    public long? SellerId { get; set; }  //出售人
+    public long? SellerId { get; set; } //出售人
 }
 
 public class AuctionItemCreateOrUpdateDtoValidator : AbstractValidator<AuctionItemCreateOrUpdateDto>

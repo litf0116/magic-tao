@@ -104,17 +104,8 @@ export const useAuctionStore = defineStore('auction', () => {
                 return false
             }
 
-            // chatStore.sendChannelMsg('', '-1_auction', ChatMessageType.AuctionEnd, res)
-            // if (res.dealUserId) {
-            //     chatStore.sendMsg(
-            //         res.dealUserId,
-            //         res.dealUserName,
-            //         res.dealUserAvatar,
-            //         res.toUserMsg,
-            //         ChatMessageType.AuctionDeal,
-            //         res
-            //     )
-            // }
+            // 注意：拍卖结束和成交消息已由后端统一发送，前端无需重复发送
+
             // 结束后自动关闭卡秒
             isKasec.value = false
 
@@ -139,7 +130,7 @@ export const useAuctionStore = defineStore('auction', () => {
                 },
             })
             .then((res) => {
-                // chatStore.sendChannelMsg(`${res.currentPrice}`, '-1_auction', ChatMessageType.AuctionBid, res)
+                // 注意：出价消息已由后端发送，前端无需重复发送
                 Tips.success('出价成功')
             })
     }

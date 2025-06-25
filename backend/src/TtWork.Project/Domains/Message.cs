@@ -4,7 +4,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Abp.Domain.Entities;
 using Abp.Json;
 using FreeIM;
+using Newtonsoft.Json;
 using TtWork.Lib.Extensions;
+using Newtonsoft.Json.Converters;
 
 namespace TtWork.Project.Domains;
 
@@ -31,6 +33,7 @@ public class Message : Entity<Guid> {
         SequenceNumber = sequenceNumber;
     }
 
+    [JsonConverter(typeof(StringEnumConverter))]
     public ChatMessageType Type { get; set; }
     [StringLength(64)] public string Chan { get; set; }
     public long From { get; set; }
