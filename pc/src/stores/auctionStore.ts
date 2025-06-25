@@ -104,17 +104,17 @@ export const useAuctionStore = defineStore('auction', () => {
                 return false
             }
 
-            chatStore.sendChannelMsg('', '-1_auction', ChatMessageType.AuctionEnd, res)
-            if (res.dealUserId) {
-                chatStore.sendMsg(
-                    res.dealUserId,
-                    res.dealUserName,
-                    res.dealUserAvatar,
-                    res.toUserMsg,
-                    ChatMessageType.AuctionDeal,
-                    res
-                )
-            }
+            // chatStore.sendChannelMsg('', '-1_auction', ChatMessageType.AuctionEnd, res)
+            // if (res.dealUserId) {
+            //     chatStore.sendMsg(
+            //         res.dealUserId,
+            //         res.dealUserName,
+            //         res.dealUserAvatar,
+            //         res.toUserMsg,
+            //         ChatMessageType.AuctionDeal,
+            //         res
+            //     )
+            // }
             // 结束后自动关闭卡秒
             isKasec.value = false
 

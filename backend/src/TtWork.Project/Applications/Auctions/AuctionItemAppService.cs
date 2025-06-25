@@ -554,21 +554,38 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             // 8. 统一处理卡秒状态（两种结束方式都需要关闭卡秒）
             await _redisClient.Database.StringSetAsync($"Auction:Kasec:{auctionItemId}", false);
 
-            // 9. 获取拍卖师信息
-            var auctionManagerInfo = await _sqlSugarClient
-                .Queryable<RoleEntity, UserRoleEntity, UserInfoEntity>((r, ur, u) =>
-                    new JoinQueryInfos(
-                        JoinType.Inner, r.Id == ur.RoleId, JoinType.Inner, ur.UserId == u.Id
-                    ))
-                .Where((r, ur, u) => r.Name == "AuctionManager")
-                .Select((r, ur, u) => new UserInfoEntity
+            // 9. 获取操作用户信息（根据不同情况获取不同用户）
+            UserInfoEntity operatorInfo;
+            if (operatorUserId.HasValue)
+            {
+                // 手动结束：使用当前操作用户信息
+                var currentUser = await _userCache.GetAsync(operatorUserId.Value);
+                operatorInfo = new UserInfoEntity
                 {
-                    Id = u.Id,
-                    Name = u.Name,
-                    HeadImgUrl = u.HeadImgUrl,
-                    LastModifierUserId = u.LastModifierUserId,
-                })
-                .FirstAsync();
+                    Id = (int)operatorUserId.Value,
+                    Name = currentUser.Name,
+                    HeadImgUrl = currentUser.HeadImgUrl,
+                    LastModifierUserId = (int)operatorUserId.Value,
+                };
+            }
+            else
+            {
+                // 定时结束：获取拍卖师信息
+                operatorInfo = await _sqlSugarClient
+                    .Queryable<RoleEntity, UserRoleEntity, UserInfoEntity>((r, ur, u) =>
+                        new JoinQueryInfos(
+                            JoinType.Inner, r.Id == ur.RoleId, JoinType.Inner, ur.UserId == u.Id
+                        ))
+                    .Where((r, ur, u) => r.Name == "AuctionManager")
+                    .Select((r, ur, u) => new UserInfoEntity
+                    {
+                        Id = u.Id,
+                        Name = u.Name,
+                        HeadImgUrl = u.HeadImgUrl,
+                        LastModifierUserId = u.LastModifierUserId,
+                    })
+                    .FirstAsync();
+            }
 
             // 10. 发送卡秒关闭消息（如果是手动结束）
             if (endType == AuctionEndType.Manual && operatorUserId.HasValue)
@@ -603,9 +620,9 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             {
                 type = ChatMessageType.AuctionEnd,
                 chan = "-1_auction",
-                from = auctionManagerInfo.Id,
-                fromName = auctionManagerInfo.Name,
-                avatar = auctionManagerInfo.HeadImgUrl,
+                from = operatorInfo.Id,
+                fromName = operatorInfo.Name,
+                avatar = operatorInfo.HeadImgUrl,
                 msg = "",
                 payload = auctionResult,
                 time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
@@ -617,36 +634,21 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             var auctionEndInput = new SendChangeMsgInput()
             {
                 Chan = "-1_auction",
-                From = auctionManagerInfo.Id,
+                From = operatorInfo.Id,
                 Message = auctionEndMessage
             };
 
             auctionEndInput.Message.id = Guid.NewGuid();
-            ImHelper.SendChanMessage(auctionManagerInfo.LastModifierUserId, auctionEndInput.Chan,
-                auctionEndInput.Message);
-
-            // 保存拍卖结束消息到数据库
-            var entityChanMessage = new Message(auctionEndInput.Message)
-            {
-                Ip = ip ?? GetIp,
-                FromAdmin = auctionEndInput.Message.fromAdmin,
-                FromTag = auctionEndInput.Message.fromTag,
-                TagClass = auctionEndInput.Message.tagClass
-            };
-            await _messageRepository.InsertAsync(entityChanMessage);
-            await CurrentUnitOfWork.SaveChangesAsync();
-
-            // 触发聊天消息发送事件
-            await _eventBus.TriggerAsync(new ChatMessageSentEvent(entityChanMessage.Id));
+            await _webSocketController.SendChannelMsg(auctionEndInput);
 
             // 12. 发送成交用户私信（统一发送）
             var dealMessage = new ChatMessage
             {
                 chan = null,
                 type = ChatMessageType.AuctionDeal,
-                from = auctionManagerInfo.LastModifierUserId,
-                fromName = auctionManagerInfo.Name,
-                avatar = auctionManagerInfo.HeadImgUrl,
+                from = operatorInfo.LastModifierUserId,
+                fromName = operatorInfo.Name,
+                avatar = operatorInfo.HeadImgUrl,
                 msg = auctionResult.ToUserMsg,
                 to = auctionResult.DealUserId.Value,
                 payload = auctionResult,
@@ -658,28 +660,14 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
 
             var dealMsgInput = new SendMsgInput
             {
-                From = auctionManagerInfo.Id,
+                From = operatorInfo.Id,
                 To = auctionResult.DealUserId.Value,
                 IsReceipt = true,
                 Message = dealMessage
             };
 
             dealMsgInput.Message.id = Guid.NewGuid();
-            ImHelper.SendMessage(auctionManagerInfo.LastModifierUserId, [dealMsgInput.To], dealMsgInput.Message);
-
-            // 保存私信到数据库
-            var entityMessage = new Message(dealMsgInput.Message)
-            {
-                Ip = ip ?? GetIp,
-                FromAdmin = dealMsgInput.Message.fromAdmin,
-                FromTag = dealMsgInput.Message.fromTag,
-                TagClass = dealMsgInput.Message.tagClass
-            };
-            await _messageRepository.InsertAsync(entityMessage);
-            await CurrentUnitOfWork.SaveChangesAsync();
-
-            // 触发聊天消息发送事件
-            await _eventBus.TriggerAsync(new ChatMessageSentEvent(entityMessage.Id));
+            await _webSocketController.SendMsg(dealMsgInput);
 
             // 13. 清除缓存
             ClearAuctionListCache();
