@@ -12,8 +12,6 @@ const hasPermission = (permissions: string[], roles: string[], route: RouteRecor
         } else b1 = true
         if (route.meta.roles) {
             if (roles.length) b2 = roles.some((role) => (route.meta as any).roles.includes(role))
-            // console.log(route.path, route.meta.roles, b1 && b2)
-            // debugger;
         } else b2 = true
         return b1 && b2
     } else {

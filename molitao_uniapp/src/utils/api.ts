@@ -75,7 +75,6 @@ export default {
         sendChannelMsg: (data: { from: number; chan: string; message: ChatMessage }) =>
             request('POST', `/ws/SendChannelMsg`, data),
         sendMsg: (data: { from: number; to: number; message: ChatMessage; isReceipt: boolean }) => {
-            debugger;
             return request('POST', `/ws/send-msg`, data) as Promise<any>
         },
 
