@@ -2,6 +2,7 @@
 using Abp.AspNetCore.SignalR;
 using Abp.AutoMapper;
 using Abp.Collections.Extensions;
+using Abp.Dependency;
 using Abp.Modules;
 using Abp.Reflection.Extensions;
 using TtWork.Abp.AppManagement;
@@ -10,6 +11,7 @@ using TtWork.Abp.Oss.UpYun;
 using TtWork.Project.Core;
 using TtWork.Project.Definitions;
 using TtWork.Project.Localization;
+using TtWork.Project.Services.Cache;
 
 namespace TtWork.Project {
     [DependsOn(
@@ -35,8 +37,9 @@ namespace TtWork.Project {
             IocManager.RegisterAssemblyByConvention(typeof(AbpApplicationModule).GetAssembly());
             IocManager.RegisterMediatRAssembly<AbpApplicationModule>();
             
-            // 缓存服务会自动注册，因为实现了ITransientDependency
-            // 事件处理器会自动注册，因为实现了ITransientDependency
+            // 手动注册拍卖品缓存服务接口
+            IocManager.Register<IAuctionItemCacheService, AuctionItemCacheManager>(
+                DependencyLifeStyle.Transient);
         }
 
         public override void PostInitialize() {
