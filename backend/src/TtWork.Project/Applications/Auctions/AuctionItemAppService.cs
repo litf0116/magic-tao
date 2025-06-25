@@ -393,7 +393,6 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 from = AbpSession.UserId.Value,
                 fromName = user.Name,
                 avatar = user.HeadImgUrl,
-                id = Guid.NewGuid(),
                 chan = "-1_auction",
                 to = result.DealUserId
             };
@@ -541,7 +540,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             // 6. 设置商品为已成交状态
             find.SetDeal();
             await CurrentUnitOfWork.SaveChangesAsync();
-            
+
             // 7. 构建返回结果
             var auctionResult = ObjectMapper.Map<AuctionItemDto>(find);
             auctionResult.ToUserMsg = "恭喜您,您拍得了" + find.Name + ",成交价:" + find.FinalPrice +
@@ -553,7 +552,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             // 8. 获取并处理卡秒状态
             var kasecVal = await _redisClient.Database.StringGetAsync($"Auction:Kasec:{auctionItemId}");
             bool wasInKasecMode = kasecVal.HasValue && kasecVal == "true";
-            
+
             // 无论什么方式结束拍卖，都将卡秒状态设置为false
             await _redisClient.Database.StringSetAsync($"Auction:Kasec:{auctionItemId}", "false");
 
@@ -595,10 +594,10 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             {
                 // 获取发送者角色信息
                 var senderId = operatorUserId ?? operatorInfo.Id;
-                var (isAdmin, adminTag, tagClass) = operatorUserId.HasValue 
-                    ? await CheckIsChatAdmin() 
+                var (isAdmin, adminTag, tagClass) = operatorUserId.HasValue
+                    ? await CheckIsChatAdmin()
                     : (true, "拍卖师", "tag_AuctionManager");
-                
+
                 // 如果是通过定时任务结束的，获取消息所需的用户信息
                 var senderName = operatorInfo.Name;
                 var senderAvatar = operatorInfo.HeadImgUrl;
@@ -613,23 +612,23 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                     fromAdmin = isAdmin,
                     fromTag = adminTag,
                     tagClass = tagClass,
-                    msg = endType == AuctionEndType.Manual 
-                        ? "卡秒已关闭，恢复正常加价" 
+                    msg = endType == AuctionEndType.Manual
+                        ? "卡秒已关闭，恢复正常加价"
                         : "拍卖已结束，卡秒自动关闭",
                     payload = new { auctionItemId = auctionItemId, isKasec = false },
                     time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
                 };
-                
+
                 await _webSocketController.SendChannelMsg(new SendChangeMsgInput
                 {
                     Chan = "-1_auction",
                     From = senderId,
                     Message = kasecMsg
                 });
-                
+
                 // 记录卡秒关闭日志
                 _logger.LogInformation(
-                    "卡秒状态已关闭，拍卖ID: {AuctionItemId}, 结束类型: {EndType}, 操作者: {OperatorName}", 
+                    "卡秒状态已关闭，拍卖ID: {AuctionItemId}, 结束类型: {EndType}, 操作者: {OperatorName}",
                     auctionItemId, endType, senderName);
             }
 
@@ -1443,4 +1442,3 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         }
     }
 }
-

@@ -139,7 +139,7 @@ export const useAuctionStore = defineStore('auction', () => {
         return new Promise<void>((resolve) => {
             //待拍卖
             if (!status) {
-                api.auctionItem.getPublicList({ maxResultCount: 20 }).then((res) => {
+                api.auctionItem.getPublicList({ maxResultCount: 100 }).then((res) => {
                     list.value = res.items!
                     console.log('拍卖列表已刷新')
                     // Tips.success('拍卖列表已刷新')
@@ -147,8 +147,8 @@ export const useAuctionStore = defineStore('auction', () => {
                 })
             }
             //拍卖中
-            else if (status === 2) {
-                GetAuctionMidList({ status, maxResultCount: 20 }).then((res) => {
+            if (status === 2) {
+                GetAuctionMidList({ status, maxResultCount: 100 }).then((res) => {
                     if (res.status == 200) {
                         auctionMid.value.length = 0
                         auctionMid.value = res.data.items
@@ -158,7 +158,7 @@ export const useAuctionStore = defineStore('auction', () => {
                 })
             }
             //已完成
-            else if (status === 4) {
+            if (status === 4) {
                 api.auctionItem.getPublicList({ status, maxResultCount: 100 }).then((res) => {
                     list4.value = res.items!
                     // Tips.success('拍卖列表已刷新')

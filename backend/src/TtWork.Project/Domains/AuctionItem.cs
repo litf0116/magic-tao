@@ -127,8 +127,7 @@ public record PriceRecord(int? CurrentPrice, long? CurrentPriceUserId, string Cu
 [AutoMapFrom(typeof(AuctionItem))]
 public class AuctionItemDto : EntityDto<long>
 {
-    [JsonProperty("name")]
-    public string Name { get; set; }
+    [JsonProperty("name")] public string Name { get; set; }
 
     [JsonProperty("status")]
     [JsonConverter(typeof(StringEnumConverter))]
@@ -137,26 +136,32 @@ public class AuctionItemDto : EntityDto<long>
     public string ImageUrl { get; set; }
     public string Description { get; set; }
     public int StartingPrice { get; set; }
+
     /// <summary>
     /// 当前价格
     /// </summary>
     public int? CurrentPrice { get; set; }
+
     /// <summary>
     /// 当前出价人编号
     /// </summary>
     public long? CurrentPriceUserId { get; set; }
+
     /// <summary>
     /// /当前出价人
     /// </summary>
     public string CurrentPriceUserName { get; set; }
+
     /// <summary>
     /// 当前出价时间
     /// </summary>
     public DateTime CurrentPriceTime { get; set; }
+
     /// <summary>
     /// 倒计时时间
     /// </summary>
     public DateTime UseCountdownTime { get; set; }
+
     public int? FinalPrice { get; set; }
     public DateTime? DealTime { get; set; }
     public long? DealUserId { get; set; }
@@ -164,14 +169,15 @@ public class AuctionItemDto : EntityDto<long>
 
     public string SellerInfo { get; set; }
 
-    public long? SellerId { get; set; }  //出售人
+    public long? SellerId { get; set; } //出售人
+
     //排序
     public int Order { get; set; }
 
     //前端使用
     public string ToUserMsg { get; set; }
     public string DealUserAvatar { get; set; } //成交人头像
-    
+
     /// <summary>
     /// 卡秒状态
     /// </summary>

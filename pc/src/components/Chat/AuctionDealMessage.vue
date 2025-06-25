@@ -17,10 +17,10 @@
                     background: #86efac;
                 "
             >
-                <span style="font-weight: bold; font-size: 20px">{{ payloadData.name }}</span>
+                <span style="font-weight: bold; font-size: 20px">{{ payloadData.name || payloadData.Name }}</span>
             </div>
             <div class="text-lg font-bold text-red-500">
-                <text>成交价: ￥{{ payloadData.finalPrice }}</text>
+                <text>成交价: ￥{{ payloadData.finalPrice || payloadData.FinalPrice }}</text>
             </div>
             <div class="text-sm" style="margin-left: 12px">{{ formattedDealTime }}</div>
             <div class="mt-2 text-sm text-gray-600">

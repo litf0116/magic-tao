@@ -120,7 +120,7 @@ function end(item: AuctionItemDto) {
             if (success) {
                 dialogVisible.value = false
                 await sleep(1000)
-                GetAuctionMidList({ status: 2, maxResultCount: 20 }).then((res) => {
+                GetAuctionMidList({ status: 2, maxResultCount: 100 }).then((res) => {
                     if (res.status == 200) {
                         console.log(res)
                         auctionStore.auctionMid.length = 0
@@ -163,7 +163,7 @@ function bid(id) {
                 dialogVisible.value = false
                 auctionStore.bid(info!.id!, parseInt(value))
                 await sleep(1000)
-                GetAuctionMidList({ status: 2, maxResultCount: 20 }).then((res) => {
+                GetAuctionMidList({ status: 2, maxResultCount: 100 }).then((res) => {
                     if (res.status == 200) {
                         console.log(res)
                         auctionStore.auctionMid.length = 0

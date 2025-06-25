@@ -6,7 +6,7 @@
     >
         <div class="absolute top-0 right-0 bg-red-500 text-white rounded-lb-lg px-2 font-bold text-xs">出价</div>
         <div class="max-w-350px min-w-200px" style="margin-top: 10px">
-            <div>商品名称: {{ payloadData.Name }}</div>
+            <div>商品名称: {{ payloadData.Name || payloadData.name }}</div>
             <div style="color: #fff; font-size: 24px">当前出价：￥{{ payloadData.CurrentPrice }}</div>
         </div>
     </div>
