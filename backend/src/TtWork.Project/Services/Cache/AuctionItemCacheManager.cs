@@ -19,7 +19,7 @@ namespace TtWork.Project.Services.Cache
     /// <summary>
     /// 拍卖品缓存管理服务
     /// </summary>
-    public class AuctionItemCacheManager : IAuctionItemCacheService, ITransientDependency
+    public class AuctionItemCacheManager : IAuctionItemCacheService
     {
         private readonly IRedisClient _redisClient;
         private readonly IRepository<AuctionItem, long> _auctionItemRepository;
