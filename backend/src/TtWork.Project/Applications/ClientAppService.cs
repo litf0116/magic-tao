@@ -315,40 +315,6 @@ public class ClientAppService(
     }
 
     /// <summary>
-    /// 批量删除聊天记录
-    /// </summary>
-    /// <param name="request">批量删除请求</param>
-    /// <returns></returns>
-    [HttpPost]
-    [AbpAuthorize]
-    public async Task BatchDeleteChatList(BatchDeleteChatRequest request)
-    {
-        if (request?.UserIds == null || !request.UserIds.Any())
-        {
-            throw new UserFriendlyException("用户ID列表不能为空");
-        }
-
-        var userId = AbpSession.UserId!.Value;
-
-        foreach (var id in request.UserIds)
-        {
-            // 检查是否已经删除过
-            var existingRecord =
-                await chatListDeleteRepository.FirstOrDefaultAsync(x => x.UserId == userId && x.ToUserId == id);
-            if (existingRecord == null)
-            {
-                await chatListDeleteRepository.InsertAsync(new ChatListDelete()
-                {
-                    UserId = userId,
-                    ToUserId = id
-                });
-            }
-        }
-
-        await CurrentUnitOfWork.SaveChangesAsync();
-    }
-
-    /// <summary>
     /// 获取聊天列表（原始版本）
     /// 注意：此方法性能较差，建议使用 GetChatListOptimized 方法
     /// </summary>

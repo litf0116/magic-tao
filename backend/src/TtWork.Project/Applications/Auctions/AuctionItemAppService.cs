@@ -810,12 +810,23 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             result.DealUserAvatar = bidUser.HeadImgUrl;
             // 结束后自动关闭卡秒状态
             await _redisClient.Database.StringSetAsync($"Auction:Kasec:{input.Id}", false);
+            
+            // 获取当前用户信息（拍卖师）
+            var currentUser = await _userCache.GetAsync(AbpSession.UserId.Value);
+            var (isAdmin, adminTag, tagClass) = await CheckIsChatAdmin();
+            
             // 广播卡秒状态变更消息
             var msg = new ChatMessage
             {
                 type = ChatMessageType.KasecStatusChanged,
                 chan = "-1_auction",
-                msg = "",
+                from = AbpSession.UserId.Value,
+                fromName = currentUser.Name,
+                avatar = currentUser.HeadImgUrl,
+                fromAdmin = isAdmin,
+                fromTag = adminTag,
+                tagClass = tagClass,
+                msg = "卡秒已关闭，恢复正常加价",
                 payload = new { auctionItemId = input.Id, isKasec = false },
                 time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
             };
@@ -1163,11 +1174,21 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         await _redisClient.Database.StringSetAsync($"Auction:Kasec:{input.AuctionItemId}",
             input.IsKasec.ToString().ToLower());
 
+        // 获取当前用户信息（拍卖师）
+        var currentUser = await _userCache.GetAsync(AbpSession.UserId.Value);
+        var (isAdmin, adminTag, tagClass) = await CheckIsChatAdmin();
+
         // 广播卡秒状态变更消息
         var msg = new ChatMessage
         {
             type = ChatMessageType.KasecStatusChanged,
             chan = "-1_auction",
+            from = AbpSession.UserId.Value,
+            fromName = currentUser.Name,
+            avatar = currentUser.HeadImgUrl,
+            fromAdmin = isAdmin,
+            fromTag = adminTag,
+            tagClass = tagClass,
             msg = input.IsKasec ? "拍卖师已开启卡秒，需三倍加价！" : "卡秒已关闭，恢复正常加价",
             payload = new { auctionItemId = input.AuctionItemId, isKasec = input.IsKasec },
             time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
