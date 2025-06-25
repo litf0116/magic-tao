@@ -1,5 +1,5 @@
 <template>
-    <div class="border-green-500 border-2 border-solid py-2 px-4 rounded-lg relative">
+    <div class="auction-deal-message border-green-500 border-2 border-solid py-2 px-4 rounded-lg relative">
         <div class="absolute top-0 right-0 bg-green-500 text-white rounded-lb-lg px-2 font-bold text-xs">交易通知</div>
         <div class="max-w-350px min-w-200px" @click="handleAction">
             <div class="text-green-600">
@@ -78,3 +78,25 @@ export default {
     },
 }
 </script>
+
+<style scoped>
+.auction-deal-message {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.auction-deal-message:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(34, 197, 94, 0.25);
+}
+
+.auction-deal-message .auction-item-box {
+    transition: all 0.3s ease;
+}
+
+.auction-deal-message:hover .auction-item-box {
+    box-shadow: 0 0 12px 4px rgba(34, 197, 94, 0.35);
+    transform: scale(1.02);
+}
+</style>

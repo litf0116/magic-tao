@@ -52,5 +52,13 @@ const handleImageClick = (event: Event) => {
 .auction-start-message {
     margin: 8px 0;
     background: #fff5f5;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.auction-start-message:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.25);
 }
 </style>

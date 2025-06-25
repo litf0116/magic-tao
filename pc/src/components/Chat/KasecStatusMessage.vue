@@ -1,5 +1,5 @@
 <template>
-    <div class="kasec-status-message" :class="kasecStatusClass" @click="handleAction">
+    <div class="kasec-status-message" :class="kasecStatusClass">
         <div class="kasec-icon">⚡</div>
         <div class="kasec-content" v-html="renderedText"></div>
     </div>
@@ -19,8 +19,7 @@ export default {
             required: true,
         },
     },
-    emits: ['action'],
-    setup(props, { emit }) {
+    setup(props) {
         const emojiStore = useEmojiStore()
 
         // 创建内部的emoji解码器
@@ -45,15 +44,9 @@ export default {
             return isKasec ? 'kasec-enabled' : 'kasec-disabled'
         })
 
-        // 处理点击事件
-        const handleAction = () => {
-            emit('action', props.message)
-        }
-
         return {
             renderedText,
             kasecStatusClass,
-            handleAction,
         }
     },
 }
@@ -73,15 +66,7 @@ export default {
     overflow-wrap: anywhere;
     border-radius: 12px;
     word-break: break-all;
-    cursor: pointer;
     border: 2px solid;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-}
-
-.kasec-status-message:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .kasec-enabled {
@@ -99,7 +84,6 @@ export default {
 .kasec-icon {
     font-size: 18px;
     margin-right: 8px;
-    animation: pulse 2s infinite;
 }
 
 .kasec-enabled .kasec-icon {
@@ -113,16 +97,4 @@ export default {
 .kasec-content {
     flex: 1;
 }
-
-@keyframes pulse {
-    0% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.1);
-    }
-    100% {
-        transform: scale(1);
-    }
-}
-</style> 
+</style>

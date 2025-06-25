@@ -1,7 +1,6 @@
 <template>
     <div
-        class="border-[#ff7144] bg-[#ffb673] border-2 border-solid py-2 px-4 rounded-xl relative overflow-hidden"
-        style="cursor: pointer"
+        class="auction-bid-message border-[#ff7144] bg-[#ffb673] border-2 border-solid py-2 px-4 rounded-xl relative overflow-hidden"
         @click="handleAction"
     >
         <div class="absolute top-0 right-0 bg-red-500 text-white rounded-lb-lg px-2 font-bold text-xs">出价</div>
@@ -14,7 +13,7 @@
 
 <script lang="ts">
 import { computed } from 'vue'
-import { type ChatMessage } from '@/composables/types'
+import { type ChatMessage } from '@/api/appService'
 
 export default {
     name: 'AuctionBidMessage',
@@ -47,3 +46,16 @@ export default {
     },
 }
 </script>
+
+<style scoped>
+.auction-bid-message {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.auction-bid-message:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 113, 68, 0.3);
+}
+</style>

@@ -1,5 +1,5 @@
 <template>
-    <div class="border-amber border-2 border-solid py-2 px-4 rounded-lg relative">
+    <div class="auction-end-message border-amber border-2 border-solid py-2 px-4 rounded-lg relative">
         <div class="absolute top-0 right-0 bg-amber text-white rounded-lb-lg px-2 font-bold text-xs">成功竞拍</div>
         <div class="max-w-350px min-w-200px" @click="handleAction">
             <!-- 已成交状态 -->
@@ -40,7 +40,7 @@
 
 <script lang="ts">
 import { computed } from 'vue'
-import { type ChatMessage } from '@/composables/types'
+import { type ChatMessage } from '@/api/appService'
 import dayjs from 'dayjs'
 
 export default {
@@ -83,3 +83,25 @@ export default {
     },
 }
 </script>
+
+<style scoped>
+.auction-end-message {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.auction-end-message:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 152, 0, 0.25);
+}
+
+.auction-end-message .auction-item-box {
+    transition: all 0.3s ease;
+}
+
+.auction-end-message:hover .auction-item-box {
+    box-shadow: 0 0 12px 4px rgba(255, 152, 0, 0.35);
+    transform: scale(1.02);
+}
+</style>
