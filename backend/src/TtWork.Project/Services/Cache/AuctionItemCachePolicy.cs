@@ -33,13 +33,13 @@ namespace TtWork.Project.Services.Cache
             return status switch
             {
                 AuctionStatusEnum.拍卖中 => TimeSpan.FromSeconds(30), // 拍卖中变化频繁，30秒缓存
-                AuctionStatusEnum.上架 => TimeSpan.FromMinutes(5),   // 待拍卖相对稳定，5分钟缓存
+                AuctionStatusEnum.上架 => TimeSpan.FromMinutes(5), // 待拍卖相对稳定，5分钟缓存
                 AuctionStatusEnum.已成交 => TimeSpan.FromMinutes(30), // 已成交基本不变，30分钟缓存
-                AuctionStatusEnum.交易成功 => TimeSpan.FromHours(1),   // 交易完成，1小时缓存
-                AuctionStatusEnum.卖家失约 => TimeSpan.FromHours(1),   // 失约状态，1小时缓存
-                AuctionStatusEnum.买家失约 => TimeSpan.FromHours(1),   // 失约状态，1小时缓存
-                AuctionStatusEnum.交易关闭 => TimeSpan.FromHours(2),   // 关闭状态，2小时缓存
-                _ => TimeSpan.FromMinutes(DEFAULT_EXPIRE_MINUTES)     // 其他状态，默认10分钟
+                AuctionStatusEnum.交易成功 => TimeSpan.FromHours(1), // 交易完成，1小时缓存
+                AuctionStatusEnum.卖家失约 => TimeSpan.FromHours(1), // 失约状态，1小时缓存
+                AuctionStatusEnum.买家失约 => TimeSpan.FromHours(1), // 失约状态，1小时缓存
+                AuctionStatusEnum.交易关闭 => TimeSpan.FromHours(2), // 关闭状态，2小时缓存
+                _ => TimeSpan.FromMinutes(DEFAULT_EXPIRE_MINUTES) // 其他状态，默认10分钟
             };
         }
 
@@ -59,9 +59,9 @@ namespace TtWork.Project.Services.Cache
             return status.Value switch
             {
                 (int)AuctionStatusEnum.拍卖中 => TimeSpan.FromSeconds(30), // 拍卖中列表，30秒缓存
-                (int)AuctionStatusEnum.上架 => TimeSpan.FromMinutes(5),    // 待拍卖列表，5分钟缓存
+                (int)AuctionStatusEnum.上架 => TimeSpan.FromMinutes(5), // 待拍卖列表，5分钟缓存
                 (int)AuctionStatusEnum.已成交 => TimeSpan.FromMinutes(10), // 已成交列表，10分钟缓存
-                _ => TimeSpan.FromMinutes(DEFAULT_EXPIRE_MINUTES)          // 其他状态，默认10分钟
+                _ => TimeSpan.FromMinutes(DEFAULT_EXPIRE_MINUTES) // 其他状态，默认10分钟
             };
         }
 
@@ -101,7 +101,7 @@ namespace TtWork.Project.Services.Cache
         {
             return statsType switch
             {
-                "daily" => TimeSpan.FromHours(1),   // 日统计，1小时缓存
+                "daily" => TimeSpan.FromHours(1), // 日统计，1小时缓存
                 "monthly" => TimeSpan.FromHours(6), // 月统计，6小时缓存
                 "yearly" => TimeSpan.FromHours(24), // 年统计，24小时缓存
                 _ => TimeSpan.FromHours(LONG_EXPIRE_HOURS) // 默认2小时缓存
@@ -124,7 +124,7 @@ namespace TtWork.Project.Services.Cache
         public static bool IsCacheEnabled()
         {
             // 可以根据系统配置或负载情况动态返回
-            return true;
+            return false;
         }
 
         /// <summary>
@@ -145,4 +145,4 @@ namespace TtWork.Project.Services.Cache
             return 50; // 批量操作每批50条
         }
     }
-} 
+}
