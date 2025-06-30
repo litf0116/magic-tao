@@ -1,0 +1,526 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Web;
+using Abp.Dependency;
+using Abp.Domain.Repositories;
+using Abp.Domain.Uow;
+using Abp.Events.Bus;
+using Abp.Extensions;
+using Abp.UI;
+using FreeIM;
+using MediatR;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using SqlSugar;
+using TtWork.Abp.Applications.Dtos;
+using TtWork.Abp.Caches;
+using TtWork.Abp.Entity;
+using TtWork.Project.Domains;
+using TtWork.Project.EventHandlers;
+using TtWork.Project.Events;
+using TtWork.Project.Events.Commands;
+using TtWork.Project.Services.Messaging.Models;
+
+namespace TtWork.Project.Services.Messaging
+{
+    /// <summary>
+    /// 统一消息发送服务实现
+    /// </summary>
+    public class MessageSendingService : IMessageSendingService, ITransientDependency
+    {
+        private readonly UserCache _userCache;
+        private readonly IRepository<Message, Guid> _messageRepository;
+        private readonly IRepository<BanedUser, long> _banedUserRepository;
+        private readonly IRepository<ChatListDelete> _chatListDeleteRepository;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IMediator _mediator;
+        private readonly ISqlSugarClient _sqlSugarClient;
+        private readonly IMessageSequenceService _messageSequenceService;
+        private readonly IEventBus _eventBus;
+        private readonly ILogger<MessageSendingService> _logger;
+        private readonly IUnitOfWorkManager _unitOfWorkManager;
+
+        public MessageSendingService(
+            UserCache userCache,
+            IRepository<Message, Guid> messageRepository,
+            IRepository<BanedUser, long> banedUserRepository,
+            IRepository<ChatListDelete> chatListDeleteRepository,
+            IHttpContextAccessor httpContextAccessor,
+            IMediator mediator,
+            ISqlSugarClient sqlSugarClient,
+            IMessageSequenceService messageSequenceService,
+            IEventBus eventBus,
+            ILogger<MessageSendingService> logger,
+            IUnitOfWorkManager unitOfWorkManager)
+        {
+            _userCache = userCache;
+            _messageRepository = messageRepository;
+            _banedUserRepository = banedUserRepository;
+            _chatListDeleteRepository = chatListDeleteRepository;
+            _httpContextAccessor = httpContextAccessor;
+            _mediator = mediator;
+            _sqlSugarClient = sqlSugarClient;
+            _messageSequenceService = messageSequenceService;
+            _eventBus = eventBus;
+            _logger = logger;
+            _unitOfWorkManager = unitOfWorkManager;
+        }
+
+        public async Task<SendMessageResult> SendChannelMessageAsync(long fromUserId, string channel, ChatMessage message, MessageSendOptions options = null)
+        {
+            options ??= new MessageSendOptions();
+            
+            try
+            {
+                // 1. 验证和增强消息
+                var (isValid, errorMessage, enrichedMessage, userInfo) = await ValidateAndEnrichMessageAsync(fromUserId, message, channel, options);
+                if (!isValid)
+                {
+                    return SendMessageResult.CreateFailure(errorMessage);
+                }
+
+                // 2. 生成序列号
+                var sequenceNumber = await _messageSequenceService.GetNextSequenceNumberForChannelAsync(channel);
+
+                // 3. 持久化消息
+                Message entity = null;
+                if (options.PersistToDatabase && enrichedMessage.type != ChatMessageType.Welcome)
+                {
+                    entity = new Message(enrichedMessage, sequenceNumber)
+                    {
+                        Ip = GetClientIp(),
+                        FromAdmin = userInfo.isAdmin,
+                        FromTag = userInfo.adminTag,
+                        TagClass = userInfo.tagClass
+                    };
+                    
+                    await _messageRepository.InsertAsync(entity);
+                    await _unitOfWorkManager.Current.SaveChangesAsync();
+
+                    // 使用服务端生成的时间戳更新消息
+                    enrichedMessage.time = entity.Time;
+                    enrichedMessage.sequenceNumber = entity.SequenceNumber;
+
+                    // 触发聊天消息发送事件
+                    await _eventBus.TriggerAsync(new ChatMessageSentEvent(entity.Id));
+                }
+
+                // 4. 投递消息
+                if (options.SendImmediately)
+                {
+                    ImHelper.SendChanMessage(fromUserId, channel, enrichedMessage);
+                }
+
+                return SendMessageResult.CreateSuccess(entity?.Id, sequenceNumber, 
+                    entity != null ? DateTimeOffset.FromUnixTimeMilliseconds(entity.Time).DateTime : DateTime.Now, enrichedMessage);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "发送频道消息失败: FromUserId={FromUserId}, Channel={Channel}", fromUserId, channel);
+                return SendMessageResult.CreateFailure($"发送失败: {ex.Message}");
+            }
+        }
+
+        public async Task<SendMessageResult> SendPrivateMessageAsync(long fromUserId, long toUserId, ChatMessage message, bool isReceipt = false, MessageSendOptions options = null)
+        {
+            options ??= new MessageSendOptions();
+            
+            try
+            {
+                // 1. 验证和增强消息
+                var (isValid, errorMessage, enrichedMessage, userInfo) = await ValidateAndEnrichMessageAsync(fromUserId, message, null, options);
+                if (!isValid)
+                {
+                    return SendMessageResult.CreateFailure(errorMessage);
+                }
+
+                // 设置接收者
+                enrichedMessage.to = toUserId;
+
+                // 2. 生成序列号
+                var sequenceNumber = await _messageSequenceService.GetNextSequenceNumberForPrivateAsync(fromUserId, toUserId);
+
+                // 3. 持久化消息
+                Message entity = null;
+                if (options.PersistToDatabase)
+                {
+                    entity = new Message(enrichedMessage, sequenceNumber)
+                    {
+                        Ip = GetClientIp(),
+                        FromAdmin = userInfo.isAdmin,
+                        FromTag = userInfo.adminTag,
+                        TagClass = userInfo.tagClass
+                    };
+
+                    await _messageRepository.InsertAsync(entity);
+                    await _unitOfWorkManager.Current.SaveChangesAsync();
+
+                    // 使用服务端生成的时间戳更新消息
+                    enrichedMessage.time = entity.Time;
+                    enrichedMessage.sequenceNumber = entity.SequenceNumber;
+
+                    // 触发聊天消息发送事件
+                    await _eventBus.TriggerAsync(new ChatMessageSentEvent(entity.Id));
+                }
+
+                // 4. 投递消息
+                if (options.SendImmediately)
+                {
+                    ImHelper.SendMessage(fromUserId, [toUserId], enrichedMessage, isReceipt);
+                }
+
+                // 5. 清理聊天删除记录
+                await _chatListDeleteRepository.GetAll().Where(x =>
+                    (x.UserId == fromUserId && x.ToUserId == toUserId) || 
+                    (x.UserId == toUserId && x.ToUserId == fromUserId)).ExecuteDeleteAsync();
+
+                return SendMessageResult.CreateSuccess(entity?.Id, sequenceNumber, 
+                    entity != null ? DateTimeOffset.FromUnixTimeMilliseconds(entity.Time).DateTime : DateTime.Now, enrichedMessage);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "发送私聊消息失败: FromUserId={FromUserId}, ToUserId={ToUserId}", fromUserId, toUserId);
+                return SendMessageResult.CreateFailure($"发送失败: {ex.Message}");
+            }
+        }
+
+        public async Task<SendMessageResult> SendSystemChannelMessageAsync(string channel, ChatMessage message, MessageSendOptions options = null)
+        {
+            options ??= new MessageSendOptions();
+            options.SkipPermissionCheck = true;
+            options.AddAdminTag = false;
+            
+            // 使用系统用户ID (假设为0或其他系统标识)
+            return await SendChannelMessageAsync(0, channel, message, options);
+        }
+
+        public async Task<SendMessageResult> SendSystemPrivateMessageAsync(long toUserId, ChatMessage message, MessageSendOptions options = null)
+        {
+            options ??= new MessageSendOptions();
+            options.SkipPermissionCheck = true;
+            options.AddAdminTag = false;
+            
+            // 使用系统用户ID (假设为0或其他系统标识)
+            return await SendPrivateMessageAsync(0, toUserId, message, false, options);
+        }
+
+        public async Task<BatchSendMessageResult> SendBatchMessagesAsync(IEnumerable<MessageSendRequest> requests)
+        {
+            var result = new BatchSendMessageResult();
+            var requestList = requests.ToList();
+            result.TotalCount = requestList.Count;
+
+            foreach (var request in requestList)
+            {
+                try
+                {
+                    SendMessageResult sendResult;
+                    
+                    if (!string.IsNullOrEmpty(request.Channel))
+                    {
+                        // 频道消息
+                        sendResult = await SendChannelMessageAsync(request.FromUserId, request.Channel, request.Message, request.Options);
+                    }
+                    else if (request.ToUserId.HasValue)
+                    {
+                        // 私聊消息
+                        sendResult = await SendPrivateMessageAsync(request.FromUserId, request.ToUserId.Value, request.Message, request.IsReceipt, request.Options);
+                    }
+                    else
+                    {
+                        sendResult = SendMessageResult.CreateFailure("无效的消息发送请求：缺少频道或接收者");
+                    }
+
+                    result.Results.Add(sendResult);
+                    
+                    if (sendResult.Success)
+                    {
+                        result.SuccessCount++;
+                    }
+                    else
+                    {
+                        result.FailureCount++;
+                        result.Errors.Add(sendResult.Message);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    result.FailureCount++;
+                    result.Errors.Add($"发送失败: {ex.Message}");
+                    result.Results.Add(SendMessageResult.CreateFailure(ex.Message));
+                }
+            }
+
+            return result;
+        }
+
+        public async Task<SendMessageResult> SendAuctionMessageAsync(long fromUserId, long? toUserId, string channel, ChatMessage message, bool isSystemMessage = false)
+        {
+            var options = new MessageSendOptions
+            {
+                SkipPermissionCheck = isSystemMessage,
+                AddAdminTag = !isSystemMessage,
+                AddUserChatLevel = !isSystemMessage
+            };
+
+            if (!string.IsNullOrEmpty(channel))
+            {
+                return await SendChannelMessageAsync(fromUserId, channel, message, options);
+            }
+            else if (toUserId.HasValue)
+            {
+                return await SendPrivateMessageAsync(fromUserId, toUserId.Value, message, false, options);
+            }
+            else
+            {
+                return SendMessageResult.CreateFailure("无效的拍卖消息发送请求：缺少频道或接收者");
+            }
+        }
+
+        #region 私有方法
+
+        /// <summary>
+        /// 验证和增强消息
+        /// </summary>
+        private async Task<(bool isValid, string errorMessage, ChatMessage enrichedMessage, (bool isAdmin, string adminTag, string tagClass) userInfo)> ValidateAndEnrichMessageAsync(
+            long fromUserId, ChatMessage message, string channel, MessageSendOptions options)
+        {
+            try
+            {
+                // 克隆消息避免修改原始对象
+                var enrichedMessage = new ChatMessage
+                {
+                    id = message.id ?? Guid.NewGuid(),
+                    type = message.type,
+                    msg = message.msg,
+                    payload = message.payload,
+                    chan = message.chan ?? channel,
+                    from = fromUserId,
+                    to = message.to,
+                    fromName = message.fromName,
+                    avatar = message.avatar,
+                    time = message.time
+                };
+
+                // 获取用户信息
+                UserDto userInfo = null;
+                if (fromUserId > 0 && !options.SkipPermissionCheck)
+                {
+                    userInfo = await _userCache.GetAsync(fromUserId);
+                    if (!userInfo.IsActive)
+                    {
+                        return (false, "账号已被禁用", null, (false, "", ""));
+                    }
+
+                    // 设置用户基本信息
+                    enrichedMessage.fromName = userInfo.Name;
+                    enrichedMessage.avatar = userInfo.HeadImgUrl;
+                }
+
+                // 权限检查
+                var (isAdmin, adminTag, tagClass) = (false, "", "");
+                if (options.AddAdminTag && userInfo != null)
+                {
+                    (isAdmin, adminTag, tagClass) = await CheckIsChatAdmin(userInfo);
+                    enrichedMessage.fromAdmin = isAdmin;
+                    enrichedMessage.fromTag = adminTag;
+                    enrichedMessage.tagClass = tagClass;
+                }
+
+                // 禁言检查
+                if (!options.SkipPermissionCheck && !isAdmin && fromUserId > 0)
+                {
+                    var banedUser = await _banedUserRepository.FirstOrDefaultAsync(a =>
+                        a.UserId == fromUserId && (a.Chan == null || a.Chan == channel) &&
+                        a.EndTime > DateTime.Now);
+                    if (banedUser != null)
+                    {
+                        return (false, $"您已被禁言,结束时间 {banedUser.EndTime:yyyy-MM-dd HH:mm:ss}", null, (isAdmin, adminTag, tagClass));
+                    }
+                }
+
+                // 敏感词检查
+                if (!options.SkipSensitiveWordCheck)
+                {
+                    var checkResult = await CheckMsgText(enrichedMessage);
+                    if (!string.IsNullOrEmpty(checkResult.errorMessage))
+                    {
+                        return (false, checkResult.errorMessage, null, (isAdmin, adminTag, tagClass));
+                    }
+                    enrichedMessage = checkResult.message;
+                }
+
+                // 添加用户群聊等级信息
+                if (options.AddUserChatLevel && fromUserId > 0)
+                {
+                    await AddUserChatLevelInfo(enrichedMessage, fromUserId);
+                }
+
+                return (true, null, enrichedMessage, (isAdmin, adminTag, tagClass));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "验证和增强消息失败: FromUserId={FromUserId}", fromUserId);
+                return (false, $"消息处理失败: {ex.Message}", null, (false, "", ""));
+            }
+        }
+
+        /// <summary>
+        /// 检查用户管理员权限
+        /// </summary>
+        private async Task<(bool, string, string)> CheckIsChatAdmin(UserDto currentUser)
+        {
+            try
+            {
+                if (currentUser is { RoleNames.Length: > 0 })
+                {
+                    if (currentUser.RoleNames.Contains("AuctionManager"))
+                        return (true, "拍卖师", "tag_AuctionManager");
+                    if (currentUser.RoleNames.Contains("Manager"))
+                        return (true, "管理员", "tag_Manager");
+                    if (currentUser.RoleNames.Contains("AuctionUser"))
+                        return (false, "竞拍用户", "tag_AudtionUser");
+                    if (currentUser.RoleNames.Contains("Admin"))
+                        return (true, "系统管理员", "tag_Admin");
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "获取用户缓存信息失败");
+            }
+
+            return (false, "", "");
+        }
+
+        /// <summary>
+        /// 检查消息文本
+        /// </summary>
+        private async Task<(ChatMessage message, string errorMessage)> CheckMsgText(ChatMessage message)
+        {
+            try
+            {
+                // 从Redis缓存中取出敏感词
+                var sw = await _mediator.Send(new QueryCacheWords());
+
+                var result = IndexOfFirstArray(message.msg, sw);
+                if (result is not null)
+                {
+                    return (null, $"含有禁用词:{result}");
+                }
+
+                if (message.msg != null && message.msg.Length > 400)
+                {
+                    return (null, "消息过长");
+                }
+
+                message.msg = HttpUtility.HtmlEncode(message.msg);
+                return (message, null);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "检查消息文本失败");
+                return (null, "消息检查失败");
+            }
+        }
+
+        /// <summary>
+        /// 检查敏感词
+        /// </summary>
+        private string IndexOfFirstArray(string text, string[] needles)
+        {
+            if (string.IsNullOrEmpty(text) || needles == null) return null;
+            
+            ReadOnlySpan<char> haystatck = text;
+            for (var i = 0; i < haystatck.Length; i++)
+            {
+                foreach (var needle in needles)
+                {
+                    if (!string.IsNullOrEmpty(needle))
+                        if (haystatck[i..].StartsWith(needle, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return needle;
+                        }
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// 添加用户群聊等级信息
+        /// </summary>
+        private async Task AddUserChatLevelInfo(ChatMessage message, long userId)
+        {
+            try
+            {
+                // 群聊等级信息
+                var groupChatLevel = await _sqlSugarClient.Queryable<GroupChatLevelSettingsEntity>().FirstAsync(f => f.Level == 0);
+                
+                // 查询用户群聊等级
+                var userGroupLevel = await _sqlSugarClient.Queryable<UserGroupLevelEntity>()
+                    .LeftJoin<GroupChatLevelSettingsEntity>((a, b) => a.GroupChatId == b.Id)
+                    .Where((a, b) => a.UserId == userId)
+                    .Select((a, b) => new
+                    {
+                        a.UserId,
+                        b.Name,
+                        b.Level,
+                        b.BorderColor,
+                        b.RightBorderColor
+                    })
+                    .FirstAsync();
+
+                // 设置用户群聊等级信息
+                if (userGroupLevel != null)
+                {
+                    message.userChatLevel = new
+                    {
+                        userId = userGroupLevel.UserId,
+                        name = userGroupLevel.Name,
+                        level = userGroupLevel.Level,
+                        borderColor = userGroupLevel.BorderColor,
+                        rightBorderColor = userGroupLevel.RightBorderColor
+                    };
+                }
+                else
+                {
+                    message.userChatLevel = new
+                    {
+                        userId = groupChatLevel.Id,
+                        name = groupChatLevel.Name,
+                        level = groupChatLevel.Level,
+                        borderColor = groupChatLevel.BorderColor,
+                        rightBorderColor = groupChatLevel.RightBorderColor
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "添加用户群聊等级信息失败: UserId={UserId}", userId);
+                // 不抛出异常，只是无法设置等级信息
+            }
+        }
+
+        /// <summary>
+        /// 获取客户端IP
+        /// </summary>
+        private string GetClientIp()
+        {
+            try
+            {
+                return _httpContextAccessor!.HttpContext!.Request.Headers["X-Real-IP"].FirstOrDefault() ??
+                       _httpContextAccessor!.HttpContext!.Request.HttpContext!.Connection!.RemoteIpAddress!
+                           .ToString();
+            }
+            catch (Exception)
+            {
+                return "";
+            }
+        }
+
+        #endregion
+    }
+} 

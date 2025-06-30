@@ -38,7 +38,7 @@ using TtWork.Abp.Extensions;
 using TtWork.Lib;
 using TtWork.Lib.Redis;
 using TtWork.Project.Applications.GroupChatLevelSettings.Dto;
-using TtWork.Project.Controllers;
+
 using TtWork.Project.Domains;
 using TtWork.Project.Events;
 using TtWork.Project.Events.Commands;
@@ -48,6 +48,8 @@ using static OfficeOpenXml.ExcelErrorValue;
 using Abp.Events.Bus;
 using TtWork.Project.EventHandlers;
 using TtWork.Project.Services.Cache;
+using TtWork.Project.Services.Messaging;
+using TtWork.Project.Services.Messaging.Models;
 
 namespace TtWork.Project.Applications.Auctions;
 
@@ -109,7 +111,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     private readonly IRepository<BanedUser, long> _banedUserRepository;
     private readonly IRepository<BidHistory, long> _bidHistoryRepository;
     private readonly IRepository<AuctionStartNotify, long> _notifyRepository;
-    private readonly WebSocketController _webSocketController;
+
     private readonly IRepository<AuctionStartNotify, long> _auctionStartNotifyRepository;
     private readonly ILogger<AuctionItemAppService> _logger;
     private readonly ISqlSugarClient _sqlSugarClient;
@@ -119,6 +121,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     private readonly IRepository<ChatListDelete> _chatListDeleteRepository;
     private readonly IEventBus _eventBus;
     private readonly IAuctionItemCacheService _cacheService;
+    private readonly IMessageSendingService _messageSendingService;
 
     public AuctionItemAppService(
         IRedisClient redisClient,
@@ -128,7 +131,6 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         IRepository<BanedUser, long> banedUserRepository,
         IRepository<BidHistory, long> bidHistoryRepository,
         IRepository<AuctionStartNotify, long> notifyRepository,
-        WebSocketController webSocketController,
         IocManager iocManager,
         ILogger<AuctionItemAppService> logger,
         IRepository<AuctionStartNotify, long> auctionStartNotifyRepository,
@@ -138,7 +140,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         IRepository<ChatListDelete> chatListDeleteRepository,
         IUnitOfWorkManager unitOfWorkManager,
         IEventBus eventBus,
-        IAuctionItemCacheService cacheService) : base(repository, iocManager)
+        IAuctionItemCacheService cacheService,
+        IMessageSendingService messageSendingService) : base(repository, iocManager)
     {
         _sqlSugarClient = sqlSugarClient;
         _redisClient = redisClient;
@@ -148,7 +151,6 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         _banedUserRepository = banedUserRepository;
         _bidHistoryRepository = bidHistoryRepository;
         _notifyRepository = notifyRepository;
-        _webSocketController = webSocketController;
         _logger = logger;
         _auctionStartNotifyRepository = auctionStartNotifyRepository;
         EnableGetEdit = true;
@@ -162,6 +164,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         _chatListDeleteRepository = chatListDeleteRepository;
         _eventBus = eventBus;
         _cacheService = cacheService;
+        _messageSendingService = messageSendingService;
         // base.GetAllPermissionName = AppPermissions.Pages.ChatManager;
     }
 
@@ -394,20 +397,11 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 type = ChatMessageType.AuctionBid,
                 msg = $"{result.CurrentPrice}",
                 payload = result,
-                from = AbpSession.UserId.Value,
-                fromName = user.Name,
-                avatar = user.HeadImgUrl,
                 chan = "-1_auction",
                 to = result.DealUserId
             };
-            msg.time = msg.GetNowTime();
 
-            await _webSocketController.SendChannelMsg(new SendChangeMsgInput()
-            {
-                Chan = "-1_auction",
-                From = AbpSession.UserId.Value,
-                Message = msg
-            });
+            await _messageSendingService.SendChannelMessageAsync(AbpSession.UserId.Value, "-1_auction", msg);
             var ip = GetIp;
 
                     // 清除缓存，因为出价改变了商品状态
@@ -625,25 +619,13 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 {
                     type = ChatMessageType.KasecStatusChanged,
                     chan = "-1_auction",
-                    from = senderId,
-                    fromName = senderName,
-                    avatar = senderAvatar,
-                    fromAdmin = isAdmin,
-                    fromTag = adminTag,
-                    tagClass = tagClass,
                     msg = endType == AuctionEndType.Manual
                         ? "卡秒已关闭，恢复正常加价"
                         : "拍卖已结束，卡秒自动关闭",
-                    payload = new { auctionItemId = auctionItemId, isKasec = false },
-                    time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                    payload = new { auctionItemId = auctionItemId, isKasec = false }
                 };
 
-                await _webSocketController.SendChannelMsg(new SendChangeMsgInput
-                {
-                    Chan = "-1_auction",
-                    From = senderId,
-                    Message = kasecMsg
-                });
+                await _messageSendingService.SendAuctionMessageAsync(senderId, null, "-1_auction", kasecMsg, true);
 
                 // 记录卡秒关闭日志
                 _logger.LogInformation(
@@ -656,56 +638,23 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             {
                 type = ChatMessageType.AuctionEnd,
                 chan = "-1_auction",
-                from = operatorInfo.Id,
-                fromName = operatorInfo.Name,
-                avatar = operatorInfo.HeadImgUrl,
                 msg = hasBids ? "" : "拍卖结束，无人出价，商品已回退",
-                payload = auctionResult,
-                time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                fromAdmin = true,
-                fromTag = "拍卖师",
-                tagClass = "tag_AuctionManager"
+                payload = auctionResult
             };
 
-            var auctionEndInput = new SendChangeMsgInput()
-            {
-                Chan = "-1_auction",
-                From = operatorInfo.Id,
-                Message = auctionEndMessage
-            };
-
-            auctionEndInput.Message.id = Guid.NewGuid();
-            await _webSocketController.SendChannelMsg(auctionEndInput);
+            await _messageSendingService.SendAuctionMessageAsync(operatorInfo.Id, null, "-1_auction", auctionEndMessage, true);
 
             // 8. 发送成交用户私信（仅在有出价情况下发送）
             if (hasBids && auctionResult.DealUserId.HasValue)
             {
                 var dealMessage = new ChatMessage
                 {
-                    chan = null,
                     type = ChatMessageType.AuctionDeal,
-                    from = operatorInfo.LastModifierUserId,
-                    fromName = operatorInfo.Name,
-                    avatar = operatorInfo.HeadImgUrl,
                     msg = auctionResult.ToUserMsg,
-                    to = auctionResult.DealUserId.Value,
-                    payload = auctionResult,
-                    time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                    fromAdmin = true,
-                    fromTag = "拍卖师",
-                    tagClass = "tag_AuctionManager"
+                    payload = auctionResult
                 };
 
-                var dealMsgInput = new SendMsgInput
-                {
-                    From = operatorInfo.Id,
-                    To = auctionResult.DealUserId.Value,
-                    IsReceipt = true,
-                    Message = dealMessage
-                };
-
-                dealMsgInput.Message.id = Guid.NewGuid();
-                await _webSocketController.SendMsg(dealMsgInput);
+                await _messageSendingService.SendAuctionMessageAsync(operatorInfo.Id, auctionResult.DealUserId.Value, null, dealMessage, true);
             }
 
             // 9. 清除缓存
@@ -1082,22 +1031,11 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         {
             type = ChatMessageType.KasecStatusChanged,
             chan = "-1_auction",
-            from = AbpSession.UserId.Value,
-            fromName = currentUser.Name,
-            avatar = currentUser.HeadImgUrl,
-            fromAdmin = isAdmin,
-            fromTag = adminTag,
-            tagClass = tagClass,
             msg = input.IsKasec ? "拍卖师已开启卡秒，需三倍加价！" : "卡秒已关闭，恢复正常加价",
-            payload = new { auctionItemId = input.AuctionItemId, isKasec = input.IsKasec },
-            time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+            payload = new { auctionItemId = input.AuctionItemId, isKasec = input.IsKasec }
         };
-        await _webSocketController.SendChannelMsg(new SendChangeMsgInput
-        {
-            Chan = "-1_auction",
-            From = AbpSession.UserId.Value,
-            Message = msg
-        });
+        
+        await _messageSendingService.SendChannelMessageAsync(AbpSession.UserId.Value, "-1_auction", msg);
 
         // 清除详情缓存，因为卡秒状态改变了
         await _cacheService.ClearAuctionDetailCacheAsync(input.AuctionItemId);
