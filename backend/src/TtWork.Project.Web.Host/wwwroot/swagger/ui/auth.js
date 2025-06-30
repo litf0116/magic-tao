@@ -145,7 +145,7 @@ auth.login = function (callback) {
     xhr.onreadystatechange = function () {
         if (xhr.readyState === XMLHttpRequest.DONE) {
             if (xhr.status === 200) {
-                debugger
+               
                 var res = xhr.response;
                 if (!res.success) {
                     alert(res.message);

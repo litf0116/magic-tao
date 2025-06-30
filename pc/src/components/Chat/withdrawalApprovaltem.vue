@@ -70,7 +70,7 @@ const approve = (data) => {
 }
 //拒绝
 const reject = ((data) => {
-    debugger
+
 })
 
 </script>

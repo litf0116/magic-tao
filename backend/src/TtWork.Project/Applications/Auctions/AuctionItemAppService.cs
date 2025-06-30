@@ -485,6 +485,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
 
         try
         {
+            // === 前置处理阶段 ===
+            
             // 1. 查询商品信息
             var find = await Repository.FirstOrDefaultAsync(x => x.Id == auctionItemId);
             if (find == null)
@@ -504,66 +506,76 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 return result;
             }
 
-            // 3. 处理无出价情况
-            if (find.CurrentPrice == null)
+            // === 核心业务处理阶段 ===
+            
+            AuctionItemDto auctionResult;
+            bool hasBids = find.CurrentPrice != null;
+            
+            if (!hasBids)
             {
+                // 3a. 无出价情况处理
                 find.Back();
                 await CurrentUnitOfWork.SaveChangesAsync();
 
                 result.Success = true;
                 result.HasBids = false;
                 result.Message = "无出价，商品已回退到待拍卖状态";
-                result.AuctionItemDto = ObjectMapper.Map<AuctionItemDto>(find);
-
-                // 清除缓存
-                await _cacheService.ClearAuctionListCacheAsync();
-                await _cacheService.ClearAuctionDetailCacheAsync(auctionItemId);
-                await _cacheService.ClearCurrentAuctionCacheAsync();
-
-                return result;
+                auctionResult = ObjectMapper.Map<AuctionItemDto>(find);
             }
-
-            // 4. 验证出价记录一致性
-            var maxPrice = await _bidHistoryRepository.GetAll().AsNoTracking()
-                .Where(x => x.AuctionItemId == auctionItemId)
-                .OrderByDescending(x => x.BidPrice)
-                .FirstOrDefaultAsync();
-
-            if (maxPrice == null || maxPrice.BidPrice != find.CurrentPrice)
+            else
             {
-                _logger.LogError("出价记录不一致,{@find},{@maxPrice}", find, maxPrice);
-            }
+                // 3b. 有出价情况处理
+                
+                // 验证出价记录一致性
+                var maxPrice = await _bidHistoryRepository.GetAll().AsNoTracking()
+                    .Where(x => x.AuctionItemId == auctionItemId)
+                    .OrderByDescending(x => x.BidPrice)
+                    .FirstOrDefaultAsync();
 
-            // 5. 计算用户群聊等级
-            if (maxPrice != null)
-            {
-                await AddUserGroupChatLevel(new UserGroupLevelDto
+                if (maxPrice == null || maxPrice.BidPrice != find.CurrentPrice)
                 {
-                    CumulativeAmount = maxPrice.BidPrice,
-                    UserId = find.CurrentPriceUserId.Value,
-                });
+                    _logger.LogError("出价记录不一致,{@find},{@maxPrice}", find, maxPrice);
+                }
+
+                // 计算用户群聊等级
+                if (maxPrice != null)
+                {
+                    await AddUserGroupChatLevel(new UserGroupLevelDto
+                    {
+                        CumulativeAmount = maxPrice.BidPrice,
+                        UserId = find.CurrentPriceUserId.Value,
+                    });
+                }
+
+                // 设置商品为已成交状态
+                find.SetDeal();
+                await CurrentUnitOfWork.SaveChangesAsync();
+
+                // 构建返回结果
+                auctionResult = ObjectMapper.Map<AuctionItemDto>(find);
+                auctionResult.ToUserMsg = "恭喜您,您拍得了" + find.Name + ",成交价:" + find.FinalPrice +
+                                          ",\n老板请稍等\n    拍卖师正在联系卖家确认是否交易\n    以及交易的时间地点\n    请耐心等待";
+
+                var bidUser = await _userCache.GetAsync(auctionResult.DealUserId!.Value);
+                auctionResult.DealUserAvatar = bidUser.HeadImgUrl;
+
+                result.Success = true;
+                result.HasBids = true;
+                result.Message = "拍卖结束处理成功";
             }
 
-            // 6. 设置商品为已成交状态
-            find.SetDeal();
-            await CurrentUnitOfWork.SaveChangesAsync();
+            result.AuctionItemDto = auctionResult;
 
-            // 7. 构建返回结果
-            var auctionResult = ObjectMapper.Map<AuctionItemDto>(find);
-            auctionResult.ToUserMsg = "恭喜您,您拍得了" + find.Name + ",成交价:" + find.FinalPrice +
-                                      ",\n老板请稍等\n    拍卖师正在联系卖家确认是否交易\n    以及交易的时间地点\n    请耐心等待";
-
-            var bidUser = await _userCache.GetAsync(auctionResult.DealUserId!.Value);
-            auctionResult.DealUserAvatar = bidUser.HeadImgUrl;
-
-            // 8. 获取并处理卡秒状态
+            // === 统一后置处理阶段 ===
+            
+            // 4. 获取并处理卡秒状态
             var kasecVal = await _redisClient.Database.StringGetAsync($"Auction:Kasec:{auctionItemId}");
             bool wasInKasecMode = kasecVal.HasValue && kasecVal == "true";
 
             // 无论什么方式结束拍卖，都将卡秒状态设置为false
             await _redisClient.Database.StringSetAsync($"Auction:Kasec:{auctionItemId}", "false");
 
-            // 9. 获取操作用户信息（根据不同情况获取不同用户）
+            // 5. 获取操作用户信息（根据不同情况获取不同用户）
             UserInfoEntity operatorInfo;
             if (operatorUserId.HasValue)
             {
@@ -596,7 +608,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                     .FirstAsync();
             }
 
-            // 10. 发送卡秒关闭消息（如果当前处于卡秒状态）
+            // 6. 发送卡秒关闭消息（如果当前处于卡秒状态）
             if (wasInKasecMode)
             {
                 // 获取发送者角色信息
@@ -639,7 +651,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                     auctionItemId, endType, senderName);
             }
 
-            // 11. 发送拍卖结束消息（统一发送）
+            // 7. 发送拍卖结束消息（统一发送）
             var auctionEndMessage = new ChatMessage
             {
                 type = ChatMessageType.AuctionEnd,
@@ -647,7 +659,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 from = operatorInfo.Id,
                 fromName = operatorInfo.Name,
                 avatar = operatorInfo.HeadImgUrl,
-                msg = "",
+                msg = hasBids ? "" : "拍卖结束，无人出价，商品已回退",
                 payload = auctionResult,
                 time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                 fromAdmin = true,
@@ -665,44 +677,41 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             auctionEndInput.Message.id = Guid.NewGuid();
             await _webSocketController.SendChannelMsg(auctionEndInput);
 
-            // 12. 发送成交用户私信（统一发送）
-            var dealMessage = new ChatMessage
+            // 8. 发送成交用户私信（仅在有出价情况下发送）
+            if (hasBids && auctionResult.DealUserId.HasValue)
             {
-                chan = null,
-                type = ChatMessageType.AuctionDeal,
-                from = operatorInfo.LastModifierUserId,
-                fromName = operatorInfo.Name,
-                avatar = operatorInfo.HeadImgUrl,
-                msg = auctionResult.ToUserMsg,
-                to = auctionResult.DealUserId.Value,
-                payload = auctionResult,
-                time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                fromAdmin = true,
-                fromTag = "拍卖师",
-                tagClass = "tag_AuctionManager"
-            };
+                var dealMessage = new ChatMessage
+                {
+                    chan = null,
+                    type = ChatMessageType.AuctionDeal,
+                    from = operatorInfo.LastModifierUserId,
+                    fromName = operatorInfo.Name,
+                    avatar = operatorInfo.HeadImgUrl,
+                    msg = auctionResult.ToUserMsg,
+                    to = auctionResult.DealUserId.Value,
+                    payload = auctionResult,
+                    time = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                    fromAdmin = true,
+                    fromTag = "拍卖师",
+                    tagClass = "tag_AuctionManager"
+                };
 
-            var dealMsgInput = new SendMsgInput
-            {
-                From = operatorInfo.Id,
-                To = auctionResult.DealUserId.Value,
-                IsReceipt = true,
-                Message = dealMessage
-            };
+                var dealMsgInput = new SendMsgInput
+                {
+                    From = operatorInfo.Id,
+                    To = auctionResult.DealUserId.Value,
+                    IsReceipt = true,
+                    Message = dealMessage
+                };
 
-            dealMsgInput.Message.id = Guid.NewGuid();
-            await _webSocketController.SendMsg(dealMsgInput);
+                dealMsgInput.Message.id = Guid.NewGuid();
+                await _webSocketController.SendMsg(dealMsgInput);
+            }
 
-            // 13. 清除缓存
+            // 9. 清除缓存
             await _cacheService.ClearAuctionListCacheAsync();
             await _cacheService.ClearAuctionDetailCacheAsync(auctionItemId);
             await _cacheService.ClearCurrentAuctionCacheAsync();
-
-            // 14. 设置返回结果
-            result.Success = true;
-            result.HasBids = true;
-            result.Message = "拍卖结束处理成功";
-            result.AuctionItemDto = auctionResult;
 
             return result;
         }
