@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Abp.Application.Services.Dto;
+using Abp.Auditing;
 using Abp.Authorization;
 using Abp.Domain.Repositories;
 using Abp.UI;
@@ -60,6 +61,7 @@ public class UserFriendAppService(
     /// </summary>
     /// <returns></returns>
     [HttpGet]
+    [DisableAuditing]
     public async Task<int> GetUserFriendCount()
     {
         var userId = AbpSession.UserId!.Value;
