@@ -10,8 +10,8 @@ echo "开始构建魔力淘API Docker镜像"
 echo "=========================================="
 
 # 定义变量
-IMAGE_NAME="gitlab.somall.top:8090/molitao/api:alpha"
-TAR_FILE="molitao-api-alpha.tar"
+IMAGE_NAME="litengfei0302/molitao-backend:latest"
+TAR_FILE="molitao-backend-latest.tar"
 DOCKERFILE_PATH="src/TtWork.Project.Web.Host/Dockerfile"
 
 # 检查Dockerfile是否存在
@@ -35,7 +35,7 @@ else
 fi
 
 echo ""
-echo "步骤2: 导出Docker镜像为tar包..."
+echo "步骤2: 导出Docker镜像��tar包..."
 echo "导出文件: $TAR_FILE"
 
 # 如果tar文件已存在，先删除
@@ -70,4 +70,4 @@ echo "=========================================="
 # 显示Docker镜像信息
 echo ""
 echo "Docker镜像信息:"
-docker images | grep "gitlab.somall.top:8090/molitao/api" || echo "未找到相关镜像" 
+docker images | grep "litengfei0302/molitao-backend" || echo "未找到相关镜像"
