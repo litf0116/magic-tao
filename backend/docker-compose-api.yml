@@ -2,21 +2,29 @@ version: '3.8'
 
 services:
   alpha:
-    image: gitlab.somall.top:8090/molitao/api:alpha
-    container_name: api
+    image: litengfei0302/molitao-backend:latest
+    container_name: molitao-api-alpha
     restart: always
     ports:
-      - "5000:5000"
+      - "5001:5000"
     volumes:
       - /www/certs:/app/cert
       - /www/wwwroot/www.molitao.top/wwwroot:/app/wwwroot
     environment:
       - TZ=Asia/Shanghai
+      - ASPNETCORE_ENVIRONMENT=Development
     networks:
       - app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
   production:
-    image: gitlab.somall.top:8090/molitao/api:latest
-    container_name: api
+    image: litengfei0302/molitao-backend:latest
+    container_name: molitao-api-production
     restart: always
     ports:
       - "5000:5000"
@@ -25,8 +33,15 @@ services:
       - /www/wwwroot/www.molitao.top/wwwroot:/app/wwwroot
     environment:
       - TZ=Asia/Shanghai
+      - ASPNETCORE_ENVIRONMENT=Production
     networks:
       - app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 networks:
   app:
