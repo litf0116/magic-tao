@@ -1026,7 +1026,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         var currentUser = await _userCache.GetAsync(AbpSession.UserId.Value);
         var (isAdmin, adminTag, tagClass) = await CheckIsChatAdmin();
 
-        // 广播卡秒状态变更消息
+        // 广播卡秒状态变更消息 - 修复：使用拍卖消息发送方法，提高发送速度
         var msg = new ChatMessage
         {
             type = ChatMessageType.KasecStatusChanged,
@@ -1035,7 +1035,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             payload = new { auctionItemId = input.AuctionItemId, isKasec = input.IsKasec }
         };
         
-        await _messageSendingService.SendChannelMessageAsync(AbpSession.UserId.Value, "-1_auction", msg);
+        // 修复：使用拍卖消息发送方法，作为系统消息发送以提高速度
+        await _messageSendingService.SendAuctionMessageAsync(AbpSession.UserId.Value, null, "-1_auction", msg, true);
 
         // 清除详情缓存，因为卡秒状态改变了
         await _cacheService.ClearAuctionDetailCacheAsync(input.AuctionItemId);
@@ -1101,7 +1102,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     {
         await base.DeleteAsync(input);
 
-        // 清除缓存和发布事件
+        // 清除缓存和发布���件
         await _cacheService.ClearAuctionListCacheAsync();
         await _cacheService.ClearAuctionDetailCacheAsync(input.Id);
         
@@ -1111,3 +1112,4 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
 
 
 }
+

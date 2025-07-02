@@ -1,27 +1,6 @@
 version: '3.8'
 
 services:
-  alpha:
-    image: litengfei0302/molitao-backend:latest
-    container_name: molitao-api-alpha
-    restart: always
-    ports:
-      - "5001:5000"
-    volumes:
-      - /www/certs:/app/certs
-      - /www/wwwroot/www.molitao.top/wwwroot:/app/wwwroot
-    environment:
-      - TZ=Asia/Shanghai
-      - ASPNETCORE_ENVIRONMENT=Development
-    networks:
-      - app
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
   production:
     image: litengfei0302/molitao-backend:latest
     container_name: molitao-api-production
@@ -34,6 +13,14 @@ services:
     environment:
       - TZ=Asia/Shanghai
       - ASPNETCORE_ENVIRONMENT=Production
+      # 日志级别配置环境变量
+      - Logging__LogLevel__Default=Information
+      - Logging__LogLevel__Microsoft=Warning
+      - Logging__LogLevel__TtWork=Information
+      - Logging__LogLevel__System=Warning
+      # 可选：动态调整特定组件的日志级别
+      # - Logging__LogLevel__TtWork.Project.Services.Messaging=Debug
+      # - Logging__LogLevel__Microsoft.EntityFrameworkCore=Warning
     networks:
       - app
     healthcheck:
