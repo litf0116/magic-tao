@@ -162,7 +162,7 @@ namespace TtWork.Project.Services.Messaging
                     enrichedMessage.time = entity.Time;
                     enrichedMessage.sequenceNumber = entity.SequenceNumber;
 
-                    // 触发聊天消息发送事件
+                    // 触发聊天消��发送事件
                     await _eventBus.TriggerAsync(new ChatMessageSentEvent(entity.Id));
                 }
 
@@ -305,17 +305,19 @@ namespace TtWork.Project.Services.Messaging
                     time = message.time
                 };
 
-                // 获取用户信息
+                // 获取用户信息 - 修复：即使跳过权限检查，也需要获取用户基本信息用于显示
                 UserDto userInfo = null;
-                if (fromUserId > 0 && !options.SkipPermissionCheck)
+                if (fromUserId > 0)
                 {
                     userInfo = await _userCache.GetAsync(fromUserId);
-                    if (!userInfo.IsActive)
+                    
+                    // 只有在非跳过权限检查时才验证用户状态
+                    if (!options.SkipPermissionCheck && !userInfo.IsActive)
                     {
                         return (false, "账号已被禁用", null, (false, "", ""));
                     }
 
-                    // 设置用户基本信息
+                    // 设置用户基本信息 - 修复：无论是否跳过权限检查都设置基本信息
                     enrichedMessage.fromName = userInfo.Name;
                     enrichedMessage.avatar = userInfo.HeadImgUrl;
                 }
@@ -523,4 +525,4 @@ namespace TtWork.Project.Services.Messaging
 
         #endregion
     }
-} 
+}

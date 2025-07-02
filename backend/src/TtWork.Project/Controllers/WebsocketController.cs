@@ -492,8 +492,19 @@ namespace TtWork.Project.Controllers
             ImHelper.SendMessage(input.From, [input.To], input.Message,
                 input.IsReceipt);
 
-            await chatListDeleteRepository.GetAll().Where(x =>
-                (x.UserId == AbpSession.UserId.Value && x.ToUserId == entity.To) || (x.UserId == entity.To && x.ToUserId == AbpSession.UserId.Value)).ExecuteDeleteAsync();
+            // 删除相关的聊天列表删除记录 - 采用最安全的方式：先查询再逐个删除
+            var deleteRecords = await chatListDeleteRepository.GetAll()
+                .Where(x => (x.UserId == AbpSession.UserId.Value && x.ToUserId == entity.To) || 
+                           (x.UserId == entity.To && x.ToUserId == AbpSession.UserId.Value))
+                .ToListAsync();
+            
+            if (deleteRecords.Any())
+            {
+                foreach (var record in deleteRecords)
+                {
+                    await chatListDeleteRepository.DeleteAsync(record);
+                }
+            }
 
             return new
             {
@@ -570,3 +581,4 @@ namespace TtWork.Project.Controllers
         }
     }
 }
+
