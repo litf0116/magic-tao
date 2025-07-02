@@ -1031,8 +1031,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             input.IsKasec.ToString().ToLower());
 
         // 获取当前用户信息（拍卖师）
-        var currentUser = await _userCache.GetAsync(AbpSession.UserId.Value);
-        var (isAdmin, adminTag, tagClass) = await CheckIsChatAdmin();
+        // var currentUser = await _userCache.GetAsync(AbpSession.UserId.Value);
+        // var (isAdmin, adminTag, tagClass) = await CheckIsChatAdmin();
 
         // 广播卡秒状态变更消息 - 修复：使用拍卖消息发送方法，提高发送速度
         var msg = new ChatMessage
