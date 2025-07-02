@@ -262,7 +262,8 @@ namespace TtWork.Project.Services.Messaging
             var options = new MessageSendOptions
             {
                 SkipPermissionCheck = isSystemMessage,
-                AddAdminTag = !isSystemMessage,
+                // 修复：即使是系统消息，也应该显示管理员标签，只要有有效的用户ID
+                AddAdminTag = fromUserId > 0,
                 AddUserChatLevel = !isSystemMessage
             };
 
@@ -309,17 +310,36 @@ namespace TtWork.Project.Services.Messaging
                 UserDto userInfo = null;
                 if (fromUserId > 0)
                 {
-                    userInfo = await _userCache.GetAsync(fromUserId);
+                    try
+                    {
+                        userInfo = await _userCache.GetAsync(fromUserId);
+                        _logger.LogDebug("获取用户信息: UserId={UserId}, UserName={UserName}, HeadImgUrl={HeadImgUrl}", 
+                            fromUserId, userInfo?.Name, userInfo?.HeadImgUrl);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "获取用户缓存信息失败: UserId={UserId}", fromUserId);
+                        userInfo = null;
+                    }
                     
                     // 只有在非跳过权限检查时才验证用户状态
-                    if (!options.SkipPermissionCheck && !userInfo.IsActive)
+                    if (!options.SkipPermissionCheck && userInfo != null && !userInfo.IsActive)
                     {
                         return (false, "账号已被禁用", null, (false, "", ""));
                     }
 
-                    // 设置用户基本信息 - 修复：无论是否跳过权限检查都设置基本信息
-                    enrichedMessage.fromName = userInfo.Name;
-                    enrichedMessage.avatar = userInfo.HeadImgUrl;
+                    // 设置用户基本信息 - ���复：无论是否跳过权限检查都设置基本信息
+                    if (userInfo != null)
+                    {
+                        enrichedMessage.fromName = userInfo.Name;
+                        enrichedMessage.avatar = userInfo.HeadImgUrl;
+                        _logger.LogDebug("设置用户基本信息: fromName={FromName}, avatar={Avatar}", 
+                            enrichedMessage.fromName, enrichedMessage.avatar);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("用户信息为空: UserId={UserId}", fromUserId);
+                    }
                 }
 
                 // 权限检查
@@ -330,6 +350,8 @@ namespace TtWork.Project.Services.Messaging
                     enrichedMessage.fromAdmin = isAdmin;
                     enrichedMessage.fromTag = adminTag;
                     enrichedMessage.tagClass = tagClass;
+                    _logger.LogDebug("设置管理员信息: isAdmin={IsAdmin}, adminTag={AdminTag}, tagClass={TagClass}", 
+                        isAdmin, adminTag, tagClass);
                 }
 
                 // 禁言检查
@@ -360,6 +382,9 @@ namespace TtWork.Project.Services.Messaging
                 {
                     await AddUserChatLevelInfo(enrichedMessage, fromUserId);
                 }
+
+                _logger.LogDebug("消息增强完成: fromName={FromName}, fromAdmin={FromAdmin}, fromTag={FromTag}", 
+                    enrichedMessage.fromName, enrichedMessage.fromAdmin, enrichedMessage.fromTag);
 
                 return (true, null, enrichedMessage, (isAdmin, adminTag, tagClass));
             }
