@@ -37,6 +37,7 @@ using TtWork.Abp.Authorization;
 using TtWork.Abp.Authorization.Roles;
 using TtWork.Abp.Authorization.Users;
 using TtWork.Abp.Core.MultiTenancy;
+using TtWork.Abp.Definitions;
 using TtWork.Abp.DomianServices.Weixin;
 using TtWork.HttpClient.Weixin;
 using TtWork.Lib.Redis;
@@ -702,6 +703,132 @@ namespace TtWork.Project.Web.Controllers
             var hashedPassword = passwordHasher.HashPassword(user, plainPassword);
             Log.Information($"Hashed password: {hashedPassword}");
             return hashedPassword;
+        }
+
+        /// <summary>
+        /// 为指定用户生成token的请求模型
+        /// </summary>
+        public class GenerateTokenForUserInput
+        {
+            /// <summary>
+            /// 用户ID
+            /// </summary>
+            public long UserId { get; set; }
+        }
+
+        /// <summary>
+        /// 为指定用户生成token的返回结果
+        /// </summary>
+        public class GenerateTokenForUserResult
+        {
+            /// <summary>
+            /// 访问令牌
+            /// </summary>
+            public string AccessToken { get; set; }
+
+            /// <summary>
+            /// 加密的访问令牌
+            /// </summary>
+            public string EncryptedAccessToken { get; set; }
+
+            /// <summary>
+            /// 过期时间（秒）
+            /// </summary>
+            public int ExpireInSeconds { get; set; }
+
+            /// <summary>
+            /// 刷新令牌
+            /// </summary>
+            public string RefreshToken { get; set; }
+
+            /// <summary>
+            /// 刷新令牌过期时间（秒）
+            /// </summary>
+            public int RefreshTokenExpireInSeconds { get; set; }
+
+            /// <summary>
+            /// 用户ID
+            /// </summary>
+            public long UserId { get; set; }
+
+            /// <summary>
+            /// 用户名
+            /// </summary>
+            public string UserName { get; set; }
+        }
+
+        /// <summary>
+        /// 为指定用户生成token（管理员权限）
+        /// </summary>
+        /// <param name="input">生成token请求</param>
+        /// <returns>token信息</returns>
+        [HttpPost]
+        public async Task<GenerateTokenForUserResult> GenerateTokenForUser([FromBody] GenerateTokenForUserInput input)
+        {
+            try
+            {
+                // 验证输入参数
+                if (input.UserId <= 0)
+                {
+                    throw new UserFriendlyException("用户ID无效");
+                }
+
+                var userIdentifier = new UserIdentifier(1, input.UserId);
+                // 获取用户信息
+                var user = await userManager.GetUserAsync(userIdentifier);
+                if (user == null)
+                {
+                    throw new UserFriendlyException("用户不存在");
+                }
+
+                // 检查用户是否激活
+                if (!user.IsActive)
+                {
+                    throw new UserFriendlyException("用户已被禁用");
+                }
+
+                // 创建用户身份
+                var principal = await claimsPrincipalFactory.CreateAsync(user);
+                var identity = principal.Identity as ClaimsIdentity;
+
+                // 生成刷新令牌
+                var refreshToken = CreateRefreshToken(
+                    await CreateJwtClaims(
+                        identity,
+                        user,
+                        tokenType: TokenType.RefreshToken
+                    )
+                );
+
+                // 生成访问令牌
+                var accessToken = CreateAccessToken(
+                    await CreateJwtClaims(
+                        identity,
+                        user,
+                        refreshTokenKey: refreshToken.key
+                    )
+                );
+
+                return new GenerateTokenForUserResult
+                {
+                    AccessToken = accessToken,
+                    EncryptedAccessToken = GetEncryptedAccessToken(accessToken),
+                    ExpireInSeconds = (int)tokenAuthConfiguration.AccessTokenExpiration.TotalSeconds,
+                    RefreshToken = refreshToken.token,
+                    RefreshTokenExpireInSeconds = (int)tokenAuthConfiguration.RefreshTokenExpiration.TotalSeconds,
+                    UserId = user.Id,
+                    UserName = user.UserName
+                };
+            }
+            catch (UserFriendlyException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error( "为用户生成token失败，用户ID: " +input.UserId,ex );
+                throw new UserFriendlyException("生成token失败: " + ex.Message);
+            }
         }
     }
 }

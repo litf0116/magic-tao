@@ -127,10 +127,8 @@ public record PriceRecord(int? CurrentPrice, long? CurrentPriceUserId, string Cu
 [AutoMapFrom(typeof(AuctionItem))]
 public class AuctionItemDto : EntityDto<long>
 {
-    [JsonProperty("name")] public string Name { get; set; }
-
-    [JsonProperty("status")]
-    [JsonConverter(typeof(StringEnumConverter))]
+    public string Name { get; set; }
+    
     public AuctionStatusEnum Status { get; set; }
 
     public string ImageUrl { get; set; }
