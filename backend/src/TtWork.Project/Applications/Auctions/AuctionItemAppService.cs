@@ -504,9 +504,6 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             {
                 // 获取发送者角色信息
                 var senderId = operatorUserId ?? operatorInfo.Id;
-                var (isAdmin, adminTag, tagClass) = operatorUserId.HasValue
-                    ? await CheckIsChatAdmin()
-                    : (true, "拍卖师", "tag_AuctionManager");
 
                 // 如果是通过定时任务结束的，获取消息所需的用户信息
                 var senderName = operatorInfo.Name;
