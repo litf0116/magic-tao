@@ -46,10 +46,12 @@ using TtWork.Project.Jobs;
 using TTWork.WeiXinMiddleware.Utils;
 using static OfficeOpenXml.ExcelErrorValue;
 using Abp.Events.Bus;
+using Microsoft.AspNetCore.Authorization;
 using TtWork.Project.EventHandlers;
 using TtWork.Project.Services.Cache;
 using TtWork.Project.Services.Messaging;
 using TtWork.Project.Services.Messaging.Models;
+using TtWork.Project.Services;
 
 namespace TtWork.Project.Applications.Auctions;
 
@@ -122,6 +124,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     private readonly IEventBus _eventBus;
     private readonly IAuctionItemCacheService _cacheService;
     private readonly IMessageSendingService _messageSendingService;
+    private readonly IBidEligibilityService _bidEligibilityService;
 
     public AuctionItemAppService(
         IRedisClient redisClient,
@@ -141,7 +144,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         IUnitOfWorkManager unitOfWorkManager,
         IEventBus eventBus,
         IAuctionItemCacheService cacheService,
-        IMessageSendingService messageSendingService) : base(repository, iocManager)
+        IMessageSendingService messageSendingService,
+        IBidEligibilityService bidEligibilityService) : base(repository, iocManager)
     {
         _sqlSugarClient = sqlSugarClient;
         _redisClient = redisClient;
@@ -165,34 +169,10 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         _eventBus = eventBus;
         _cacheService = cacheService;
         _messageSendingService = messageSendingService;
+        _bidEligibilityService = bidEligibilityService;
         // base.GetAllPermissionName = AppPermissions.Pages.ChatManager;
     }
 
-
-    private async Task<(bool, string, string)> CheckIsChatAdmin()
-    {
-        try
-        {
-            var currentUser = await _userCache.GetAsync(AbpSession.UserId!.Value);
-            if (currentUser is { RoleNames.Length: > 0 })
-            {
-                if (currentUser.RoleNames.Contains("AuctionManager"))
-                    return (true, "拍卖师", "tag_AuctionManager");
-                if (currentUser.RoleNames.Contains("Manager"))
-                    return (true, "管理员", "tag_Manager");
-                if (currentUser.RoleNames.Contains("AuctionUser"))
-                    return (false, "竞拍用户", "tag_AudtionUser");
-                if (currentUser.RoleNames.Contains("Admin"))
-                    return (true, "系统管理员", "tag_Admin");
-            }
-        }
-        catch (Exception e)
-        {
-            Logger.Error("获取用户缓存信息失败", e);
-        }
-
-        return (false, "", "");
-    }
 
     /// <summary>
     /// 发送消息
@@ -254,40 +234,19 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             input.BidUserName = user.Name;
             input.BidUserAvatar = user.HeadImgUrl;
         }
-     
-        //获取消息提示
-        var msgConfiguration =
-            await _sqlSugarClient.Queryable<MsgConfigurationEntity>().Where(w => w.Type == 1).FirstAsync();
-        // 查询用户群聊等级（只针对0级用户判断保证金）
-        var userGroupLevel = await _sqlSugarClient.Queryable<UserGroupLevelEntity>()
-            .LeftJoin<GroupChatLevelSettingsEntity>((a, b) => a.GroupChatId == b.Id)
-            .Where((a, b) => a.UserId == user.Id)
-            .Select((a, b) => new { a.UserId, b.Level })
-            .FirstAsync();
-        int userLevel = userGroupLevel?.Level ?? 0;
-        if (userLevel == 0 && user.DepositBalance < 50)
-        {
-            throw new UserFriendlyException(msgConfiguration != null
-                ? msgConfiguration.Msg
-                : $"当前用户保证金不足50元，请先去充值保证金（需支付51元，包含1元提现手续费）！");
-        }
 
-        //拍卖场不修改名字头像不给出价权限
-        if (Regex.IsMatch(input.BidUserName, @"^玩家\d{5}"))
+        // 使用统一的出价资格检查服务
+        var bidEligibilityCheck = await _bidEligibilityService.CheckBidEligibilityAsync(new CheckBidEligibilityInput
         {
-            throw new UserFriendlyException("请先修改昵称后再进行出价");
-        }
+            AuctionItemId = input.AuctionItemId,
+            BidUserId = bidUserId.ToString(),
+            BidUserName = input.BidUserName,
+            BidPrice = input.BidPrice
+        });
 
-        var isChatAdmin = await CheckIsChatAdmin();
-        if (!isChatAdmin.Item1)
+        if (!bidEligibilityCheck.CanBid)
         {
-            // 非管理判断是否被禁言
-            var banedUser = await _banedUserRepository.FirstOrDefaultAsync(a =>
-                a.UserId == bidUserId && a.Chan == "-1_auction" && a.EndTime > DateTime.Now);
-            if (banedUser != null)
-            {
-                throw new UserFriendlyException($"禁言用户禁止出价,结束时间 {banedUser.EndTime:yyyy-MM-dd HH:mm:ss}");
-            }
+            throw new UserFriendlyException(bidEligibilityCheck.Reason);
         }
 
         //锁,只让一个人出价
@@ -310,82 +269,13 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 throw new UserFriendlyException(1, "找不到商品");
             }
 
+            // 由于 BidEligibilityService 已经检查了商品状态，这里可以简化
             if (find.Status != AuctionStatusEnum.拍卖中)
             {
                 throw new UserFriendlyException(1, "商品不在拍卖中");
             }
 
-            var basePrice = find.CurrentPrice ?? find?.StartingPrice ?? 1;
-
-            #region 计算最低出价
-
-            var minPrice = 0;
-            if (find.CurrentPrice.HasValue)
-            {
-                // 算法：
-                // 100以内，1R一加
-                // 100~1000，5R一加
-                // 1000-2000，10R一加
-                // 2000-5000，20R一加
-                // 50000-1W，50一加
-                // 1W以上，100一加
-                if (find.CurrentPrice.Value < 100)
-                {
-                    minPrice = find.CurrentPrice.Value + 1;
-                }
-                else if (find.CurrentPrice.Value < 1000)
-                {
-                    minPrice = find.CurrentPrice.Value + 5;
-                }
-                else if (find.CurrentPrice.Value < 2000)
-                {
-                    minPrice = find.CurrentPrice.Value + 10;
-                }
-                else if (find.CurrentPrice.Value < 5000)
-                {
-                    minPrice = find.CurrentPrice.Value + 20;
-                }
-                else if (find.CurrentPrice.Value < 10000)
-                {
-                    minPrice = find.CurrentPrice.Value + 50;
-                }
-                else
-                {
-                    minPrice = find.CurrentPrice.Value + 100;
-                }
-            }
-            else
-            {
-                minPrice = basePrice;
-            }
-
-            #endregion
-
-            // 读取卡秒状态，若为 true，最低加价三倍
-            var kasecVal = await _redisClient.Database.StringGetAsync($"Auction:Kasec:{input.AuctionItemId}");
-            if (kasecVal.HasValue && kasecVal == "true")
-            {
-                minPrice = basePrice + ((minPrice - basePrice) * 3);
-            }
-
-            if (input.BidPrice < minPrice)
-            {
-                var priceRules = new[]
-                {
-                    "100以内，1R一加",
-                    "100~1000，5R一加",
-                    "1000~2000，10R一加",
-                    "2000~5000，20R一加",
-                    "5000~1W，50一加",
-                    "1W以上，100一加"
-                };
-
-                var formattedMessage = "出价必须大于最低加价：\n\n" +
-                                       string.Join("\n", priceRules) +
-                                       (kasecVal.HasValue && kasecVal == "true" ? "\n\n⚠️ 卡秒期间需三倍加价" : "");
-
-                throw new UserFriendlyException(1, formattedMessage);
-            }
+            // 由于 BidEligibilityService 已经计算并检查了最低出价，这里可以简化
             // if (find.CurrentPrice >= input.BidPrice) throw new UserFriendlyException(1, "出价必须大于当前价格");
 
             var addInfo = ObjectMapper.Map<BidHistory>(input);
@@ -398,7 +288,6 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
 
             var result = ObjectMapper.Map<AuctionItemDto>(find);
             result.UseCountdownTime = addInfo.CreationTime;
-            // chatStore.sendChannelMsg(`${res.currentPrice}`, '-1_auction', ChatMessageType.AuctionBid, res)
 
             var msg = new ChatMessage()
             {
@@ -412,13 +301,13 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             await _messageSendingService.SendChannelMessageAsync(bidUserId, "-1_auction", msg);
             var ip = GetIp;
 
-                    // 清除缓存，因为出价改变了商品状态
-        await _cacheService.ClearAuctionDetailCacheAsync(input.AuctionItemId);
-        await _cacheService.ClearAuctionListCacheAsync();
-        await _cacheService.ClearCurrentAuctionCacheAsync();
+            // 清除缓存，因为出价改变了商品状态
+            await _cacheService.ClearAuctionDetailCacheAsync(input.AuctionItemId);
+            await _cacheService.ClearAuctionListCacheAsync();
+            await _cacheService.ClearCurrentAuctionCacheAsync();
 
-        // 发布出价事件
-        await _mediator.Publish(new BidPlacedEvent(input.AuctionItemId, bidUserId, input.BidPrice, input.BidUserName));
+            // 发布出价事件
+            await _mediator.Publish(new BidPlacedEvent(input.AuctionItemId, bidUserId, input.BidPrice, input.BidUserName));
 
             return result;
         }
@@ -746,30 +635,6 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 return "";
             }
         }
-    }
-
-    private Task<(bool, string, string)> CheckIsChatAdmin(UserDto currentUser)
-    {
-        try
-        {
-            if (currentUser is { RoleNames.Length: > 0 })
-            {
-                if (currentUser.RoleNames.Contains("AuctionManager"))
-                    return Task.FromResult((true, "拍卖师", "tag_AuctionManager"));
-                if (currentUser.RoleNames.Contains("Manager"))
-                    return Task.FromResult((true, "管理员", "tag_Manager"));
-                if (currentUser.RoleNames.Contains("AuctionUser"))
-                    return Task.FromResult((false, "竞拍用户", "tag_AudtionUser"));
-                if (currentUser.RoleNames.Contains("Admin"))
-                    return Task.FromResult((true, "系统管理员", "tag_Admin"));
-            }
-        }
-        catch (Exception e)
-        {
-            Logger.Error("获取用户缓存信息失败", e);
-        }
-
-        return Task.FromResult((false, "", ""));
     }
 
     /// <summary>
@@ -1116,288 +981,6 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         
         // 发布拍卖品删除事件
         await _mediator.Publish(new AuctionItemDeletedEvent(input.Id));
-    }
-
-    /// <summary>
-    /// 出价判断请求
-    /// </summary>
-    public class CheckBidEligibilityInput
-    {
-        /// <summary>
-        /// 拍卖商品ID
-        /// </summary>
-        public long AuctionItemId { get; set; }
-
-        /// <summary>
-        /// 用户名称
-        /// </summary>
-        public string BidUserName { get; set; }
-        
-        public string BidUserId { get; set; }
-
-        /// <summary>
-        /// 出价金额
-        /// </summary>
-        public int BidPrice { get; set; }
-    }
-
-    /// <summary>
-    /// 出价判断结果
-    /// </summary>
-    public class BidEligibilityResult
-    {
-        /// <summary>
-        /// 是否可以出价
-        /// </summary>
-        public bool CanBid { get; set; }
-
-        /// <summary>
-        /// 不能出价的原因（如果可以出价则为空）
-        /// </summary>
-        public string Reason { get; set; }
-
-        /// <summary>
-        /// 最低出价金额
-        /// </summary>
-        public int MinBidPrice { get; set; }
-
-        /// <summary>
-        /// 当前商品价格
-        /// </summary>
-        public int? CurrentPrice { get; set; }
-
-        /// <summary>
-        /// 用户保证金余额
-        /// </summary>
-        public decimal DepositBalance { get; set; }
-
-        /// <summary>
-        /// 用户群聊等级
-        /// </summary>
-        public int UserLevel { get; set; }
-
-        /// <summary>
-        /// 是否处于卡秒状态
-        /// </summary>
-        public bool IsKasec { get; set; }
-
-        /// <summary>
-        /// 商品状态
-        /// </summary>
-        public AuctionStatusEnum? AuctionStatus { get; set; }
-
-        /// <summary>
-        /// 是否被禁言
-        /// </summary>
-        public bool IsBanned { get; set; }
-
-        /// <summary>
-        /// 禁言结束时间（如果被禁言）
-        /// </summary>
-        public DateTime? BanEndTime { get; set; }
-    }
-
-    /// <summary>
-    /// 检查用户是否可以出价
-    /// </summary>
-    /// <param name="input">出价判断请求</param>
-    /// <returns>出价判断结果</returns>
-    [HttpPost]
-    public async Task<BidEligibilityResult> CheckBidEligibility([FromBody] CheckBidEligibilityInput input)
-    {
-        var result = new BidEligibilityResult();
-
-        try
-        {
-            // 验证输入参数
-            if (input.AuctionItemId <= 0)
-            {
-                result.CanBid = false;
-                result.Reason = "拍卖商品ID无效";
-                return result;
-            }
-
-            if (string.IsNullOrEmpty(input.BidUserId) || !long.TryParse(input.BidUserId, out var userId))
-            {
-                result.CanBid = false;
-                result.Reason = "用户ID无效";
-                return result;
-            }
-
-            if (input.BidPrice <= 0)
-            {
-                result.CanBid = false;
-                result.Reason = "出价金额必须大于0";
-                return result;
-            }
-
-            // 获取用户信息 - 修改：使用用户ID而不是用户名称
-            var user = await _userCache.GetAsync(userId);
-            if (user == null)
-            {
-                result.CanBid = false;
-                result.Reason = "用户信息不存在";
-                return result;
-            }
-
-            result.DepositBalance = user.DepositBalance;
-
-            // 1. 检查用户群聊等级和保证金
-            var userGroupLevel = await _sqlSugarClient.Queryable<UserGroupLevelEntity>()
-                .LeftJoin<GroupChatLevelSettingsEntity>((a, b) => a.GroupChatId == b.Id)
-                .Where((a, b) => a.UserId == user.Id)
-                .Select((a, b) => new { a.UserId, b.Level })
-                .FirstAsync();
-            
-            int userLevel = userGroupLevel?.Level ?? 0;
-            result.UserLevel = userLevel;
-
-            if (userLevel == 0 && user.DepositBalance < 50)
-            {
-                result.CanBid = false;
-                result.Reason = $"当前用户保证金不足50元，请先去充值保证金（需支付51元，包含1元提现手续费）！当前保证金：{user.DepositBalance}元";
-                return result;
-            }
-
-            // 2. 检查用户名格式
-            if (Regex.IsMatch(user.Name, @"^玩家\d{5}"))
-            {
-                result.CanBid = false;
-                result.Reason = "请先修改昵称后再进行出价";
-                return result;
-            }
-
-            // 3. 检查管理员权限和禁言状态
-            var isChatAdmin = await CheckIsChatAdmin(user);
-            if (!isChatAdmin.Item1)
-            {
-                // 非管理员检查禁言状态
-                var banedUser = await _banedUserRepository.FirstOrDefaultAsync(a =>
-                    a.UserId == userId && a.Chan == "-1_auction" && a.EndTime > DateTime.Now);
-                
-                if (banedUser != null)
-                {
-                    result.CanBid = false;
-                    result.IsBanned = true;
-                    result.BanEndTime = banedUser.EndTime;
-                    result.Reason = $"禁言用户禁止出价,结束时间 {banedUser.EndTime:yyyy-MM-dd HH:mm:ss}";
-                    return result;
-                }
-            }
-
-            // 4. 检查商品信息
-            var find = await Repository.FirstOrDefaultAsync(x => x.Id == input.AuctionItemId);
-            if (find == null)
-            {
-                result.CanBid = false;
-                result.Reason = "找不到商品";
-                return result;
-            }
-
-            result.AuctionStatus = find.Status;
-            result.CurrentPrice = find.CurrentPrice;
-
-            if (find.Status != AuctionStatusEnum.拍卖中)
-            {
-                result.CanBid = false;
-                result.Reason = "商品不在拍卖中";
-                return result;
-            }
-
-            // 5. 计算最低出价
-            var basePrice = find.CurrentPrice ?? find?.StartingPrice ?? 1;
-            var minPrice = 0;
-
-            if (find.CurrentPrice.HasValue)
-            {
-                // 最低加价规则
-                if (find.CurrentPrice.Value < 100)
-                {
-                    minPrice = find.CurrentPrice.Value + 1;
-                }
-                else if (find.CurrentPrice.Value < 1000)
-                {
-                    minPrice = find.CurrentPrice.Value + 5;
-                }
-                else if (find.CurrentPrice.Value < 2000)
-                {
-                    minPrice = find.CurrentPrice.Value + 10;
-                }
-                else if (find.CurrentPrice.Value < 5000)
-                {
-                    minPrice = find.CurrentPrice.Value + 20;
-                }
-                else if (find.CurrentPrice.Value < 10000)
-                {
-                    minPrice = find.CurrentPrice.Value + 50;
-                }
-                else
-                {
-                    minPrice = find.CurrentPrice.Value + 100;
-                }
-            }
-            else
-            {
-                minPrice = basePrice;
-            }
-
-            // 6. 检查卡秒状态
-            var kasecVal = await _redisClient.Database.StringGetAsync($"Auction:Kasec:{input.AuctionItemId}");
-            bool isKasec = kasecVal.HasValue && kasecVal == "true";
-            result.IsKasec = isKasec;
-
-            if (isKasec)
-            {
-                minPrice = basePrice + ((minPrice - basePrice) * 3);
-            }
-
-            result.MinBidPrice = minPrice;
-
-            // 7. 检查出价金额
-            if (input.BidPrice < minPrice)
-            {
-                var priceRules = new[]
-                {
-                    "100以内，1R一加",
-                    "100~1000，5R一加",
-                    "1000~2000，10R一加",
-                    "2000~5000，20R一加",
-                    "5000~1W，50一加",
-                    "1W以上，100一加"
-                };
-
-                var formattedMessage = "出价必须大于最低加价：\n\n" +
-                                       string.Join("\n", priceRules) +
-                                       (isKasec ? "\n\n⚠️ 卡秒期间需三倍加价" : "");
-
-                result.CanBid = false;
-                result.Reason = formattedMessage;
-                return result;
-            }
-
-            // 8. 检查Redis锁状态（通过检查键是否存在来判断）
-            var lockKey = $"Lock:AuctionItem:{input.AuctionItemId}";
-            var lockExists = await _redisClient.Database.KeyExistsAsync(lockKey);
-            if (lockExists)
-            {
-                result.CanBid = false;
-                result.Reason = "后台正在处理上一人出价,请稍后再试";
-                return result;
-            }
-
-            // 所有检查通过
-            result.CanBid = true;
-            result.Reason = "可以出价";
-            return result;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "检查出价资格时发生错误，用户ID: {UserId}, 拍卖商品ID: {AuctionItemId}", 
-                input.BidUserId, input.AuctionItemId);
-            result.CanBid = false;
-            result.Reason = $"检查出价资格时发生错误: {ex.Message}";
-            return result;
-        }
     }
 
 }

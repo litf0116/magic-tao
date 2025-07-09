@@ -11,6 +11,7 @@ using TtWork.Abp.Oss.UpYun;
 using TtWork.Project.Core;
 using TtWork.Project.Definitions;
 using TtWork.Project.Localization;
+using TtWork.Project.Services;
 using TtWork.Project.Services.Cache;
 
 namespace TtWork.Project {
@@ -39,6 +40,10 @@ namespace TtWork.Project {
             
             // 手动注册拍卖品缓存服务接口
             IocManager.Register<IAuctionItemCacheService, AuctionItemCacheManager>(
+                DependencyLifeStyle.Transient);
+
+            // 注册出价资格检查服务
+            IocManager.Register<IBidEligibilityService, BidEligibilityService>(
                 DependencyLifeStyle.Transient);
         }
 
