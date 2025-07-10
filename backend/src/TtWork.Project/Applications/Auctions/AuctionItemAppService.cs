@@ -52,6 +52,7 @@ using TtWork.Project.Services.Cache;
 using TtWork.Project.Services.Messaging;
 using TtWork.Project.Services.Messaging.Models;
 using TtWork.Project.Services;
+using Newtonsoft.Json.Linq;
 
 namespace TtWork.Project.Applications.Auctions;
 
@@ -528,12 +529,16 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             }
 
             // 7. 发送拍卖结束消息（统一发送）
+            // 构造 payload，保留原有数字 Status，同时追加小写字符串 status 方便前端直接使用
+            var payloadObj = JObject.FromObject(auctionResult);
+            payloadObj["status"] = auctionResult.Status.ToString();
+
             var auctionEndMessage = new ChatMessage
             {
                 type = ChatMessageType.AuctionEnd,
                 chan = "-1_auction",
                 msg = hasBids ? "" : "拍卖结束，无人出价，商品已回退",
-                payload = auctionResult
+                payload = payloadObj
             };
 
             await _messageSendingService.SendAuctionMessageAsync(operatorInfo.Id, null, "-1_auction", auctionEndMessage, true);
