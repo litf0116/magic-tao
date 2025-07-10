@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Abp.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -16,7 +17,7 @@ namespace TtWork.Project.Web.Host.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [AllowAnonymous] // 根据需要调整权限
-    public class MonitorController : ControllerBase
+    public class MonitorController : AbpController
     {
         private readonly HealthCheckService _healthCheckService;
 

@@ -82,6 +82,10 @@ namespace TtWork.Project.Web.Host.Startup
             // 添加性能监控服务
             services.AddHostedService<PerformanceCounterService>();
 
+            // 注册健康检查服务到依赖注入容器
+            services.AddTransient<DatabaseHealthCheck>();
+            services.AddTransient<RedisHealthCheck>();
+
             // 添加健康检查
             services.AddHealthChecks()
                 .AddCheck<DatabaseHealthCheck>("database")

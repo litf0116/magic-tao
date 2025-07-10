@@ -14,6 +14,7 @@ using TtWork.Project.Authentication.External;
 using TtWork.Project.Configuration;
 using TtWork.Project.Web.Authentication.External;
 using TTWork.WeiXinMiddleware;
+using TtWork.Project.Web.Host.HealthChecks;
 
 namespace TtWork.Project.Web.Host {
     [DependsOn(typeof(ProjectWebCoreModule)
@@ -31,6 +32,11 @@ namespace TtWork.Project.Web.Host {
 
         public override void Initialize() {
             IocManager.RegisterAssemblyByConvention(typeof(ProjectWebHostModule).GetAssembly());
+            
+            // 注册健康检查服务
+            IocManager.Register<DatabaseHealthCheck>(DependencyLifeStyle.Transient);
+            IocManager.Register<RedisHealthCheck>(DependencyLifeStyle.Transient);
+            
             ConfigureTokenAuth();
         }
 
