@@ -45,19 +45,11 @@ docker run \
   datalust/seq
 ```
 
-
-
-
-
 有人进组队频道发那个组队声
-
-
 
 房主踢人
 
 看房间人的列表
-
-
 
 ![image-20240322183605897](https://cdn.wujiangapp.com/PicGo/202403221836996.png)
 
@@ -100,10 +92,6 @@ docker run \
 
 ```
 
-
-
-
-
 ```
 docker network create app
 
@@ -114,4 +102,3 @@ bind 0.0.0.0
 requirepass xxx
 
 ```
-

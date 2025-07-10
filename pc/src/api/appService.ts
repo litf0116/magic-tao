@@ -2260,7 +2260,7 @@ export class ClientService {
      */
     static getChatList(options: IRequestOptions = {}): Promise<ChatListItem[]> {
         return new Promise((resolve, reject) => {
-            let url = basePath + '/api/services/app/Client/GetChatListV2'
+            let url = basePath + '/api/services/app/Client/GetChatList'
 
             const configs: IRequestConfig = getConfigs('get', 'application/json', url, options)
 
