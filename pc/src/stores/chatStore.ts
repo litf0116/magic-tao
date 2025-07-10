@@ -295,7 +295,7 @@ export const useChatStore = defineStore('chat', () => {
             let _id = parseInt(_t[0])
             if (_id > 0) _id = -_id
             if (_id === null) return
-            //
+            // debugger
             const _name = _t[1]
             const old = chatList.value.find((item) => item.id === _id && item.id !== currentChat.value.id)
             chatList.value = [
@@ -323,9 +323,7 @@ export const useChatStore = defineStore('chat', () => {
         } else if (msg.type === 'Text' || msg.type === 'Image' || msg.type === 'File') {
             //处理私聊消息
             const old = chatList.value.find((item) => item.id === msg.from && item.id !== currentChat.value.id)
-            if (msg.from === null) {
-                return
-            }
+            if (msg.from === null) return
             chatList.value = [
                 {
                     id: msg.from,
