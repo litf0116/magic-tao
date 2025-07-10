@@ -47,6 +47,7 @@ using TTWork.WeiXinMiddleware.Utils;
 using static OfficeOpenXml.ExcelErrorValue;
 using Abp.Events.Bus;
 using Microsoft.AspNetCore.Authorization;
+using Newtonsoft.Json;
 using TtWork.Project.EventHandlers;
 using TtWork.Project.Services.Cache;
 using TtWork.Project.Services.Messaging;
@@ -893,34 +894,70 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     [AbpAuthorize(AppPermissions.Pages.ChatManager)]
     public async Task<bool> SetKasecStatus([FromBody] SetKasecStatusInput input)
     {
-        // 将布尔值转换为小写字符串存储到Redis
-        await _redisClient.Database.StringSetAsync($"Auction:Kasec:{input.AuctionItemId}",
-            input.IsKasec.ToString().ToLower());
+        _logger.LogInformation("=== 卡秒状态设置开始 === AuctionItemId={AuctionItemId}, IsKasec={IsKasec}, UserId={UserId}", 
+            input.AuctionItemId, input.IsKasec, AbpSession.UserId.Value);
 
-        // 获取当前用户信息（拍卖师）
-        // var currentUser = await _userCache.GetAsync(AbpSession.UserId.Value);
-        // var (isAdmin, adminTag, tagClass) = await CheckIsChatAdmin();
-
-        // 广播卡秒状态变更消息 - 修复：使用拍卖消息发送方法，提高发送速度
-        var msg = new ChatMessage
+        try
         {
-            type = ChatMessageType.KasecStatusChanged,
-            chan = "-1_auction",
-            msg = input.IsKasec ? "拍卖师已开启卡秒，需三倍加价！" : "卡秒已关闭，恢复正常加价",
-            payload = new { auctionItemId = input.AuctionItemId, isKasec = input.IsKasec }
-        };
-        
-        // 修复：使用拍卖消息发送方法，作为系统消息发送以提高速度
-        await _messageSendingService.SendAuctionMessageAsync(AbpSession.UserId.Value, null, "-1_auction", msg, true);
+            // 将布尔值转换为小写字符串存储到Redis
+            var kasecKey = $"Auction:Kasec:{input.AuctionItemId}";
+            var kasecValue = input.IsKasec.ToString().ToLower();
+            
+            _logger.LogInformation("设置Redis卡秒状态: Key={KasecKey}, Value={KasecValue}", kasecKey, kasecValue);
+            
+            await _redisClient.Database.StringSetAsync(kasecKey, kasecValue);
+            
+            _logger.LogInformation("Redis卡秒状态设置成功");
 
-        // 清除详情缓存，因为卡秒状态改变了
-        await _cacheService.ClearAuctionDetailCacheAsync(input.AuctionItemId);
-        await _cacheService.ClearCurrentAuctionCacheAsync();
-        
-        // 发布卡秒状态变更事件
-        await _mediator.Publish(new KasecStatusChangedEvent(input.AuctionItemId, input.IsKasec));
+            // 获取当前用户信息（拍卖师）
+            // var currentUser = await _userCache.GetAsync(AbpSession.UserId.Value);
+            // var (isAdmin, adminTag, tagClass) = await CheckIsChatAdmin();
 
-        return true;
+            // 广播卡秒状态变更消息 - 修复：使用拍卖消息发送方法，提高发送速度
+            var msg = new ChatMessage
+            {
+                type = ChatMessageType.KasecStatusChanged,
+                chan = "-1_auction",
+                msg = input.IsKasec ? "拍卖师已开启卡秒，需三倍加价！" : "卡秒已关闭，恢复正常加价",
+                payload = new { auctionItemId = input.AuctionItemId, isKasec = input.IsKasec }
+            };
+            
+            _logger.LogInformation("构造卡秒消息: Type={MessageType}, Channel={Channel}, Message={Message}, Payload={Payload}", 
+                msg.type, msg.chan, msg.msg, JsonConvert.SerializeObject(msg.payload));
+            
+            // 修复：使用拍卖消息发送方法，作为系统消息发送以提高速度
+            _logger.LogInformation("开始发送卡秒消息到MessageSendingService");
+            
+            var sendResult = await _messageSendingService.SendAuctionMessageAsync(AbpSession.UserId.Value, null, "-1_auction", msg, true);
+            
+            _logger.LogInformation("卡秒消息发送结果: Success={Success}, MessageId={MessageId}, SequenceNumber={SequenceNumber}, ErrorMessage={ErrorMessage}", 
+                sendResult.Success, sendResult.MessageId, sendResult.SequenceNumber, sendResult.Message);
+
+            if (!sendResult.Success)
+            {
+                _logger.LogError("卡秒消息发送失败: {ErrorMessage}", sendResult.Message);
+            }
+
+            // 清除详情缓存，因为卡秒状态改变了
+            _logger.LogInformation("清除相关缓存");
+            await _cacheService.ClearAuctionDetailCacheAsync(input.AuctionItemId);
+            await _cacheService.ClearCurrentAuctionCacheAsync();
+            
+            // 发布卡秒状态变更事件
+            _logger.LogInformation("发布卡秒状态变更事件");
+            await _mediator.Publish(new KasecStatusChangedEvent(input.AuctionItemId, input.IsKasec));
+
+            _logger.LogInformation("=== 卡秒状态设置完成 === AuctionItemId={AuctionItemId}, IsKasec={IsKasec}", 
+                input.AuctionItemId, input.IsKasec);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "卡秒状态设置失败: AuctionItemId={AuctionItemId}, IsKasec={IsKasec}, UserId={UserId}", 
+                input.AuctionItemId, input.IsKasec, AbpSession.UserId.Value);
+            throw;
+        }
     }
 
     // 2. 获取卡秒状态（所有用户）

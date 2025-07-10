@@ -66,10 +66,15 @@ public class ImClient {
     /// 向指定的多个客户端id发送消息
     /// </summary>
     public void SendMessage(MessageEvent msg) {
+        Console.WriteLine($"[ImClient] SendMessage开始: SenderClientId={msg.SenderClientId}, ReceiverCount={msg.ReceiverClientIds.Count}, MessageType={msg.Message.type}");
+        
         //有可能掉线了不在chanlist里.把自己加上
         msg.ReceiverClientIds.Add(msg.Message.from);
+        Console.WriteLine($"[ImClient] 添加发送者到接收列表: From={msg.Message.from}");
 
         msg.ReceiverClientIds = msg.ReceiverClientIds.Distinct().ToList();
+        Console.WriteLine($"[ImClient] 去重后接收者数量: {msg.ReceiverClientIds.Count}");
+        
         Dictionary<string, ImSendEventArgs> dic = new();
 
         foreach (var clientId in msg.ReceiverClientIds) {
@@ -80,13 +85,26 @@ public class ImClient {
             dic[server].ReceiveClientIds.Add(clientId);
         }
 
+        Console.WriteLine($"[ImClient] 按服务器分组: {dic.Count}个服务器");
+
         // var messageJson = JsonConvert.SerializeObject(message);
         foreach (var sendArgs in dic.Values) {
+            Console.WriteLine($"[ImClient] 发布消息到Redis: Server={sendArgs.Server}, ReceiverCount={sendArgs.ReceiveClientIds.Count}");
+            
             OnSend?.Invoke(this, sendArgs);
-            Redis.Publish($"{RedisPrefix}Server_Local",
-                JsonConvert.SerializeObject(
-                    new MessageEvent(msg.SenderClientId, sendArgs.ReceiveClientIds, msg.Message, sendArgs.Receipt)));
+            
+            var redisChannel = $"{RedisPrefix}Server_Local";
+            var messageEvent = new MessageEvent(msg.SenderClientId, sendArgs.ReceiveClientIds, msg.Message, sendArgs.Receipt);
+            var messageJson = JsonConvert.SerializeObject(messageEvent);
+            
+            Console.WriteLine($"[ImClient] Redis发布: Channel={redisChannel}, Message={messageJson}");
+            
+            Redis.Publish(redisChannel, messageJson);
+            
+            Console.WriteLine($"[ImClient] Redis发布完成");
         }
+        
+        Console.WriteLine($"[ImClient] SendMessage完成");
     }
 
     /// <summary>
@@ -260,11 +278,21 @@ public class ImClient {
     /// <param name="chan">群聊频道名</param>
     /// <param name="message">消息</param>
     public void SendChanMessage(long senderClientId, string chan, ChatMessage message) {
+        Console.WriteLine($"[ImClient] SendChanMessage开始: senderClientId={senderClientId}, chan={chan}, messageType={message.type}");
+        
         var websocketIds = Redis.HKeys($"{RedisPrefix}Chan{chan}");
-
-        SendMessage(
-            new MessageEvent(senderClientId, websocketIds.Where(a => !string.IsNullOrEmpty(a))
-                .Select(a => long.TryParse(a, out var tryuuid) ? tryuuid : 0).Where(x => x != 0).ToList(), message));
+        Console.WriteLine($"[ImClient] 获取频道用户列表: 频道={chan}, 用户数量={websocketIds.Length}");
+        
+        var validClientIds = websocketIds.Where(a => !string.IsNullOrEmpty(a))
+            .Select(a => long.TryParse(a, out var tryuuid) ? tryuuid : 0).Where(x => x != 0).ToList();
+        
+        Console.WriteLine($"[ImClient] 有效用户ID列表: {string.Join(",", validClientIds)}");
+        
+        var messageEvent = new MessageEvent(senderClientId, validClientIds, message);
+        Console.WriteLine($"[ImClient] 创建MessageEvent: SenderClientId={messageEvent.SenderClientId}, ReceiverCount={messageEvent.ReceiverClientIds.Count}");
+        
+        SendMessage(messageEvent);
+        Console.WriteLine($"[ImClient] SendChanMessage完成");
     }
 
     #endregion

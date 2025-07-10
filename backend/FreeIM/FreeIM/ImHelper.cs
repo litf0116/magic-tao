@@ -124,8 +124,12 @@ public static class ImHelper {
     /// <param name="senderClientId">发送者的客户端id</param>
     /// <param name="chan">群聊频道名</param>
     /// <param name="message">消息</param>
-    public static void SendChanMessage(long senderClientId, string chan, ChatMessage message) =>
-        Instance.SendChanMessage(0, chan, message);
+            public static void SendChanMessage(long senderClientId, string chan, ChatMessage message)
+        {
+            Console.WriteLine($"[ImHelper] SendChanMessage调用: senderClientId={senderClientId}, chan={chan}, messageType={message.type}");
+            Instance.SendChanMessage(0, chan, message);
+            Console.WriteLine($"[ImHelper] SendChanMessage调用完成");
+        }
 
     #endregion
 }

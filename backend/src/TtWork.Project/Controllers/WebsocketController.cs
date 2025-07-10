@@ -293,6 +293,9 @@ namespace TtWork.Project.Controllers
                 // 帐号禁用判断
                 throw new UserFriendlyException(1, AppConsts.UserBanText);
             }
+
+            input.From = cacheUser.Id;
+            
             //移除'玩家xxxxx加入群聊'的提示
             //只显示已经修改过名字和头像的玩家的提示   
             if (input.Message is { type: ChatMessageType.Welcome })
@@ -304,6 +307,7 @@ namespace TtWork.Project.Controllers
 
             input.Message = await CheckMsgText(input.Message);
             input.Message.id = Guid.NewGuid();
+            input.Message.chan = input.Chan.ToString();
 
             var isChatAdmin = await CheckIsChatAdmin(cacheUser);
 

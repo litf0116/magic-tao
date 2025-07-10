@@ -32,20 +32,28 @@ namespace imServer
 
             app.UseDeveloperExceptionPage();
 
-            app.UseFreeImServer(new ImServerOptions
-            {
-                Redis = new FreeRedis.RedisClient(Configuration["ImServerOption:RedisClient"]),
-
+            var redisClient = new FreeRedis.RedisClient(Configuration["ImServerOption:RedisClient"]);
+            
 #if DEBUG
                 //Servers = "8.130.178.251:6001".Split(";"),
                 //Server = "8.130.178.251:6001"
-                Servers = "127.0.0.1:6001".Split(";"),
-                Server = "127.0.0.1:6001"
+                var servers = "127.0.0.1:6001".Split(";");
+                var server = "127.0.0.1:6001";
 #else
-                Servers = "ws.molitao.top".Split(";"),
-                Server = "ws.molitao.top"
+                var servers = "ws.molitao.top".Split(";");
+                var server = "ws.molitao.top";
 #endif
+
+            Console.WriteLine($"[ImServer] 配置FreeImServer: Redis={Configuration["ImServerOption:RedisClient"]}, Servers={string.Join(",", servers)}, Server={server}");
+            
+            app.UseFreeImServer(new ImServerOptions
+            {
+                Redis = redisClient,
+                Servers = servers,
+                Server = server
             });
+            
+            Console.WriteLine($"[ImServer] FreeImServer配置完成");
         }
     }
 }

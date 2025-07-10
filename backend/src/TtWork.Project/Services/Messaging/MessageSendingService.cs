@@ -71,24 +71,35 @@ namespace TtWork.Project.Services.Messaging
 
         public async Task<SendMessageResult> SendChannelMessageAsync(long fromUserId, string channel, ChatMessage message, MessageSendOptions options = null)
         {
+            _logger.LogInformation("=== SendChannelMessageAsync开始 === FromUserId={FromUserId}, Channel={Channel}, MessageType={MessageType}", 
+                fromUserId, channel, message.type);
+
             options ??= new MessageSendOptions();
             
             try
             {
                 // 1. 验证和增强消息
+                _logger.LogInformation("开始验证和增强消息");
                 var (isValid, errorMessage, enrichedMessage, userInfo) = await ValidateAndEnrichMessageAsync(fromUserId, message, channel, options);
                 if (!isValid)
                 {
+                    _logger.LogError("消息验证失败: {ErrorMessage}", errorMessage);
                     return SendMessageResult.CreateFailure(errorMessage);
                 }
 
+                _logger.LogInformation("消息验证和增强成功: FromName={FromName}, FromAdmin={FromAdmin}, FromTag={FromTag}", 
+                    enrichedMessage.fromName, enrichedMessage.fromAdmin, enrichedMessage.fromTag);
+
                 // 2. 生成序列号
+                _logger.LogInformation("生成序列号");
                 var sequenceNumber = await _messageSequenceService.GetNextSequenceNumberForChannelAsync(channel);
+                _logger.LogInformation("序列号生成成功: {SequenceNumber}", sequenceNumber);
 
                 // 3. 持久化消息
                 Message entity = null;
                 if (options.PersistToDatabase && enrichedMessage.type != ChatMessageType.Welcome)
                 {
+                    _logger.LogInformation("开始持久化消息到数据库");
                     entity = new Message(enrichedMessage, sequenceNumber)
                     {
                         Ip = GetClientIp(),
@@ -104,18 +115,37 @@ namespace TtWork.Project.Services.Messaging
                     enrichedMessage.time = entity.Time;
                     enrichedMessage.sequenceNumber = entity.SequenceNumber;
 
+                    _logger.LogInformation("消息持久化成功: MessageId={MessageId}, Time={Time}", entity.Id, entity.Time);
+
                     // 触发聊天消息发送事件
                     await _eventBus.TriggerAsync(new ChatMessageSentEvent(entity.Id));
+                    _logger.LogInformation("聊天消息发送事件已触发");
+                }
+                else
+                {
+                    _logger.LogInformation("跳过消息持久化: PersistToDatabase={PersistToDatabase}, MessageType={MessageType}", 
+                        options.PersistToDatabase, enrichedMessage.type);
                 }
 
                 // 4. 投递消息
                 if (options.SendImmediately)
                 {
+                    _logger.LogInformation("开始通过ImHelper发送消息: FromUserId={FromUserId}, Channel={Channel}", fromUserId, channel);
                     ImHelper.SendChanMessage(fromUserId, channel, enrichedMessage);
+                    _logger.LogInformation("ImHelper.SendChanMessage调用完成");
+                }
+                else
+                {
+                    _logger.LogInformation("跳过立即发送: SendImmediately={SendImmediately}", options.SendImmediately);
                 }
 
-                return SendMessageResult.CreateSuccess(entity?.Id, sequenceNumber, 
+                var result = SendMessageResult.CreateSuccess(entity?.Id, sequenceNumber, 
                     entity != null ? DateTimeOffset.FromUnixTimeMilliseconds(entity.Time).DateTime : DateTime.Now, enrichedMessage);
+
+                _logger.LogInformation("=== SendChannelMessageAsync完成 === Success={Success}, MessageId={MessageId}, SequenceNumber={SequenceNumber}", 
+                    result.Success, result.MessageId, result.SequenceNumber);
+
+                return result;
             }
             catch (Exception ex)
             {
@@ -259,6 +289,9 @@ namespace TtWork.Project.Services.Messaging
 
         public async Task<SendMessageResult> SendAuctionMessageAsync(long fromUserId, long? toUserId, string channel, ChatMessage message, bool isSystemMessage = false)
         {
+            _logger.LogInformation("=== SendAuctionMessageAsync开始 === FromUserId={FromUserId}, ToUserId={ToUserId}, Channel={Channel}, IsSystemMessage={IsSystemMessage}, MessageType={MessageType}", 
+                fromUserId, toUserId, channel, isSystemMessage, message.type);
+
             var options = new MessageSendOptions
             {
                 SkipPermissionCheck = isSystemMessage,
@@ -267,18 +300,30 @@ namespace TtWork.Project.Services.Messaging
                 AddUserChatLevel = !isSystemMessage
             };
 
+            _logger.LogInformation("消息发送选项: SkipPermissionCheck={SkipPermissionCheck}, AddAdminTag={AddAdminTag}, AddUserChatLevel={AddUserChatLevel}", 
+                options.SkipPermissionCheck, options.AddAdminTag, options.AddUserChatLevel);
+
+            SendMessageResult result;
             if (!string.IsNullOrEmpty(channel))
             {
-                return await SendChannelMessageAsync(fromUserId, channel, message, options);
+                _logger.LogInformation("发送频道消息: Channel={Channel}", channel);
+                result = await SendChannelMessageAsync(fromUserId, channel, message, options);
             }
             else if (toUserId.HasValue)
             {
-                return await SendPrivateMessageAsync(fromUserId, toUserId.Value, message, false, options);
+                _logger.LogInformation("发送私聊消息: ToUserId={ToUserId}", toUserId.Value);
+                result = await SendPrivateMessageAsync(fromUserId, toUserId.Value, message, false, options);
             }
             else
             {
-                return SendMessageResult.CreateFailure("无效的拍卖消息发送请求：缺少频道或接收者");
+                _logger.LogError("无效的拍卖消息发送请求：缺少频道或接收者");
+                result = SendMessageResult.CreateFailure("无效的拍卖消息发送请求：缺少频道或接收者");
             }
+
+            _logger.LogInformation("=== SendAuctionMessageAsync完成 === Success={Success}, MessageId={MessageId}, ErrorMessage={ErrorMessage}", 
+                result.Success, result.MessageId, result.Message);
+
+            return result;
         }
 
         #region 私有方法
