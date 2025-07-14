@@ -417,7 +417,7 @@ public class ClientAppService(
     /// </summary>
     /// <returns>聊天列表</returns>
     [HttpGet]
-    public async Task<List<ChatListItem>> GetChatListV2()
+    public async Task<List<ChatListItem>> GetChatListOptimized()
     {
         var result = new List<ChatListItem>();
 
@@ -516,6 +516,16 @@ public class ClientAppService(
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// 获取聊天列表V2版本 - 返回与GetChatList相同的数据
+    /// </summary>
+    /// <returns>聊天列表</returns>
+    [HttpGet]
+    public async Task<List<ChatListItem>> GetChatListV2()
+    {
+        return await GetChatList();
     }
 
     /// <summary>

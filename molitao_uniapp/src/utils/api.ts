@@ -169,7 +169,7 @@ export default {
         payDeposit: (data: any) => request('GET', `/api/services/app/Client/PayDeposit`, data),
         TopUp: (data: any) => request('GET', `/api/services/app/Client/TopUp`, data),
         getMyCount: () => request('GET', `/api/services/app/Client/GetMyCount`),
-        getChatList: () => request('GET', `/api/services/app/Client/GetChatListV2`),
+        getChatList: () => request('GET', `/api/services/app/Client/GetChatList`),
         DeleteChatList: (data: any) => request('GET', `/api/services/app/Client/DeleteChatList`, data),
         PayWithdrawal: (data: any) => request('POST', `/api/services/app/Client/PayWithdrawal`, data),
     },
