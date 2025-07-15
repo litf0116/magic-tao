@@ -117,8 +117,8 @@ namespace TtWork.Project.Services.Messaging
 
                     _logger.LogInformation("消息持久化成功: MessageId={MessageId}, Time={Time}", entity.Id, entity.Time);
 
-                    // 触发聊天消息发送事件
-                    await _eventBus.TriggerAsync(new ChatMessageSentEvent(entity.Id));
+                    // 触发聊天消息发送事件（异步执行，无需等待）
+                    _eventBus.TriggerAsync(new ChatMessageSentEvent(entity.Id));
                     _logger.LogInformation("聊天消息发送事件已触发");
                 }
                 else
@@ -201,11 +201,6 @@ namespace TtWork.Project.Services.Messaging
                 {
                     ImHelper.SendMessage(fromUserId, [toUserId], enrichedMessage, isReceipt);
                 }
-
-                // 5. 清理聊天删除记录
-                await _chatListDeleteRepository.GetAll().Where(x =>
-                    (x.UserId == fromUserId && x.ToUserId == toUserId) || 
-                    (x.UserId == toUserId && x.ToUserId == fromUserId)).ExecuteDeleteAsync();
 
                 return SendMessageResult.CreateSuccess(entity?.Id, sequenceNumber, 
                     entity != null ? DateTimeOffset.FromUnixTimeMilliseconds(entity.Time).DateTime : DateTime.Now, enrichedMessage);

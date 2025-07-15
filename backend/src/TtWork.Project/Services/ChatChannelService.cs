@@ -106,30 +106,15 @@ public class ChatChannelService : DomainService
     /// <summary>
     /// 自动恢复被隐藏的私聊频道
     /// 当有新消息时，如果用户之前删除了与对方的聊天，则自动恢复
+    /// 注意：此逻辑已迁移到 MessageSentEventHandler 中，保留此方法以兼容现有调用
     /// </summary>
     /// <param name="fromUserId">发送者用户ID</param>
     /// <param name="toUserId">接收者用户ID</param>
     private async Task AutoRestoreHiddenPrivateChannel(long fromUserId, long toUserId)
     {
-        // 检查接收者是否隐藏了与发送者的聊天
-        var hiddenRecord = await _chatListDeleteRepository.FirstOrDefaultAsync(x =>
-            x.UserId == toUserId && x.ToUserId == fromUserId);
-
-        if (hiddenRecord != null)
-        {
-            // 删除隐藏记录，恢复聊天显示
-            await _chatListDeleteRepository.DeleteAsync(hiddenRecord);
-        }
-
-        // 检查发送者是否隐藏了与接收者的聊天（如果发送者重新发起对话）
-        var senderHiddenRecord = await _chatListDeleteRepository.FirstOrDefaultAsync(x =>
-            x.UserId == fromUserId && x.ToUserId == toUserId);
-
-        if (senderHiddenRecord != null)
-        {
-            // 删除隐藏记录，恢复聊天显示
-            await _chatListDeleteRepository.DeleteAsync(senderHiddenRecord);
-        }
+        // 此逻辑已迁移到 MessageSentEventHandler 中
+        // 保留此方法以兼容现有调用，但实际不再执行任何操作
+        await Task.CompletedTask;
     }
 
     /// <summary>
