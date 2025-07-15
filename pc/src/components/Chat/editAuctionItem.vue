@@ -89,15 +89,23 @@ const submitForm = async () => {
 }
 
 function realSave() {
+    // 调试：检查提交时的description字段
+    console.log('提交时的form数据:', form.value)
+    console.log('提交时的description字段:', form.value.description)
+
     let _api
     if (form.value.id) _api = api.auctionItem.update
     else _api = api.auctionItem.create
 
     _api({ body: form.value }).then((res) => {
+        console.log('保存成功，返回数据:', res)
         Tips.success('成功')
         emit('onSaved')
         // userStore.getUserInfo()
         dialogVisible.value = false
+    }).catch((error) => {
+        console.error('保存失败:', error)
+        Tips.error('保存失败')
     })
 }
 
@@ -111,7 +119,10 @@ const show = (e: boolean, id: number) => {
     if (e) {
         api.auctionItem.getForEdit({ id: id }).then((res) => {
             form.value = res.data!
-            contentTarget.value!.innerHTML = res.data!.description as string
+            // 修复：正确处理description字段，避免null或undefined
+            const description = res.data!.description || ''
+            contentTarget.value!.innerHTML = description
+            console.log('获取到的description字段:', description)
         })
     }
 }
@@ -120,10 +131,10 @@ defineExpose({
 })
 
 function onInput(e) {
-    console.log(typeof e, e)
-    form.value.description = e.target.innerHTML
-
-    // form.value.description = e.target.innerHTML
+    console.log('onInput事件:', e.target.innerHTML)
+    // 修复：确保description字段正确保存
+    form.value.description = e.target.innerHTML || ''
+    console.log('保存的description字段:', form.value.description)
 }
 
 async function onPaste(e: ClipboardEvent) {

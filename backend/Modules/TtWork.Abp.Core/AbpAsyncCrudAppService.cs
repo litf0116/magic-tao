@@ -58,11 +58,27 @@ namespace TtWork.Abp {
 
             var schema = JToken.FromObject(new { });
 
-            return new GetForEditOutput<TCreateInput>(
+            var result = new GetForEditOutput<TCreateInput>(
                 entity != null
                     ? ObjectMapper.Map<TCreateInput>(entity)
                     : Activator.CreateInstance<TCreateInput>(),
                 schema);
+            
+            // 调试：检查GetForEdit返回的description字段
+            if (entity != null && result.Data is dynamic dynamicData)
+            {
+                try
+                {
+                    var description = dynamicData.Description;
+                    Logger.Debug($"GetForEdit返回的description字段: {description}");
+                }
+                catch (Exception ex)
+                {
+                    Logger.Debug($"GetForEdit检查description字段时出错: {ex.Message}");
+                }
+            }
+
+            return result;
         }
 
         public override async Task<TEntityDto> GetAsync(EntityDto<TPrimaryKey> input) {

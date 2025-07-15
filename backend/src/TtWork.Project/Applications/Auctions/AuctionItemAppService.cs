@@ -1246,7 +1246,13 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     // 重写CRUD方法，在数据变更时清理缓存
     public override async Task<AuctionItemDto> CreateAsync(AuctionItemCreateOrUpdateDto input)
     {
+        // 调试：检查description字段
+        _logger.LogInformation("创建拍品时description字段: {Description}", input.Description);
+        
         var result = await base.CreateAsync(input);
+
+        // 调试：检查创建后的description字段
+        _logger.LogInformation("创建拍品后description字段: {Description}", result.Description);
 
         // 清除缓存和发布事件
         await _cacheService.ClearAuctionListCacheAsync();
@@ -1260,7 +1266,13 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
 
     public override async Task<AuctionItemDto> UpdateAsync(AuctionItemCreateOrUpdateDto input)
     {
+        // 调试：检查更新时description字段
+        _logger.LogInformation("更新拍品时description字段: {Description}", input.Description);
+        
         var result = await base.UpdateAsync(input);
+
+        // 调试：检查更新后的description字段
+        _logger.LogInformation("更新拍品后description字段: {Description}", result.Description);
 
         // 清除缓存和发布事件
         await _cacheService.ClearAuctionListCacheAsync();
