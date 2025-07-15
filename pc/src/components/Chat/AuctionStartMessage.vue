@@ -18,7 +18,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-    action: [{ message: ChatMessage; payload: unknown }]
+    action: [{ message: ChatMessage; payload: unknown; type?: string; imageUrl?: string }]
 }>()
 
 const payloadData = computed(() => {
@@ -36,14 +36,12 @@ const handleAction = () => {
 
 // 处理图片点击事件
 const handleImageClick = (event: Event) => {
-    // 阻止事件冒泡，避免触发整个组件的点击事件
-    event.stopPropagation()
-
+    let imageUrl = ''
     if (event.target instanceof HTMLImageElement) {
-        // 这里可以添加图片预览逻辑
-        console.log('Image clicked:', event.target.src)
-        // 可以emit一个图片点击事件给父组件处理
-        // emit('imageClick', event.target.src)
+        imageUrl = event.target.src
+    }
+    if (imageUrl) {
+        emit('action', { message: props.message, payload: payloadData.value, type: 'image', imageUrl })
     }
 }
 </script>

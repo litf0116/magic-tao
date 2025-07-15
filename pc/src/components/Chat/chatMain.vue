@@ -97,7 +97,7 @@
                                     <AuctionStartMessage
                                         v-if="message.type === ChatMessageType.AuctionStart"
                                         :message="message"
-                                        @action="catchImage"
+                                        @action="catchAction"
                                     />
                                     <!-- 出价 -->
                                     <AuctionBidMessage
@@ -676,6 +676,19 @@ function catchImage(e: ChatMessage) {
     }
 }
 
+function catchAction({
+    message,
+    payload,
+    type,
+    imageUrl,
+}: {
+    message: ChatMessage
+    payload: any
+    type?: string
+    imageUrl?: string
+}) {
+    showDetails({ message, payload })
+}
 //显示详情
 function showDetails(e) {
     console.log('showDetails', e)
