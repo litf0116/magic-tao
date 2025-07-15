@@ -433,11 +433,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 // 计算用户群聊等级
                 if (maxPrice != null)
                 {
-                    await AddUserGroupChatLevel(new UserGroupLevelDto
-                    {
-                        CumulativeAmount = maxPrice.BidPrice,
-                        UserId = find.CurrentPriceUserId.Value,
-                    });
+                    await AddUserGroupChatLevelIncrement(find.CurrentPriceUserId.Value, maxPrice.BidPrice);
                 }
 
                 // 设置商品为已成交状态
@@ -574,9 +570,105 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     }
 
     /// <summary>
-    /// 添加用户群聊等级
+    /// 累加用户群聊等级金额（用于拍卖成交时）
     /// </summary>
-    /// <param name="input"></param>
+    /// <param name="userId">用户ID</param>
+    /// <param name="incrementAmount">增量金额（本次出价金额）</param>
+    /// <returns></returns>
+    private async Task AddUserGroupChatLevelIncrement(long userId, decimal incrementAmount)
+    {
+        try
+        {
+            //查询用户群聊等级信息
+            var info = await _sqlSugarClient.Queryable<UserGroupLevelEntity>()
+                .FirstAsync(f => f.UserId == userId);
+            if (info == null)
+            {
+                info = new UserGroupLevelEntity() { CumulativeAmount = 0 };
+            }
+
+            //查询群等级信息
+            var groupChatLevelSettings = await _sqlSugarClient.Queryable<GroupChatLevelSettingsEntity>()
+                .Where(w => w.AmountRequired <= (incrementAmount + info.CumulativeAmount)) // 找到小于等于当前累计金额的等级配置
+                .OrderByDescending(o => o.AmountRequired) // 按金额要求降序排序，找到最接近的等级
+                .FirstAsync();
+            if (groupChatLevelSettings == null)
+            {
+                throw new UserFriendlyException($"没有匹配的群聊等级信息！");
+            }
+
+            //存在用户群聊等级信息就修改
+            if (info != null && info.Id != 0)
+            {
+                info.CumulativeAmount += incrementAmount;
+                info.GroupChatId = groupChatLevelSettings.Id;
+                await _sqlSugarClient.Updateable(info).ExecuteCommandAsync();
+            }
+            else
+            {
+                await _sqlSugarClient.Insertable(new UserGroupLevelEntity
+                {
+                    UserId = userId,
+                    CumulativeAmount = incrementAmount,
+                    GroupChatId = groupChatLevelSettings.Id,
+                }).ExecuteCommandAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new UserFriendlyException($"累加用户群聊等级金额失败，错误信息：" + ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// 设置用户群聊等级总金额（用于手动调整时）
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="totalAmount">总金额</param>
+    /// <returns></returns>
+    private async Task SetUserGroupChatLevelTotal(long userId, decimal totalAmount)
+    {
+        try
+        {
+            //查询群等级信息
+            var groupChatLevelSettings = await _sqlSugarClient.Queryable<GroupChatLevelSettingsEntity>()
+                .Where(w => w.AmountRequired <= totalAmount) // 找到小于等于当前累计金额的等级配置
+                .OrderByDescending(o => o.AmountRequired) // 按金额要求降序排序，找到最接近的等级
+                .FirstAsync();
+            if (groupChatLevelSettings == null)
+            {
+                throw new UserFriendlyException($"没有匹配的群聊等级信息！");
+            }
+
+            //查询用户等级信息
+            var info = await _sqlSugarClient.Queryable<UserGroupLevelEntity>().FirstAsync(f => f.UserId == userId);
+            if (info != null)
+            {
+                info.CumulativeAmount = totalAmount;
+                info.GroupChatId = groupChatLevelSettings.Id;
+                await _sqlSugarClient.Updateable(info).ExecuteCommandAsync();
+            }
+            else
+            {
+                await _sqlSugarClient.Insertable(new UserGroupLevelEntity
+                {
+                    UserId = userId,
+                    CumulativeAmount = totalAmount,
+                    GroupChatId = groupChatLevelSettings.Id,
+                }).ExecuteCommandAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new UserFriendlyException($"设置用户群聊等级总金额失败，错误信息：" + ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// 添加用户群聊等级（原有方法，保持向后兼容）
+    /// 注意：此方法中的CumulativeAmount参数实际作为增量金额处理，建议使用新的重载方法以获得更清晰的语义
+    /// </summary>
+    /// <param name="input">用户群聊等级信息，其中CumulativeAmount作为增量金额</param>
     /// <returns></returns>
     private async Task AddUserGroupChatLevel(UserGroupLevelDto input)
     {
