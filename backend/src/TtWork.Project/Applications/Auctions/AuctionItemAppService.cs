@@ -530,11 +530,24 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             var payloadObj = JObject.FromObject(auctionResult);
             payloadObj["status"] = auctionResult.Status.ToString();
 
+            // 为群组消息设置有意义的内容，确保群组列表能显示最后消息
+            string groupMessage;
+            if (hasBids)
+            {
+                // 拍卖成功：显示成交信息
+                groupMessage = $"恭喜 {auctionResult.DealUserName} 以 ￥{auctionResult.FinalPrice} 拍得 {auctionResult.Name}";
+            }
+            else
+            {
+                // 流拍：显示流拍信息
+                groupMessage = "拍卖结束，无人出价，商品已回退";
+            }
+
             var auctionEndMessage = new ChatMessage
             {
                 type = ChatMessageType.AuctionEnd,
                 chan = "-1_auction",
-                msg = hasBids ? "" : "拍卖结束，无人出价，商品已回退",
+                msg = groupMessage,
                 payload = payloadObj
             };
 
