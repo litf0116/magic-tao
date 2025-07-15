@@ -189,6 +189,9 @@ public class GroupChatLevelSettingsService : AbpAppServiceBase
 
     /// <summary>
     /// 获取用户等级信息（包含等级配置）
+    /// 兼容性接口：同时支持新旧版本小程序
+    /// 新版本小程序使用 levelResponse.userLevel 和 levelResponse.levelSettings 获取数据
+    /// 旧版本小程序使用 levelResponse.data.userLevel 和 levelResponse.data.levelSettings 获取数据
     /// </summary>
     /// <param name="id">用户ID</param>
     /// <returns>用户等级信息和等级配置</returns>
@@ -259,5 +262,38 @@ public class GroupChatLevelSettingsService : AbpAppServiceBase
         {
             throw new UserFriendlyException($"获取用户等级信息失败，错误信息：" + ex.Message);
         }
+    }
+
+    /// <summary>
+    /// 测试数据结构兼容性（仅用于开发测试）
+    /// </summary>
+    /// <returns>测试用的数据结构示例</returns>
+    [HttpGet("TestDataStructure")]
+    [AbpAuthorize]
+    public UserLevelInfoDto TestDataStructure()
+    {
+        var testUserLevel = new UserGroupLevelEntity
+        {
+            UserId = 1270,
+            GroupChatId = 6,
+            CumulativeAmount = 73164.00m,
+            Id = 55
+        };
+
+        var testLevelSettings = new GroupChatLevelSettingsEntity
+        {
+            Name = "诅咒迷宫の双王",
+            Level = 5,
+            AmountRequired = 38888.00m,
+            BorderColor = "#0228FF",
+            RightBorderColor = "#0149FF",
+            Id = 6
+        };
+
+        return new UserLevelInfoDto
+        {
+            UserLevel = testUserLevel,
+            LevelSettings = testLevelSettings
+        };
     }
 }
