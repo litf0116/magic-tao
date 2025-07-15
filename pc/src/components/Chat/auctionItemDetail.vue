@@ -29,7 +29,11 @@
             <div>
                 <div v-if="item.description" id="auctionDesc" v-html="item.description"></div>
                 <div v-else>
-                    <img :src="`${item.imageUrl}`" class="w-full h-48 cursor-pointer object-cover" />
+                    <img
+                        :src="`${item.imageUrl}`"
+                        class="w-full h-48 cursor-pointer object-cover"
+                        @click.stop="handleDetailImageClick(item.imageUrl)"
+                    />
                 </div>
             </div>
         </div>
@@ -190,6 +194,14 @@ watch(
 )
 
 const showImageViewer = inject('showImageViewer') as (list: string[]) => void
+
+// 处理详情图片点击事件
+function handleDetailImageClick(imageUrl: string) {
+    if (!imageUrl) return
+    // 移除缩略图参数，获取原图
+    let src = imageUrl.replace(/!w300$/, '')
+    showImageViewer([src])
+}
 
 const show = (e: boolean, id: number) => {
     dialogVisible.value = e

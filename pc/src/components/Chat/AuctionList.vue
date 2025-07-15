@@ -14,7 +14,7 @@
             <template v-if="activeName === '1'">
                 <div class="grid grid-cols-1 gap-2">
                     <list-auction-item
-                        v-for="(x, index) in waitList"
+                        v-for="x in waitList"
                         :key="x.id"
                         :item="x"
                         :index="getItemIndex(x)"
@@ -52,7 +52,11 @@
         >
             <!-- {{ onAuctionItem }} -->
             <div class="relative h-48 overflow-hidden" @click.stop="showDetail(onAuctionItem.id)">
-                <img :src="`${onAuctionItem.imageUrl}`" class="w-full h-48 cursor-pointer object-cover" />
+                <img
+                    :src="`${onAuctionItem.imageUrl}`"
+                    class="w-full h-48 cursor-pointer object-cover"
+                    @click.stop="handleImageClick(onAuctionItem.imageUrl)"
+                />
                 <div class="absolute bottom-0 left-0 right-0 bg-dark/80 z-2 h-24">
                     <div class="line-clamp-2 text-white text-sm h-12 flex flex-center px-2">
                         <b>{{ onAuctionItem.name }}</b>
@@ -107,7 +111,7 @@
             <!-- //用户菜单 -->
             <el-tooltip content="刷新拍品" effect="customized">
                 <div class="bg-gray-3 size-12 rounded-full flex flex-center cursor-pointer">
-                    <div class="i-mdi:refresh size-6 text-white" @click.stop="auctionStore.getList"></div>
+                    <div class="i-mdi:refresh size-6 text-white" @click.stop="() => auctionStore.getList()"></div>
                 </div>
             </el-tooltip>
         </div>
@@ -163,6 +167,17 @@ const onAuctionItem = computed(() => {
 })
 
 const chatStore = useChatStore()
+
+// 注入图片查看器
+const showImageViewer = inject('showImageViewer') as (list: string[]) => void
+
+// 处理图片点击事件
+const handleImageClick = (imageUrl: string) => {
+    if (!imageUrl) return
+    // 移除缩略图参数，获取原图
+    let src = imageUrl.replace(/!w300$/, '')
+    showImageViewer([src])
+}
 
 onMounted(() => {
     ps = new PerfectScrollbar('#ps_container', {
@@ -383,7 +398,7 @@ async function toggleKasec() {
     console.log('卡秒操作:', { auctionItemId: onAuctionItem.value.id, isKasec })
     const result = await auctionStore.setKasec(onAuctionItem.value.id, isKasec)
     console.log('卡秒操作结果:', result)
-    
+
     // 后端API已经会自动发送KasecStatusChanged系统消息，前端不需要额外发送消息
 }
 </script>
