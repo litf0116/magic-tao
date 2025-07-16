@@ -363,6 +363,16 @@ export const useChatStore = defineStore('chat', () => {
             }
             return
         }
+
+        // 特殊处理：监听拍卖结束消息，为中拍用户创建聊天频道
+        if (msg.type === 'AuctionEnd' && msg.payload) {
+            console.log('检测到拍卖结束消息，为中拍用户创建聊天频道', msg.payload)
+            // 如果当前用户是消息发送者（拍卖师），为中拍者创建聊天会话
+            const userStore = useUserStore()
+            if (msg.from === userStore.user.id) {
+                addAuctionDealUser(msg.payload, 'AuctionEnd')
+            }
+        }
     }
 
     const getGropus = function () {
@@ -642,6 +652,73 @@ export const useChatStore = defineStore('chat', () => {
         }
     }
 
+    // 新增：为中拍用户创建聊天频道
+    const addAuctionDealUser = (auctionResult: any, messageType: 'AuctionEnd' | 'AuctionDeal' = 'AuctionEnd') => {
+        // 兼容不同的属性名格式
+        const dealUserId = auctionResult.dealUserId || auctionResult.DealUserId
+        const dealUserName = auctionResult.dealUserName || auctionResult.DealUserName
+        const dealUserAvatar = auctionResult.dealUserAvatar || auctionResult.DealUserAvatar
+        const itemName = auctionResult.name || auctionResult.Name
+
+        if (!dealUserId || !dealUserName) {
+            console.warn('拍卖结果中缺少中拍用户信息', auctionResult)
+            return
+        }
+
+        // 检查是否已经存在该用户的聊天
+        const existingChat = chatList.value.find((item) => item.id === dealUserId)
+        if (existingChat) {
+            // 如果已存在，更新最后消息
+            existingChat.lastMsg = `恭喜您拍得了${itemName}`
+            existingChat.time = new Date().getTime()
+            // 将聊天项移到顶部
+            chatList.value = [
+                existingChat,
+                ...chatList.value.filter((item) => item.id !== dealUserId),
+            ]
+            return
+        }
+
+        // 构建最后消息内容
+        let lastMsg = ''
+        if (messageType === 'AuctionEnd') {
+            lastMsg = `恭喜您拍得了${itemName}`
+        } else if (messageType === 'AuctionDeal') {
+            lastMsg = auctionResult.toUserMsg || auctionResult.ToUserMsg || `恭喜您拍得了${itemName}`
+        }
+
+        // 构建聊天列表项
+        const chatItem: ChatListItem = {
+            id: dealUserId,
+            name: dealUserName,
+            type: ChatListItemType.user,
+            time: new Date().getTime(),
+            lastMsg: lastMsg,
+            avatar: dealUserAvatar || 'https://cdn.molitao.top/avater.png',
+            unread: 0,
+            order: 0,
+            msg: {
+                type: ChatMessageType.AuctionDeal,
+                from: dealUserId,
+                fromName: dealUserName,
+                avatar: dealUserAvatar,
+                msg: lastMsg,
+                time: new Date().getTime(),
+                payload: auctionResult
+            }
+        }
+
+                // 添加到聊天列表顶部
+        chatList.value = [chatItem, ...chatList.value.filter((item) => item.id !== dealUserId)]
+
+        // 初始化聊天记录
+        if (!chatMap.value.has(`${dealUserId}`)) {
+            chatMap.value.set(`${dealUserId}`, [chatItem.msg!])
+        }
+
+        console.log('已为中拍用户创建聊天频道', dealUserName)
+    }
+
     const getServerLastId = () => {
         return new Promise<string>((resolve) => {
             if (currentChat.value.type === 0) {
@@ -701,6 +778,7 @@ export const useChatStore = defineStore('chat', () => {
         deleteChat,
         clear,
         removeMessage,
+        addAuctionDealUser,
         getServerLastId,
     }
 })
