@@ -450,70 +450,54 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 if (!hasBids)
                 {
                     // 发送流拍消息
-                    var flowPayload = new
-                    {
-                        name = result.Name,
-                        finalPrice = result.FinalPrice,
-                        dealTime = result.DealTime,
-                        dealUserName = result.DealUserName,
-                        dealUserId = result.DealUserId,
-                        toUserMsg = result.ToUserMsg,
-                        status = result.Status.ToString()
-                    };
-
                     var flowMessage = new ChatMessage
                     {
                         type = ChatMessageType.AuctionEnd,
                         chan = "-1_auction",
                         msg = "拍卖结束，无人出价，商品已回退",
-                        payload = flowPayload
+                        payload = result
                     };
 
-                    await _messageSendingService.SendAuctionMessageAsync(auctionManagerInfo.Id, null, "-1_auction",
-                        flowMessage, true);
+                    try
+                    {
+                        await _messageSendingService.SendAuctionMessageAsync(auctionManagerInfo.Id, null, "-1_auction",
+                            flowMessage, true);
+                        _logger.LogInformation("定时任务流拍消息发送成功: AuctionItemId={AuctionItemId}", auctionItem.Id);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "定时任务流拍消息发送失败: AuctionItemId={AuctionItemId}, Error={Error}", auctionItem.Id, ex.Message);
+                    }
                 }
                 else
                 {
                     // 发送拍卖成功消息
-                    var successPayload = new
-                    {
-                        id = auctionItem.Id,  // 添加拍品ID
-                        name = result.Name,
-                        finalPrice = result.FinalPrice,
-                        dealTime = result.DealTime,
-                        dealUserName = result.DealUserName,
-                        dealUserId = result.DealUserId,
-                        toUserMsg = result.ToUserMsg,
-                        status = result.Status.ToString()
-                    };
-
                     var successMessage = new ChatMessage
                     {
                         type = ChatMessageType.AuctionEnd,
                         chan = "-1_auction",
                         msg = $"恭喜 {result.DealUserName} 以 ￥{result.FinalPrice} 拍得 {result.Name}",
-                        payload = successPayload
+                        payload = result
                     };
 
-                    await _messageSendingService.SendAuctionMessageAsync(auctionManagerInfo.Id, null, "-1_auction",
-                        successMessage, true);
+                    try
+                    {
+                        await _messageSendingService.SendAuctionMessageAsync(auctionManagerInfo.Id, null, "-1_auction",
+                            successMessage, true);
+                        _logger.LogInformation("定时任务拍卖成功消息发送成功: AuctionItemId={AuctionItemId}, DealUserName={DealUserName}", 
+                            auctionItem.Id, result.DealUserName);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "定时任务拍卖成功消息发送失败: AuctionItemId={AuctionItemId}, Error={Error}", auctionItem.Id, ex.Message);
+                    }
 
                     // 发送成交用户私信
                     var dealMessage = new ChatMessage
                     {
                         type = ChatMessageType.AuctionDeal,
                         msg = result.ToUserMsg,
-                        payload = new
-                        {
-                            id = auctionItem.Id,  // 添加拍品ID
-                            name = result.Name,
-                            finalPrice = result.FinalPrice,
-                            dealTime = result.DealTime,
-                            dealUserName = result.DealUserName,
-                            dealUserId = result.DealUserId,
-                            toUserMsg = result.ToUserMsg,
-                            status = result.Status.ToString()
-                        }
+                        payload = result
                     };
 
                     if (result.DealUserId.HasValue)
@@ -953,71 +937,54 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             if (!hasBids)
             {
                 // 发送流拍消息
-                var flowPayload = new
-                {
-                    id = input.Id,  // 添加拍品ID
-                    name = result.Name,
-                    finalPrice = result.FinalPrice,
-                    dealTime = result.DealTime,
-                    dealUserName = result.DealUserName,
-                    dealUserId = result.DealUserId,
-                    toUserMsg = result.ToUserMsg,
-                    status = result.Status.ToString()
-                };
-
                 var flowMessage = new ChatMessage
                 {
                     type = ChatMessageType.AuctionEnd,
                     chan = "-1_auction",
                     msg = "拍卖结束，无人出价，商品已回退",
-                    payload = flowPayload
+                    payload = result
                 };
 
-                await _messageSendingService.SendAuctionMessageAsync(AbpSession.UserId.Value, null, "-1_auction",
-                    flowMessage, true);
+                try
+                {
+                    await _messageSendingService.SendAuctionMessageAsync(AbpSession.UserId.Value, null, "-1_auction",
+                        flowMessage, true);
+                    _logger.LogInformation("流拍消息发送成功: AuctionItemId={AuctionItemId}", input.Id);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "流拍消息发送失败: AuctionItemId={AuctionItemId}, Error={Error}", input.Id, ex.Message);
+                }
             }
             else
             {
                 // 发送拍卖成功消息
-                var successPayload = new
-                {
-                    id = input.Id,  // 添加拍品ID
-                    name = result.Name,
-                    finalPrice = result.FinalPrice,
-                    dealTime = result.DealTime,
-                    dealUserName = result.DealUserName,
-                    dealUserId = result.DealUserId,
-                    toUserMsg = result.ToUserMsg,
-                    status = result.Status.ToString()
-                };
-
                 var successMessage = new ChatMessage
                 {
                     type = ChatMessageType.AuctionEnd,
                     chan = "-1_auction",
                     msg = $"恭喜 {result.DealUserName} 以 ￥{result.FinalPrice} 拍得 {result.Name}",
-                    payload = successPayload
+                    payload = result
                 };
 
-                await _messageSendingService.SendAuctionMessageAsync(AbpSession.UserId.Value, null, "-1_auction",
-                    successMessage, true);
+                try
+                {
+                    await _messageSendingService.SendAuctionMessageAsync(AbpSession.UserId.Value, null, "-1_auction",
+                        successMessage, true);
+                    _logger.LogInformation("拍卖成功消息发送成功: AuctionItemId={AuctionItemId}, DealUserName={DealUserName}", 
+                        input.Id, result.DealUserName);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "拍卖成功消息发送失败: AuctionItemId={AuctionItemId}, Error={Error}", input.Id, ex.Message);
+                }
 
                 // 发送成交用户私信
                 var dealMessage = new ChatMessage
                 {
                     type = ChatMessageType.AuctionDeal,
                     msg = result.ToUserMsg,
-                    payload = new
-                    {
-                        id = input.Id,  // 添加拍品ID
-                        name = result.Name,
-                        finalPrice = result.FinalPrice,
-                        dealTime = result.DealTime,
-                        dealUserName = result.DealUserName,
-                        dealUserId = result.DealUserId,
-                        toUserMsg = result.ToUserMsg,
-                        status = result.Status.ToString()
-                    }
+                    payload = result
                 };
 
                 if (result.DealUserId.HasValue)
