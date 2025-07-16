@@ -55,7 +55,7 @@
                 <img
                     :src="`${onAuctionItem.imageUrl}`"
                     class="w-full h-48 cursor-pointer object-cover"
-                    @click.stop="handleImageClick(onAuctionItem.imageUrl)"
+                    @click.stop="showDetail(onAuctionItem.id)"
                 />
                 <div class="absolute bottom-0 left-0 right-0 bg-dark/80 z-2 h-24">
                     <div class="line-clamp-2 text-white text-sm h-12 flex flex-center px-2">

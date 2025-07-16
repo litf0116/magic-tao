@@ -27,7 +27,11 @@
         >
             <!-- {{ onAuctionItem }} -->
             <div>
-                <div v-if="item.description" id="auctionDesc" v-html="item.description"></div>
+                <div
+                    v-if="item.description && item.description.trim() !== '<br>' && item.description.trim() !== ''"
+                    id="auctionDesc"
+                    v-html="item.description"
+                ></div>
                 <div v-else>
                     <img
                         :src="`${item.imageUrl}`"
