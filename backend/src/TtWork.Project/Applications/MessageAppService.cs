@@ -85,9 +85,6 @@ public class MessageAppService(IRepository<Message, Guid> repository, ISqlSugarC
                     RightBorderColor = groupChatLevel.RightBorderColor
                 };
             }
-
-            // 处理拍卖消息payload的兼容性
-            ProcessAuctionPayloadCompatibility(item);
         }
 
         return list;
@@ -106,87 +103,7 @@ public class MessageAppService(IRepository<Message, Guid> repository, ISqlSugarC
         return find;
     }
 
-    /// <summary>
-    /// 处理拍卖消息payload的兼容性问题
-    /// 为AuctionEnd和AuctionDeal消息的关键字段添加大小写兼容性，解决小程序端显示问题
-    /// </summary>
-    /// <param name="message">聊天消息对象</param>
-    private void ProcessAuctionPayloadCompatibility(ChatMessage message)
-    {
-        // 处理拍卖结束和拍卖成交消息类型
-        if (message.type != ChatMessageType.AuctionEnd && message.type != ChatMessageType.AuctionDeal)
-        {
-            return;
-        }
 
-        try
-        {
-            // 如果payload是字符串，先解析为JObject
-            JObject payloadObj;
-            if (message.payload is string payloadStr)
-            {
-                payloadObj = JObject.Parse(payloadStr);
-            }
-            else if (message.payload is JObject jObj)
-            {
-                payloadObj = jObj;
-            }
-            else
-            {
-                // 如果不是JSON格式，直接返回
-                return;
-            }
-
-            // 处理关键字段的兼容性
-            var fieldsToProcess = new[]
-            {
-                ("Name", "name"),
-                ("DealUserName", "dealUserName"),
-                ("FinalPrice", "finalPrice"),
-                ("DealTime", "dealTime"),
-                ("ToUserMsg", "toUserMsg"),
-                ("DealUserId", "dealUserId")
-            };
-
-            foreach (var (upperField, lowerField) in fieldsToProcess)
-            {
-                // 如果存在大写字段，添加小写字段
-                if (payloadObj.ContainsKey(upperField) && !payloadObj.ContainsKey(lowerField))
-                {
-                    payloadObj[lowerField] = payloadObj[upperField];
-                }
-                // 如果存在小写字段，添加大写字段
-                else if (payloadObj.ContainsKey(lowerField) && !payloadObj.ContainsKey(upperField))
-                {
-                    payloadObj[upperField] = payloadObj[lowerField];
-                }
-            }
-
-            // 为私信消息添加特殊处理
-            if (message.type == ChatMessageType.AuctionDeal && message.to.HasValue)
-            {
-                // 确保私信消息包含必要的显示信息
-                if (!payloadObj.ContainsKey("messageType"))
-                {
-                    payloadObj["messageType"] = "auctionDeal";
-                }
-                
-                // 添加时间戳信息
-                if (!payloadObj.ContainsKey("timestamp"))
-                {
-                    payloadObj["timestamp"] = message.time;
-                }
-            }
-
-            // 更新消息的payload
-            message.payload = payloadObj;
-        }
-        catch (Exception ex)
-        {
-            // 记录错误但不影响消息返回
-            Logger.Error($"处理拍卖消息payload兼容性时出错: {ex.Message}");
-        }
-    }
 
     [HttpGet]
     [AbpAuthorize]
@@ -249,9 +166,6 @@ public class MessageAppService(IRepository<Message, Guid> repository, ISqlSugarC
                     RightBorderColor = groupChatLevel.RightBorderColor
                 };
             }
-
-            // 处理拍卖消息payload的兼容性
-            ProcessAuctionPayloadCompatibility(item);
         }
 
         return list;

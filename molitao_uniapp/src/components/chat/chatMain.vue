@@ -758,7 +758,7 @@ function showDetails(item: any) {
 function goShowDetails(item: any) {
     console.log('goShowDetails', item)
     const convertedPayload = convertAuctionPayload(item.payload)
-    if (convertedPayload.status != undefined && (convertedPayload.status == '已成交' || convertedPayload.status === 4)) {
+    if (convertedPayload.status != undefined && convertedPayload.status == '已成交') {
         popupDetailRef.value.open('bottom')
         showItem.value = convertedPayload
     }
