@@ -127,58 +127,84 @@ public record PriceRecord(int? CurrentPrice, long? CurrentPriceUserId, string Cu
 [AutoMapFrom(typeof(AuctionItem))]
 public class AuctionItemDto : EntityDto<long>
 {
+    [JsonProperty("name")]
     public string Name { get; set; }
     
+    [JsonProperty("status")]
     public AuctionStatusEnum Status { get; set; }
 
+    [JsonProperty("imageUrl")]
     public string ImageUrl { get; set; }
+    
+    [JsonProperty("description")]
     public string Description { get; set; }
+    
+    [JsonProperty("startingPrice")]
     public int StartingPrice { get; set; }
 
     /// <summary>
     /// 当前价格
     /// </summary>
+    [JsonProperty("currentPrice")]
     public int? CurrentPrice { get; set; }
 
     /// <summary>
     /// 当前出价人编号
     /// </summary>
+    [JsonProperty("currentPriceUserId")]
     public long? CurrentPriceUserId { get; set; }
 
     /// <summary>
     /// /当前出价人
     /// </summary>
+    [JsonProperty("currentPriceUserName")]
     public string CurrentPriceUserName { get; set; }
 
     /// <summary>
     /// 当前出价时间
     /// </summary>
+    [JsonProperty("currentPriceTime")]
     public DateTime CurrentPriceTime { get; set; }
 
     /// <summary>
     /// 倒计时时间
     /// </summary>
+    [JsonProperty("useCountdownTime")]
     public DateTime UseCountdownTime { get; set; }
 
+    [JsonProperty("finalPrice")]
     public int? FinalPrice { get; set; }
+    
+    [JsonProperty("dealTime")]
     public DateTime? DealTime { get; set; }
+    
+    [JsonProperty("dealUserId")]
     public long? DealUserId { get; set; }
+    
+    [JsonProperty("dealUserName")]
     public string DealUserName { get; set; } //成交人
 
+    [JsonProperty("sellerInfo")]
     public string SellerInfo { get; set; }
 
+    [JsonProperty("sellerId")]
     public long? SellerId { get; set; } //出售人
 
     //排序
+    [JsonProperty("order")]
     public int Order { get; set; }
 
     //前端使用
+    [JsonProperty("toUserMsg")]
     public string ToUserMsg { get; set; }
+    
+    [JsonProperty("dealUserAvatar")]
     public string DealUserAvatar { get; set; } //成交人头像
 
     /// <summary>
     /// 卡秒状态
     /// </summary>
+    [JsonProperty("isKasec")]
     public bool IsKasec { get; set; }
 }
 
