@@ -107,14 +107,14 @@ public class MessageAppService(IRepository<Message, Guid> repository, ISqlSugarC
     }
 
     /// <summary>
-    /// 处理拍卖结束消息payload的兼容性问题
-    /// 为AuctionEnd消息的关键字段添加大小写兼容性，解决小程序端显示问题
+    /// 处理拍卖消息payload的兼容性问题
+    /// 为AuctionEnd和AuctionDeal消息的关键字段添加大小写兼容性，解决小程序端显示问题
     /// </summary>
     /// <param name="message">聊天消息对象</param>
     private void ProcessAuctionPayloadCompatibility(ChatMessage message)
     {
-        // 只处理拍卖结束消息类型
-        if (message.type != ChatMessageType.AuctionEnd)
+        // 处理拍卖结束和拍卖成交消息类型
+        if (message.type != ChatMessageType.AuctionEnd && message.type != ChatMessageType.AuctionDeal)
         {
             return;
         }
@@ -142,7 +142,8 @@ public class MessageAppService(IRepository<Message, Guid> repository, ISqlSugarC
             {
                 ("Name", "name"),
                 ("DealUserName", "dealUserName"),
-                ("FinalPrice", "finalPrice")
+                ("FinalPrice", "finalPrice"),
+                ("DealTime", "dealTime")
             };
 
             foreach (var (upperField, lowerField) in fieldsToProcess)
@@ -165,7 +166,7 @@ public class MessageAppService(IRepository<Message, Guid> repository, ISqlSugarC
         catch (Exception ex)
         {
             // 记录错误但不影响消息返回
-            Logger.Error($"处理拍卖结束消息payload兼容性时出错: {ex.Message}");
+            Logger.Error($"处理拍卖消息payload兼容性时出错: {ex.Message}");
         }
     }
 
