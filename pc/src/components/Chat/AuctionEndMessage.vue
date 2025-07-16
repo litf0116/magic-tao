@@ -5,8 +5,8 @@
             <!-- 已成交状态 -->
             <div v-if="payloadData.status === '已成交'">
                 <div class="text-red-500">
-                    <text>恭喜 {{ payloadData.dealUserName || payloadData.DealUserName }} 最终以 </text>
-                    <text class="text-lg">￥{{ payloadData.finalPrice || payloadData.FinalPrice }}</text>
+                    <text>恭喜 {{ payloadData.dealUserName }} 最终以 </text>
+                    <text class="text-lg">￥{{ payloadData.finalPrice }}</text>
                     <text> 拍得商品</text>
                 </div>
                 <div
@@ -21,7 +21,7 @@
                         background: #ffb673;
                     "
                 >
-                    <span style="font-weight: bold; font-size: 20px">{{ payloadData.name || payloadData.Name }}</span>
+                    <span style="font-weight: bold; font-size: 20px">{{ payloadData.name }}</span>
                 </div>
                 <div class="text-sm" style="margin-left: 12px">{{ formattedDealTime }}</div>
                 <div class="mt-2 text-sm text-gray-600">

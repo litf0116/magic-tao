@@ -760,9 +760,6 @@ function goShowDetails(item: any) {
     if (item.payload.status != undefined && (item.payload.status == '已成交' || item.payload.status === 4)) {
         popupDetailRef.value.open('bottom')
         showItem.value = item.payload
-    } else if (item.payload.Status != undefined && (item.payload.Status == '已成交' || item.payload.Status === 4)) {
-        popupDetailRef.value.open('bottom')
-        showItem.value = item.payload
     }
 }
 

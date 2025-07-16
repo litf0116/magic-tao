@@ -651,9 +651,6 @@ function catchImage(e: ChatMessage) {
     console.log('catchImage', e)
     try {
         var description = e.payload.description
-        if (description == undefined) {
-            description = e.payload.Description
-        }
         if (!description) return
         const list = []
         //从 string中img标签中获取data-url的属性放入数组中
@@ -698,10 +695,7 @@ function showDetails(e) {
     if (typeof e.payload === 'string') {
         e.payload = JSON.parse(e.payload!)
     }
-    var id = e.payload.Id
-    if (!id) {
-        id = e.payload.id
-    }
+    var id = e.payload.id
     detailRef.value?.show(true, id)
 }
 
