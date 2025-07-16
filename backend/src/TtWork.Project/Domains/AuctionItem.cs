@@ -131,6 +131,7 @@ public class AuctionItemDto : EntityDto<long>
     public string Name { get; set; }
     
     [JsonProperty("status")]
+    [JsonConverter(typeof(StringEnumConverter))]
     public AuctionStatusEnum Status { get; set; }
 
     [JsonProperty("imageUrl")]
