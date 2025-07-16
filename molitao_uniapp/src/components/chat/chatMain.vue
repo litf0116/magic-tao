@@ -92,13 +92,14 @@
                                     v-else-if="message.type === ChatMessageType.AuctionStart && message.payload"
                                     :message="message"
                                     :catchImage="catchImage"
+                                    @action="onAuctionStartAction"
                                 />
 
                                 <!-- 出价 -->
                                 <AuctionBidMessage
                                     v-else-if="message.type === ChatMessageType.AuctionBid && message.payload"
                                     :message="message"
-                                    :onTap="showDetails"
+                                    @action="onAuctionBidAction"
                                 />
 
                                 <!-- 公布得主 -->
@@ -774,6 +775,74 @@ async function onAuctionEndAction({ message, payload }: { message: any; payload:
         const auctionItemId = convertedPayload.id
         if (!auctionItemId) {
             console.error('AuctionEnd payload 中缺少拍品ID')
+            Tips.error('无法获取拍品信息')
+            return
+        }
+
+        // 通过 API 获取完整的拍品信息
+        console.log('正在获取拍品详情，ID:', auctionItemId)
+        const auctionItemDetail = await api.auctionItem.getDetail(auctionItemId)
+        console.log('拍品详情获取成功:', auctionItemDetail)
+
+        // 调用 showDetail 显示详情
+        showDetails({ message, payload: auctionItemDetail })
+
+    } catch (error) {
+        console.error('获取拍品详情失败:', error)
+        Tips.error('获取拍品详情失败，请重试')
+
+        // 如果API调用失败，尝试使用转换后的payload数据（降级处理）
+        console.log('使用转换后的payload数据作为降级处理')
+        const convertedPayload = convertAuctionPayload(payload)
+        showDetails({ message, payload: convertedPayload })
+    }
+}
+
+async function onAuctionStartAction({ message, payload }: { message: any; payload: any }) {
+    console.log('onAuctionStartAction', { message, payload })
+
+    try {
+        // 转换payload，兼容老旧消息的PascalCase属性
+        const convertedPayload = convertAuctionPayload(payload)
+
+        // 从 payload 中获取拍品ID
+        const auctionItemId = convertedPayload.id
+        if (!auctionItemId) {
+            console.error('AuctionStart payload 中缺少拍品ID')
+            Tips.error('无法获取拍品信息')
+            return
+        }
+
+        // 通过 API 获取完整的拍品信息
+        console.log('正在获取拍品详情，ID:', auctionItemId)
+        const auctionItemDetail = await api.auctionItem.getDetail(auctionItemId)
+        console.log('拍品详情获取成功:', auctionItemDetail)
+
+        // 调用 showDetail 显示详情
+        showDetails({ message, payload: auctionItemDetail })
+
+    } catch (error) {
+        console.error('获取拍品详情失败:', error)
+        Tips.error('获取拍品详情失败，请重试')
+
+        // 如果API调用失败，尝试使用转换后的payload数据（降级处理）
+        console.log('使用转换后的payload数据作为降级处理')
+        const convertedPayload = convertAuctionPayload(payload)
+        showDetails({ message, payload: convertedPayload })
+    }
+}
+
+async function onAuctionBidAction({ message, payload }: { message: any; payload: any }) {
+    console.log('onAuctionBidAction', { message, payload })
+
+    try {
+        // 转换payload，兼容老旧消息的PascalCase属性
+        const convertedPayload = convertAuctionPayload(payload)
+
+        // 从 payload 中获取拍品ID
+        const auctionItemId = convertedPayload.id
+        if (!auctionItemId) {
+            console.error('AuctionBid payload 中缺少拍品ID')
             Tips.error('无法获取拍品信息')
             return
         }
