@@ -5,23 +5,22 @@
     >
         <div class="absolute top-0 right-0 bg-[#ff7144] text-white rounded-lb-lg px-2 font-bold text-xs">出价</div>
         <div class="max-w-350px min-w-200px">
-            <div>商品名称: {{ payloadData.Name }}</div>
-            <div style="color: #fff; font-size: 24px">当前出价：￥{{ payloadData.CurrentPrice }}</div>
+            <div>商品名称: {{ payloadData.name }}</div>
+            <div style="color: #fff; font-size: 24px">当前出价：￥{{ payloadData.currentPrice }}</div>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
 import { defineProps, computed } from 'vue'
+import { convertAuctionPayload } from '@/utils/propertyConverter'
 const props = defineProps<{
     message: any
     onTap: (message: any) => void
 }>()
 
 const payloadData = computed(() => {
-    let payload = props.message.payload
-    if (typeof payload === 'string') payload = JSON.parse(payload)
-    return payload
+    return convertAuctionPayload(props.message.payload)
 })
 </script>
 

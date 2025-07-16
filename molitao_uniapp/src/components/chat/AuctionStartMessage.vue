@@ -10,18 +10,16 @@
 
 <script setup lang="ts">
 import { defineProps, computed } from 'vue'
+import { convertAuctionPayload } from '@/utils/propertyConverter'
 const props = defineProps<{
     message: any
     catchImage: (e: any, payload: any) => void
 }>()
 
 const payloadData = computed(() => {
-    let payload = props.message.payload
-    if (typeof payload === 'string') {
-        payload = JSON.parse(payload)
-        console.log('payload', payload)
-    }
-    return payload
+    const convertedPayload = convertAuctionPayload(props.message.payload)
+    console.log('payload', convertedPayload)
+    return convertedPayload
 })
 
 function handleCatchImage(e: any) {

@@ -292,6 +292,7 @@ import { getImgUrl as getImgUrl2, Tips } from '@/composables'
 import type { ChatOptions } from './types'
 import { computed, defineEmits, defineProps, reactive, ref, watch } from 'vue'
 import { Goto } from '@/composables/goto'
+import { convertAuctionPayload } from '@/utils/propertyConverter'
 
 // 接收 options 属性
 const props = defineProps<{
@@ -442,7 +443,8 @@ const actionPopup = ref({
 
 function catchImage(e: any, payload: any) {
     try {
-        const { description } = JSON.parse(payload)
+        const convertedPayload = convertAuctionPayload(payload)
+        const { description } = convertedPayload
         if (!description) {
             return
         }
@@ -754,12 +756,10 @@ function showDetails(item: any) {
 //跳转到详情
 function goShowDetails(item: any) {
     console.log('goShowDetails', item)
-    if (typeof item.payload === 'string') {
-        item.payload = JSON.parse(item.payload!)
-    }
-    if (item.payload.status != undefined && (item.payload.status == '已成交' || item.payload.status === 4)) {
+    const convertedPayload = convertAuctionPayload(item.payload)
+    if (convertedPayload.status != undefined && (convertedPayload.status == '已成交' || convertedPayload.status === 4)) {
         popupDetailRef.value.open('bottom')
-        showItem.value = item.payload
+        showItem.value = convertedPayload
     }
 }
 
@@ -767,8 +767,11 @@ async function onAuctionEndAction({ message, payload }: { message: any; payload:
     console.log('onAuctionEndAction', { message, payload })
 
     try {
+        // 转换payload，兼容老旧消息的PascalCase属性
+        const convertedPayload = convertAuctionPayload(payload)
+
         // 从 payload 中获取拍品ID
-        const auctionItemId = payload.id
+        const auctionItemId = convertedPayload.id
         if (!auctionItemId) {
             console.error('AuctionEnd payload 中缺少拍品ID')
             Tips.error('无法获取拍品信息')
@@ -787,9 +790,10 @@ async function onAuctionEndAction({ message, payload }: { message: any; payload:
         console.error('获取拍品详情失败:', error)
         Tips.error('获取拍品详情失败，请重试')
 
-        // 如果API调用失败，尝试使用原始payload数据（降级处理）
-        console.log('使用原始payload数据作为降级处理')
-        showDetails({ message, payload })
+        // 如果API调用失败，尝试使用转换后的payload数据（降级处理）
+        console.log('使用转换后的payload数据作为降级处理')
+        const convertedPayload = convertAuctionPayload(payload)
+        showDetails({ message, payload: convertedPayload })
     }
 }
 
@@ -797,8 +801,11 @@ async function onAuctionDealAction({ message, payload }: { message: any; payload
     console.log('onAuctionDealAction', { message, payload })
 
     try {
+        // 转换payload，兼容老旧消息的PascalCase属性
+        const convertedPayload = convertAuctionPayload(payload)
+
         // 从 payload 中获取拍品ID
-        const auctionItemId = payload.id
+        const auctionItemId = convertedPayload.id
         if (!auctionItemId) {
             console.error('AuctionDeal payload 中缺少拍品ID')
             Tips.error('无法获取拍品信息')
@@ -817,9 +824,10 @@ async function onAuctionDealAction({ message, payload }: { message: any; payload
         console.error('获取拍品详情失败:', error)
         Tips.error('获取拍品详情失败，请重试')
 
-        // 如果API调用失败，尝试使用原始payload数据（降级处理）
-        console.log('使用原始payload数据作为降级处理')
-        showDetails({ message, payload })
+        // 如果API调用失败，尝试使用转换后的payload数据（降级处理）
+        console.log('使用转换后的payload数据作为降级处理')
+        const convertedPayload = convertAuctionPayload(payload)
+        showDetails({ message, payload: convertedPayload })
     }
 }
 </script>

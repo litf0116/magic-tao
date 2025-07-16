@@ -268,6 +268,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { convertAuctionPayload } from '@/utils/propertyConverter'
 import { orderBy, uniqBy, last } from 'lodash'
 import api from '@/api'
 import chatInput from '@/components/Chat/ChatInput.vue'
@@ -650,7 +651,8 @@ function ban() {
 function catchImage(e: ChatMessage) {
     console.log('catchImage', e)
     try {
-        var description = e.payload.description
+        const convertedPayload = convertAuctionPayload(e.payload)
+        var description = convertedPayload.description
         if (!description) return
         const list = []
         //从 string中img标签中获取data-url的属性放入数组中
@@ -692,10 +694,8 @@ function showDetails(e) {
     if (JSON.stringify(e.payload) === '{}' || e.payload === '{}') {
         return
     }
-    if (typeof e.payload === 'string') {
-        e.payload = JSON.parse(e.payload!)
-    }
-    var id = e.payload.id
+    const convertedPayload = convertAuctionPayload(e.payload)
+    var id = convertedPayload.id
     detailRef.value?.show(true, id)
 }
 

@@ -42,6 +42,7 @@
 import { computed } from 'vue'
 import { type ChatMessage } from '@/composables/types'
 import dayjs from 'dayjs'
+import { convertAuctionPayload } from '@/utils/propertyConverter'
 
 export default {
     name: 'AuctionEndMessage',
@@ -53,13 +54,9 @@ export default {
     },
     emits: ['action'],
     setup(props: any, { emit }: any) {
-        // 解析payload数据
+        // 解析payload数据，兼容老旧消息的PascalCase属性
         const payloadData = computed(() => {
-            let payload = props.message.payload
-            if (typeof payload === 'string') {
-                payload = JSON.parse(payload!)
-            }
-            return payload
+            return convertAuctionPayload(props.message.payload)
         })
 
         // 格式化交易时间

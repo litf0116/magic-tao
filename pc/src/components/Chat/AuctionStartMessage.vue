@@ -12,6 +12,7 @@
 import { computed } from 'vue'
 import { type ChatMessage } from '../../api/appService'
 import RichTextDisplay from './RichTextDisplay.vue'
+import { convertAuctionPayload } from '@/utils/propertyConverter'
 
 const props = defineProps<{
     message: ChatMessage
@@ -22,11 +23,7 @@ const emit = defineEmits<{
 }>()
 
 const payloadData = computed(() => {
-    let payload = props.message.payload
-    if (typeof payload === 'string') {
-        payload = JSON.parse(payload!)
-    }
-    return payload
+    return convertAuctionPayload(props.message.payload)
 })
 
 // 处理点击事件，emit 更通用的 action 事件
