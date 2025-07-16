@@ -766,12 +766,64 @@ function goShowDetails(item: any) {
     }
 }
 
-function onAuctionEndAction({ message, payload }) {
-    showDetails(message)
+async function onAuctionEndAction({ message, payload }: { message: any; payload: any }) {
+    console.log('onAuctionEndAction', { message, payload })
+
+    try {
+        // 从 payload 中获取拍品ID
+        const auctionItemId = payload.id
+        if (!auctionItemId) {
+            console.error('AuctionEnd payload 中缺少拍品ID')
+            Tips.error('无法获取拍品信息')
+            return
+        }
+
+        // 通过 API 获取完整的拍品信息
+        console.log('正在获取拍品详情，ID:', auctionItemId)
+        const auctionItemDetail = await api.auctionItem.getDetail(auctionItemId)
+        console.log('拍品详情获取成功:', auctionItemDetail)
+
+        // 调用 showDetail 显示详情
+        showDetails({ message, payload: auctionItemDetail })
+
+    } catch (error) {
+        console.error('获取拍品详情失败:', error)
+        Tips.error('获取拍品详情失败，请重试')
+
+        // 如果API调用失败，尝试使用原始payload数据（降级处理）
+        console.log('使用原始payload数据作为降级处理')
+        showDetails({ message, payload })
+    }
 }
 
-function onAuctionDealAction({ message, payload }) {
-    showDetails(message)
+async function onAuctionDealAction({ message, payload }: { message: any; payload: any }) {
+    console.log('onAuctionDealAction', { message, payload })
+
+    try {
+        // 从 payload 中获取拍品ID
+        const auctionItemId = payload.id
+        if (!auctionItemId) {
+            console.error('AuctionDeal payload 中缺少拍品ID')
+            Tips.error('无法获取拍品信息')
+            return
+        }
+
+        // 通过 API 获取完整的拍品信息
+        console.log('正在获取拍品详情，ID:', auctionItemId)
+        const auctionItemDetail = await api.auctionItem.getDetail(auctionItemId)
+        console.log('拍品详情获取成功:', auctionItemDetail)
+
+        // 调用 showDetail 显示详情
+        showDetails({ message, payload: auctionItemDetail })
+
+    } catch (error) {
+        console.error('获取拍品详情失败:', error)
+        Tips.error('获取拍品详情失败，请重试')
+
+        // 如果API调用失败，尝试使用原始payload数据（降级处理）
+        console.log('使用原始payload数据作为降级处理')
+        showDetails({ message, payload })
+    }
 }
 </script>
 

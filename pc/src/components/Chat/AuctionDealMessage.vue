@@ -50,6 +50,7 @@ export default {
         // 解析payload数据
         const payloadData = computed(() => {
             let payload = props.message.payload
+            console.log('deal message payload', payload.value)
             if (typeof payload === 'string') {
                 payload = JSON.parse(payload!)
             }

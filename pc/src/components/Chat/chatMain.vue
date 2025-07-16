@@ -705,12 +705,12 @@ function showDetails(e) {
     detailRef.value?.show(true, id)
 }
 
-function onAuctionEndAction({ message }) {
-    showDetails(message)
+function onAuctionEndAction({ message, payload }) {
+    showDetails({ message, payload })
 }
 
-function onAuctionDealAction({ message }) {
-    showDetails(message)
+function onAuctionDealAction({ message, payload }) {
+    showDetails({ message, payload })
 }
 </script>
 

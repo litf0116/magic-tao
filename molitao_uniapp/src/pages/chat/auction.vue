@@ -59,6 +59,7 @@
                 class="mt-2 min-w-200px max-h-50vh overflow-scroll"
                 @tap="catchImage"
                 v-html="getStartContent(showItem!)"
+                @click="handleImageClick"
             ></div>
             <view class="h-8"></view>
         </view>
@@ -74,10 +75,10 @@
             </view>
         </view>
     </uv-popup>
-    
+
     <!-- 出价规则弹窗 -->
-    <BidRulesModal 
-        v-model:show="bidRulesModalVisible" 
+    <BidRulesModal
+        v-model:show="bidRulesModalVisible"
         :message="bidRulesMessage"
         :currentPrice="bidRulesCurrentPrice"
         :minBidPrice="bidRulesMinPrice"
@@ -141,21 +142,21 @@ onLoad(() => {
             showUnread.value = false
         }, 3000)
     })
-    
+
     // 监听出价规则弹窗事件
     uni.$on('showBidRulesModal', (data: { message: string; needPriceInfo?: boolean }) => {
         bidRulesMessage.value = data.message
-        
+
         // 如果需要价格信息，从当前拍卖商品获取
         if (data.needPriceInfo && onAuctionItem.value) {
             bidRulesCurrentPrice.value = onAuctionItem.value.currentPrice || onAuctionItem.value.startingPrice || 0
             // 计算最低出价
             bidRulesMinPrice.value = calculateMinBidPrice(
-                bidRulesCurrentPrice.value, 
+                bidRulesCurrentPrice.value,
                 auctionStore.isKasec
             )
         }
-        
+
         bidRulesModalVisible.value = true
     })
 })
@@ -380,7 +381,7 @@ async function bid() {
         // 从商品详情中获取卡秒状态
         const isKasecMode = !!auctionItemDetail.isKasec
         console.log('卡秒状态:', isKasecMode)
-        
+
         // 同步到store（可选，用于UI显示）
         auctionStore.isKasec = isKasecMode
 
@@ -482,7 +483,7 @@ async function bid() {
 
         let title = '出价'
         let placeholderText = `请输入出价金额(最低出价${minPrice})`
-        
+
         if (isKasecMode) {
             title = '卡秒出价'
             placeholderText = `卡秒模式-需三倍加价(最低出价${minPrice})`
@@ -579,7 +580,18 @@ function popChange(e: { show: boolean; type: string }) {
 }
 
 function getStartContent(item: AuctionItemDto) {
-    return `<div>${item.description}</div>`
+    const description = item.description
+    if (!description || description.trim() === '') {
+        // 与 PC 端保持一致，显示拍品图片
+        return `<div class="flex justify-center py-4">
+            <img
+                src="${item.imageUrl}"
+                class="w-full h-48 object-cover rounded cursor-pointer"
+                alt="${item.name}"
+            />
+        </div>`
+    }
+    return `<div>${description}</div>`
 }
 
 function catchImage(e: any) {
@@ -604,6 +616,20 @@ function catchImage(e: any) {
         console.log('catchImage', list)
     } catch (e) {
         console.log('catchImage', e)
+    }
+}
+
+// 处理弹窗中图片点击事件
+function handleImageClick(e: any) {
+    console.log('handleImageClick', e)
+    // 检查点击的是否是图片元素
+    if (e.target && e.target.tagName === 'IMG') {
+        const imageUrl = e.target.src
+        if (imageUrl) {
+            // 移除缩略图参数，获取原图
+            let src = imageUrl.replace(/!w300$/, '')
+            showImgPreview(src)
+        }
     }
 }
 

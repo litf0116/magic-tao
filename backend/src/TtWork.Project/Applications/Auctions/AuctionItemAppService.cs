@@ -477,6 +477,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                     // 发送拍卖成功消息
                     var successPayload = new
                     {
+                        id = auctionItem.Id,  // 添加拍品ID
                         name = result.Name,
                         finalPrice = result.FinalPrice,
                         dealTime = result.DealTime,
@@ -504,6 +505,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                         msg = result.ToUserMsg,
                         payload = new
                         {
+                            id = auctionItem.Id,  // 添加拍品ID
                             name = result.Name,
                             finalPrice = result.FinalPrice,
                             dealTime = result.DealTime,
@@ -953,6 +955,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 // 发送流拍消息
                 var flowPayload = new
                 {
+                    id = input.Id,  // 添加拍品ID
                     name = result.Name,
                     finalPrice = result.FinalPrice,
                     dealTime = result.DealTime,
@@ -978,6 +981,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 // 发送拍卖成功消息
                 var successPayload = new
                 {
+                    id = input.Id,  // 添加拍品ID
                     name = result.Name,
                     finalPrice = result.FinalPrice,
                     dealTime = result.DealTime,
@@ -1005,6 +1009,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                     msg = result.ToUserMsg,
                     payload = new
                     {
+                        id = input.Id,  // 添加拍品ID
                         name = result.Name,
                         finalPrice = result.FinalPrice,
                         dealTime = result.DealTime,
