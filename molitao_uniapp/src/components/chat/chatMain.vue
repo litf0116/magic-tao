@@ -103,13 +103,13 @@
 
                                 <!-- 公布得主 -->
                                 <AuctionEndMessage
-                                    v-if="message.type === ChatMessageType.AuctionEnd && message.payload"
+                                    v-else-if="message.type === ChatMessageType.AuctionEnd && message.payload"
                                     :message="message"
                                     @action="onAuctionEndAction"
                                 />
                                 <!-- 交易通知 -->
                                 <AuctionDealMessage
-                                    v-if="message.type === ChatMessageType.AuctionDeal"
+                                    v-else-if="message.type === ChatMessageType.AuctionDeal"
                                     :message="message"
                                     @action="onAuctionDealAction"
                                 />

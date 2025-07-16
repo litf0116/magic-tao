@@ -145,7 +145,7 @@ const unsubscribe = bus.on((msg: any) => {
 
     if (msg.type === ChatMessageType.Welcome && msg.chan !== '0_lobby' && msg.chan !== '-1_auction') {
         ring17.play()
-    } else if ((msg.type === 'Text' || msg.type === 'Image') && !msg.chan) {
+    } else if ((msg.type === 'Text' || msg.type === 'Image' || msg.type === 'AuctionDeal') && !msg.chan) {
         ring11.play()
     }
 })

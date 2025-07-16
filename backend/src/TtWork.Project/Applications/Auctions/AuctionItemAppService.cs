@@ -450,8 +450,16 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 if (!hasBids)
                 {
                     // 发送流拍消息
-                    var flowPayload = JObject.FromObject(result);
-                    flowPayload["status"] = result.Status.ToString();
+                    var flowPayload = new
+                    {
+                        name = result.Name,
+                        finalPrice = result.FinalPrice,
+                        dealTime = result.DealTime,
+                        dealUserName = result.DealUserName,
+                        dealUserId = result.DealUserId,
+                        toUserMsg = result.ToUserMsg,
+                        status = result.Status.ToString()
+                    };
 
                     var flowMessage = new ChatMessage
                     {
@@ -467,8 +475,16 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 else
                 {
                     // 发送拍卖成功消息
-                    var successPayload = JObject.FromObject(result);
-                    successPayload["status"] = result.Status.ToString();
+                    var successPayload = new
+                    {
+                        name = result.Name,
+                        finalPrice = result.FinalPrice,
+                        dealTime = result.DealTime,
+                        dealUserName = result.DealUserName,
+                        dealUserId = result.DealUserId,
+                        toUserMsg = result.ToUserMsg,
+                        status = result.Status.ToString()
+                    };
 
                     var successMessage = new ChatMessage
                     {
@@ -486,13 +502,36 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                     {
                         type = ChatMessageType.AuctionDeal,
                         msg = result.ToUserMsg,
-                        payload = result
+                        payload = new
+                        {
+                            name = result.Name,
+                            finalPrice = result.FinalPrice,
+                            dealTime = result.DealTime,
+                            dealUserName = result.DealUserName,
+                            dealUserId = result.DealUserId,
+                            toUserMsg = result.ToUserMsg,
+                            status = result.Status.ToString()
+                        }
                     };
 
                     if (result.DealUserId.HasValue)
                     {
-                        await _messageSendingService.SendAuctionMessageAsync(auctionManagerInfo.Id,
-                            result.DealUserId.Value, null, dealMessage, true);
+                        _logger.LogInformation("开始发送拍卖成交私信: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, ToUserMsg={ToUserMsg}",
+                            auctionItem.Id, result.DealUserId.Value, result.ToUserMsg);
+                        
+                        try
+                        {
+                            await _messageSendingService.SendPrivateMessageAsync(auctionManagerInfo.Id,
+                                result.DealUserId.Value, dealMessage, false, null);
+                            
+                            _logger.LogInformation("拍卖成交私信发送成功: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}",
+                                auctionItem.Id, result.DealUserId.Value);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "拍卖成交私信发送失败: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, Error={Error}",
+                                auctionItem.Id, result.DealUserId.Value, ex.Message);
+                        }
                     }
                     else
                     {
@@ -912,8 +951,16 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             if (!hasBids)
             {
                 // 发送流拍消息
-                var flowPayload = JObject.FromObject(result);
-                flowPayload["status"] = result.Status.ToString();
+                var flowPayload = new
+                {
+                    name = result.Name,
+                    finalPrice = result.FinalPrice,
+                    dealTime = result.DealTime,
+                    dealUserName = result.DealUserName,
+                    dealUserId = result.DealUserId,
+                    toUserMsg = result.ToUserMsg,
+                    status = result.Status.ToString()
+                };
 
                 var flowMessage = new ChatMessage
                 {
@@ -929,8 +976,16 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             else
             {
                 // 发送拍卖成功消息
-                var successPayload = JObject.FromObject(result);
-                successPayload["status"] = result.Status.ToString();
+                var successPayload = new
+                {
+                    name = result.Name,
+                    finalPrice = result.FinalPrice,
+                    dealTime = result.DealTime,
+                    dealUserName = result.DealUserName,
+                    dealUserId = result.DealUserId,
+                    toUserMsg = result.ToUserMsg,
+                    status = result.Status.ToString()
+                };
 
                 var successMessage = new ChatMessage
                 {
@@ -948,13 +1003,36 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 {
                     type = ChatMessageType.AuctionDeal,
                     msg = result.ToUserMsg,
-                    payload = result
+                    payload = new
+                    {
+                        name = result.Name,
+                        finalPrice = result.FinalPrice,
+                        dealTime = result.DealTime,
+                        dealUserName = result.DealUserName,
+                        dealUserId = result.DealUserId,
+                        toUserMsg = result.ToUserMsg,
+                        status = result.Status.ToString()
+                    }
                 };
 
                 if (result.DealUserId.HasValue)
                 {
-                    await _messageSendingService.SendPrivateMessageAsync(AbpSession.UserId.Value,
-                        result.DealUserId.Value, dealMessage, false, null);
+                    _logger.LogInformation("开始发送手动结束拍卖成交私信: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, ToUserMsg={ToUserMsg}",
+                        input.Id, result.DealUserId.Value, result.ToUserMsg);
+                    
+                    try
+                    {
+                        await _messageSendingService.SendPrivateMessageAsync(AbpSession.UserId.Value,
+                            result.DealUserId.Value, dealMessage, false, null);
+                        
+                        _logger.LogInformation("手动结束拍卖成交私信发送成功: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}",
+                            input.Id, result.DealUserId.Value);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "手动结束拍卖成交私信发送失败: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, Error={Error}",
+                            input.Id, result.DealUserId.Value, ex.Message);
+                    }
                 }
                 else
                 {

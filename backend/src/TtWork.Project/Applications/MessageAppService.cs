@@ -143,7 +143,9 @@ public class MessageAppService(IRepository<Message, Guid> repository, ISqlSugarC
                 ("Name", "name"),
                 ("DealUserName", "dealUserName"),
                 ("FinalPrice", "finalPrice"),
-                ("DealTime", "dealTime")
+                ("DealTime", "dealTime"),
+                ("ToUserMsg", "toUserMsg"),
+                ("DealUserId", "dealUserId")
             };
 
             foreach (var (upperField, lowerField) in fieldsToProcess)
@@ -157,6 +159,22 @@ public class MessageAppService(IRepository<Message, Guid> repository, ISqlSugarC
                 else if (payloadObj.ContainsKey(lowerField) && !payloadObj.ContainsKey(upperField))
                 {
                     payloadObj[upperField] = payloadObj[lowerField];
+                }
+            }
+
+            // 为私信消息添加特殊处理
+            if (message.type == ChatMessageType.AuctionDeal && message.to.HasValue)
+            {
+                // 确保私信消息包含必要的显示信息
+                if (!payloadObj.ContainsKey("messageType"))
+                {
+                    payloadObj["messageType"] = "auctionDeal";
+                }
+                
+                // 添加时间戳信息
+                if (!payloadObj.ContainsKey("timestamp"))
+                {
+                    payloadObj["timestamp"] = message.time;
                 }
             }
 

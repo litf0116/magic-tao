@@ -247,7 +247,7 @@ export const useChatStore = defineStore('chatStore', () => {
             } else {
                 chatMap.value.set(`${_id}`, [msg])
             }
-        } else if (msg.type === 'Text' || msg.type === 'Image' || msg.type === 'File') {
+        } else if (msg.type === 'Text' || msg.type === 'Image' || msg.type === 'File' || msg.type === 'AuctionDeal') {
             //处理私聊消息
             const old = chatList.value.find((item) => item.id === msg.from && item.id !== currentChat.value.id)
             if (msg.from === null) return
