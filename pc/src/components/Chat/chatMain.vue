@@ -381,7 +381,7 @@ const bus = useEventBus(onmessageKey)
 //LINK[epic=处理收到消息] - ChatMain处理收到消息
 const unsubscribe = bus.on((msg: any) => {
     console.log('chatMain onmessageKey', msg)
-    if (msg.type === 'AuctionStart' || msg.type === 'AuctionEnd' || msg.type === 'AuctionBid') {
+    if (msg.type === 'AuctionStart' || msg.type === 'AuctionEnd') {
         auctionStore.getList()
     }
 
