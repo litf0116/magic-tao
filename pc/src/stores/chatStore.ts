@@ -364,6 +364,17 @@ export const useChatStore = defineStore('chat', () => {
             return
         }
 
+        // 特殊处理：监听出价消息，直接更新拍品信息
+        if (msg.type === ChatMessageType.AuctionBid && msg.payload) {
+            console.log('=== 检测到出价消息 ===')
+            console.log('消息类型:', msg.type)
+            console.log('消息payload:', msg.payload)
+            console.log('payload类型:', typeof msg.payload)
+
+            // 使用新的增量更新方法，避免重新请求整个列表
+            auctionStore.updateAuctionItemFromBidMessage(msg.payload)
+        }
+
         // 特殊处理：监听拍卖结束消息，为中拍用户创建聊天频道
         if (msg.type === 'AuctionEnd' && msg.payload) {
             console.log('检测到拍卖结束消息，为中拍用户创建聊天频道', msg.payload)

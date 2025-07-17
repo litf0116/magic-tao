@@ -35,6 +35,14 @@ export default defineConfig(({ command, mode }) => {
                     }
                 },
             },
+            // 生产环境移除console.log
+            minify: 'terser',
+            terserOptions: {
+                compress: {
+                    drop_console: mode === 'production',
+                    drop_debugger: mode === 'production',
+                },
+            },
         },
         plugins: [
             vue(),

@@ -6,6 +6,7 @@ import api from '@/api'
 import { GetAuctionMidList } from '@/api/auctionMidAPI'
 import { setKasecStatus, getKasecStatus, GetDetail } from '@/api/auctionItemAPI'
 import { ElMessage } from 'element-plus'
+import { convertAuctionPayload } from '@/utils/propertyConverter'
 
 export const useAuctionStore = defineStore('auction', () => {
     const chatStore = useChatStore()
@@ -24,6 +25,81 @@ export const useAuctionStore = defineStore('auction', () => {
     const auctionMid = ref<AuctionItemDto[]>([])
     // 卡秒状态
     const isKasec = ref(false)
+
+    // 新增：从出价消息直接更新拍品信息
+    function updateAuctionItemFromBidMessage(bidMessagePayload: any) {
+        console.log('=== 开始更新拍品信息 ===')
+        console.log('原始出价消息payload:', bidMessagePayload)
+        console.log('payload类型:', typeof bidMessagePayload)
+
+        if (!bidMessagePayload) {
+            console.warn('出价消息payload为空')
+            return
+        }
+
+        // 使用convertAuctionPayload进行格式转换，处理PascalCase到camelCase的转换
+        const convertedPayload = convertAuctionPayload(bidMessagePayload)
+        console.log('转换后的payload:', convertedPayload)
+
+        if (!convertedPayload || !convertedPayload.id) {
+            console.warn('出价消息payload中缺少拍品ID')
+            console.log('payload中的所有字段:', Object.keys(convertedPayload || {}))
+            return
+        }
+
+        const auctionItemId = convertedPayload.id
+        console.log('拍品ID:', auctionItemId, '类型:', typeof auctionItemId)
+
+        const updatedData = {
+            currentPrice: convertedPayload.currentPrice,
+            currentPriceUserId: convertedPayload.currentPriceUserId,
+            currentPriceUserName: convertedPayload.currentPriceUserName,
+        }
+
+        console.log('要更新的数据:', updatedData)
+        console.log('当前list长度:', list.value.length)
+        console.log('当前auctionMid长度:', auctionMid.value.length)
+        console.log('当前list4长度:', list4.value.length)
+
+        // 更新list中的拍品（待拍卖列表）
+        const listIndex = list.value.findIndex((item) => item.id === auctionItemId)
+        if (listIndex !== -1) {
+            console.log('找到待拍卖列表中的拍品，索引:', listIndex)
+            console.log('更新前:', list.value[listIndex])
+            list.value[listIndex] = { ...list.value[listIndex], ...updatedData }
+            console.log('更新后:', list.value[listIndex])
+        } else {
+            console.log('在待拍卖列表中未找到拍品ID:', auctionItemId)
+        }
+
+        // 更新auctionMid中的拍品（拍卖中列表）
+        const auctionMidIndex = auctionMid.value.findIndex((item) => item.id === auctionItemId)
+        if (auctionMidIndex !== -1) {
+            console.log('找到拍卖中列表中的拍品，索引:', auctionMidIndex)
+            console.log('更新前:', auctionMid.value[auctionMidIndex])
+            auctionMid.value[auctionMidIndex] = { ...auctionMid.value[auctionMidIndex], ...updatedData }
+            console.log('更新后:', auctionMid.value[auctionMidIndex])
+        } else {
+            console.log('在拍卖中列表中未找到拍品ID:', auctionItemId)
+            console.log(
+                '拍卖中列表的所有拍品ID:',
+                auctionMid.value.map((item) => item.id)
+            )
+        }
+
+        // 更新list4中的拍品（已完成列表）
+        const list4Index = list4.value.findIndex((item) => item.id === auctionItemId)
+        if (list4Index !== -1) {
+            console.log('找到已完成列表中的拍品，索引:', list4Index)
+            console.log('更新前:', list4.value[list4Index])
+            list4.value[list4Index] = { ...list4.value[list4Index], ...updatedData }
+            console.log('更新后:', list4.value[list4Index])
+        } else {
+            console.log('在已完成列表中未找到拍品ID:', auctionItemId)
+        }
+
+        console.log('=== 拍品信息更新完成 ===')
+    }
 
     // 设置卡秒状态（管理员）
     async function setKasec(auctionItemId, kasec) {
@@ -196,5 +272,6 @@ export const useAuctionStore = defineStore('auction', () => {
         isKasec,
         setKasec,
         syncKasecStatus,
+        updateAuctionItemFromBidMessage, // 新增方法
     }
 })
