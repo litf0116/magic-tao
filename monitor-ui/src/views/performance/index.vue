@@ -88,11 +88,11 @@
               <div class="api-method">{{ getMethod(item.endpoint) }}</div>
             </div>
             <div class="api-stats">
-              <div class="api-time" :class="getResponseTimeClass(item.avgResponseTime)">
-                {{ item.avgResponseTime.toFixed(2) }}ms
+              <div class="api-time" :class="getResponseTimeClass(item.avgResponseTime || 0)">
+                {{ (item.avgResponseTime || 0).toFixed(2) }}ms
               </div>
-              <div class="api-calls">{{ item.totalCalls.toLocaleString() }} 次</div>
-              <div v-if="item.errorRate > 0" class="api-error">{{ item.errorRate.toFixed(2) }}% 错误</div>
+              <div class="api-calls">{{ (item.totalCalls || 0).toLocaleString() }} 次</div>
+              <div v-if="(item.errorRate || 0) > 0" class="api-error">{{ (item.errorRate || 0).toFixed(2) }}% 错误</div>
             </div>
           </div>
         </div>
@@ -118,9 +118,9 @@
               <div class="api-method">{{ getMethod(item.endpoint) }}</div>
             </div>
             <div class="api-stats">
-              <div class="api-frequency">{{ item.callsPerMinute.toFixed(1) }}/分钟</div>
-              <div class="api-calls">{{ item.totalCalls.toLocaleString() }} 次</div>
-              <div class="api-time">{{ item.avgResponseTime.toFixed(2) }}ms</div>
+              <div class="api-frequency">{{ (item.callsPerMinute || 0).toFixed(1) }}/分钟</div>
+              <div class="api-calls">{{ (item.totalCalls || 0).toLocaleString() }} 次</div>
+              <div class="api-time">{{ (item.avgResponseTime || 0).toFixed(2) }}ms</div>
             </div>
           </div>
         </div>
@@ -159,11 +159,11 @@
             <div v-for="(item, index) in slowRequests" :key="index" class="slow-request-item">
               <div class="request-header">
                 <div class="request-method" :class="getMethodClass(item.method)">
-                  {{ item.method }}
+                  {{ item.method || 'GET' }}
                 </div>
-                <div class="request-endpoint">{{ item.endpoint }}</div>
-                <div class="request-time" :class="getResponseTimeClass(item.responseTime)">
-                  {{ item.responseTime.toFixed(2) }}ms
+                <div class="request-endpoint">{{ item.endpoint || '未知接口' }}</div>
+                <div class="request-time" :class="getResponseTimeClass(item.responseTime || 0)">
+                  {{ (item.responseTime || 0).toFixed(2) }}ms
                 </div>
               </div>
               <div class="request-details">
@@ -173,8 +173,8 @@
                 </div>
                 <div class="detail-item">
                   <span class="detail-label">状态码:</span>
-                  <span class="detail-value" :class="getStatusCodeClass(item.statusCode)">
-                    {{ item.statusCode }}
+                  <span class="detail-value" :class="getStatusCodeClass(item.statusCode || 0)">
+                    {{ item.statusCode || 0 }}
                   </span>
                 </div>
                 <div v-if="item.userId" class="detail-item">
@@ -195,11 +195,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { getPerformance, getSlowRequests } from '@/api/monitor'
 import { ElMessage } from 'element-plus'
 import type { SlowRequest } from '@/types'
+import { globalRefreshManager } from '@/utils/refreshManager'
 
 // 获取当前路由
 const route = useRoute()
@@ -248,6 +249,7 @@ const getResponseTimeClass = (time: number) => {
 
 // 获取HTTP方法样式类
 const getMethodClass = (method: string) => {
+  if (!method || typeof method !== 'string') return 'method-default'
   const methodMap: Record<string, string> = {
     'GET': 'method-get',
     'POST': 'method-post',
@@ -350,17 +352,72 @@ const loadSlowRequests = async () => {
   }
 }
 
+// 页面激活状态
+const isPageActive = ref(false)
+
+// 页面激活/失活处理
+const handlePageVisibilityChange = () => {
+  if (document.hidden) {
+    isPageActive.value = false
+    globalRefreshManager.pause()
+  } else if (route.path === '/performance') {
+    isPageActive.value = true
+    globalRefreshManager.resume()
+    // 重新启动自动刷新
+    globalRefreshManager.startAutoRefresh(async () => {
+      await loadData()
+      await loadSlowRequests()
+    })
+  }
+}
+
+// 手动刷新处理
+const handleManualRefresh = () => {
+  if (route.path === '/performance') {
+    globalRefreshManager.manualRefresh(async () => {
+      await loadData()
+      await loadSlowRequests()
+    })
+  }
+}
+
 onMounted(() => {
   loadData()
   loadSlowRequests()
+  
+  // 如果当前页面是performance，启动自动刷新
+  if (route.path === '/performance') {
+    isPageActive.value = true
+    globalRefreshManager.startAutoRefresh(async () => {
+      await loadData()
+      await loadSlowRequests()
+    })
+  }
+  
+  // 监听页面可见性变化
+  document.addEventListener('visibilitychange', handlePageVisibilityChange)
+  
+  // 监听全局刷新事件
+  window.addEventListener('refresh-all-pages', handleManualRefresh)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('visibilitychange', handlePageVisibilityChange)
+  window.removeEventListener('refresh-all-pages', handleManualRefresh)
 })
 
 // 监听路由变化，重新加载数据
 watch(() => route.path, () => {
   if (route.path === '/performance') {
     console.log('Performance页面路由变化，重新加载数据')
-    loadData()
-    loadSlowRequests()
+    isPageActive.value = true
+    globalRefreshManager.startAutoRefresh(async () => {
+      await loadData()
+      await loadSlowRequests()
+    })
+  } else {
+    isPageActive.value = false
+    globalRefreshManager.stopAutoRefresh()
   }
 })
 </script>

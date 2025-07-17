@@ -164,10 +164,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { getPerformance } from '@/api/monitor'
 import { ElMessage } from 'element-plus'
+import { globalRefreshManager } from '@/utils/refreshManager'
 
 // 获取当前路由
 const route = useRoute()
@@ -262,15 +263,59 @@ const loadData = async () => {
   }
 }
 
+// 页面激活状态
+const isPageActive = ref(false)
+
+// 页面激活/失活处理
+const handlePageVisibilityChange = () => {
+  if (document.hidden) {
+    isPageActive.value = false
+    globalRefreshManager.pause()
+  } else if (route.path === '/system') {
+    isPageActive.value = true
+    globalRefreshManager.resume()
+    // 重新启动自动刷新
+    globalRefreshManager.startAutoRefresh(loadData)
+  }
+}
+
+// 手动刷新处理
+const handleManualRefresh = () => {
+  if (route.path === '/system') {
+    globalRefreshManager.manualRefresh(loadData)
+  }
+}
+
 onMounted(() => {
   loadData()
+  
+  // 如果当前页面是system，启动自动刷新
+  if (route.path === '/system') {
+    isPageActive.value = true
+    globalRefreshManager.startAutoRefresh(loadData)
+  }
+  
+  // 监听页面可见性变化
+  document.addEventListener('visibilitychange', handlePageVisibilityChange)
+  
+  // 监听全局刷新事件
+  window.addEventListener('refresh-all-pages', handleManualRefresh)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('visibilitychange', handlePageVisibilityChange)
+  window.removeEventListener('refresh-all-pages', handleManualRefresh)
 })
 
 // 监听路由变化，重新加载数据
 watch(() => route.path, () => {
   if (route.path === '/system') {
     console.log('System页面路由变化，重新加载数据')
-    loadData()
+    isPageActive.value = true
+    globalRefreshManager.startAutoRefresh(loadData)
+  } else {
+    isPageActive.value = false
+    globalRefreshManager.stopAutoRefresh()
   }
 })
 </script>

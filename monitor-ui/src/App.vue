@@ -1,15 +1,41 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
+import GlobalRefreshControl from '@/components/GlobalRefreshControl.vue'
+import { globalRefreshManager } from '@/utils/refreshManager'
 
 const route = useRoute()
 
 const activeMenu = computed(() => route.path)
 
-const refreshData = () => {
-  // 刷新数据的逻辑
-  console.log('刷新数据')
+// 页面可见性监听
+const handleVisibilityChange = () => {
+  if (document.hidden) {
+    globalRefreshManager.pause()
+  } else {
+    globalRefreshManager.resume()
+  }
 }
+
+// 手动刷新事件监听
+const handleManualRefresh = () => {
+  // 触发所有页面的刷新
+  window.dispatchEvent(new CustomEvent('refresh-all-pages'))
+}
+
+onMounted(() => {
+  // 监听页面可见性变化
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+  
+  // 监听手动刷新事件
+  window.addEventListener('manual-refresh', handleManualRefresh)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
+  window.removeEventListener('manual-refresh', handleManualRefresh)
+  globalRefreshManager.destroy()
+})
 </script>
 
 <template>
@@ -25,12 +51,8 @@ const refreshData = () => {
             <h1 class="header-title">魔力淘监控系统</h1>
           </div>
           <div class="header-right">
-            <el-button type="primary" @click="refreshData" class="refresh-btn">
-              <el-icon class="mr-2">
-                <Refresh />
-              </el-icon>
-              刷新数据
-            </el-button>
+            <!-- 全局刷新控制组件 -->
+            <GlobalRefreshControl />
           </div>
         </div>
       </el-header>

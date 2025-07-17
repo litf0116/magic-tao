@@ -88,9 +88,9 @@
               <div class="api-method">{{ getMethod(item.endpoint) }}</div>
             </div>
             <div class="api-stats">
-              <div class="api-error">{{ item.errorRate.toFixed(2) }}% 错误</div>
-              <div class="api-calls">{{ item.totalCalls.toLocaleString() }} 次</div>
-              <div class="api-errors">{{ item.errorCount.toLocaleString() }} 次错误</div>
+              <div class="api-error">{{ (item.errorRate || 0).toFixed(2) }}% 错误</div>
+              <div class="api-calls">{{ (item.totalCalls || 0).toLocaleString() }} 次</div>
+              <div class="api-errors">{{ (item.errorCount || 0).toLocaleString() }} 次错误</div>
             </div>
           </div>
         </div>
@@ -113,14 +113,14 @@
             <div v-for="(item, index) in errorDistribution" :key="index" class="error-item">
               <div class="error-rank">{{ index + 1 }}</div>
               <div class="error-info">
-                <div class="error-endpoint">{{ item.endpoint }}</div>
+                <div class="error-endpoint">{{ item.endpoint || '未知接口' }}</div>
                 <div class="error-stats">
-                  <span class="error-count">{{ item.errorCount.toLocaleString() }} 次错误</span>
-                  <span class="error-rate">{{ item.errorRate.toFixed(2) }}% 错误率</span>
+                  <span class="error-count">{{ (item.errorCount || 0).toLocaleString() }} 次错误</span>
+                  <span class="error-rate">{{ (item.errorRate || 0).toFixed(2) }}% 错误率</span>
                 </div>
               </div>
               <div class="error-bar">
-                <div class="error-progress" :style="{ width: (item.errorRate / maxErrorRate * 100) + '%' }"></div>
+                <div class="error-progress" :style="{ width: ((item.errorRate || 0) / maxErrorRate * 100) + '%' }"></div>
               </div>
             </div>
           </div>
@@ -149,23 +149,23 @@
                 <div class="detail-method" :class="getMethodClass(item.endpoint)">
                   {{ getMethod(item.endpoint) }}
                 </div>
-                <div class="detail-endpoint">{{ item.endpoint }}</div>
-                <div class="detail-error-rate" :class="item.errorRate > 10 ? 'text-red-500' : 'text-orange-500'">
-                  {{ item.errorRate.toFixed(2) }}%
+                <div class="detail-endpoint">{{ item.endpoint || '未知接口' }}</div>
+                <div class="detail-error-rate" :class="(item.errorRate || 0) > 10 ? 'text-red-500' : 'text-orange-500'">
+                  {{ (item.errorRate || 0).toFixed(2) }}%
                 </div>
               </div>
               <div class="detail-stats">
                 <div class="stat-item">
                   <span class="stat-label">总调用:</span>
-                  <span class="stat-value">{{ item.totalCalls.toLocaleString() }}</span>
+                  <span class="stat-value">{{ (item.totalCalls || 0).toLocaleString() }}</span>
                 </div>
                 <div class="stat-item">
                   <span class="stat-label">错误次数:</span>
-                  <span class="stat-value text-red-500">{{ item.errorCount.toLocaleString() }}</span>
+                  <span class="stat-value text-red-500">{{ (item.errorCount || 0).toLocaleString() }}</span>
                 </div>
                 <div class="stat-item">
                   <span class="stat-label">平均响应时间:</span>
-                  <span class="stat-value">{{ item.avgResponseTime.toFixed(2) }}ms</span>
+                  <span class="stat-value">{{ (item.avgResponseTime || 0).toFixed(2) }}ms</span>
                 </div>
                 <div class="stat-item">
                   <span class="stat-label">最后调用:</span>
@@ -181,10 +181,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { getPerformance } from '@/api/monitor'
 import { ElMessage } from 'element-plus'
+import { globalRefreshManager } from '@/utils/refreshManager'
 
 // 获取当前路由
 const route = useRoute()
@@ -203,27 +204,27 @@ const topErrorApis = ref<any[]>([])
 const errorDistribution = computed(() => {
   return topErrorApis.value.map(item => ({
     endpoint: getApiName(item.endpoint),
-    errorCount: item.errorCount,
-    errorRate: item.errorRate
+    errorCount: item.errorCount || 0,
+    errorRate: item.errorRate || 0
   }))
 })
 
 // 计算最大错误率（用于进度条显示）
 const maxErrorRate = computed(() => {
   if (errorDistribution.value.length === 0) return 1
-  return Math.max(...errorDistribution.value.map(item => item.errorRate))
+  return Math.max(...errorDistribution.value.map(item => item.errorRate || 0))
 })
 
 // 获取HTTP方法
 const getMethod = (endpoint: string) => {
-  if (!endpoint) return 'GET'
+  if (!endpoint || typeof endpoint !== 'string') return 'GET'
   const parts = endpoint.split(' ')
   return parts[0] || 'GET'
 }
 
 // 获取API名称
 const getApiName = (endpoint: string) => {
-  if (!endpoint) return '未知接口'
+  if (!endpoint || typeof endpoint !== 'string') return '未知接口'
   const parts = endpoint.split(' ')
   const path = parts[1] || endpoint
   const pathParts = path.split('/')
@@ -232,6 +233,7 @@ const getApiName = (endpoint: string) => {
 
 // 获取HTTP方法样式类
 const getMethodClass = (endpoint: string) => {
+  if (!endpoint || typeof endpoint !== 'string') return 'method-default'
   const method = getMethod(endpoint)
   const methodMap: Record<string, string> = {
     'GET': 'method-get',
@@ -300,16 +302,60 @@ const loadData = async () => {
   }
 }
 
+// 页面激活状态
+const isPageActive = ref(false)
+
+// 页面激活/失活处理
+const handlePageVisibilityChange = () => {
+  if (document.hidden) {
+    isPageActive.value = false
+    globalRefreshManager.pause()
+  } else if (route.path === '/errors') {
+    isPageActive.value = true
+    globalRefreshManager.resume()
+    // 重新启动自动刷新
+    globalRefreshManager.startAutoRefresh(loadData)
+  }
+}
+
+// 手动刷新处理
+const handleManualRefresh = () => {
+  if (route.path === '/errors') {
+    globalRefreshManager.manualRefresh(loadData)
+  }
+}
+
+onMounted(() => {
+  loadData()
+  
+  // 如果当前页面是errors，启动自动刷新
+  if (route.path === '/errors') {
+    isPageActive.value = true
+    globalRefreshManager.startAutoRefresh(loadData)
+  }
+  
+  // 监听页面可见性变化
+  document.addEventListener('visibilitychange', handlePageVisibilityChange)
+  
+  // 监听全局刷新事件
+  window.addEventListener('refresh-all-pages', handleManualRefresh)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('visibilitychange', handlePageVisibilityChange)
+  window.removeEventListener('refresh-all-pages', handleManualRefresh)
+})
+
 // 监听路由变化，重新加载数据
 watch(() => route.path, () => {
   if (route.path === '/errors') {
     console.log('Errors页面路由变化，重新加载数据')
-    loadData()
+    isPageActive.value = true
+    globalRefreshManager.startAutoRefresh(loadData)
+  } else {
+    isPageActive.value = false
+    globalRefreshManager.stopAutoRefresh()
   }
-})
-
-onMounted(() => {
-  loadData()
 })
 </script>
 
