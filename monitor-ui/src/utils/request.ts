@@ -1,19 +1,20 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
+import axios from 'axios'
+import type { AxiosInstance, AxiosResponse } from 'axios'
 import { ElMessage } from 'element-plus'
 import type { ApiResponse } from '@/types'
 
 // 创建axios实例
 const request: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || http://localhost:21021,
-  timeout:100,
+  baseURL: import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL || 'https://www.molitao.top'),
+  timeout: 10000,
   headers: {
-   Content-Type':application/json
+    'Content-Type': 'application/json'
   }
 })
 
 // 请求拦截器
 request.interceptors.request.use(
-  (config: AxiosRequestConfig) => {
+  (config) => {
     // 可以在这里添加token等认证信息
     return config
   },
@@ -28,12 +29,13 @@ request.interceptors.response.use(
     const { data } = response
     
     // 如果后端返回的是标准格式
-    if (data && typeof data === 'object' && success in data) {
+    if (data && typeof data === 'object' && 'success' in data) {
       if (data.success) {
-        return data.data
+        return data.result || data.data
       } else {
         ElMessage.error(data.message || '请求失败')
-        return Promise.reject(new Error(data.message ||请求失败))     }
+        return Promise.reject(new Error(data.message || '请求失败'))
+      }
     }
     
     // 如果后端直接返回数据
