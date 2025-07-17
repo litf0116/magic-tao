@@ -91,7 +91,6 @@
                                 <AuctionStartMessage
                                     v-else-if="message.type === ChatMessageType.AuctionStart && message.payload"
                                     :message="message"
-                                    :catchImage="catchImage"
                                     @action="onAuctionStartAction"
                                 />
 
@@ -261,7 +260,7 @@
                 <view class="flex flex-row items-center overflow-hidden cursor-pointer">
                     <view class="text-wrap px-2 flex-1 flex flex-col">
                         <view class="text-[#ff7144] line-clamp-3">{{ showItem.Name }}</view>
-                        <view @tap="catchImage(showItem)" v-html="showItem.description || showItem.Description"> </view>
+                        <view @tap="catchImage($event, showItem)" v-html="showItem.description || showItem.Description"> </view>
                     </view>
                 </view>
             </view>

@@ -33,7 +33,13 @@
                 <view class="text-32rpx text-white font-700 underline">出价</view>
             </view>
         </view>
-        <chatMain ref="chatRef" @onSend="send" @loadHistoryMessage="loadHistoryMessage" @showDetail="showDetail">
+        <chatMain
+            ref="chatRef"
+            :options="{ chatType: 'auction' }"
+            @onSend="send"
+            @loadHistoryMessage="loadHistoryMessage"
+            @showDetail="showDetail"
+        >
         </chatMain>
     </view>
 
@@ -57,9 +63,8 @@
             </view>
             <div
                 class="mt-2 min-w-200px max-h-50vh overflow-scroll"
-                @tap="catchImage"
                 v-html="getStartContent(showItem!)"
-                @click="handleImageClick"
+                @tap="catchImage"
             ></div>
             <view class="h-8"></view>
         </view>
@@ -619,20 +624,6 @@ function catchImage(e: any) {
     }
 }
 
-// 处理弹窗中图片点击事件
-function handleImageClick(e: any) {
-    console.log('handleImageClick', e)
-    // 检查点击的是否是图片元素
-    if (e.target && e.target.tagName === 'IMG') {
-        const imageUrl = e.target.src
-        if (imageUrl) {
-            // 移除缩略图参数，获取原图
-            let src = imageUrl.replace(/!w300$/, '')
-            showImgPreview(src)
-        }
-    }
-}
-
 // 添加路由跳转函数
 const navigateToAdminChat = (status: 'pending' | 'record_provided') => {
     // 保存状态
@@ -662,7 +653,7 @@ const navigateToAdminChat = (status: 'pending' | 'record_provided') => {
         success: () => {
             console.log('跳转到管理员私信页面成功', { params })
         },
-        fail: (err) => {
+        fail: (err: any) => {
             console.error('跳转失败:', err)
             Tips.error('跳转失败，请重试')
             // 清除状态
