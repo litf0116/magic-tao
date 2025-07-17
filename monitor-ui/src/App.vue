@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from vue
+import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
@@ -18,7 +18,7 @@ const refreshData = () => {
       <el-header class="header">
         <div class="flex items-center justify-between h-full">
           <div class="flex items-center">
-            <el-icon class="text-2xl mr-30">
+            <el-icon class="text-2xl mr-3">
               <Monitor />
             </el-icon>
             <h1 class="text-xl font-bold">魔力淘监控系统</h1>
