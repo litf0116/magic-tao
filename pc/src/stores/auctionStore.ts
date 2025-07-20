@@ -9,22 +9,14 @@ import { ElMessage } from 'element-plus'
 import { convertAuctionPayload } from '@/utils/propertyConverter'
 
 export const useAuctionStore = defineStore('auction', () => {
-    const chatStore = useChatStore()
-    const userStore = useUserStore()
-    /**
-     * 待拍卖的无
-     */
     const list = ref<AuctionItemDto[]>([])
-    /**
-     * 已完成拍卖的物品
-     */
     const list4 = ref<AuctionItemDto[]>([])
-    /**
-     * 拍卖中的物品
-     */
     const auctionMid = ref<AuctionItemDto[]>([])
     // 卡秒状态
     const isKasec = ref(false)
+
+    const userStore = useUserStore()
+    const chatStore = useChatStore()
 
     // 新增：从出价消息直接更新拍品信息
     function updateAuctionItemFromBidMessage(bidMessagePayload: any) {
@@ -103,37 +95,83 @@ export const useAuctionStore = defineStore('auction', () => {
 
     // 设置卡秒状态（管理员）
     async function setKasec(auctionItemId, kasec) {
-        try {
-            // 获取最新的拍卖品状态
-            const detailRes = await GetDetail(auctionItemId)
-            const auctionItem = detailRes.data || detailRes
+        console.log('=== setKasec 方法开始 ===')
+        console.log('输入参数:', { auctionItemId, kasec })
 
-            // 检查拍卖品状态
-            if (!auctionItem) {
-                ElMessage.error('找不到指定的拍卖品')
-                return false
+        const maxRetries = 2
+        let retryCount = 0
+
+        while (retryCount <= maxRetries) {
+            try {
+                console.log(`第${retryCount + 1}次尝试执行卡秒操作`)
+
+                // 获取拍品基本信息（只检查拍品是否存在和状态）
+                console.log('获取拍品基本信息...')
+                const detailRes = await GetDetail(auctionItemId)
+                const auctionItem = detailRes.data || detailRes
+                console.log('拍品基本信息:', auctionItem)
+
+                // 只检查拍品是否存在和状态
+                if (!auctionItem) {
+                    console.log('找不到指定的拍卖品')
+                    ElMessage.error('找不到指定的拍卖品')
+                    return false
+                }
+
+                if (auctionItem.status !== '拍卖中') {
+                    console.log(`拍品状态不正确: ${auctionItem.status}`)
+                    ElMessage.error(`当前拍卖品状态为"${auctionItem.status}"，无法进行卡秒操作`)
+                    return false
+                }
+
+                console.log('拍品状态检查通过，直接执行卡秒设置...')
+
+                // 直接调用API设置卡秒状态，不检查当前状态
+                console.log('准备调用 setKasecStatus API...')
+                const res = await setKasecStatus(auctionItemId, kasec)
+                console.log('setKasec API调用结果:', res)
+
+                // API调用成功后，立即更新前端状态
+                if (res) {
+                    console.log('卡秒操作API调用成功，立即更新前端状态...')
+                    isKasec.value = kasec
+                    console.log('前端状态已更新，当前状态:', isKasec.value)
+                    console.log('=== setKasec 方法成功结束 ===')
+                    return true
+                } else {
+                    console.log('API返回失败')
+                    throw new Error('API返回失败')
+                }
+            } catch (error) {
+                retryCount++
+                console.error(`卡秒操作失败 (第${retryCount}次尝试):`, error)
+
+                // 如果是最后一次重试，抛出错误
+                if (retryCount > maxRetries) {
+                    console.log('已达到最大重试次数，抛出错误')
+                    // 根据错误类型提供更详细的错误信息
+                    if (error.code === 'NETWORK_ERROR' || error.message?.includes('Network Error')) {
+                        error.message = '网络连接异常，请检查网络后重试'
+                    } else if (error.code === 'TIMEOUT') {
+                        error.message = '操作超时，请稍后重试'
+                    } else if (error.message?.includes('状态冲突')) {
+                        error.message = '拍品状态已发生变化，请刷新页面后重试'
+                    } else if (!error.message) {
+                        error.message = '操作失败，请重试'
+                    }
+                    console.log('=== setKasec 方法失败结束 ===')
+                    throw error
+                }
+
+                // 等待一段时间后重试
+                console.log(`等待${1000 * retryCount}ms后重试...`)
+                await new Promise((resolve) => setTimeout(resolve, 1000 * retryCount))
+                console.log(`准备第${retryCount + 1}次重试...`)
             }
-
-            if (auctionItem.status !== '拍卖中') {
-                ElMessage.error(`当前拍卖品状态为"${auctionItem.status}"，无法进行卡秒操作`)
-                return false
-            }
-
-            console.log('卡秒操作前状态检查通过:', {
-                auctionItemId,
-                status: auctionItem.status,
-                kasec,
-            })
-
-            const res = await setKasecStatus(auctionItemId, kasec)
-            console.log('setKasec', res)
-            isKasec.value = kasec
-            return res
-        } catch (error) {
-            console.error('卡秒操作失败:', error)
-            ElMessage.error('卡秒操作失败，请稍后重试')
-            return false
         }
+
+        console.log('=== setKasec 方法异常结束 ===')
+        return false
     }
 
     // 获取卡秒状态

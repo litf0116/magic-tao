@@ -3,20 +3,20 @@ const axios = useRequest()
 
 // 用户群等级实体
 export interface UserGroupLevelEntity {
-    id: number;
-    userId: number;
-    groupChatId: number;
-    cumulativeAmount: number;
+    id: number
+    userId: number
+    groupChatId: number
+    cumulativeAmount: number
 }
 
 // 群聊等级配置实体
 export interface GroupChatLevelSettingsEntity {
-    id: number;
-    name: string;
-    level: number;
-    amountRequired: number;
-    borderColor: string;
-    rightBorderColor: string;
+    id: number
+    name: string
+    level: number
+    amountRequired: number
+    borderColor: string
+    rightBorderColor: string
 }
 
 // 用户等级信息（包含等级配置）

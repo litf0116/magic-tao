@@ -8,7 +8,8 @@
         </div>
     </div>
     <div
-        class="min-w-260px md:w-260px h-full flex flex-col border-0 border-l-1 md:border-solid md:border-gray-300 min-h-700px">
+        class="min-w-260px md:w-260px h-full flex flex-col border-0 border-l-1 md:border-solid md:border-gray-300 min-h-700px"
+    >
         <!-- <GroupList /> -->
         <AuctionList />
     </div>
@@ -57,7 +58,7 @@ async function loadHistoryMessage(force = false) {
 //LINK[epic=消息发送] - 拍卖消息发送逻辑
 function send(e: { type: ChatMessageType; data: string | object }) {
     if (e.type === ChatMessageType.Image) {
-        chatStore.sendChannelMsg('[图片]', '', ChatMessageType.Image, e.data).then(() => { })
+        chatStore.sendChannelMsg('[图片]', '', ChatMessageType.Image, e.data).then(() => {})
     } else if (e.type === ChatMessageType.Text) {
         chatStore.sendChannelMsg(e.data as string, '', ChatMessageType.Text).then(() => {
             //

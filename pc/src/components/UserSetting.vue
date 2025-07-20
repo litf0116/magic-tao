@@ -60,7 +60,7 @@
         </el-form>
     </el-dialog>
 
-    <withdrawDialog v-model:show="withdrawDialogVisible" title="提示" :showCancel="false" @confirm="handleConfirm">
+    <withdrawDialog v-model:show="withdrawDialogVisible" title="提示" :show-cancel="false" @confirm="handleConfirm">
         <div>平台提现功能尚未完善，保证金退款，请加管理员老淡QQ：383875411，微信：18845639111，私信扫码退款。</div>
     </withdrawDialog>
 </template>

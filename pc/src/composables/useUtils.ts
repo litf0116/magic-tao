@@ -1,6 +1,6 @@
-import router from "@/routes";
-import { ElMessageBox } from "element-plus";
-import { onBeforeRouteLeave, RouteLocationRaw } from "vue-router";
+import router from '@/routes'
+import { ElMessageBox } from 'element-plus'
+import { onBeforeRouteLeave, RouteLocationRaw } from 'vue-router'
 
 export default () => {
     /**
@@ -9,12 +9,12 @@ export default () => {
      * @returns
      */
     function request(fn: (args?: any) => Promise<any>) {
-        let isSend = false;
+        let isSend = false
         return (args?: any) => {
-            if (isSend) return;
-            isSend = true;
-            return fn(args).finally(() => (isSend = false));
-        };
+            if (isSend) return
+            isSend = true
+            return fn(args).finally(() => (isSend = false))
+        }
     }
 
     /**
@@ -22,10 +22,10 @@ export default () => {
      * @param route 路由
      * @param target 跳转方式 _self当前页 _blank 新窗口
      */
-    function open(url: RouteLocationRaw | string, target = "_self") {
-        if (typeof url != "string") url = router.resolve(url).fullPath;
-        if (target == "_blank") window.open(url);
-        else location.href = url;
+    function open(url: RouteLocationRaw | string, target = '_self') {
+        if (typeof url != 'string') url = router.resolve(url).fullPath
+        if (target == '_blank') window.open(url)
+        else location.href = url
     }
 
     /**
@@ -33,8 +33,8 @@ export default () => {
      * @returns
      */
     function isWechat() {
-        const ua = navigator.userAgent.toLowerCase();
-        return ua.match(/MicroMessenger/i);
+        const ua = navigator.userAgent.toLowerCase()
+        return ua.match(/MicroMessenger/i)
     }
 
     /**
@@ -44,8 +44,8 @@ export default () => {
      * @returns
      */
     const routeQuery = (name: string, defaultValue?: any) => {
-        return useRoute().query[name] || defaultValue;
-    };
+        return useRoute().query[name] || defaultValue
+    }
 
     /**
      * 获取路由 Params 参数
@@ -54,23 +54,23 @@ export default () => {
      * @returns
      */
     const routeParams = (name: string, defaultValue?: any) => {
-        return useRoute().params[name] || defaultValue;
-    };
+        return useRoute().params[name] || defaultValue
+    }
 
     /**
      * 离开页面确认
      * @param message 消息提示
      */
-    const routeLeaveConfirm = async (message = "确定离开吗？") => {
+    const routeLeaveConfirm = async (message = '确定离开吗？') => {
         onBeforeRouteLeave(async () => {
             try {
-                await ElMessageBox.confirm(message, "温馨提示");
-                return true;
+                await ElMessageBox.confirm(message, '温馨提示')
+                return true
             } catch {
-                return false;
+                return false
             }
-        });
-    };
+        })
+    }
 
     return {
         routeQuery,
@@ -79,5 +79,5 @@ export default () => {
         isWechat,
         routeParams,
         routeLeaveConfirm,
-    };
-};
+    }
+}

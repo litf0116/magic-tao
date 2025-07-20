@@ -6,8 +6,8 @@
                     <div class="title">分类</div>
                     <div class="type-list">
                         <div
-                            class="item"
                             v-for="item in postCategoryList"
+                            class="item"
                             :class="{ active: activeKey === item.key }"
                             @click="onPostCategoryActive(item.key)"
                         >
@@ -22,8 +22,8 @@
                     <ElInput
                         v-model="keywords"
                         placeholder="请输入关键词"
-                        @keydown.prevent.enter="emitSearch"
                         clearable
+                        @keydown.prevent.enter="emitSearch"
                     >
                         <template #append>
                             <ElButton @click="emitSearch">搜索</ElButton>
@@ -38,7 +38,7 @@
             <!-- 在这个位置插入置顶帖的列表 -->
             <div class="top-posts">
                 <div class="title">置顶帖子</div>
-                <div class="post-item" v-for="post in topPosts" :key="post.id" @click="goToDetail(post.id)">
+                <div v-for="post in topPosts" :key="post.id" class="post-item" @click="goToDetail(post.id)">
                     <!-- 头像 -->
                     <div class="post-avatar">
                         <el-avatar :size="30" :src="post.userAvatar" />
@@ -49,8 +49,8 @@
                         <el-tag v-if="post.isTop != 0" type="danger" effect="plain" size="small">置顶</el-tag>
                         <el-tag v-if="post.isEssence != 0" type="success" effect="plain" size="small">精华</el-tag>
                         <el-tag
-                            v-if="post.postCategory"
                             v-for="(item, index) in post.postCategory"
+                            v-if="post.postCategory"
                             :key="index"
                             :type="tagTypes[index % tagTypes.length]"
                             effect="plain"
@@ -79,8 +79,8 @@
                         <div class="title" style="width: 120px">搜索发现：</div>
                         <div style="display: flex; flex-wrap: wrap">
                             <div
-                                class="item"
                                 v-for="(item, index) in hotWordsList"
+                                class="item"
                                 :class="{ active: hotWordsActiveKey === item.id }"
                                 @click="onHotWordActive(item)"
                             >
@@ -93,14 +93,14 @@
 
             <div class="post-content">
                 <!-- 帖子列表 -->
-                <div class="posts-container" v-loading="loading">
+                <div v-loading="loading" class="posts-container">
                     <!-- 列表为空 -->
                     <el-empty v-if="posts.length === 0" description="暂无帖子" />
 
                     <!-- 帖子项 -->
                     <div
-                        v-else
                         v-for="post in posts"
+                        v-else
                         :key="post.postId"
                         class="post-item"
                         @click="goToDetail(post.postId)"
@@ -115,8 +115,8 @@
                             <el-tag v-if="post.isTop != 0" type="danger" effect="plain" size="small">置顶</el-tag>
                             <el-tag v-if="post.isEssence != 0" type="success" effect="plain" size="small">精华</el-tag>
                             <el-tag
-                                v-if="post.postCategory"
                                 v-for="(item, index) in post.postCategory"
+                                v-if="post.postCategory"
                                 :key="index"
                                 :type="tagTypes[index % tagTypes.length]"
                                 effect="plain"
@@ -156,7 +156,7 @@
 
         <postItem ref="postRef" @on-saved="loadPosts" />
 
-        <CustomDialog v-model:show="dialogVisible" :title="bulletinTitle" :showCancel="false" @confirm="handleConfirm">
+        <CustomDialog v-model:show="dialogVisible" :title="bulletinTitle" :show-cancel="false" @confirm="handleConfirm">
             <div v-html="dialogContent"></div>
         </CustomDialog>
     </div>

@@ -11,11 +11,11 @@ defineProps({
         type: Number,
         default: 0,
     },
-});
-const emit = defineEmits(["update:modelValue", "change"]);
+})
+const emit = defineEmits(['update:modelValue', 'change'])
 
 function onFiter(e: any) {
-    emit("update:modelValue", e);
-    emit("change");
+    emit('update:modelValue', e)
+    emit('change')
 }
 </script>

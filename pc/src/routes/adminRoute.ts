@@ -163,7 +163,7 @@ export default {
                     },
                     component: () => import('@/views/admin/postBar/post/list.vue'),
                 },
-				{
+                {
                     path: 'hotWords',
                     name: 'hotWordsList',
                     meta: {

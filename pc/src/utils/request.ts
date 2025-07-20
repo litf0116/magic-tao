@@ -105,28 +105,30 @@ const baseConfig = {
     headers: {
         'Content-Type': 'application/json',
         'Register-Terminal': '20',
-        'tenant-id': 1
-    }
+        'tenant-id': 1,
+    },
 }
-
 
 /**
  * 发起http请求
- * @param config 
+ * @param config
  */
 export function useRequest(config = baseConfig) {
     const request = axios.create(config)
     //请求拦截器
-    request.interceptors.request.use((request) => {
-        request.headers['Abp.Tenantid'] = 1
-        request.headers['Authorization'] = `Bearer ${getToken() || ''}`
-        request.headers['Content-Type'] = 'application/json'
-        // request.headers['.Aspnetcore-Culture'] = 'c=zh-Hans|uic=zh-CN'
-        request.headers['Appname'] = import.meta.env.VITE_APP_AppName
-        return request
-    }, (error: any) => {
-        Promise.reject(error)
-    })
+    request.interceptors.request.use(
+        (request) => {
+            request.headers['Abp.Tenantid'] = 1
+            request.headers['Authorization'] = `Bearer ${getToken() || ''}`
+            request.headers['Content-Type'] = 'application/json'
+            // request.headers['.Aspnetcore-Culture'] = 'c=zh-Hans|uic=zh-CN'
+            request.headers['Appname'] = import.meta.env.VITE_APP_AppName
+            return request
+        },
+        (error: any) => {
+            Promise.reject(error)
+        }
+    )
     //响应拦截器
     request.interceptors.response.use(
         (response: any) => {
@@ -184,5 +186,5 @@ export function useRequest(config = baseConfig) {
             }
         }
     )
-    return request;
+    return request
 }

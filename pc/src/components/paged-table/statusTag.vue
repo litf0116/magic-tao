@@ -50,38 +50,38 @@
 </template>
 <script lang="ts">
 export default defineComponent({
-    name: "StateTag",
-});
+    name: 'StateTag',
+})
 </script>
 <script lang="ts" setup>
-import { AuditUserLogDto } from "@/api/appService";
+import { AuditUserLogDto } from '@/api/appService'
 
-const props = defineProps(["modelValue", "api"]);
+const props = defineProps(['modelValue', 'api'])
 
-const visible = ref(false);
-const nodes = ref([] as any[]);
-const logs = ref([] as AuditUserLogDto[]);
+const visible = ref(false)
+const nodes = ref([] as any[])
+const logs = ref([] as AuditUserLogDto[])
 
 function getUserNodeType(nodeId: string, u: { id: number }) {
     console.log(
         logs.value,
         logs.value.filter((x) => x.status === 1)
-    );
+    )
     if (
         logs.value
             .filter((x) => x.status === 1)
             .findIndex((x) => x.auditNodeId === nodeId && x.creatorUserId === u.id) > -1
     ) {
-        return "success";
+        return 'success'
     }
-    return "info";
+    return 'info'
 }
 
 function showAuditDetail() {
-    visible.value = true;
+    visible.value = true
     props.api.getAuditDetail({ id: props.modelValue.id }).then((res: any) => {
-        nodes.value = [...res.nodes];
-        logs.value = [...res.auditUserLogs];
-    });
+        nodes.value = [...res.nodes]
+        logs.value = [...res.auditUserLogs]
+    })
 }
 </script>

@@ -1,15 +1,34 @@
 <template>
-    <el-dialog v-model="dialogVisible" title="拍卖物品编辑" width="800px" draggable destroy-on-close append-to-body
-        :close-on-click-modal="false">
-        <el-form ref="ruleFormRef" :model="form" :rules="rules" style="max-width: 800px" label-width="auto"
-            class="demo-ruleForm" status-icon>
+    <el-dialog
+        v-model="dialogVisible"
+        title="拍卖物品编辑"
+        width="800px"
+        draggable
+        destroy-on-close
+        append-to-body
+        :close-on-click-modal="false"
+    >
+        <el-form
+            ref="ruleFormRef"
+            :model="form"
+            :rules="rules"
+            style="max-width: 800px"
+            label-width="auto"
+            class="demo-ruleForm"
+            status-icon
+        >
             <div class="grid grid-cols-4 gap-2 items-center">
                 <el-form-item label="名称" prop="name" class="col-span-2">
                     <el-input v-model="form.name" />
                 </el-form-item>
                 <el-form-item label="图片" prop="imageUrl">
-                    <tt-upload v-model="form.imageUrl" css-class="avatar-uploader" :file-size="2048" :multiple="false"
-                        @on-uploaded="handleUploaded">
+                    <tt-upload
+                        v-model="form.imageUrl"
+                        css-class="avatar-uploader"
+                        :file-size="2048"
+                        :multiple="false"
+                        @on-uploaded="handleUploaded"
+                    >
                         <img v-if="form.imageUrl" :src="form.imageUrl" class="size-12" />
                         <div v-else class="border-2 border-dashed border-blue-300">
                             <div class="i-mdi:add text-gray-200 size-12"></div>
@@ -17,9 +36,13 @@
                     </tt-upload>
                 </el-form-item>
                 <el-form-item label="是否直接上架">
-                    <el-switch v-model="form.status" class="ml-2"
-                        style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949" :active-value="1"
-                        :inactive-value="0" />
+                    <el-switch
+                        v-model="form.status"
+                        class="ml-2"
+                        style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949"
+                        :active-value="1"
+                        :inactive-value="0"
+                    />
                 </el-form-item>
             </div>
             <div class="grid grid-cols-2 gap-2 items-center">
@@ -32,8 +55,13 @@
             </div>
             <el-form-item label="介绍" prop="description">
                 <!-- {{ form.description }} -->
-                <div ref="contentTarget" class="min-h-64 w-full border-2 border-solid border-blue-500" contenteditable
-                    @input="onInput" @paste="onPaste"></div>
+                <div
+                    ref="contentTarget"
+                    class="min-h-64 w-full border-2 border-solid border-blue-500"
+                    contenteditable
+                    @input="onInput"
+                    @paste="onPaste"
+                ></div>
             </el-form-item>
             <div>
                 <el-button type="primary" @click="submitForm"> 更新 </el-button>
@@ -97,16 +125,18 @@ function realSave() {
     if (form.value.id) _api = api.auctionItem.update
     else _api = api.auctionItem.create
 
-    _api({ body: form.value }).then((res) => {
-        console.log('保存成功，返回数据:', res)
-        Tips.success('成功')
-        emit('onSaved')
-        // userStore.getUserInfo()
-        dialogVisible.value = false
-    }).catch((error) => {
-        console.error('保存失败:', error)
-        Tips.error('保存失败')
-    })
+    _api({ body: form.value })
+        .then((res) => {
+            console.log('保存成功，返回数据:', res)
+            Tips.success('成功')
+            emit('onSaved')
+            // userStore.getUserInfo()
+            dialogVisible.value = false
+        })
+        .catch((error) => {
+            console.error('保存失败:', error)
+            Tips.error('保存失败')
+        })
 }
 
 function handleUploaded(e: { url: string }) {

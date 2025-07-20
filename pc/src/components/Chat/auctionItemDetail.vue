@@ -62,7 +62,7 @@
                 </el-button>
                 <el-button v-if="item.status === '拍卖中'" type="success" @click="end(item)"> 结束竞拍 </el-button>
             </div>
-            <div class="p-2" v-if="item.status === '拍卖中' && userStore.isChatAdmin === false">
+            <div v-if="item.status === '拍卖中' && userStore.isChatAdmin === false" class="p-2">
                 <el-button color="#f4835a" class="w-full" @click="bid(item.id)">
                     <div class="text-lg font-700 text-white">出价</div>
                 </el-button>

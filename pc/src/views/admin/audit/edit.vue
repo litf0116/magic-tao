@@ -57,31 +57,31 @@
 </template>
 
 <script lang="ts">
-import api from "@/api";
-import { ElMessage } from "element-plus";
-import { useRoute, useRouter } from "vue-router";
-import Editor from "./editor.vue";
-import { createNodes, flatenNodes } from "@/utils/tree";
+import api from '@/api'
+import { ElMessage } from 'element-plus'
+import { useRoute, useRouter } from 'vue-router'
+import Editor from './editor.vue'
+import { createNodes, flatenNodes } from '@/utils/tree'
 
 export default defineComponent({
     components: { Editor },
     setup(props: any, context: any) {
-        const router = useRouter();
-        const route = useRoute();
+        const router = useRouter()
+        const route = useRoute()
 
         onMounted(() => {
-            const id = route.params.id;
-            console.log("onMounted params", route.params);
-            console.log("onMounted query", route.query);
+            const id = route.params.id
+            console.log('onMounted params', route.params)
+            console.log('onMounted query', route.query)
 
             if (route.params.id) {
-                data.form.id = route.params.id + "";
-                data.title = "编辑审核流程";
+                data.form.id = route.params.id + ''
+                data.title = '编辑审核流程'
             }
-        });
+        })
 
         const data = reactive({
-            title: "创建审核流程",
+            title: '创建审核流程',
             previewShow: false,
             editShow: false,
             roleRule: {} as any,
@@ -89,60 +89,60 @@ export default defineComponent({
             schema: {} as any,
             formData: {} as any,
             onSubmit: () => {
-                let _api;
+                let _api
                 if (data.form.id && data.form.id != api.guid) {
-                    _api = api.admin.auditFlow.update;
+                    _api = api.admin.auditFlow.update
                 } else {
-                    _api = api.admin.auditFlow.create;
+                    _api = api.admin.auditFlow.create
                 }
 
-                data.form.auditNodes = flatenNodes(rows.value);
+                data.form.auditNodes = flatenNodes(rows.value)
 
                 _api({ body: Object.assign({}, data.form) }).then((res) => {
                     // console.log(res)
                     ElMessage.success({
-                        message: "提交成功,正在跳转至列表",
-                        type: "success",
-                    });
+                        message: '提交成功,正在跳转至列表',
+                        type: 'success',
+                    })
                     setTimeout(() => {
-                        router.push({ name: "AuditList" });
-                    }, 500);
-                });
+                        router.push({ name: 'AuditList' })
+                    }, 500)
+                })
             },
-        });
+        })
 
         const editorSubmit = (val: any) => {
-            console.log("editorSubmit", val);
-            data.editShow = false;
-            data.form.value = val;
-            console.log(data.form);
-        };
+            console.log('editorSubmit', val)
+            data.editShow = false
+            data.form.value = val
+            console.log(data.form)
+        }
 
-        provide("editorSubmit", editorSubmit);
+        provide('editorSubmit', editorSubmit)
 
         const onload = () => {
             api.admin.auditFlow.getForEdit({ id: route.params.id }).then((res) => {
-                data.form = res.data!;
-                data.schema = res.schema!;
-                rows.value = createNodes(res.data!.auditNodes!);
+                data.form = res.data!
+                data.schema = res.schema!
+                rows.value = createNodes(res.data!.auditNodes!)
 
-                if (route.query.name) data.form.name = route.query.name;
-                if (route.query.providerName) data.form.providerName = route.query.providerName;
-                if (route.query.providerKey) data.form.providerKey = route.query.providerKey;
-            });
-        };
+                if (route.query.name) data.form.name = route.query.name
+                if (route.query.providerName) data.form.providerName = route.query.providerName
+                if (route.query.providerKey) data.form.providerKey = route.query.providerKey
+            })
+        }
 
-        onload();
+        onload()
 
-        const form = computed(() => data.form);
-        const rows = ref([]);
+        const form = computed(() => data.form)
+        const rows = ref([])
 
-        provide("form", form);
-        provide("rows", rows);
+        provide('form', form)
+        provide('rows', rows)
 
         return {
             ...toRefs(data),
-        };
+        }
     },
-});
+})
 </script>

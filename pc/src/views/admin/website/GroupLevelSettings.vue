@@ -18,14 +18,31 @@
             </el-table-column>
         </el-table>
 
-        <el-dialog v-model="dialogVisibleForm" :title="dialogTitle" width="600px" draggable destroy-on-close
-            append-to-body :close-on-click-modal="false">
-            <el-form ref="formRef" :model="formData" :rules="formRules" style="max-width: 800px" label-width="auto"
-                class="demo-ruleForm" status-icon>
+        <el-dialog
+            v-model="dialogVisibleForm"
+            :title="dialogTitle"
+            width="600px"
+            draggable
+            destroy-on-close
+            append-to-body
+            :close-on-click-modal="false"
+        >
+            <el-form
+                ref="formRef"
+                :model="formData"
+                :rules="formRules"
+                style="max-width: 800px"
+                label-width="auto"
+                class="demo-ruleForm"
+                status-icon
+            >
                 <el-form-item v-for="field in formFields" :key="field.prop" :label="field.label" :prop="field.prop">
-                    <el-input v-if="field.prop != 'borderColor' && field.prop != 'rightBorderColor'"
-                        v-model.number="formData[field.prop]" :type="field.type || 'text'"
-                        :placeholder="'请输入' + field.label">
+                    <el-input
+                        v-if="field.prop != 'borderColor' && field.prop != 'rightBorderColor'"
+                        v-model.number="formData[field.prop]"
+                        :type="field.type || 'text'"
+                        :placeholder="'请输入' + field.label"
+                    >
                     </el-input>
                     <el-color-picker v-else v-model="formData[field.prop]" />
                 </el-form-item>
@@ -42,7 +59,12 @@
 import { ref, reactive, computed } from 'vue'
 import { FormInstance, ElMessageBox, ElMessage } from 'element-plus'
 
-import { GetList, AddGroupChatLevelSettings, EditGroupChatLevelSetting, DeleteGroupChatLevelSetting } from '@/api/groupChatLevel'
+import {
+    GetList,
+    AddGroupChatLevelSettings,
+    EditGroupChatLevelSetting,
+    DeleteGroupChatLevelSetting,
+} from '@/api/groupChatLevel'
 
 const tableData = ref([])
 const formRef = ref<FormInstance>()
@@ -55,7 +77,7 @@ const formFields = [
     { label: '等级', prop: 'level', type: 'number' },
     { label: '所需金额', prop: 'amountRequired', type: 'number' },
     { label: '左边框颜色', prop: 'borderColor', type: 'text' },
-    { label: '右边框颜色', prop: 'rightBorderColor', type: 'text' }
+    { label: '右边框颜色', prop: 'rightBorderColor', type: 'text' },
 ]
 
 // 表单数据对象
@@ -64,16 +86,14 @@ const formData = reactive({
     name: '',
     level: 0,
     amountRequired: 0,
-    borderColor: ''
+    borderColor: '',
 })
 
 // 表单验证规则
 const formRules = computed(() => {
     const rules = {}
-    formFields.forEach(field => {
-        rules[field.prop] = [
-            { required: true, message: `请输入${field.label}`, trigger: 'blur' }
-        ]
+    formFields.forEach((field) => {
+        rules[field.prop] = [{ required: true, message: `请输入${field.label}`, trigger: 'blur' }]
     })
     return rules
 })
@@ -98,15 +118,17 @@ const handleDelete = async (row) => {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning',
-    }).then(async () => {
-        var res = await DeleteGroupChatLevelSetting(row.id)
-        if (res.status === 200) {
-            pageList()
-        }
-        ElMessage({ type: 'success', message: '删除成功!' })
-    }).catch(() => {
-        ElMessage({ type: 'info', message: '已取消删除' })
     })
+        .then(async () => {
+            var res = await DeleteGroupChatLevelSetting(row.id)
+            if (res.status === 200) {
+                pageList()
+            }
+            ElMessage({ type: 'success', message: '删除成功!' })
+        })
+        .catch(() => {
+            ElMessage({ type: 'info', message: '已取消删除' })
+        })
 }
 
 // 重置表单
@@ -114,7 +136,7 @@ const resetForm = () => {
     if (formRef.value) {
         formRef.value.resetFields()
     }
-    Object.keys(formData).forEach(key => {
+    Object.keys(formData).forEach((key) => {
         formData[key] = ''
     })
 }
@@ -127,7 +149,7 @@ const submitForm = () => {
             // 实现提交逻辑
             console.log('表单数据：', formData)
             formData.id = formData.id == 0 ? 0 : parseInt(formData.id.toString())
-            var res;
+            var res
             if (formData.id == 0) {
                 res = await AddGroupChatLevelSettings(formData)
             } else {

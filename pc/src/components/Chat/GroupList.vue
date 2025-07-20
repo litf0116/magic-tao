@@ -1,13 +1,13 @@
 <template>
-	<div class="flex-1" style="max-height: calc(700px - 2.5rem)" @contextmenu.prevent>
-		<div class="h-24 border-0 border-b-1 border-solid border-gray-400 overflow-hidden">
-			<announce-div :category-id="1" />
-		</div>
-		<!-- <div class="h-8">
+    <div class="flex-1" style="max-height: calc(700px - 2.5rem)" @contextmenu.prevent>
+        <div class="h-24 border-0 border-b-1 border-solid border-gray-400 overflow-hidden">
+            <announce-div :category-id="1" />
+        </div>
+        <!-- <div class="h-8">
             <el-input v-model="filterText" class="border-0" placeholder="筛选组队频道" clearable />
         </div> -->
-		<div id="ps_container" style="max-height: calc(700px - 12rem)" class="space-y-2 overflow-hidden h-full p-1">
-			<!-- <div
+        <div id="ps_container" style="max-height: calc(700px - 12rem)" class="space-y-2 overflow-hidden h-full p-1">
+            <!-- <div
                 v-for="(group, k) in chatStore.groups
                     .filter((x) => x.chan !== '0_lobby' && x.chan !== '-1_auction' && x.chan.indexOf(filterText) > -1)
                     .reverse()"
@@ -33,21 +33,21 @@
                     </div>
                 </div>
             </div> -->
-			<div>
-				<div v-motion-fade-visible class="px-2 py-1 rounded shadow-md  relative">
-					<div class="flex items-center justify-between text-sm">
-						<img :src="item.avatar" class="chat-avatar" />
-						<div>呢称：{{ item.name }}</div>
-					</div>
-					<div class="mt-1 text-true-gray-5 flex items-center justify-between text-xs">
-						<div>QQ：{{ item.qq }}</div>
-						<div>微信：{{ item.weChat }}</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-	<!-- <div class="shadow h-10 grid grid-cols-3">
+            <div>
+                <div v-motion-fade-visible class="px-2 py-1 rounded shadow-md relative">
+                    <div class="flex items-center justify-between text-sm">
+                        <img :src="item.avatar" class="chat-avatar" />
+                        <div>呢称：{{ item.name }}</div>
+                    </div>
+                    <div class="mt-1 text-true-gray-5 flex items-center justify-between text-xs">
+                        <div>QQ：{{ item.qq }}</div>
+                        <div>微信：{{ item.weChat }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- <div class="shadow h-10 grid grid-cols-3">
         <div class="bg-gray-500 text-white cursor-pointer flex flex-center" @click="chatStore.getGropus">刷新列表</div>
         <div class="col-span-2 bg-[#f4835a] text-white cursor-pointer flex flex-center" @click="createGroup">
             创建组队聊天
@@ -68,12 +68,11 @@ const props = defineProps({
     item: {
         type: Object,
         required: true,
-    }
+    },
 })
 
-
 onMounted(() => {
-	//
+    //
 })
 
 let ps: PerfectScrollbar | null = null
@@ -82,23 +81,23 @@ const createGroupDislogRef = ref<InstanceType<typeof createGroupDislog> | null>(
 const filterText = ref('')
 
 onMounted(() => {
-	ps = new PerfectScrollbar('#ps_container')
-	ps.update()
+    ps = new PerfectScrollbar('#ps_container')
+    ps.update()
 })
 
 watch(
-	() => chatStore.groups.length,
-	() => {
-		if (ps) {
-			ps.update()
-		}
-	}
+    () => chatStore.groups.length,
+    () => {
+        if (ps) {
+            ps.update()
+        }
+    }
 )
 
 function goChan(name: string) {
-	router.replace({
-		path: '/chat/index/groupChat/' + name,
-	})
+    router.replace({
+        path: '/chat/index/groupChat/' + name,
+    })
 }
 
 // function createGroup() {
@@ -120,6 +119,6 @@ function goChan(name: string) {
 // }
 
 function createGroup() {
-	createGroupDislogRef.value?.show(true)
+    createGroupDislogRef.value?.show(true)
 }
 </script>

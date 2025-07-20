@@ -11,7 +11,7 @@
             {{ item?.content }}
         </div>
     </div>
-    <announce-dialog ref="announceDialogRef" :categoryId="props.categoryId" />
+    <announce-dialog ref="announceDialogRef" :category-id="props.categoryId" />
 </template>
 
 <script setup lang="ts" name="announceDiv">
@@ -42,11 +42,11 @@ watch(
 onMounted(() => {
     //获取公告
     api.announce.getLatest({ id: props.categoryId }).then((res) => {
-        item.value = res;
+        item.value = res
         //获取通知公告
-        var bulletinInfo: any = localStorage.getItem("bulletin_" + res.id);
-        bulletinInfo = bulletinInfo ? JSON.parse(bulletinInfo) : null;
-        var html = "";
+        var bulletinInfo: any = localStorage.getItem('bulletin_' + res.id)
+        bulletinInfo = bulletinInfo ? JSON.parse(bulletinInfo) : null
+        var html = ''
         if (bulletinInfo == null || bulletinInfo.id != res.id) {
             if (res.imageUrl) {
                 html = `<img style="width: 100%;height: 300px;" src="${res.imageUrl}">${res.content}`
@@ -59,7 +59,7 @@ onMounted(() => {
                 dangerouslyUseHTMLString: true,
                 customClass: 'msgbox',
                 callback: () => {
-                    localStorage.setItem("bulletin_" + res.id, JSON.stringify(res))
+                    localStorage.setItem('bulletin_' + res.id, JSON.stringify(res))
                 },
             })
         }

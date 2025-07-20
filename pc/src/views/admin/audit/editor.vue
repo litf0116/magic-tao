@@ -83,18 +83,18 @@
     </div>
 </template>
 <script lang="ts">
-import { defineComponent, inject, onMounted, toRefs, reactive, ref, computed } from "vue";
-import draggable from "vuedraggable";
-import api from "@/api";
+import { defineComponent, inject, onMounted, toRefs, reactive, ref, computed } from 'vue'
+import draggable from 'vuedraggable'
+import api from '@/api'
 export default defineComponent({
     components: { draggable },
     setup() {
-        const form = inject("form", {});
-        const rows = inject("rows", [
+        const form = inject('form', {})
+        const rows = inject('rows', [
             {
                 items: [
                     {
-                        desc: "审核节点1",
+                        desc: '审核节点1',
                         roleName: undefined,
                         roleId: undefined,
                         userName: undefined,
@@ -102,17 +102,17 @@ export default defineComponent({
                     },
                 ],
             },
-        ]);
+        ])
 
         onMounted(async () => {
             api.role.getAll().then((res) => {
-                data.roles = res.items!;
-            });
-        });
+                data.roles = res.items!
+            })
+        })
 
         const dialogTitle = computed(() => {
-            return data.form.id !== api.guid ? "编辑  审核流程" : "新建  审核流程";
-        });
+            return data.form.id !== api.guid ? '编辑  审核流程' : '新建  审核流程'
+        })
 
         const data = reactive({
             roles: [] as any[],
@@ -121,20 +121,20 @@ export default defineComponent({
             enabled: true,
             auditDefinitions: [],
             dragEnd1(e: any) {
-                console.log(e);
+                console.log(e)
             },
             dragEnd2(e: any) {},
             dragEnd4(e: any) {
-                console.log("recycle dragend");
-                data.recycle = [];
+                console.log('recycle dragend')
+                data.recycle = []
             },
             // 移除空行
             removeEmptyRow() {
-                rows.value = rows.value.filter((x) => x.items.length > 0);
+                rows.value = rows.value.filter((x) => x.items.length > 0)
             },
             // 添加一行
             addRow(r: any) {
-                let index = rows.value.length;
+                let index = rows.value.length
                 let items =
                     r > 0
                         ? [
@@ -148,44 +148,44 @@ export default defineComponent({
                                   tenantId: undefined,
                               },
                           ]
-                        : [];
+                        : []
                 rows.value = [
                     ...this.rows,
                     {
                         items: items,
                     },
-                ];
+                ]
             },
             // 删除整行
             deleteRow(index: any) {
-                rows.value.splice(index, 1);
+                rows.value.splice(index, 1)
             },
             // 删除空节点
             removeEmptyNode(index: any) {
-                const result: any = [];
+                const result: any = []
                 rows.value.forEach((r) => {
                     result.push({
                         items: r.items.filter((x: any) => {
-                            return !!x.userId || !!x.roleId;
+                            return !!x.userId || !!x.roleId
                         }),
-                    });
-                });
-                rows.value = result;
-                data.removeEmptyRow();
+                    })
+                })
+                rows.value = result
+                data.removeEmptyRow()
             }, // 选权限下拉结束
             selectRole(value: any, item: any) {
                 if (!value) {
-                    item.roleName = undefined;
-                    item.roleId = undefined;
+                    item.roleName = undefined
+                    item.roleId = undefined
                 } else {
-                    item.roleName = data.roles.filter((x) => x.id === value)[0].displayName;
-                    item.roleId = data.roles.filter((x) => x.id === value)[0].id;
+                    item.roleName = data.roles.filter((x) => x.id === value)[0].displayName
+                    item.roleId = data.roles.filter((x) => x.id === value)[0].id
                 }
             },
-        });
-        return { dialogTitle, rows, ...toRefs(data) };
+        })
+        return { dialogTitle, rows, ...toRefs(data) }
     },
-});
+})
 </script>
 
 <style scoped lang="scss">

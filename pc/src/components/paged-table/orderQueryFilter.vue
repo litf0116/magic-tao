@@ -16,56 +16,56 @@
 </template>
 
 <script lang="ts" setup>
-import api from "@/api";
+import api from '@/api'
 
 const list = ref([
     {
         id: 0,
-        name: "待支付",
+        name: '待支付',
     },
     {
         id: 1,
-        name: "待发货",
+        name: '待发货',
     },
     {
         id: 2,
-        name: "待收货",
+        name: '待收货',
     },
     {
         id: 9,
-        name: "已完成",
+        name: '已完成',
     },
     {
         id: 11,
-        name: "售后",
+        name: '售后',
     },
     {
         id: 12,
-        name: "退款中",
+        name: '退款中',
     },
     {
         id: 13,
-        name: "退款完成",
+        name: '退款完成',
     },
-]);
+])
 
 defineProps({
     modelValue: {
         type: [String, Number],
-        default: "",
+        default: '',
     },
-});
+})
 
 onMounted(() => {
     // api.mall.productOrder.getAll({ maxResultCount: 10 }).then((res) => {
     //     list.value = res.items;
     // });
-});
+})
 
-const emit = defineEmits(["update:modelValue", "change"]);
+const emit = defineEmits(['update:modelValue', 'change'])
 
 function onFiter(e: any) {
-    emit("update:modelValue", e.status);
-    emit("change");
+    emit('update:modelValue', e.status)
+    emit('change')
 }
 </script>

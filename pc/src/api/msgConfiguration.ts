@@ -3,7 +3,7 @@ const axios = useRequest()
 
 /**
  * 获取数据
- * @returns 
+ * @returns
  */
 export function GetList() {
     return axios({
@@ -13,13 +13,13 @@ export function GetList() {
 }
 /**
  * 创建消息配置
- * @param data 
- * @returns 
+ * @param data
+ * @returns
  */
 export function Add(data) {
     return axios({
         url: '/api/MsgConfiguration/Add',
         method: 'post',
-        data: data
+        data: data,
     })
 }

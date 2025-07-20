@@ -3,60 +3,59 @@ const axios = useRequest()
 
 /**
  * 分页获取数据列表
- * @returns 
+ * @returns
  */
 export function GetList(params) {
     return axios({
         url: '/api/PostBulletin/GetList',
         method: 'get',
-        params:params
+        params: params,
     })
 }
 /**
  * 获取最新公告数据
- * @returns 
+ * @returns
  */
 export function GetLatestBulletin() {
     return axios({
         url: '/api/PostBulletin/GetLatestBulletin',
-        method: 'get'
+        method: 'get',
     })
 }
 
 /**
  * 添加数据
- * @param params 
- * @returns 
+ * @param params
+ * @returns
  */
 export function Add(params) {
     return axios({
         url: '/api/PostBulletin/Add',
         method: 'post',
-        data:params
+        data: params,
     })
 }
 /**
  * 编辑数据
- * @param data 
- * @returns 
+ * @param data
+ * @returns
  */
 export function Edit(data) {
     return axios({
         url: '/api/PostBulletin/Edit',
         method: 'post',
-        data:data
+        data: data,
     })
 }
 
-
 /**
  * 删除数据
- * @param data 
- * @returns 
+ * @param data
+ * @returns
  */
 export function Delete(id) {
     return axios({
-        url: '/api/PostBulletin/Delete/'+id,
-        method: 'get'
+        url: '/api/PostBulletin/Delete/' + id,
+        method: 'get',
     })
 }

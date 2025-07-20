@@ -1,15 +1,6 @@
 <template>
-    <div
-        v-if="payloadData.url"
-        class="content-image"
-        @click="handleAction"
-        @contextmenu.prevent="handleContextMenu"
-    >
-        <img
-            :data-url="imgUrl"
-            :src="imgUrl"
-            :style="{ maxHeight: getImageHeight(200, 150) + 'px' }"
-        />
+    <div v-if="payloadData.url" class="content-image" @click="handleAction" @contextmenu.prevent="handleContextMenu">
+        <img :data-url="imgUrl" :src="imgUrl" :style="{ maxHeight: getImageHeight(200, 150) + 'px' }" />
     </div>
 </template>
 

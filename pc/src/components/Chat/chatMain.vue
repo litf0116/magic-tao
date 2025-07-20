@@ -54,10 +54,10 @@
 
                             <div class="message-content">
                                 <div
-                                    @click="showGroupChatRules = true"
                                     class="message-fromName"
                                     style="display: flex; cursor: pointer"
                                     :class="[message.fromAdmin ? ' !text-red-500' : '']"
+                                    @click="showGroupChatRules = true"
                                 >
                                     <span
                                         v-if="message.fromAdmin && message.fromTag"

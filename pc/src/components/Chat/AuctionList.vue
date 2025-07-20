@@ -131,7 +131,7 @@ import listAuctionItem from '@/components/Chat/listAuctionItem.vue'
 import PerfectScrollbar from 'perfect-scrollbar'
 import withdrawalApprovaltem from '@/components/Chat/withdrawalApprovaltem.vue'
 import addMsgConfiguration from '@/components/Chat/addMsgConfiguration.vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox, ElLoading } from 'element-plus'
 import { Tips } from '@/composables'
 import { useChatStore } from '@/stores/chatStore'
 import { ChatMessageType } from '@/api/appService'
@@ -389,17 +389,151 @@ async function bid() {
     }
 }
 
+// 构建卡秒确认消息的辅助函数
+function buildKasecConfirmMessage(auctionItem: any, isKasec: boolean) {
+    const currentPrice = auctionItem.currentPrice || auctionItem.startingPrice
+    const currentBidder = auctionItem.currentPriceUserName || '暂无出价'
+    const action = isKasec ? '开启' : '关闭'
+    const tipText = isKasec ? '开启后用户需以三倍最低加价进行出价' : '关闭后将恢复正常加价规则'
+
+    return `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #303133;">
+        <div style="margin-bottom: 16px;">
+            <div style="font-size: 16px; font-weight: 600; color: #303133; margin-bottom: 8px;">拍品信息</div>
+            <div style="background: #f5f7fa; border: 1px solid #e4e7ed; border-radius: 4px; padding: 12px;">
+                <div style="margin-bottom: 8px;">
+                    <span style="color: #909399; font-size: 13px;">拍品名称：</span>
+                    <span style="color: #303133; font-size: 14px; font-weight: 500;">${auctionItem.name}</span>
+                </div>
+                <div style="margin-bottom: 8px;">
+                    <span style="color: #909399; font-size: 13px;">当前价格：</span>
+                    <span style="color: #f4835a; font-size: 16px; font-weight: 600;">￥${currentPrice}</span>
+                </div>
+                <div>
+                    <span style="color: #909399; font-size: 13px;">当前出价人：</span>
+                    <span style="color: #303133; font-size: 14px;">${currentBidder}</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="background: ${isKasec ? '#fef0f0' : '#f0f9ff'}; border: 1px solid ${
+        isKasec ? '#fbc4c4' : '#b3d8ff'
+    }; border-radius: 4px; padding: 12px;">
+            <div style="color: #606266; font-size: 13px; line-height: 1.5;">
+                <span style="color: ${isKasec ? '#f56c6c' : '#409eff'}; font-weight: 600;">操作提示：</span>
+                ${tipText}
+            </div>
+        </div>
+    </div>`
+}
+
 async function toggleKasec() {
+    console.log('=== 开始卡秒操作 ===')
+    console.log('当前拍品信息:', onAuctionItem.value)
+    console.log('当前卡秒状态:', auctionStore.isKasec)
+
     if (!onAuctionItem.value || !onAuctionItem.value.id) {
         ElMessage.error('没有正在拍卖的商品或商品ID无效')
         return
     }
-    const isKasec = !auctionStore.isKasec
-    console.log('卡秒操作:', { auctionItemId: onAuctionItem.value.id, isKasec })
-    const result = await auctionStore.setKasec(onAuctionItem.value.id, isKasec)
-    console.log('卡秒操作结果:', result)
 
-    // 后端API已经会自动发送KasecStatusChanged系统消息，前端不需要额外发送消息
+    const isKasec = !auctionStore.isKasec
+    const action = isKasec ? '开启' : '关闭'
+    const type = isKasec ? 'warning' : 'info'
+
+    console.log('卡秒操作参数:', {
+        auctionItemId: onAuctionItem.value.id,
+        currentKasec: auctionStore.isKasec,
+        targetKasec: isKasec,
+        action: action,
+        type: type,
+    })
+
+    try {
+        // 构建确认消息
+        const message = buildKasecConfirmMessage(onAuctionItem.value, isKasec)
+        console.log('确认框消息已构建')
+
+        // 显示确认框 - 使用更简单的配置
+        console.log('准备显示确认框...')
+        await ElMessageBox.confirm(message, `${action}卡秒模式`, {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: type,
+            dangerouslyUseHTMLString: true,
+        })
+        console.log('用户已确认操作')
+
+        // 用户确认后执行操作
+        console.log('开始执行API调用:', { auctionItemId: onAuctionItem.value.id, isKasec })
+
+        // 显示加载状态
+        const loadingInstance = ElLoading.service({
+            lock: true,
+            text: `${action}卡秒模式中...`,
+            background: 'rgba(0, 0, 0, 0.7)',
+        })
+        console.log('加载状态已显示')
+
+        try {
+            console.log('调用 auctionStore.setKasec...')
+            const result = await auctionStore.setKasec(onAuctionItem.value.id, isKasec)
+            console.log('setKasec 调用完成，结果:', result)
+
+            if (result) {
+                // 检查状态是否真的改变了
+                const actualKasecState = auctionStore.isKasec
+                if (actualKasecState === isKasec) {
+                    // 状态确实改变了
+                    ElMessage.success(`${action}卡秒模式成功`)
+                    console.log('操作成功，显示成功消息')
+                } else {
+                    // 状态没有改变，说明后端状态已经是目标状态
+                    ElMessage.info(`卡秒状态已经是${isKasec ? '开启' : '关闭'}状态`)
+                    console.log('状态已经是目标状态，显示提示消息')
+                }
+            } else {
+                ElMessage.error(`${action}卡秒模式失败，请重试`)
+                console.log('操作失败，显示失败消息')
+            }
+        } catch (error) {
+            console.error('卡秒操作异常:', error)
+
+            // 根据错误类型提供不同的错误信息
+            if (error.code === 'NETWORK_ERROR' || error.message?.includes('Network Error')) {
+                ElMessage.error('网络连接异常，请检查网络后重试')
+            } else if (error.code === 'TIMEOUT') {
+                ElMessage.error('操作超时，请稍后重试')
+            } else if (error.message?.includes('状态冲突')) {
+                ElMessage.error('拍品状态已发生变化，请刷新页面后重试')
+            } else {
+                ElMessage.error(`${action}卡秒模式失败：${error.message || '未知错误'}`)
+            }
+        } finally {
+            loadingInstance.close()
+            console.log('加载状态已关闭')
+        }
+    } catch (error) {
+        console.log('确认框异常处理，错误类型:', error)
+
+        // 用户取消操作
+        if (error === 'cancel') {
+            console.log('用户取消卡秒操作')
+            return
+        }
+
+        // 确认框关闭（非确认）
+        if (error === 'close') {
+            console.log('用户关闭确认框')
+            return
+        }
+
+        // 其他错误
+        console.error('确认框异常:', error)
+        ElMessage.error('操作异常，请重试')
+    }
+
+    console.log('=== 卡秒操作结束 ===')
 }
 </script>
 

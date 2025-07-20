@@ -1,32 +1,32 @@
-import { AuditNodeCreateOrEditDto } from "@/api/appService";
-import * as _ from "lodash";
+import { AuditNodeCreateOrEditDto } from '@/api/appService'
+import * as _ from 'lodash'
 
 export interface INodesBlock {
-    items: AuditNodeCreateOrEditDto[];
+    items: AuditNodeCreateOrEditDto[]
 }
 
 export function createNodes(array: AuditNodeCreateOrEditDto[]) {
-    if (!array) return [];
-    const result: INodesBlock[] = [];
+    if (!array) return []
+    const result: INodesBlock[] = []
     for (let index = 0; index < array.length; index++) {
-        const element = array[index];
+        const element = array[index]
         if (!result[element.index!]) {
-            result[element.index!] = { items: [] };
+            result[element.index!] = { items: [] }
         }
-        result[element.index!].items.push(element);
+        result[element.index!].items.push(element)
     }
-    return result;
+    return result
 }
 
 export function flatenNodes(array: INodesBlock[]) {
-    const result: AuditNodeCreateOrEditDto[] = [];
-    array = array.filter((x) => x.items.length > 0);
+    const result: AuditNodeCreateOrEditDto[] = []
+    array = array.filter((x) => x.items.length > 0)
     for (let i = 0; i < array.length; i++) {
         array[i].items.forEach((x) => {
-            result.push({ ...x, index: i });
-        });
+            result.push({ ...x, index: i })
+        })
     }
-    return result;
+    return result
 }
 
 export function createTableTree(
@@ -36,23 +36,23 @@ export function createTableTree(
     parentIdValue: any,
     childrenProperty: string
 ) {
-    const tree: any[] = [];
-    const nodes = _.filter(array, [parentIdProperty, parentIdValue]);
+    const tree: any[] = []
+    const nodes = _.filter(array, [parentIdProperty, parentIdValue])
     _.forEach(nodes, (node: any) => {
         const newNode = Object.assign({}, node, {
             hasChildren: false,
             isLeaf: true,
-        });
-        const _children = createTableTree(array, parentIdProperty, idProperty, node[idProperty], childrenProperty);
+        })
+        const _children = createTableTree(array, parentIdProperty, idProperty, node[idProperty], childrenProperty)
 
         if (_children.length > 0) {
-            newNode[childrenProperty] = _children;
-            newNode["hasChildren"] = true;
+            newNode[childrenProperty] = _children
+            newNode['hasChildren'] = true
         }
-        if (_children.length > 0) newNode["isLeaf"] = false;
-        tree.push(newNode);
-    });
-    return tree;
+        if (_children.length > 0) newNode['isLeaf'] = false
+        tree.push(newNode)
+    })
+    return tree
 }
 
 export function createTree(
@@ -65,9 +65,9 @@ export function createTree(
     path: number[] = [],
     labelProperty: string
 ) {
-    const tree: any[] = [];
+    const tree: any[] = []
 
-    let nodes = _.filter(array, [parentIdProperty, parentIdValue]);
+    const nodes = _.filter(array, [parentIdProperty, parentIdValue])
     _.forEach(nodes, (node: any) => {
         const newNode: any = {
             label: `${node[labelProperty]}`,
@@ -77,7 +77,7 @@ export function createTree(
             expanded: true,
             disabled,
             path: [...path, node[idProperty]],
-        };
+        }
 
         const _children: any = createTree(
             array,
@@ -88,12 +88,12 @@ export function createTree(
             disabled,
             newNode.path,
             labelProperty
-        );
-        newNode[childrenProperty] = _children;
-        if (_children.length <= 0) delete newNode[childrenProperty];
-        tree.push(newNode);
-    });
-    return tree;
+        )
+        newNode[childrenProperty] = _children
+        if (_children.length <= 0) delete newNode[childrenProperty]
+        tree.push(newNode)
+    })
+    return tree
 }
 
 export function createOUTree(
@@ -105,9 +105,9 @@ export function createOUTree(
     disabled: any,
     path: number[] = []
 ) {
-    const tree: any[] = [];
+    const tree: any[] = []
 
-    const nodes = _.filter(array, [parentIdProperty, parentIdValue]);
+    const nodes = _.filter(array, [parentIdProperty, parentIdValue])
     _.forEach(nodes, (node: any) => {
         const newNode: any = {
             label: `${node.displayName}`,
@@ -117,7 +117,7 @@ export function createOUTree(
             expanded: true,
             disabled,
             path: [...path, node[idProperty]],
-        };
+        }
 
         const _children: any = createOUTree(
             array,
@@ -127,49 +127,49 @@ export function createOUTree(
             childrenProperty,
             disabled,
             newNode.path
-        );
-        newNode[childrenProperty] = _children;
-        if (_children.length <= 0) delete newNode[childrenProperty];
-        tree.push(newNode);
-    });
-    return tree;
+        )
+        newNode[childrenProperty] = _children
+        if (_children.length <= 0) delete newNode[childrenProperty]
+        tree.push(newNode)
+    })
+    return tree
 }
 
 export function treeFind(tree: any[], func: Function) {
     for (const data of tree) {
-        if (func(data)) return data;
+        if (func(data)) return data
         if (data.children && data.children.length > 0) {
-            const res: any = treeFind(data.children, func);
-            if (res) return res;
+            const res: any = treeFind(data.children, func)
+            if (res) return res
         }
     }
-    return null;
+    return null
 }
 
 export function getKeys(array: any[]) {
     if (array) {
-        return Array.from(new Set(["Pages", ..._getKeys(array), ...array]));
+        return Array.from(new Set(['Pages', ..._getKeys(array), ...array]))
     } // 去重
-    return [];
+    return []
 }
 
 function _getKeys(array: any[]) {
-    let _result: any[] = [];
-    [...array].forEach((z) => {
-        const _index = z.lastIndexOf(".");
+    let _result: any[] = []
+    ;[...array].forEach((z) => {
+        const _index = z.lastIndexOf('.')
         if (_index > 0) {
-            const _p = z.substring(0, _index);
-            _result = [..._result, _p];
-            _result = [..._result, ..._getKeys(_p)];
+            const _p = z.substring(0, _index)
+            _result = [..._result, _p]
+            _result = [..._result, ..._getKeys(_p)]
         }
-    });
-    return _result;
+    })
+    return _result
 }
 
 export function rebuildKeys(array: any[]) {
     _.remove(array, (node: any) => {
-        const _l = array.filter((zz) => zz.indexOf(node) > -1).length;
-        return _l > 1;
-    });
-    return array;
+        const _l = array.filter((zz) => zz.indexOf(node) > -1).length
+        return _l > 1
+    })
+    return array
 }

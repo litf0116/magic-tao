@@ -4,15 +4,19 @@
             <div class="px-4 z-10 h-65px bg-[#E5D9D9] text-[#82615F] flex items-center justify-between">
                 <div class="font-700 text-18px">{{ chatStore.getCurrentName() }}</div>
                 <div>
-                    <el-button v-if="chatStore.currentChat.id! !== -userStore.user.id! && chan !== '0_lobby'"
-                        @click="chatStore.leaveChannel(chan)">退出</el-button>
+                    <el-button
+                        v-if="chatStore.currentChat.id! !== -userStore.user.id! && chan !== '0_lobby'"
+                        @click="chatStore.leaveChannel(chan)"
+                        >退出</el-button
+                    >
                 </div>
             </div>
             <chatMain ref="chatRef" @onSend="send" @loadHistoryMessage="loadHistoryMessage"></chatMain>
         </div>
     </div>
     <div
-        class="min-w-260px md:w-260px h-full flex flex-col border-0 border-l-1 md:border-solid md:border-gray-300 min-h-700px">
+        class="min-w-260px md:w-260px h-full flex flex-col border-0 border-l-1 md:border-solid md:border-gray-300 min-h-700px"
+    >
         <GroupList />
     </div>
 </template>

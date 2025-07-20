@@ -27,49 +27,49 @@
 </template>
 
 <script lang="ts">
-import api from "@/api";
-import { useRouter } from "vue-router";
-import { ElMessage, ElMessageBox } from "element-plus";
+import api from '@/api'
+import { useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 export default defineComponent({
-    name: "FormList",
+    name: 'FormList',
     setup() {
-        const router = useRouter();
+        const router = useRouter()
         const data = reactive({
             table: null as any,
             fetchData: (params: any) => {
-                return api.admin.auditFlow.getAll(params);
+                return api.admin.auditFlow.getAll(params)
             },
             reload: () => {
-                console.log("onView");
-                data.table.fetchData();
+                console.log('onView')
+                data.table.fetchData()
             },
             onEdit: (dto: any) => {
-                console.log("onEdit");
-                router.push({ name: "AuditEdit", params: { id: dto.id! } });
+                console.log('onEdit')
+                router.push({ name: 'AuditEdit', params: { id: dto.id! } })
             },
             onDelete: (dto: any) => {
-                console.log("onDelete");
-                ElMessageBox.confirm("你确定删除吗?", "提示", {
-                    confirmButtonText: "确定",
-                    cancelButtonText: "取消",
-                    type: "warning",
+                console.log('onDelete')
+                ElMessageBox.confirm('你确定删除吗?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning',
                 })
                     .then(async () => {
                         await api.admin.auditFlow.delete({ id: dto.id! }).then(() => {
-                            data.reload();
-                        });
-                        ElMessage({ type: "success", message: "删除成功!" });
+                            data.reload()
+                        })
+                        ElMessage({ type: 'success', message: '删除成功!' })
                     })
                     .catch(() => {
-                        ElMessage({ type: "info", message: "已取消删除" });
-                    });
+                        ElMessage({ type: 'info', message: '已取消删除' })
+                    })
             },
-        });
-        return { ...toRefs(data) };
+        })
+        return { ...toRefs(data) }
     },
     methods: {},
-});
+})
 </script>
 
 <style></style>

@@ -195,8 +195,6 @@ onMounted(() => {
     document.addEventListener('click', () => {
         hideRightClickMenu()
     })
-
-
 })
 
 const rightClickMenu = ref({

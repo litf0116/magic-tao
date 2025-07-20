@@ -575,7 +575,7 @@ export const useChatStore = defineStore('chat', () => {
                 .then((res) => {
                     // 使用服务端返回的消息数据，包含正确的时间戳
                     const serverMessage = res.data.message
-                    console.log("server message: {}", serverMessage);
+                    console.log('server message: {}', serverMessage)
                     chatList.value = [
                         {
                             id: to,
@@ -683,10 +683,7 @@ export const useChatStore = defineStore('chat', () => {
             existingChat.lastMsg = `恭喜您拍得了${itemName}`
             existingChat.time = new Date().getTime()
             // 将聊天项移到顶部
-            chatList.value = [
-                existingChat,
-                ...chatList.value.filter((item) => item.id !== dealUserId),
-            ]
+            chatList.value = [existingChat, ...chatList.value.filter((item) => item.id !== dealUserId)]
             return
         }
 
@@ -715,11 +712,11 @@ export const useChatStore = defineStore('chat', () => {
                 avatar: dealUserAvatar,
                 msg: lastMsg,
                 time: new Date().getTime(),
-                payload: auctionResult
-            }
+                payload: auctionResult,
+            },
         }
 
-                // 添加到聊天列表顶部
+        // 添加到聊天列表顶部
         chatList.value = [chatItem, ...chatList.value.filter((item) => item.id !== dealUserId)]
 
         // 初始化聊天记录

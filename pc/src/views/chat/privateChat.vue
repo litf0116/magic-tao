@@ -31,8 +31,8 @@ const friend = reactive({
     id: 0,
     name: '',
     avatar: '',
-	qq:"",
-	weChat:""
+    qq: '',
+    weChat: '',
 })
 
 onMounted(() => {
@@ -47,10 +47,10 @@ onMounted(() => {
     friend.avatar = route.query.avatar as string
 
     api.user.get({ id: friend.id }).then((res) => {
-        friend.name = res.name;
-        friend.avatar = res.headImgUrl;
-		friend.qq=res.qq;
-		friend.weChat=res.wx;
+        friend.name = res.name
+        friend.avatar = res.headImgUrl
+        friend.qq = res.qq
+        friend.weChat = res.wx
     })
 
     chatStore.addChatList(friend.id, friend.name, friend.avatar)

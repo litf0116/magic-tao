@@ -3,10 +3,19 @@
         <PagedTable ref="tableRef" :table-sort="'creationTime asc'" :fetch-function="fetchData" :query-status="1">
             <template #filter>
                 <div v-if="tableRef && tableRef.queryForm">
-                    <queryFilter v-model="tableRef.queryForm.pid" :show-all="true" :list="roleListFilter"
-                        @change="reload" />
-                    <queryFilter class="mt-4" v-model="tableRef.queryForm.status" :show-all="false" :list="filterList"
-                        @change="reload" />
+                    <queryFilter
+                        v-model="tableRef.queryForm.pid"
+                        :show-all="true"
+                        :list="roleListFilter"
+                        @change="reload"
+                    />
+                    <queryFilter
+                        v-model="tableRef.queryForm.status"
+                        class="mt-4"
+                        :show-all="false"
+                        :list="filterList"
+                        @change="reload"
+                    />
                 </div>
             </template>
             <el-table-column label="ID" prop="id" width="80" align="center" />
@@ -27,8 +36,11 @@
                             <el-button v-permission="'Pages.Administration'" type="primary" @click="onEdit(scope.row)">
                                 编辑
                             </el-button>
-                            <el-button v-permission="'Pages.Administration'" type="primary"
-                                @click="onUserGroupLevel(scope.row)">
+                            <el-button
+                                v-permission="'Pages.Administration'"
+                                type="primary"
+                                @click="onUserGroupLevel(scope.row)"
+                            >
                                 设置群等级
                             </el-button>
                         </div>
@@ -46,9 +58,9 @@
                     <el-tab-pane label="权限">
                         <el-form-item v-permission="'Pages.Administration'" label="权限">
                             <el-checkbox-group v-model="editor.form.assignedRoleNames">
-                                <el-checkbox v-for="x in editor.roles" :key="x.roleName" :label="x.roleName">{{
-                                    x.roleName }}[{{
-                                        x.roleDisplayName }}]</el-checkbox>
+                                <el-checkbox v-for="x in editor.roles" :key="x.roleName" :label="x.roleName"
+                                    >{{ x.roleName }}[{{ x.roleDisplayName }}]</el-checkbox
+                                >
                             </el-checkbox-group>
                         </el-form-item>
                     </el-tab-pane>
@@ -67,9 +79,15 @@
                 <el-form-item label="用户编号" prop="userId">
                     <el-input v-model="groupChatLeve.form.userId" disabled />
                 </el-form-item>
-                <el-form-item label="累计金额" prop="cumulativeAmount" :rules="{
-                    required: true, message: '累计金额不能为空', trigger: 'blur'
-                }">
+                <el-form-item
+                    label="累计金额"
+                    prop="cumulativeAmount"
+                    :rules="{
+                        required: true,
+                        message: '累计金额不能为空',
+                        trigger: 'blur',
+                    }"
+                >
                     <el-input v-model="groupChatLeve.form.cumulativeAmount" />
                 </el-form-item>
             </el-form>
@@ -209,21 +227,21 @@ const groupChatLeve = reactive({
         formRefs.value.validate((valid) => {
             if (valid) {
                 GroupChatLevelAdd(groupChatLeve.form).then((res) => {
-                    Tips.success('保存成功');
+                    Tips.success('保存成功')
                     groupChatLeve.show = false
                 })
             } else {
-                Tips.error('请完善表单相关信息！');
-                return false;
+                Tips.error('请完善表单相关信息！')
+                return false
             }
-        });
+        })
     },
 } as any)
 const onUserGroupLevel = async (dto: any) => {
-    groupChatLeve.form.userId = dto.id;
+    groupChatLeve.form.userId = dto.id
     await GetUserGroupLevel(dto.id).then((res: any) => {
-        groupChatLeve.show = true;
-        groupChatLeve.form.cumulativeAmount = res.data != null ? res.data.cumulativeAmount : 0;
+        groupChatLeve.show = true
+        groupChatLeve.form.cumulativeAmount = res.data != null ? res.data.cumulativeAmount : 0
     })
 }
 

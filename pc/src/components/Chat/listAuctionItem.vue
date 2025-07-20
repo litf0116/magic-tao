@@ -1,9 +1,14 @@
 <template>
-    <div :class="{ kongjiang: checkIncludes && item.status === '上架' }"
-        class="shadow flex flex-row items-center overflow-hidden cursor-pointer" @click.stop="showDetail(item.id!)">
+    <div
+        :class="{ kongjiang: checkIncludes && item.status === '上架' }"
+        class="shadow flex flex-row items-center overflow-hidden cursor-pointer"
+        @click.stop="showDetail(item.id!)"
+    >
         <div class="text-wrap text-sm flex-1 flex flex-col">
-            <div class="text-[#935F4E] line-clamp-3" v-if="checkIncludes && item.status === '上架'">{{ item.name }}</div>
-            <div class="text-[#935F4E] line-clamp-3" v-else>{{ index }}. {{ item.name }}</div>
+            <div v-if="checkIncludes && item.status === '上架'" class="text-[#935F4E] line-clamp-3">
+                {{ item.name }}
+            </div>
+            <div v-else class="text-[#935F4E] line-clamp-3">{{ index }}. {{ item.name }}</div>
             <div v-if="item.finalPrice" class="flex justify-between">
                 <div class="text-red-500">
                     成交价:<b>￥{{ item.finalPrice }}</b>
@@ -12,16 +17,10 @@
                     {{ formatTime(item) }}
                 </div>
             </div>
-            <div v-else-if="item.currentPrice" class="flex" style="flex-wrap: wrap;">
-                <div class="text-red-500" style="width: 150px;">
-                    出价人:{{ item.currentPriceUserName }}
-                </div>
-                <div class="text-red-500">
-                    当前出价:￥{{ item.currentPrice }}
-                </div>
-                <div class="text-red-500 " style="margin-left:5px;">
-                    倒计时: {{ minutes }}分钟{{ seconds }}秒
-                </div>
+            <div v-else-if="item.currentPrice" class="flex" style="flex-wrap: wrap">
+                <div class="text-red-500" style="width: 150px">出价人:{{ item.currentPriceUserName }}</div>
+                <div class="text-red-500">当前出价:￥{{ item.currentPrice }}</div>
+                <div class="text-red-500" style="margin-left: 5px">倒计时: {{ minutes }}分钟{{ seconds }}秒</div>
             </div>
         </div>
     </div>
@@ -29,7 +28,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { useCountdown } from '@/utils/countdown';
+import { useCountdown } from '@/utils/countdown'
 import dayjs from 'dayjs'
 import { AuctionItemDto } from '@/api/appService'
 const props = defineProps({
@@ -38,8 +37,8 @@ const props = defineProps({
         required: true,
     },
     index: {
-        required: true
-    }
+        required: true,
+    },
 })
 
 const checkIncludes = computed(() => {
@@ -48,27 +47,25 @@ const checkIncludes = computed(() => {
 // 组件挂载时开始倒计时
 onMounted(() => {
     // 开始初始倒计时
-    startCountdown();
+    startCountdown()
 })
 // 组件卸载时清除动画帧请求，防止内存泄漏
 onUnmounted(() => {
-    stopCountdown();
-});
-//检查值是否被修改
-watch(() => props.item, (newValue, oldValue) => {
-    if (newValue.status == "拍卖中") {
-        resetCountdown(newValue.useCountdownTime)
-    }
+    stopCountdown()
 })
+//检查值是否被修改
+watch(
+    () => props.item,
+    (newValue, oldValue) => {
+        if (newValue.status == '拍卖中') {
+            resetCountdown(newValue.useCountdownTime)
+        }
+    }
+)
 // 变量来存储倒计时数据
-const {
-    minutes,
-    seconds,
-    isFinished,
-    startCountdown,
-    stopCountdown,
-    resetCountdown,
-} = useCountdown(props.item.useCountdownTime)
+const { minutes, seconds, isFinished, startCountdown, stopCountdown, resetCountdown } = useCountdown(
+    props.item.useCountdownTime
+)
 
 const emit = defineEmits(['showDetail'])
 
@@ -82,7 +79,6 @@ function formatTime(item: AuctionItemDto) {
     }
     return ''
 }
-
 </script>
 <style>
 .shadow {
