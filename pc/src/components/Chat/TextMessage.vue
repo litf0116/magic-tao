@@ -1,12 +1,12 @@
 <template>
-    <div class="content-text" @click="handleAction">
+    <div class="content-text" :class="textMessageClass" @click="handleAction">
         <div v-html="renderedText"></div>
     </div>
 </template>
 
 <script lang="ts">
 import { computed } from 'vue'
-import { type ChatMessage } from '@/composables/types'
+import { type ChatMessage } from '@/api/appService'
 import emojiDecoder from '@/composables/emojiDecoder'
 import { useEmojiStore } from '@/stores/emojiStore'
 
@@ -39,6 +39,21 @@ export default {
             return ''
         })
 
+        // 根据消息类型确定样式类
+        const textMessageClass = computed(() => {
+            let payload = props.message.payload
+            if (typeof payload === 'string') {
+                payload = JSON.parse(payload)
+            }
+
+            // 检查是否是卡秒消息
+            if (payload?.messageType === 'KasecStatusChanged') {
+                return payload?.isKasec ? 'kasec-enabled' : 'kasec-disabled'
+            }
+
+            return 'default'
+        })
+
         // 处理点击事件
         const handleAction = () => {
             emit('action', props.message)
@@ -46,6 +61,7 @@ export default {
 
         return {
             renderedText,
+            textMessageClass,
             handleAction,
         }
     },
@@ -57,7 +73,6 @@ export default {
     display: flex;
     align-items: center;
     text-align: left;
-    background: #eeeeee;
     font-size: 14px;
     font-weight: 500;
     padding: 6px 8px;
@@ -68,5 +83,28 @@ export default {
     border-radius: 8px;
     word-break: break-all;
     cursor: pointer;
+}
+
+/* 默认文本消息样式 */
+.content-text.default {
+    background: #eeeeee;
+}
+
+/* 卡秒开启状态 */
+.content-text.kasec-enabled {
+    background: #fef0f0;
+    border: 2px solid #f56c6c;
+    color: #f56c6c;
+    font-weight: 600;
+    border-radius: 12px;
+}
+
+/* 卡秒关闭状态 */
+.content-text.kasec-disabled {
+    background: #f0f9ff;
+    border: 2px solid #409eff;
+    color: #409eff;
+    font-weight: 600;
+    border-radius: 12px;
 }
 </style>

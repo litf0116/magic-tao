@@ -376,9 +376,9 @@ export const useChatStore = defineStore('chat', () => {
             auctionStore.updateAuctionItemFromBidMessage(msg.payload)
         }
 
-        // 特殊处理：监听系统消息，处理卡秒状态变更
-        if (msg.type === ChatMessageType.System && msg.payload) {
-            console.log('=== 检测到系统消息 ===')
+        // 特殊处理：监听文本消息，处理卡秒状态变更
+        if (msg.type === ChatMessageType.Text && msg.payload) {
+            console.log('=== 检测到文本消息 ===')
             console.log('消息类型:', msg.type)
             console.log('消息payload:', msg.payload)
             console.log('payload类型:', typeof msg.payload)
