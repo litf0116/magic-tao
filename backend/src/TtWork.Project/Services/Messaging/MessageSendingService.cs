@@ -588,6 +588,44 @@ namespace TtWork.Project.Services.Messaging
             }
         }
 
+        /// <summary>
+        /// 编码卡秒消息为AuctionBid类型
+        /// </summary>
+        /// <param name="kasecMessage">原始卡秒消息</param>
+        /// <returns>编码后的消息</returns>
+        public ChatMessage EncodeKasecMessage(ChatMessage kasecMessage)
+        {
+            _logger.LogInformation("开始编码卡秒消息: OriginalType={OriginalType}, Message={Message}", 
+                kasecMessage.type, kasecMessage.msg);
+
+            var encodedMessage = new ChatMessage
+            {
+                type = ChatMessageType.AuctionBid,  // 使用AuctionBid作为载体类型
+                chan = kasecMessage.chan,
+                msg = kasecMessage.msg,
+                from = kasecMessage.from,
+                fromName = kasecMessage.fromName,
+                avatar = kasecMessage.avatar,
+                time = kasecMessage.time,
+                payload = new
+                {
+                    // 原始卡秒消息的payload
+                    auctionItemId = kasecMessage.payload?.auctionItemId,
+                    isKasec = kasecMessage.payload?.isKasec,
+                    // 编码标识
+                    messageType = "KasecStatusChanged",
+                    originalType = "KasecStatusChanged",
+                    // 其他编码信息
+                    encoded = true
+                }
+            };
+
+            _logger.LogInformation("卡秒消息编码完成: EncodedType={EncodedType}, Payload={Payload}", 
+                encodedMessage.type, System.Text.Json.JsonSerializer.Serialize(encodedMessage.payload));
+
+            return encodedMessage;
+        }
+
         #endregion
     }
 }
