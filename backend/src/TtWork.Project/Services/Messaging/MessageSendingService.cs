@@ -131,7 +131,16 @@ namespace TtWork.Project.Services.Messaging
                 if (options.SendImmediately)
                 {
                     _logger.LogInformation("开始通过ImHelper发送消息: FromUserId={FromUserId}, Channel={Channel}", fromUserId, channel);
-                    ImHelper.SendChanMessage(fromUserId, channel, enrichedMessage);
+                    
+                    // 在发送前检查是否需要编码（卡秒消息）
+                    var messageToSend = enrichedMessage;
+                    if (enrichedMessage.type == ChatMessageType.KasecStatusChanged)
+                    {
+                        _logger.LogInformation("检测到卡秒消息，进行编码后发送");
+                        messageToSend = EncodeKasecMessage(enrichedMessage);
+                    }
+                    
+                    ImHelper.SendChanMessage(fromUserId, channel, messageToSend);
                     _logger.LogInformation("ImHelper.SendChanMessage调用完成");
                 }
                 else
@@ -199,7 +208,15 @@ namespace TtWork.Project.Services.Messaging
                 // 4. 投递消息
                 if (options.SendImmediately)
                 {
-                    ImHelper.SendMessage(fromUserId, [toUserId], enrichedMessage, isReceipt);
+                    // 在发送前检查是否需要编码（卡秒消息）
+                    var messageToSend = enrichedMessage;
+                    if (enrichedMessage.type == ChatMessageType.KasecStatusChanged)
+                    {
+                        _logger.LogInformation("检测到卡秒消息，进行编码后发送");
+                        messageToSend = EncodeKasecMessage(enrichedMessage);
+                    }
+                    
+                    ImHelper.SendMessage(fromUserId, [toUserId], messageToSend, isReceipt);
                 }
 
                 return SendMessageResult.CreateSuccess(entity?.Id, sequenceNumber, 
@@ -593,7 +610,7 @@ namespace TtWork.Project.Services.Messaging
         /// </summary>
         /// <param name="kasecMessage">原始卡秒消息</param>
         /// <returns>编码后的消息</returns>
-        public ChatMessage EncodeKasecMessage(ChatMessage kasecMessage)
+        private ChatMessage EncodeKasecMessage(ChatMessage kasecMessage)
         {
             _logger.LogInformation("开始编码卡秒消息: OriginalType={OriginalType}, Message={Message}", 
                 kasecMessage.type, kasecMessage.msg);

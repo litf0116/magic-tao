@@ -68,11 +68,5 @@ namespace TtWork.Project.Services.Messaging
         /// <returns>发送结果</returns>
         Task<SendMessageResult> SendAuctionMessageAsync(long fromUserId, long? toUserId, string channel, ChatMessage message, bool isSystemMessage = false);
 
-        /// <summary>
-        /// 编码卡秒消息为AuctionBid类型
-        /// </summary>
-        /// <param name="kasecMessage">原始卡秒消息</param>
-        /// <returns>编码后的消息</returns>
-        ChatMessage EncodeKasecMessage(ChatMessage kasecMessage);
     }
 } 
