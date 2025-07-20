@@ -484,6 +484,26 @@ async function toggleKasec() {
                 // 检查状态是否真的改变了
                 const actualKasecState = auctionStore.isKasec
                 if (actualKasecState === isKasec) {
+                                        // 状态确实改变了，主动发送群组卡秒消息
+                    console.log('卡秒状态已改变，准备发送群组消息...')
+                    try {
+                        // 构建卡秒消息内容
+                        const kasecMessage = isKasec
+                            ? '⚡ 拍卖师已开启卡秒模式，需三倍加价！'
+                            : '✅ 卡秒已关闭，恢复正常加价规则'
+
+                        // 发送到拍卖频道
+                        await chatStore.sendChannelMsg(kasecMessage, '-1_auction', ChatMessageType.KasecStatusChanged, {
+                            auctionItemId: onAuctionItem.value.id,
+                            isKasec: isKasec,
+                            action: action,
+                        })
+                        console.log('群组卡秒消息发送成功')
+                    } catch (msgError) {
+                        console.error('发送群组卡秒消息失败:', msgError)
+                        // 消息发送失败不影响卡秒操作的成功
+                    }
+
                     // 状态确实改变了
                     ElMessage.success(`${action}卡秒模式成功`)
                     console.log('操作成功，显示成功消息')
