@@ -27,14 +27,13 @@ namespace FreeIM {
         BanUser = 102, //禁言用户
         Backout = 110, //撤回
         Receipt = 10,
+        System = 200, //系统消息
 
         AuctionStart = 1000,
         AuctionBid = 1002,
         AuctionEnd = 1010,
         AuctionDeal = 1011, //拍卖成交通知
-
-        // 卡秒状态
-        KasecStatusChanged = 2000,
+        KasecStatusChanged = 2000, //卡秒状态变更
     }
 
     public enum ChatMessageStatus {

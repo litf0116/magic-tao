@@ -434,10 +434,14 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 {
                     var kasecMsg = new ChatMessage
                     {
-                        type = ChatMessageType.KasecStatusChanged,
+                        type = ChatMessageType.System,
                         chan = "-1_auction",
-                        msg = "拍卖已结束，卡秒自动关闭",
-                        payload = new { auctionItemId = auctionItem.Id, isKasec = false }
+                        msg = "✅ 拍卖已结束，卡秒自动关闭",
+                        payload = new { 
+                            auctionItemId = auctionItem.Id, 
+                            isKasec = false,
+                            messageType = "KasecStatusChanged"
+                        }
                     };
 
                     await _messageSendingService.SendAuctionMessageAsync(auctionManagerInfo.Id, null, "-1_auction",
@@ -921,10 +925,14 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             {
                 var kasecMsg = new ChatMessage
                 {
-                    type = ChatMessageType.KasecStatusChanged,
+                    type = ChatMessageType.System,
                     chan = "-1_auction",
-                    msg = "卡秒已关闭，恢复正常加价",
-                    payload = new { auctionItemId = input.Id, isKasec = false }
+                    msg = "✅ 卡秒已关闭，恢复正常加价规则",
+                    payload = new { 
+                        auctionItemId = input.Id, 
+                        isKasec = false,
+                        messageType = "KasecStatusChanged"
+                    }
                 };
 
                 await _messageSendingService.SendAuctionMessageAsync(AbpSession.UserId.Value, null, "-1_auction",
@@ -1221,13 +1229,17 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             // var currentUser = await _userCache.GetAsync(AbpSession.UserId.Value);
             // var (isAdmin, adminTag, tagClass) = await CheckIsChatAdmin();
 
-            // 广播卡秒状态变更消息 - 修复：使用拍卖消息发送方法，提高发送速度
+            // 广播卡秒状态变更消息 - 使用System类型发送系统消息
             var msg = new ChatMessage
             {
-                type = ChatMessageType.KasecStatusChanged,
+                type = ChatMessageType.System,
                 chan = "-1_auction",
-                msg = input.IsKasec ? "拍卖师已开启卡秒，需三倍加价！" : "卡秒已关闭，恢复正常加价",
-                payload = new { auctionItemId = input.AuctionItemId, isKasec = input.IsKasec }
+                msg = input.IsKasec ? "⚡ 拍卖师已开启卡秒模式，需三倍加价！" : "✅ 卡秒已关闭，恢复正常加价规则",
+                payload = new { 
+                    auctionItemId = input.AuctionItemId, 
+                    isKasec = input.IsKasec,
+                    messageType = "KasecStatusChanged"
+                }
             };
 
             _logger.LogInformation(
