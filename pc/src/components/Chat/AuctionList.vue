@@ -492,12 +492,11 @@ async function toggleKasec() {
                             ? '⚡ 拍卖师已开启卡秒模式，需三倍加价！'
                             : '✅ 卡秒已关闭，恢复正常加价规则'
 
-                        // 发送到拍卖频道，使用Text类型测试消息发送能力
-                        await chatStore.sendChannelMsg(kasecMessage, '-1_auction', ChatMessageType.Text, {
+                        // 发送到拍卖频道，使用KasecStatusChanged类型
+                        await chatStore.sendChannelMsg(kasecMessage, '-1_auction', ChatMessageType.KasecStatusChanged, {
                             auctionItemId: onAuctionItem.value.id,
                             isKasec: isKasec,
                             action: action,
-                            originalType: 'KasecStatusChanged', // 标记原始类型
                         })
                         console.log('群组卡秒消息发送成功')
                     } catch (msgError) {

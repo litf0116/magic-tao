@@ -239,7 +239,7 @@ export const useChatStore = defineStore('chat', () => {
                 1002: ChatMessageType.AuctionBid,
                 1010: ChatMessageType.AuctionEnd,
                 1011: ChatMessageType.AuctionDeal,
-                2000: ChatMessageType.KasecStatusChanged,
+                1012: ChatMessageType.KasecStatusChanged,
                 '-1': ChatMessageType.Error,
             }
             if (typeMap[msg.type as number]) {
