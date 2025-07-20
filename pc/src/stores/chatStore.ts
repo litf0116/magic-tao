@@ -371,8 +371,19 @@ export const useChatStore = defineStore('chat', () => {
             console.log('消息payload:', msg.payload)
             console.log('payload类型:', typeof msg.payload)
 
-            // 检查是否是卡秒消息（使用AuctionBid类型发送的卡秒消息）
-            if (msg.payload.isKasecMessage || msg.payload.messageType === 'KasecStatusChanged') {
+            // 使用新的增量更新方法，避免重新请求整个列表
+            auctionStore.updateAuctionItemFromBidMessage(msg.payload)
+        }
+
+        // 特殊处理：监听系统消息，处理卡秒状态变更
+        if (msg.type === ChatMessageType.System && msg.payload) {
+            console.log('=== 检测到系统消息 ===')
+            console.log('消息类型:', msg.type)
+            console.log('消息payload:', msg.payload)
+            console.log('payload类型:', typeof msg.payload)
+
+            // 检查是否是卡秒消息
+            if (msg.payload.messageType === 'KasecStatusChanged') {
                 console.log('=== 检测到卡秒消息 ===')
                 console.log('卡秒消息payload:', msg.payload)
 
@@ -395,9 +406,6 @@ export const useChatStore = defineStore('chat', () => {
                 }
                 return
             }
-
-            // 使用新的增量更新方法，避免重新请求整个列表
-            auctionStore.updateAuctionItemFromBidMessage(msg.payload)
         }
 
         // 特殊处理：监听拍卖结束消息，为中拍用户创建聊天频道
