@@ -293,6 +293,51 @@ export const useChatStore = defineStore('chatStore', () => {
             return
         }
 
+        // 特殊处理：解码卡秒消息和出价消息
+        if (msg.type === ChatMessageType.AuctionBid && msg.payload) {
+            console.log('=== 检测到出价消息 ===')
+            console.log('消息类型:', msg.type)
+            console.log('消息payload:', msg.payload)
+            console.log('payload类型:', typeof msg.payload)
+
+            // 检查是否是编码的卡秒消息
+            if (msg.payload.messageType === 'KasecStatusChanged' && msg.payload.encoded) {
+                console.log('=== 检测到编码的卡秒消息 ===')
+                console.log('卡秒消息payload:', msg.payload)
+
+                // 解码：将消息类型从 AuctionBid 转换为 KasecStatusChanged
+                msg.type = ChatMessageType.KasecStatusChanged
+
+                // 处理卡秒状态变更
+                const { auctionItemId, isKasec } = msg.payload
+                if (auctionItemId && typeof isKasec === 'boolean') {
+                    // 只处理当前拍卖频道
+                    if (currentChat.value.id === -1) {
+                        if (typeof auctionStore.syncKasecStatus === 'function') {
+                            auctionStore.syncKasecStatus(auctionItemId)
+                        }
+                        // 设置消息内容
+                        msg.msg = isKasec ? '⚡ 拍卖师已开启卡秒模式，需三倍加价！' : '✅ 卡秒已关闭，恢复正常加价规则'
+                        msg.time = Date.now()
+                        // 直接添加到聊天记录中
+                        if (chatMap.value.has('-1')) {
+                            chatMap.value.get('-1')!.push(msg)
+                        } else {
+                            chatMap.value.set('-1', [msg])
+                        }
+                    }
+                }
+                return
+            }
+
+            // 处理正常的出价消息
+            console.log('=== 处理正常出价消息 ===')
+            // 使用新的增量更新方法，避免重新请求整个列表
+            if (typeof auctionStore.updateAuctionItemFromBidMessage === 'function') {
+                auctionStore.updateAuctionItemFromBidMessage(msg.payload)
+            }
+        }
+
         // 特殊处理：监听拍卖结束消息，为中拍用户创建聊天频道
         if (msg.type === 'AuctionEnd' && msg.payload) {
             console.log('检测到拍卖结束消息，为中拍用户创建聊天频道', msg.payload)
