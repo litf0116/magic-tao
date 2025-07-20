@@ -598,6 +598,27 @@ namespace TtWork.Project.Services.Messaging
             _logger.LogInformation("开始编码卡秒消息: OriginalType={OriginalType}, Message={Message}", 
                 kasecMessage.type, kasecMessage.msg);
 
+            // 从原始payload中提取数据
+            long? auctionItemId = null;
+            bool? isKasec = null;
+
+            if (kasecMessage.payload != null)
+            {
+                // 使用反射或动态访问来获取payload属性
+                var payloadType = kasecMessage.payload.GetType();
+                var auctionItemIdProperty = payloadType.GetProperty("auctionItemId");
+                var isKasecProperty = payloadType.GetProperty("isKasec");
+
+                if (auctionItemIdProperty != null)
+                {
+                    auctionItemId = (long?)auctionItemIdProperty.GetValue(kasecMessage.payload);
+                }
+                if (isKasecProperty != null)
+                {
+                    isKasec = (bool?)isKasecProperty.GetValue(kasecMessage.payload);
+                }
+            }
+
             var encodedMessage = new ChatMessage
             {
                 type = ChatMessageType.AuctionBid,  // 使用AuctionBid作为载体类型
@@ -610,8 +631,8 @@ namespace TtWork.Project.Services.Messaging
                 payload = new
                 {
                     // 原始卡秒消息的payload
-                    auctionItemId = kasecMessage.payload?.auctionItemId,
-                    isKasec = kasecMessage.payload?.isKasec,
+                    auctionItemId = auctionItemId,
+                    isKasec = isKasec,
                     // 编码标识
                     messageType = "KasecStatusChanged",
                     originalType = "KasecStatusChanged",
