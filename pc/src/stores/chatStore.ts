@@ -235,7 +235,6 @@ export const useChatStore = defineStore('chat', () => {
                 101: ChatMessageType.Goodbye,
                 102: ChatMessageType.BanUser,
                 110: ChatMessageType.Backout,
-                200: ChatMessageType.System,
                 1000: ChatMessageType.AuctionStart,
                 1002: ChatMessageType.AuctionBid,
                 1010: ChatMessageType.AuctionEnd,
@@ -365,28 +364,20 @@ export const useChatStore = defineStore('chat', () => {
             return
         }
 
-        // 特殊处理：监听出价消息，直接更新拍品信息
+        // 特殊处理：解码卡秒消息和出价消息
         if (msg.type === ChatMessageType.AuctionBid && msg.payload) {
             console.log('=== 检测到出价消息 ===')
             console.log('消息类型:', msg.type)
             console.log('消息payload:', msg.payload)
             console.log('payload类型:', typeof msg.payload)
 
-            // 使用新的增量更新方法，避免重新请求整个列表
-            auctionStore.updateAuctionItemFromBidMessage(msg.payload)
-        }
-
-        // 特殊处理：监听文本消息，处理卡秒状态变更
-        if (msg.type === ChatMessageType.Text && msg.payload) {
-            console.log('=== 检测到文本消息 ===')
-            console.log('消息类型:', msg.type)
-            console.log('消息payload:', msg.payload)
-            console.log('payload类型:', typeof msg.payload)
-
-            // 检查是否是卡秒消息
-            if (msg.payload.messageType === 'KasecStatusChanged') {
-                console.log('=== 检测到卡秒消息 ===')
+            // 检查是否是编码的卡秒消息
+            if (msg.payload.messageType === 'KasecStatusChanged' && msg.payload.encoded) {
+                console.log('=== 检测到编码的卡秒消息 ===')
                 console.log('卡秒消息payload:', msg.payload)
+
+                // 解码：将消息类型从 AuctionBid 转换为 KasecStatusChanged
+                msg.type = ChatMessageType.KasecStatusChanged
 
                 // 处理卡秒状态变更
                 const { auctionItemId, isKasec } = msg.payload
@@ -407,6 +398,11 @@ export const useChatStore = defineStore('chat', () => {
                 }
                 return
             }
+
+            // 处理正常的出价消息
+            console.log('=== 处理正常出价消息 ===')
+            // 使用新的增量更新方法，避免重新请求整个列表
+            auctionStore.updateAuctionItemFromBidMessage(msg.payload)
         }
 
         // 特殊处理：监听拍卖结束消息，为中拍用户创建聊天频道

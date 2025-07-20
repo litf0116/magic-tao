@@ -80,59 +80,48 @@
                                 </div>
 
                                 <div class="message-payload mt-1">
-                                    <!-- 卡秒状态变更消息（Text类型） -->
-                                    <KasecStatusMessage
-                                        v-if="isKasecMessage(message)"
-                                        :message="message"
-                                        @action="showDetails"
-                                    />
                                     <!-- 文本消息 -->
                                     <TextMessage
-                                        v-else-if="message.type === ChatMessageType.Text"
+                                        v-if="message.type === ChatMessageType.Text"
                                         :message="message"
                                         @action="showDetails"
                                     />
                                     <!-- 图片消息 -->
                                     <ImageMessage
-                                        v-else-if="message.type === ChatMessageType.Image"
+                                        v-if="message.type === ChatMessageType.Image"
                                         :message="message"
                                         @action="showImagePreviewPopup"
                                         @contextMenu="showActionPopup(message, true)"
                                     />
                                     <!-- 开始拍卖 -->
                                     <AuctionStartMessage
-                                        v-else-if="message.type === ChatMessageType.AuctionStart"
+                                        v-if="message.type === ChatMessageType.AuctionStart"
                                         :message="message"
                                         @action="catchAction"
                                     />
                                     <!-- 出价 -->
                                     <AuctionBidMessage
-                                        v-else-if="message.type === ChatMessageType.AuctionBid"
+                                        v-if="message.type === ChatMessageType.AuctionBid"
                                         :message="message"
                                         @action="showDetails"
                                     />
                                     <!-- 公布得主 -->
                                     <AuctionEndMessage
-                                        v-else-if="message.type === ChatMessageType.AuctionEnd"
+                                        v-if="message.type === ChatMessageType.AuctionEnd"
                                         :message="message"
                                         @action="onAuctionEndAction"
                                     />
                                     <!-- 交易通知 -->
                                     <AuctionDealMessage
-                                        v-else-if="message.type === ChatMessageType.AuctionDeal"
+                                        v-if="message.type === ChatMessageType.AuctionDeal"
                                         :message="message"
                                         @action="onAuctionDealAction"
                                     />
-                                    <!-- 卡秒状态变更消息（KasecStatusChanged类型） -->
+                                    <!-- 卡秒状态变更消息 -->
                                     <KasecStatusMessage
-                                        v-else-if="message.type === ChatMessageType.KasecStatusChanged"
+                                        v-if="message.type === ChatMessageType.KasecStatusChanged"
                                         :message="message"
                                         @action="showDetails"
-                                    />
-                                    <!-- 系统消息 -->
-                                    <SystemMessage
-                                        v-else-if="message.type === ChatMessageType.System"
-                                        :message="message"
                                     />
                                 </div>
                             </div>
@@ -305,7 +294,6 @@ import { useAuctionStore } from '@/stores/auctionStore'
 import { useEmojiStore } from '@/stores/emojiStore'
 import { Tips } from '@/composables'
 import { getImgUrl as getImgUrl2 } from '@/composables'
-import SystemMessage from '@/components/Chat/SystemMessage.vue'
 
 const emit = defineEmits(['loadHistoryMessage', 'onSend'])
 //显示群聊规则
@@ -717,18 +705,6 @@ function onAuctionEndAction({ message, payload }) {
 
 function onAuctionDealAction({ message, payload }) {
     showDetails({ message, payload })
-}
-
-// 判断是否是卡秒消息
-function isKasecMessage(message: ChatMessage): boolean {
-    if (message.type === ChatMessageType.Text && message.payload) {
-        let payload = message.payload
-        if (typeof payload === 'string') {
-            payload = JSON.parse(payload)
-        }
-        return payload?.messageType === 'KasecStatusChanged'
-    }
-    return false
 }
 </script>
 
