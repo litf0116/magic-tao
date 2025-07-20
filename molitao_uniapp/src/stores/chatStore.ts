@@ -316,8 +316,8 @@ export const useChatStore = defineStore('chatStore', () => {
                         if (typeof auctionStore.syncKasecStatus === 'function') {
                             auctionStore.syncKasecStatus(auctionItemId)
                         }
-                        // 设置消息内容
-                        msg.msg = isKasec ? '⚡ 拍卖师已开启卡秒模式，需三倍加价！' : '✅ 卡秒已关闭，恢复正常加价规则'
+                        // 设置消息内容（移除闪电符号，因为组件中已有图标）
+                        msg.msg = isKasec ? '拍卖师已开启卡秒模式，需三倍加价！' : '卡秒已关闭，恢复正常加价规则'
                         msg.time = Date.now()
                         // 直接添加到聊天记录中
                         if (chatMap.value.has('-1')) {
