@@ -39,7 +39,10 @@ export default defineConfig(({ command, mode }) => {
             minify: 'terser',
             terserOptions: {
                 compress: {
-                    drop_console: mode === 'production',
+                    // 临时注释掉，以便线上调试
+                    // drop_console: mode === 'production',
+                    // drop_debugger: mode === 'production',
+                    drop_console: false, // 临时禁用，保留console.log用于线上调试
                     drop_debugger: mode === 'production',
                 },
             },
