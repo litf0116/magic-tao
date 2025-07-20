@@ -123,6 +123,8 @@
                                         :message="message"
                                         @action="showDetails"
                                     />
+                                    <!-- 系统消息 -->
+                                    <SystemMessage v-if="message.type === ChatMessageType.System" :message="message" />
                                 </div>
                             </div>
                         </template>
@@ -294,6 +296,7 @@ import { useAuctionStore } from '@/stores/auctionStore'
 import { useEmojiStore } from '@/stores/emojiStore'
 import { Tips } from '@/composables'
 import { getImgUrl as getImgUrl2 } from '@/composables'
+import SystemMessage from '@/components/Chat/SystemMessage.vue'
 
 const emit = defineEmits(['loadHistoryMessage', 'onSend'])
 //显示群聊规则
