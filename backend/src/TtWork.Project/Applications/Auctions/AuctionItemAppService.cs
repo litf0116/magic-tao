@@ -434,7 +434,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 {
                     var kasecMsg = new ChatMessage
                     {
-                        type = ChatMessageType.System,
+                        type = ChatMessageType.Text,
                         chan = "-1_auction",
                         msg = "✅ 拍卖已结束，卡秒自动关闭",
                         payload = new { 
@@ -925,7 +925,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             {
                 var kasecMsg = new ChatMessage
                 {
-                    type = ChatMessageType.System,
+                    type = ChatMessageType.Text,
                     chan = "-1_auction",
                     msg = "✅ 卡秒已关闭，恢复正常加价规则",
                     payload = new { 
@@ -1229,10 +1229,10 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             // var currentUser = await _userCache.GetAsync(AbpSession.UserId.Value);
             // var (isAdmin, adminTag, tagClass) = await CheckIsChatAdmin();
 
-            // 广播卡秒状态变更消息 - 使用System类型发送系统消息
+            // 广播卡秒状态变更消息 - 使用Text类型发送系统消息
             var msg = new ChatMessage
             {
-                type = ChatMessageType.System,
+                type = ChatMessageType.Text,
                 chan = "-1_auction",
                 msg = input.IsKasec ? "⚡ 拍卖师已开启卡秒模式，需三倍加价！" : "✅ 卡秒已关闭，恢复正常加价规则",
                 payload = new { 
