@@ -140,14 +140,40 @@ const bus = useEventBus(onmessageKey)
 //LINK[epic=处理收到消息] - Layout处理收到消息
 const unsubscribe = bus.on((msg: any) => {
     console.log('Recive ChatMessage', msg)
+
+    // 添加详细的消息格式日志，用于调试声音播放问题
+    console.log('=== 声音播放调试信息 ===')
+    console.log('消息类型:', msg.type, '类型:', typeof msg.type)
+    console.log('消息来源:', msg.from, '当前用户ID:', userStore.user.id)
+    console.log('消息目标:', msg.to)
+    console.log('频道信息:', msg.chan, '类型:', typeof msg.chan)
+    console.log('消息内容:', msg.msg)
+    console.log('消息时间:', msg.time)
+    console.log('消息ID:', msg.id)
+    console.log('完整消息对象:', JSON.stringify(msg, null, 2))
+
     //LINK - 播放提示音
-    if (msg.from === userStore.user.id) return //自己发的消息不提醒
+    if (msg.from === userStore.user.id) {
+        console.log('❌ 跳过自己发送的消息')
+        return //自己发的消息不提醒
+    }
 
     if (msg.type === ChatMessageType.Welcome && msg.chan !== '0_lobby' && msg.chan !== '-1_auction') {
+        console.log('🔊 播放Welcome消息声音 (ring17)')
         ring17.play()
     } else if ((msg.type === 'Text' || msg.type === 'Image' || msg.type === 'AuctionDeal') && !msg.chan) {
+        console.log('🔊 播放私聊消息声音 (ring11)')
+        console.log('  - 消息类型匹配:', msg.type === 'Text' || msg.type === 'Image' || msg.type === 'AuctionDeal')
+        console.log('  - 无频道信息:', !msg.chan)
         ring11.play()
+    } else {
+        console.log('❌ 不播放声音')
+        console.log('  - 消息类型:', msg.type)
+        console.log('  - 频道信息:', msg.chan)
+        console.log('  - 是否为私聊类型:', msg.type === 'Text' || msg.type === 'Image' || msg.type === 'AuctionDeal')
+        console.log('  - 是否无频道信息:', !msg.chan)
     }
+    console.log('=== 声音播放调试结束 ===')
 })
 
 const unreadAmount = ref(0)
