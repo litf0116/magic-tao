@@ -235,6 +235,7 @@ export const useChatStore = defineStore('chat', () => {
                 101: ChatMessageType.Goodbye,
                 102: ChatMessageType.BanUser,
                 110: ChatMessageType.Backout,
+                200: ChatMessageType.System,
                 1000: ChatMessageType.AuctionStart,
                 1002: ChatMessageType.AuctionBid,
                 1010: ChatMessageType.AuctionEnd,

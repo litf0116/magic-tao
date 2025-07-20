@@ -42,6 +42,7 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     StatusTag: typeof import('./src/components/paged-table/statusTag.vue')['default']
+    SystemMessage: typeof import('./src/components/Chat/SystemMessage.vue')['default']
     TextMessage: typeof import('./src/components/Chat/TextMessage.vue')['default']
     TtUpload: typeof import('./src/components/tt-upload/index.vue')['default']
     UserInfoDialog: typeof import('./src/components/Chat/userInfoDialog.vue')['default']
