@@ -67,6 +67,5 @@ namespace TtWork.Project.Services.Messaging
         /// <param name="isSystemMessage">是否为系统消息</param>
         /// <returns>发送结果</returns>
         Task<SendMessageResult> SendAuctionMessageAsync(long fromUserId, long? toUserId, string channel, ChatMessage message, bool isSystemMessage = false);
-
     }
 } 
