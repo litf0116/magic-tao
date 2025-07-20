@@ -484,7 +484,7 @@ async function toggleKasec() {
                 // 检查状态是否真的改变了
                 const actualKasecState = auctionStore.isKasec
                 if (actualKasecState === isKasec) {
-                                        // 状态确实改变了，主动发送群组卡秒消息
+                    // 状态确实改变了，主动发送群组卡秒消息
                     console.log('卡秒状态已改变，准备发送群组消息...')
                     try {
                         // 构建卡秒消息内容
@@ -492,11 +492,13 @@ async function toggleKasec() {
                             ? '⚡ 拍卖师已开启卡秒模式，需三倍加价！'
                             : '✅ 卡秒已关闭，恢复正常加价规则'
 
-                        // 发送到拍卖频道，使用KasecStatusChanged类型
-                        await chatStore.sendChannelMsg(kasecMessage, '-1_auction', ChatMessageType.KasecStatusChanged, {
+                        // 使用AuctionBid类型发送卡秒消息，因为这是已知工作的消息类型
+                        await chatStore.sendChannelMsg(kasecMessage, '-1_auction', ChatMessageType.AuctionBid, {
                             auctionItemId: onAuctionItem.value.id,
                             isKasec: isKasec,
                             action: action,
+                            messageType: 'KasecStatusChanged', // 标记这是卡秒消息
+                            isKasecMessage: true, // 额外标记
                         })
                         console.log('群组卡秒消息发送成功')
                     } catch (msgError) {

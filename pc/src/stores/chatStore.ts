@@ -371,6 +371,31 @@ export const useChatStore = defineStore('chat', () => {
             console.log('消息payload:', msg.payload)
             console.log('payload类型:', typeof msg.payload)
 
+            // 检查是否是卡秒消息（使用AuctionBid类型发送的卡秒消息）
+            if (msg.payload.isKasecMessage || msg.payload.messageType === 'KasecStatusChanged') {
+                console.log('=== 检测到卡秒消息 ===')
+                console.log('卡秒消息payload:', msg.payload)
+
+                // 处理卡秒状态变更
+                const { auctionItemId, isKasec } = msg.payload
+                if (auctionItemId && typeof isKasec === 'boolean') {
+                    // 只处理当前拍卖频道
+                    if (currentChat.value.id === -1) {
+                        auctionStore.syncKasecStatus(auctionItemId)
+                        // 设置消息内容
+                        msg.msg = isKasec ? '⚡ 拍卖师已开启卡秒模式，需三倍加价！' : '✅ 卡秒已关闭，恢复正常加价规则'
+                        msg.time = Date.now()
+                        // 直接添加到聊天记录中
+                        if (chatMap.value.has('-1')) {
+                            chatMap.value.get('-1')!.push(msg)
+                        } else {
+                            chatMap.value.set('-1', [msg])
+                        }
+                    }
+                }
+                return
+            }
+
             // 使用新的增量更新方法，避免重新请求整个列表
             auctionStore.updateAuctionItemFromBidMessage(msg.payload)
         }
