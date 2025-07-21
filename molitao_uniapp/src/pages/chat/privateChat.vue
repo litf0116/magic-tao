@@ -1,14 +1,32 @@
 <template>
-    <chatMain ref="chatRef" :options="chatOptions" @onSend="send" @loadHistoryMessage="loadHistoryMessage"></chatMain>
+    <chatMain ref="chatRef" :options="chatOptions" @onSend="send" @loadHistoryMessage="loadHistoryMessage" @showDetail="showDetail"></chatMain>
+
+    <!-- 拍品详情弹窗 -->
+    <uv-popup ref="popup" @change="popChange">
+        <view v-if="showItem" class="p-4">
+            <view class="flex flex-row items-center overflow-hidden cursor-pointer">
+                <view class="text-wrap px-2 flex-1 flex flex-col">
+                    <view class="text-[#ff7144] line-clamp-3">{{ showItem.name }}</view>
+                </view>
+            </view>
+            <div
+                class="mt-2 min-w-200px max-h-50vh overflow-scroll"
+                v-html="getStartContent(showItem!)"
+                @tap="catchImage"
+            ></div>
+            <view class="h-8"></view>
+        </view>
+    </uv-popup>
 </template>
 
 <script setup lang="ts">
 import chatMain from '@/components/chat/chatMain.vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { ChatMessageType, type UserDto } from '@/composables/types'
+import { ChatMessageType, type UserDto, type AuctionItemDto } from '@/composables/types'
 import api from '@/utils/api'
 import type { ChatOptions } from '@/components/chat/types'
 import { nextTick } from 'vue'
+import { getImgUrl } from '@/composables'
 
 const chatOptions: ChatOptions = {
     enableAudio: false,
@@ -35,6 +53,10 @@ const friend = reactive({
 })
 
 const user = ref<UserDto | null>(null)
+
+// 拍品详情相关
+const showItem = ref<AuctionItemDto | null>(null)
+const popup = ref(null as any)
 
 onLoad((query: any) => {
     if (query != undefined) {
@@ -70,7 +92,7 @@ async function loadHistoryMessage(force = false) {
         console.warn('chatRef is not ready')
         return
     }
-    
+
     chatRef.value.history.loading = true
     let lastTime = new Date().getTime()
     if (!force)
@@ -93,6 +115,75 @@ function send(e: { type: ChatMessageType; data: string | object }) {
         chatStore.sendMsg(friend.id, friend.name, friend.avatar, '[图片]', ChatMessageType.Image, e.data).then(() => {})
     } else if (e.type === ChatMessageType.Text) {
         chatStore.sendMsg(friend.id, friend.name, friend.avatar, e.data as string).then(() => {})
+    }
+}
+
+// 拍品详情相关函数
+function showDetail(e: AuctionItemDto) {
+    console.log('showDetail', e)
+    showItem.value = convertFields(e)
+    popup.value.open('bottom')
+}
+
+// 检测首字母是否大写
+const convertFields = (obj: any) => {
+    const newObj: any = {}
+    Object.keys(obj).forEach((key) => {
+        const firstChar = key.charAt(0)
+        if (firstChar === firstChar.toUpperCase()) {
+            const newKey = firstChar.toLowerCase() + key.slice(1)
+            newObj[newKey] = obj[key]
+        } else {
+            newObj[key] = obj[key]
+        }
+    })
+    return newObj
+}
+
+function popChange(e: { show: boolean; type: string }) {
+    console.log(e)
+    if (e.show === false) {
+        showItem.value = null
+    }
+}
+
+function getStartContent(item: AuctionItemDto) {
+    const description = item.description
+    if (!description || description.trim() === '') {
+        // 与 PC 端保持一致，显示拍品图片
+        return `<div class="flex justify-center py-4">
+            <img
+                src="${item.imageUrl}"
+                class="w-full h-48 object-cover rounded cursor-pointer"
+                alt="${item.name}"
+            />
+        </div>`
+    }
+    return `<div>${description}</div>`
+}
+
+function catchImage(e: any) {
+    console.log('catchImage', e)
+    try {
+        const description = showItem.value?.description
+        if (!description) return
+        const list = []
+        //从 string中img标签中获取data-url的属性放入数组中
+        const reg = /<img.*?data-url=['"](.*?)['"].*?>/g
+        let result
+        while ((result = reg.exec(description)) !== null) {
+            list.push(result[1])
+        }
+
+        if (list.length === 0) return
+        uni.previewImage({
+            current: list[0], // 当前显示图片的http链接
+            urls: list, // 需要预览的图片http链接列表
+        })
+
+        console.log('catchImage', list)
+    } catch (error) {
+        console.error('图片预览失败:', error)
     }
 }
 </script>
