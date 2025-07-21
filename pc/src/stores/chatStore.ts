@@ -364,7 +364,7 @@ export const useChatStore = defineStore('chat', () => {
             return
         }
 
-        // 特殊处理：解码卡秒消息和出价消息
+        // 特殊处理：解码卡秒消息、出价消息和成交消息
         if (msg.type === ChatMessageType.AuctionBid && msg.payload) {
             console.log('=== 检测到出价消息 ===')
             console.log('消息类型:', msg.type)
@@ -403,6 +403,32 @@ export const useChatStore = defineStore('chat', () => {
             console.log('=== 处理正常出价消息 ===')
             // 使用新的增量更新方法，避免重新请求整个列表
             auctionStore.updateAuctionItemFromBidMessage(msg.payload)
+        }
+
+        // 检查是否是编码的成交消息
+        if (msg.type === ChatMessageType.AuctionEnd && msg.payload) {
+            console.log('=== 检测到AuctionEnd消息 ===')
+            console.log('消息类型:', msg.type)
+            console.log('消息payload:', msg.payload)
+            console.log('payload类型:', typeof msg.payload)
+
+            // 检查是否是编码的成交消息
+            if (msg.payload.messageType === 'AuctionDeal' && msg.payload.encoded) {
+                console.log('=== 检测到编码的成交消息 ===')
+                console.log('成交消息payload:', msg.payload)
+
+                // 解码：将消息类型从 AuctionEnd 转换为 AuctionDeal
+                msg.type = ChatMessageType.AuctionDeal
+
+                // 恢复原始payload
+                if (msg.payload.originalPayload) {
+                    msg.payload = msg.payload.originalPayload
+                }
+
+                console.log('=== 成交消息解码完成 ===')
+                console.log('解码后消息类型:', msg.type)
+                console.log('解码后payload:', msg.payload)
+            }
         }
 
         // 特殊处理：监听拍卖结束消息，为中拍用户创建聊天频道

@@ -492,10 +492,10 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                         _logger.LogError(ex, "定时任务拍卖成功消息发送失败: AuctionItemId={AuctionItemId}, Error={Error}", auctionItem.Id, ex.Message);
                     }
 
-                    // 发送成交用户私信
+                    // 发送成交用户私信（使用编码机制，将AuctionDeal编码为AuctionEnd类型）
                     var dealMessage = new ChatMessage
                     {
-                        type = ChatMessageType.AuctionDeal,
+                        type = ChatMessageType.AuctionDeal,  // 原始类型，会被自动编码为AuctionEnd
                         msg = result.ToUserMsg,
                         payload = result
                     };
@@ -507,6 +507,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                         
                         try
                         {
+                            // 使用SendPrivateMessageAsync，会自动将AuctionDeal编码为AuctionEnd类型
                             await _messageSendingService.SendPrivateMessageAsync(auctionManagerInfo.Id,
                                 result.DealUserId.Value, dealMessage, false, null);
                             
@@ -979,10 +980,10 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                     _logger.LogError(ex, "拍卖成功消息发送失败: AuctionItemId={AuctionItemId}, Error={Error}", input.Id, ex.Message);
                 }
 
-                // 发送成交用户私信
+                // 发送成交用户私信（使用编码机制，将AuctionDeal编码为AuctionEnd类型）
                 var dealMessage = new ChatMessage
                 {
-                    type = ChatMessageType.AuctionDeal,
+                    type = ChatMessageType.AuctionDeal,  // 原始类型，会被自动编码为AuctionEnd
                     msg = result.ToUserMsg,
                     payload = result
                 };
@@ -994,6 +995,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                     
                     try
                     {
+                        // 使用SendPrivateMessageAsync，会自动将AuctionDeal编码为AuctionEnd类型
                         await _messageSendingService.SendPrivateMessageAsync(AbpSession.UserId.Value,
                             result.DealUserId.Value, dealMessage, false, null);
                         

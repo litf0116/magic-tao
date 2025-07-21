@@ -208,12 +208,17 @@ namespace TtWork.Project.Services.Messaging
                 // 4. 投递消息
                 if (options.SendImmediately)
                 {
-                    // 在发送前检查是否需要编码（卡秒消息）
+                    // 在发送前检查是否需要编码（卡秒消息或成交消息）
                     var messageToSend = enrichedMessage;
                     if (enrichedMessage.type == ChatMessageType.KasecStatusChanged)
                     {
                         _logger.LogInformation("检测到卡秒消息，进行编码后发送");
                         messageToSend = EncodeKasecMessage(enrichedMessage);
+                    }
+                    else if (enrichedMessage.type == ChatMessageType.AuctionDeal)
+                    {
+                        _logger.LogInformation("检测到AuctionDeal消息，进行编码后发送");
+                        messageToSend = EncodeAuctionDealMessage(enrichedMessage);
                     }
                     
                     ImHelper.SendMessage(fromUserId, [toUserId], messageToSend, isReceipt);
@@ -659,6 +664,44 @@ namespace TtWork.Project.Services.Messaging
             };
 
             _logger.LogInformation("卡秒消息编码完成: EncodedType={EncodedType}, Payload={Payload}", 
+                encodedMessage.type, System.Text.Json.JsonSerializer.Serialize(encodedMessage.payload));
+
+            return encodedMessage;
+        }
+
+        /// <summary>
+        /// 编码AuctionDeal消息为AuctionEnd类型（用于私聊发送）
+        /// </summary>
+        /// <param name="dealMessage">原始成交消息</param>
+        /// <returns>编码后的消息</returns>
+        private ChatMessage EncodeAuctionDealMessage(ChatMessage dealMessage)
+        {
+            _logger.LogInformation("开始编码AuctionDeal消息: OriginalType={OriginalType}, Message={Message}", 
+                dealMessage.type, dealMessage.msg);
+
+            var encodedMessage = new ChatMessage
+            {
+                type = ChatMessageType.AuctionEnd,  // 使用AuctionEnd作为载体类型
+                chan = dealMessage.chan,
+                msg = dealMessage.msg,
+                from = dealMessage.from,
+                fromName = dealMessage.fromName,
+                avatar = dealMessage.avatar,
+                time = dealMessage.time,
+                to = dealMessage.to,
+                payload = new
+                {
+                    // 原始成交消息的payload
+                    originalPayload = dealMessage.payload,
+                    // 编码标识
+                    messageType = "AuctionDeal",
+                    originalType = "AuctionDeal",
+                    // 其他编码信息
+                    encoded = true
+                }
+            };
+
+            _logger.LogInformation("AuctionDeal消息编码完成: EncodedType={EncodedType}, Payload={Payload}", 
                 encodedMessage.type, System.Text.Json.JsonSerializer.Serialize(encodedMessage.payload));
 
             return encodedMessage;
