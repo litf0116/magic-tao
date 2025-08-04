@@ -38,7 +38,7 @@
             <!-- 在这个位置插入置顶帖的列表 -->
             <div class="top-posts">
                 <div class="title">置顶帖子</div>
-                <div v-for="post in topPosts" :key="post.id" class="post-item" @click="goToDetail(post.id)">
+                <div v-for="post in topPosts" :key="post.postId" class="post-item" @click="goToDetail(post.postId)">
                     <!-- 头像 -->
                     <div class="post-avatar">
                         <el-avatar :size="30" :src="post.userAvatar" />
