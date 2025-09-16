@@ -8,6 +8,19 @@ const upyun = new Upyun.Upyun({
 
 export function uploadImage(file) {
     return new Promise((resolve, reject) => {
+        // 验证文件类型
+        const fileName = file.toString()
+        const fileExtension = fileName.split('.').pop()?.toLowerCase()
+        const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp']
+
+        if (!fileExtension || !allowedExtensions.includes(fileExtension)) {
+            uni.showToast({
+                title: '只支持 JPG、PNG、GIF、WEBP 格式的图片!',
+                icon: 'none',
+            })
+            return reject('只支持 JPG、PNG、GIF、WEBP 格式的图片!')
+        }
+
         const imageSrc = file
         // const fileExt = imageSrc.replace(/.+\./, '')
         // const fileName = dayjs(new Date()).format('YYYYMMHHmmss') + '.' + fileExt
@@ -21,7 +34,7 @@ export function uploadImage(file) {
                     uni.removeStorageSync(Upyun.CACHE_KEY)
                     return reject('上传失败，请重新上传')
                 } else {
-                    var jsonData = JSON.parse(res.data)
+                    const jsonData = JSON.parse(res.data)
                     console.log('upload success:', jsonData)
                     console.log(upyun.domainHost)
                     console.log(jsonData.url)
@@ -46,6 +59,20 @@ export function upload(count = 1) {
             //成功
             success: (res) => {
                 const imageSrc = res!.tempFilePaths![0]
+
+                // 验证文件类型
+                const fileName = imageSrc.toString()
+                const fileExtension = fileName.split('.').pop()?.toLowerCase()
+                const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp']
+
+                if (!fileExtension || !allowedExtensions.includes(fileExtension)) {
+                    uni.showToast({
+                        title: '只支持 JPG、PNG、GIF、WEBP 格式的图片!',
+                        icon: 'none',
+                    })
+                    return reject('只支持 JPG、PNG、GIF、WEBP 格式的图片!')
+                }
+
                 upyun.upload({
                     localPath: imageSrc,
                     success: (res: any) => {

@@ -136,18 +136,32 @@ const getAuth = async () => {
 }
 
 const beforeUpload = async (file: any) => {
-    // const isJPG = file.type === 'image/jpeg'
+    // 验证文件类型 - MIME 类型
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+    const isAllowedType = allowedTypes.includes(file.type)
+
+    // 验证文件扩展名
+    const fileName = file.name.toLowerCase()
+    const fileExtension = fileName.split('.').pop()
+    const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp']
+    const hasAllowedExtension = fileExtension && allowedExtensions.includes(fileExtension)
+
+    if (!isAllowedType || !hasAllowedExtension) {
+        Tips.error('只支持 JPG、PNG、GIF、WEBP 格式的图片!')
+        return false
+    }
+
     if (props.fileSize > 0) {
         if (file.size / 1024 > props.fileSize) {
             Tips.error(`图片大小不能超过 ${props.fileSize}KB!`)
             return false
         }
     }
-    const fileName = file.uid
+    const fileUid = file.uid
     const img = new Image()
     img.src = window.URL.createObjectURL(file)
     img.onload = () => {
-        listObj.value[fileName] = {
+        listObj.value[fileUid] = {
             hasSuccess: false,
             uid: file.uid,
             url: '',
