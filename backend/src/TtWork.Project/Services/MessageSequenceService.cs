@@ -72,7 +72,7 @@ namespace TtWork.Project.Services
 
         public async Task<long> GetNextSequenceNumberAsync(string channelKey)
         {
-            return await Task.FromResult(GetNextSequenceNumberLocal(channelKey));
+            return await GetNextSequenceNumberLocalAsync(channelKey);
         }
 
         public async Task<long> GetNextSequenceNumberForChannelAsync(string chan)
@@ -82,14 +82,14 @@ namespace TtWork.Project.Services
                 throw new ArgumentException("Channel cannot be null or empty", nameof(chan));
             }
 
-            return await Task.FromResult(GetNextSequenceNumberLocal($"chan:{chan}"));
+            return await GetNextSequenceNumberLocalAsync($"chan:{chan}");
         }
 
         public async Task<long> GetNextSequenceNumberForPrivateAsync(long from, long to)
         {
             // 为私聊创建一致的频道标识（较小的ID在前）
             var channelKey = from < to ? $"private:{from}_{to}" : $"private:{to}_{from}";
-            return await Task.FromResult(GetNextSequenceNumberLocal(channelKey));
+            return await GetNextSequenceNumberLocalAsync(channelKey);
         }
 
         /// <summary>
@@ -147,8 +147,8 @@ namespace TtWork.Project.Services
                         var result = connection.QuerySingleOrDefault<long?>(
                             @"SELECT MAX(SequenceNumber) 
                               FROM T_Message 
-                              WHERE ((From = @User1 AND To = @User2) OR (From = @User2 AND To = @User1))
-                              AND To IS NOT NULL", 
+                              WHERE ((`From` = @User1 AND `To` = @User2) OR (`From` = @User2 AND `To` = @User1))
+                              AND `To` IS NOT NULL", 
                             new { User1 = user1, User2 = user2 });
                         
                         maxSequence = result ?? 0;
@@ -166,7 +166,58 @@ namespace TtWork.Project.Services
         }
 
         /// <summary>
-        /// 本地序列号生成核心方法 - 延迟加载模式
+        /// 本地序列号生成核心方法 - 延迟加载模式（异步版本）
+        /// </summary>
+        /// <param name="channelKey">频道标识</param>
+        /// <returns>序列号</returns>
+        private async Task<long> GetNextSequenceNumberLocalAsync(string channelKey)
+        {
+            try
+            {
+                // 使用双重检查锁定模式减少锁竞争
+                if (!_sequenceCache.TryGetValue(channelKey, out var currentSequence))
+                {
+                    // 只在真正需要时才获取锁
+                    lock (_sequenceLock)
+                    {
+                        // 再次检查，防止其他线程已经加载
+                        if (!_sequenceCache.TryGetValue(channelKey, out currentSequence))
+                        {
+                            // 异步加载数据库序列号
+                            var loadTask = LoadChannelSequenceFromDatabaseAsync(channelKey);
+                            
+                            // 等待加载完成（这里不会阻塞其他channel的访问）
+                            currentSequence = loadTask.GetAwaiter().GetResult();
+                            _sequenceCache[channelKey] = currentSequence;
+                            _logger.Info($"延迟加载序列号: {channelKey} -> {currentSequence}");
+                        }
+                    }
+                }
+                
+                // 生成下一个序列号（在锁外执行，减少锁持有时间）
+                lock (_sequenceLock)
+                {
+                    currentSequence = _sequenceCache[channelKey];
+                    var nextSequence = currentSequence + 1;
+                    _sequenceCache[channelKey] = nextSequence;
+                    
+                    _logger.Info($"序列号生成成功: {channelKey} -> {nextSequence}");
+                    return nextSequence;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"序列号生成失败: {channelKey}", ex);
+                
+                // 备用方案：使用时间戳
+                var fallbackValue = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                _logger.Warn($"使用时间戳作为序列号备用方案: {channelKey} -> {fallbackValue}");
+                return fallbackValue;
+            }
+        }
+
+        /// <summary>
+        /// 本地序列号生成核心方法 - 延迟加载模式（同步版本，保持向后兼容）
         /// </summary>
         /// <param name="channelKey">频道标识</param>
         /// <returns>序列号</returns>
@@ -180,7 +231,7 @@ namespace TtWork.Project.Services
                     if (!_sequenceCache.TryGetValue(channelKey, out var currentSequence))
                     {
                         // 延迟加载：从数据库获取该频道的最大序列号
-                        currentSequence = LoadChannelSequenceFromDatabaseAsync(channelKey).Result;
+                        currentSequence = LoadChannelSequenceFromDatabaseAsync(channelKey).GetAwaiter().GetResult();
                         _sequenceCache[channelKey] = currentSequence;
                         _logger.Info($"延迟加载序列号: {channelKey} -> {currentSequence}");
                     }

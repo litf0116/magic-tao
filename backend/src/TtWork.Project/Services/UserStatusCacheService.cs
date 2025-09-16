@@ -210,7 +210,18 @@ namespace TtWork.Project.Services
                 if (cachedValue.HasValue)
                 {
                     var cachedInfo = JsonConvert.DeserializeObject<AdminInfo>(cachedValue);
-                    _logger.LogDebug("用户管理员信息缓存命中: UserId={UserId}, IsAdmin={IsAdmin}", userId, cachedInfo?.IsAdmin);
+                    
+                    // 增加用户14的详细日志
+                    if (userId == 14)
+                    {
+                        _logger.LogInformation("=== 用户14管理员信息缓存命中 === UserId={UserId}, IsAdmin={IsAdmin}, AdminTag={AdminTag}, TagClass={TagClass}", 
+                            userId, cachedInfo?.IsAdmin, cachedInfo?.AdminTag, cachedInfo?.TagClass);
+                    }
+                    else
+                    {
+                        _logger.LogDebug("用户管理员信息缓存命中: UserId={UserId}, IsAdmin={IsAdmin}", userId, cachedInfo?.IsAdmin);
+                    }
+                    
                     return cachedInfo;
                 }
 
@@ -225,7 +236,16 @@ namespace TtWork.Project.Services
                         JsonConvert.SerializeObject(adminInfo), 
                         AdminInfoCacheExpiration);
                     
-                    _logger.LogDebug("用户管理员信息已缓存: UserId={UserId}, IsAdmin={IsAdmin}", userId, adminInfo.IsAdmin);
+                    // 增加用户14的详细日志
+                    if (userId == 14)
+                    {
+                        _logger.LogInformation("=== 用户14管理员信息已缓存 === UserId={UserId}, IsAdmin={IsAdmin}, AdminTag={AdminTag}, TagClass={TagClass}", 
+                            userId, adminInfo.IsAdmin, adminInfo.AdminTag, adminInfo.TagClass);
+                    }
+                    else
+                    {
+                        _logger.LogDebug("用户管理员信息已缓存: UserId={UserId}, IsAdmin={IsAdmin}", userId, adminInfo.IsAdmin);
+                    }
                 }
 
                 return adminInfo;
@@ -251,12 +271,27 @@ namespace TtWork.Project.Services
                 
                 await Task.WhenAll(groupLevelTask, adminInfoTask, banStatusTask);
                 
+                var groupLevel = await groupLevelTask;
+                var adminInfo = await adminInfoTask;
+                var banStatus = await banStatusTask;
+                
+                // 增加用户14的详细日志
+                if (userId == 14)
+                {
+                    _logger.LogInformation("=== 用户14完整状态信息获取完成 === UserId={UserId}", userId);
+                    _logger.LogInformation("用户14群聊等级信息: Level={Level}, Name={Name}", groupLevel?.Level, groupLevel?.Name);
+                    _logger.LogInformation("用户14管理员信息: IsAdmin={IsAdmin}, AdminTag={AdminTag}, TagClass={TagClass}", 
+                        adminInfo?.IsAdmin, adminInfo?.AdminTag, adminInfo?.TagClass);
+                    _logger.LogInformation("用户14禁言状态: IsBanned={IsBanned}, BanEndTime={BanEndTime}", 
+                        banStatus?.IsBanned, banStatus?.BanEndTime);
+                }
+                
                 return new UserFullStatusInfo
                 {
                     UserId = userId,
-                    GroupLevel = await groupLevelTask,
-                    AdminInfo = await adminInfoTask,
-                    BanStatus = await banStatusTask
+                    GroupLevel = groupLevel,
+                    AdminInfo = adminInfo,
+                    BanStatus = banStatus
                 };
             }
             catch (Exception ex)

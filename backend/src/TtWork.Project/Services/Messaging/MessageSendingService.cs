@@ -23,6 +23,7 @@ using TtWork.Project.EventHandlers;
 using TtWork.Project.Events;
 using TtWork.Project.Events.Commands;
 using TtWork.Project.Services.Messaging.Models;
+using TtWork.Project.Services;
 
 namespace TtWork.Project.Services.Messaging
 {
@@ -32,6 +33,7 @@ namespace TtWork.Project.Services.Messaging
     public class MessageSendingService : IMessageSendingService, ITransientDependency
     {
         private readonly UserCache _userCache;
+        private readonly IUserStatusCacheService _userStatusCacheService;
         private readonly IRepository<Message, Guid> _messageRepository;
         private readonly IRepository<BanedUser, long> _banedUserRepository;
         private readonly IRepository<ChatListDelete> _chatListDeleteRepository;
@@ -45,6 +47,7 @@ namespace TtWork.Project.Services.Messaging
 
         public MessageSendingService(
             UserCache userCache,
+            IUserStatusCacheService userStatusCacheService,
             IRepository<Message, Guid> messageRepository,
             IRepository<BanedUser, long> banedUserRepository,
             IRepository<ChatListDelete> chatListDeleteRepository,
@@ -57,6 +60,7 @@ namespace TtWork.Project.Services.Messaging
             IUnitOfWorkManager unitOfWorkManager)
         {
             _userCache = userCache;
+            _userStatusCacheService = userStatusCacheService;
             _messageRepository = messageRepository;
             _banedUserRepository = banedUserRepository;
             _chatListDeleteRepository = chatListDeleteRepository;
@@ -368,13 +372,23 @@ namespace TtWork.Project.Services.Messaging
                     time = message.time
                 };
 
-                // 获取用户信息 - 修复：即使跳过权限检查，也需要获取用户基本信息用于显示
+                // 获取用户信息 - 使用UserStatusCacheService优化
                 UserDto userInfo = null;
+                UserFullStatusInfo userStatusInfo = null;
                 if (fromUserId > 0)
                 {
                     try
                     {
+                        // 使用缓存服务一次性获取用户完整状态信息
+                        userStatusInfo = await _userStatusCacheService.GetUserFullStatusAsync(fromUserId);
                         userInfo = await _userCache.GetAsync(fromUserId);
+                        
+                        // 合并用户状态信息到userInfo中
+                        if (userInfo != null && userStatusInfo != null)
+                        {
+                            userInfo.IsActive = userStatusInfo.IsActive;
+                        }
+                        
                         _logger.LogDebug("获取用户信息: UserId={UserId}, UserName={UserName}, HeadImgUrl={HeadImgUrl}", 
                             fromUserId, userInfo?.Name, userInfo?.HeadImgUrl);
                     }
@@ -382,10 +396,11 @@ namespace TtWork.Project.Services.Messaging
                     {
                         _logger.LogError(ex, "获取用户缓存信息失败: UserId={UserId}", fromUserId);
                         userInfo = null;
+                        userStatusInfo = null;
                     }
                     
                     // 只有在非跳过权限检查时才验证用户状态
-                    if (!options.SkipPermissionCheck && userInfo != null && !userInfo.IsActive)
+                    if (!options.SkipPermissionCheck && userStatusInfo != null && !userStatusInfo.IsActive)
                     {
                         return (false, "账号已被禁用", null, (false, "", ""));
                     }
@@ -404,27 +419,51 @@ namespace TtWork.Project.Services.Messaging
                     }
                 }
 
-                // 权限检查
+                // 权限检查 - 使用UserStatusCacheService优化
                 var (isAdmin, adminTag, tagClass) = (false, "", "");
-                if (options.AddAdminTag && userInfo != null)
+                if (options.AddAdminTag && userStatusInfo?.AdminInfo != null)
                 {
-                    (isAdmin, adminTag, tagClass) = await CheckIsChatAdmin(userInfo);
+                    isAdmin = userStatusInfo.AdminInfo.IsAdmin;
+                    adminTag = userStatusInfo.AdminInfo.AdminTag;
+                    tagClass = userStatusInfo.AdminInfo.TagClass;
+                    
                     enrichedMessage.fromAdmin = isAdmin;
                     enrichedMessage.fromTag = adminTag;
                     enrichedMessage.tagClass = tagClass;
-                    _logger.LogDebug("设置管理员信息: isAdmin={IsAdmin}, adminTag={AdminTag}, tagClass={TagClass}", 
-                        isAdmin, adminTag, tagClass);
+                    
+                    // 增加详细日志，特别是针对用户14
+                    if (fromUserId == 14)
+                    {
+                        _logger.LogInformation("=== 用户14发送消息设置FromTag === FromUserId={FromUserId}, MessageType={MessageType}, Channel={Channel}", 
+                            fromUserId, enrichedMessage.type, channel);
+                        _logger.LogInformation("用户14管理员信息: IsAdmin={IsAdmin}, AdminTag={AdminTag}, TagClass={TagClass}", 
+                            isAdmin, adminTag, tagClass);
+                        _logger.LogInformation("用户14消息最终信息: fromName={FromName}, fromAdmin={FromAdmin}, fromTag={FromTag}", 
+                            enrichedMessage.fromName, enrichedMessage.fromAdmin, enrichedMessage.fromTag);
+                    }
+                    else
+                    {
+                        _logger.LogDebug("设置管理员信息: isAdmin={IsAdmin}, adminTag={AdminTag}, tagClass={TagClass}", 
+                            isAdmin, adminTag, tagClass);
+                    }
+                }
+                else
+                {
+                    // 增加日志，记录为什么没有设置管理员标签
+                    if (fromUserId == 14)
+                    {
+                        _logger.LogWarning("用户14发送消息但未设置管理员标签: AddAdminTag={AddAdminTag}, UserStatusInfo={UserStatusInfo}, AdminInfo={AdminInfo}", 
+                            options.AddAdminTag, userStatusInfo != null ? "存在" : "不存在", userStatusInfo?.AdminInfo != null ? "存在" : "不存在");
+                    }
                 }
 
-                // 禁言检查
+                // 禁言检查 - 使用UserStatusCacheService优化
                 if (!options.SkipPermissionCheck && !isAdmin && fromUserId > 0)
                 {
-                    var banedUser = await _banedUserRepository.FirstOrDefaultAsync(a =>
-                        a.UserId == fromUserId && (a.Chan == null || a.Chan == channel) &&
-                        a.EndTime > DateTime.Now);
-                    if (banedUser != null)
+                    var banStatus = userStatusInfo?.BanStatus ?? await _userStatusCacheService.CheckBanStatusAsync(fromUserId, channel);
+                    if (banStatus.IsBanned)
                     {
-                        return (false, $"您已被禁言,结束时间 {banedUser.EndTime:yyyy-MM-dd HH:mm:ss}", null, (isAdmin, adminTag, tagClass));
+                        return (false, $"您已被禁言,结束时间 {banStatus.BanEndTime:yyyy-MM-dd HH:mm:ss}", null, (isAdmin, adminTag, tagClass));
                     }
                 }
 
@@ -439,10 +478,10 @@ namespace TtWork.Project.Services.Messaging
                     enrichedMessage = checkResult.message;
                 }
 
-                // 添加用户群聊等级信息
+                // 添加用户群聊等级信息 - 使用UserStatusCacheService优化
                 if (options.AddUserChatLevel && fromUserId > 0)
                 {
-                    await AddUserChatLevelInfo(enrichedMessage, fromUserId);
+                    await AddUserChatLevelInfo(enrichedMessage, fromUserId, userStatusInfo?.GroupLevel);
                 }
 
                 _logger.LogDebug("消息增强完成: fromName={FromName}, fromAdmin={FromAdmin}, fromTag={FromTag}", 
@@ -539,28 +578,14 @@ namespace TtWork.Project.Services.Messaging
         }
 
         /// <summary>
-        /// 添加用户群聊等级信息
+        /// 添加用户群聊等级信息 - 优化版本
         /// </summary>
-        private async Task AddUserChatLevelInfo(ChatMessage message, long userId)
+        private async Task AddUserChatLevelInfo(ChatMessage message, long userId, UserGroupLevelInfo groupLevelInfo = null)
         {
             try
             {
-                // 群聊等级信息
-                var groupChatLevel = await _sqlSugarClient.Queryable<GroupChatLevelSettingsEntity>().FirstAsync(f => f.Level == 0);
-                
-                // 查询用户群聊等级
-                var userGroupLevel = await _sqlSugarClient.Queryable<UserGroupLevelEntity>()
-                    .LeftJoin<GroupChatLevelSettingsEntity>((a, b) => a.GroupChatId == b.Id)
-                    .Where((a, b) => a.UserId == userId)
-                    .Select((a, b) => new
-                    {
-                        a.UserId,
-                        b.Name,
-                        b.Level,
-                        b.BorderColor,
-                        b.RightBorderColor
-                    })
-                    .FirstAsync();
+                // 使用传入的缓存信息或从缓存服务获取
+                var userGroupLevel = groupLevelInfo ?? await _userStatusCacheService.GetUserGroupLevelAsync(userId);
 
                 // 设置用户群聊等级信息
                 if (userGroupLevel != null)
@@ -576,13 +601,15 @@ namespace TtWork.Project.Services.Messaging
                 }
                 else
                 {
+                    // 降级到默认等级
+                    var defaultLevel = await _sqlSugarClient.Queryable<GroupChatLevelSettingsEntity>().FirstAsync(f => f.Level == 0);
                     message.userChatLevel = new
                     {
-                        userId = groupChatLevel.Id,
-                        name = groupChatLevel.Name,
-                        level = groupChatLevel.Level,
-                        borderColor = groupChatLevel.BorderColor,
-                        rightBorderColor = groupChatLevel.RightBorderColor
+                        userId = defaultLevel.Id,
+                        name = defaultLevel.Name,
+                        level = defaultLevel.Level,
+                        borderColor = defaultLevel.BorderColor,
+                        rightBorderColor = defaultLevel.RightBorderColor
                     };
                 }
             }
