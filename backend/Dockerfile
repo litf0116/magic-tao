@@ -7,7 +7,9 @@ EXPOSE 5000
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
-RUN export hostip=$(cat /etc/resolv.conf |grep -oP '(?<=nameserver\ ).*')
+RUN export hostip=$(cat /etc/resolv.conf |grep -oP '(?<=nameserver\ ).*') && \
+    echo "nameserver 8.8.8.8" >> /etc/resolv.conf && \
+    echo "nameserver 8.8.4.4" >> /etc/resolv.conf
 WORKDIR /src
 COPY ["FreeIM/FreeIM/FreeIM.csproj", "FreeIM/FreeIM/"]
 COPY ["Modules/Tt.HttpClient.Weixin/Tt.HttpClient.Weixin.csproj", "Modules/Tt.HttpClient.Weixin/"]
