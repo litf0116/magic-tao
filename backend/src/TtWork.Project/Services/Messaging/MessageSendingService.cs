@@ -83,7 +83,7 @@ namespace TtWork.Project.Services.Messaging
             try
             {
                 // 1. 验证和增强消息
-                _logger.LogInformation("开始验证和增强消息");
+                _logger.LogDebug("开始验证和增强消息");
                 var (isValid, errorMessage, enrichedMessage, userInfo) = await ValidateAndEnrichMessageAsync(fromUserId, message, channel, options);
                 if (!isValid)
                 {
@@ -91,19 +91,19 @@ namespace TtWork.Project.Services.Messaging
                     return SendMessageResult.CreateFailure(errorMessage);
                 }
 
-                _logger.LogInformation("消息验证和增强成功: FromName={FromName}, FromAdmin={FromAdmin}, FromTag={FromTag}", 
+                _logger.LogDebug("消息验证和增强成功: FromName={FromName}, FromAdmin={FromAdmin}, FromTag={FromTag}", 
                     enrichedMessage.fromName, enrichedMessage.fromAdmin, enrichedMessage.fromTag);
 
                 // 2. 生成序列号
-                _logger.LogInformation("生成序列号");
+                _logger.LogDebug("生成序列号");
                 var sequenceNumber = await _messageSequenceService.GetNextSequenceNumberForChannelAsync(channel);
-                _logger.LogInformation("序列号生成成功: {SequenceNumber}", sequenceNumber);
+                _logger.LogDebug("序列号生成成功: {SequenceNumber}", sequenceNumber);
 
                 // 3. 持久化消息
                 Message entity = null;
                 if (options.PersistToDatabase && enrichedMessage.type != ChatMessageType.Welcome)
                 {
-                    _logger.LogInformation("开始持久化消息到数据库");
+                    _logger.LogDebug("开始持久化消息到数据库");
                     entity = new Message(enrichedMessage, sequenceNumber)
                     {
                         Ip = GetClientIp(),
@@ -119,11 +119,11 @@ namespace TtWork.Project.Services.Messaging
                     enrichedMessage.time = entity.Time;
                     enrichedMessage.sequenceNumber = entity.SequenceNumber;
 
-                    _logger.LogInformation("消息持久化成功: MessageId={MessageId}, Time={Time}", entity.Id, entity.Time);
+                    _logger.LogDebug("消息持久化成功: MessageId={MessageId}, Time={Time}", entity.Id, entity.Time);
 
                     // 触发聊天消息发送事件（异步执行，无需等待）
                     _eventBus.TriggerAsync(new ChatMessageSentEvent(entity.Id));
-                    _logger.LogInformation("聊天消息发送事件已触发");
+                    _logger.LogDebug("聊天消息发送事件已触发");
                 }
                 else
                 {
@@ -134,7 +134,7 @@ namespace TtWork.Project.Services.Messaging
                 // 4. 投递消息
                 if (options.SendImmediately)
                 {
-                    _logger.LogInformation("开始通过ImHelper发送消息: FromUserId={FromUserId}, Channel={Channel}", fromUserId, channel);
+                    _logger.LogDebug("开始通过ImHelper发送消息: FromUserId={FromUserId}, Channel={Channel}", fromUserId, channel);
                     
                     // 在发送前检查是否需要编码（卡秒消息）
                     var messageToSend = enrichedMessage;

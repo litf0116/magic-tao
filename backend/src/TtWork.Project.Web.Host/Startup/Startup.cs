@@ -315,7 +315,17 @@ namespace TtWork.Project.Web.Host.Startup
                 .Enrich.WithExceptionDetails()
                 .Enrich.WithMachineName()
                 .WriteTo.Async(c => c.Console())
-                .WriteTo.Async(c => c.Seq(_appConfiguration["Seq:Uri"] ?? "http://localhost:5341", apiKey: _appConfiguration["Seq:Key"] ?? null))
+                // 优化Seq写入配置 - 批量写入减少网络IO
+                .WriteTo.Async(c => c.Seq(
+                    serverUrl: _appConfiguration["Seq:Uri"] ?? "http://localhost:5341",
+                    apiKey: _appConfiguration["Seq:Key"] ?? null,
+                    bufferSize: 1000,                    // 缓冲1000条日志
+                    flushInterval: TimeSpan.FromSeconds(2), // 2秒强制刷新
+                    queueLimit: 10000,                   // 队列限制10000条
+                    onQueueFull: (droppedCount) => 
+                    {
+                        Console.WriteLine($"Seq日志队列已满，丢弃 {droppedCount} 条日志");
+                    }))
                 .CreateLogger();
 
             return options =>

@@ -155,7 +155,7 @@ namespace TtWork.Project.Services
                     }
                 }
                                 
-                _logger.Info($"从数据库加载序列号: {channelKey} -> {maxSequence}");
+                _logger.LogDebug($"从数据库加载序列号: {channelKey} -> {maxSequence}");
                 return maxSequence;
             }
             catch (Exception ex)
@@ -189,7 +189,7 @@ namespace TtWork.Project.Services
                             // 等待加载完成（这里不会阻塞其他channel的访问）
                             currentSequence = loadTask.GetAwaiter().GetResult();
                             _sequenceCache[channelKey] = currentSequence;
-                            _logger.Info($"延迟加载序列号: {channelKey} -> {currentSequence}");
+                            _logger.LogDebug($"延迟加载序列号: {channelKey} -> {currentSequence}");
                         }
                     }
                 }
@@ -201,7 +201,11 @@ namespace TtWork.Project.Services
                     var nextSequence = currentSequence + 1;
                     _sequenceCache[channelKey] = nextSequence;
                     
-                    _logger.Info($"序列号生成成功: {channelKey} -> {nextSequence}");
+                    // 10%采样率记录序列号生成日志，避免高频日志
+                    if (Random.Shared.NextDouble() < 0.1)
+                    {
+                        _logger.LogDebug($"序列号生成成功采样: {channelKey} -> {nextSequence}");
+                    }
                     return nextSequence;
                 }
             }
@@ -233,14 +237,18 @@ namespace TtWork.Project.Services
                         // 延迟加载：从数据库获取该频道的最大序列号
                         currentSequence = LoadChannelSequenceFromDatabaseAsync(channelKey).GetAwaiter().GetResult();
                         _sequenceCache[channelKey] = currentSequence;
-                        _logger.Info($"延迟加载序列号: {channelKey} -> {currentSequence}");
+                        _logger.LogDebug($"延迟加载序列号: {channelKey} -> {currentSequence}");
                     }
                     
                     // 生成下一个序列号
                     var nextSequence = currentSequence + 1;
                     _sequenceCache[channelKey] = nextSequence;
                     
-                    _logger.Info($"序列号生成成功: {channelKey} -> {nextSequence}");
+                    // 10%采样率记录序列号生成日志，避免高频日志
+                    if (Random.Shared.NextDouble() < 0.1)
+                    {
+                        _logger.LogDebug($"序列号生成成功采样: {channelKey} -> {nextSequence}");
+                    }
                     return nextSequence;
                 }
             }

@@ -105,7 +105,16 @@ namespace TtWork.Project.Services
                 if (cachedValue.HasValue)
                 {
                     var cachedInfo = JsonConvert.DeserializeObject<UserGroupLevelInfo>(cachedValue);
-                    _logger.LogDebug("用户群聊等级缓存命中: UserId={UserId}, Level={Level}", userId, cachedInfo?.Level);
+                    
+                    // 用户14特殊处理，其他用户采样记录
+                    if (userId == 14)
+                    {
+                        _logger.LogDebug("用户群聊等级缓存命中: UserId={UserId}, Level={Level}", userId, cachedInfo?.Level);
+                    }
+                    else if (Random.Shared.NextDouble() < 0.05) // 5%采样率
+                    {
+                        _logger.LogDebug("用户群聊等级缓存命中采样: UserId={UserId}, Level={Level}", userId, cachedInfo?.Level);
+                    }
                     return cachedInfo;
                 }
 
@@ -120,7 +129,15 @@ namespace TtWork.Project.Services
                         JsonConvert.SerializeObject(groupLevelInfo), 
                         GroupLevelCacheExpiration);
                     
-                    _logger.LogDebug("用户群聊等级数据已缓存: UserId={UserId}, Level={Level}", userId, groupLevelInfo.Level);
+                    // 用户14特殊处理，其他用户采样记录
+                    if (userId == 14)
+                    {
+                        _logger.LogDebug("用户群聊等级数据已缓存: UserId={UserId}, Level={Level}", userId, groupLevelInfo.Level);
+                    }
+                    else if (Random.Shared.NextDouble() < 0.05) // 5%采样率
+                    {
+                        _logger.LogDebug("用户群聊等级数据已缓存采样: UserId={UserId}, Level={Level}", userId, groupLevelInfo.Level);
+                    }
                 }
 
                 return groupLevelInfo;
@@ -156,7 +173,15 @@ namespace TtWork.Project.Services
                         return await CheckBanStatusFromDatabaseAsync(userId, channel);
                     }
                     
-                    _logger.LogDebug("用户禁言状态缓存命中: UserId={UserId}, IsBanned={IsBanned}", userId, cachedInfo?.IsBanned);
+                    // 用户14特殊处理，其他用户采样记录
+                    if (userId == 14)
+                    {
+                        _logger.LogDebug("用户禁言状态缓存命中: UserId={UserId}, IsBanned={IsBanned}", userId, cachedInfo?.IsBanned);
+                    }
+                    else if (Random.Shared.NextDouble() < 0.05) // 5%采样率
+                    {
+                        _logger.LogDebug("用户禁言状态缓存命中采样: UserId={UserId}, IsBanned={IsBanned}", userId, cachedInfo?.IsBanned);
+                    }
                     return cachedInfo;
                 }
 
@@ -217,9 +242,9 @@ namespace TtWork.Project.Services
                         _logger.LogInformation("=== 用户14管理员信息缓存命中 === UserId={UserId}, IsAdmin={IsAdmin}, AdminTag={AdminTag}, TagClass={TagClass}", 
                             userId, cachedInfo?.IsAdmin, cachedInfo?.AdminTag, cachedInfo?.TagClass);
                     }
-                    else
+                    else if (Random.Shared.NextDouble() < 0.05) // 5%采样率
                     {
-                        _logger.LogDebug("用户管理员信息缓存命中: UserId={UserId}, IsAdmin={IsAdmin}", userId, cachedInfo?.IsAdmin);
+                        _logger.LogDebug("用户管理员信息缓存命中采样: UserId={UserId}, IsAdmin={IsAdmin}", userId, cachedInfo?.IsAdmin);
                     }
                     
                     return cachedInfo;
