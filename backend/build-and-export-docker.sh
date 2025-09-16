@@ -10,8 +10,9 @@ echo "开始构建魔力淘API Docker镜像"
 echo "=========================================="
 
 # 定义变量
-IMAGE_NAME="litengfei0302/molitao-backend:latest"
-TAR_FILE="molitao-backend-latest.tar"
+TIMESTAMP=$(date '+%Y%m%d-%H%M%S')
+IMAGE_NAME="litengfei0302/molitao-backend:${TIMESTAMP}"
+TAR_FILE="molitao-backend-${TIMESTAMP}.tar"
 DOCKERFILE_PATH="src/TtWork.Project.Web.Host/Dockerfile"
 
 # 检查Dockerfile是否存在
