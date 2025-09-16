@@ -111,7 +111,7 @@ namespace TtWork.Project.Services
                     {
                         _logger.LogDebug("用户群聊等级缓存命中: UserId={UserId}, Level={Level}", userId, cachedInfo?.Level);
                     }
-                    else if (Random.Shared.NextDouble() < 0.05) // 5%采样率
+                    else if (new Random().NextDouble() < 0.05) // 5%采样率
                     {
                         _logger.LogDebug("用户群聊等级缓存命中采样: UserId={UserId}, Level={Level}", userId, cachedInfo?.Level);
                     }
@@ -134,7 +134,7 @@ namespace TtWork.Project.Services
                     {
                         _logger.LogDebug("用户群聊等级数据已缓存: UserId={UserId}, Level={Level}", userId, groupLevelInfo.Level);
                     }
-                    else if (Random.Shared.NextDouble() < 0.05) // 5%采样率
+                    else if (new Random().NextDouble() < 0.05) // 5%采样率
                     {
                         _logger.LogDebug("用户群聊等级数据已缓存采样: UserId={UserId}, Level={Level}", userId, groupLevelInfo.Level);
                     }
@@ -178,7 +178,7 @@ namespace TtWork.Project.Services
                     {
                         _logger.LogDebug("用户禁言状态缓存命中: UserId={UserId}, IsBanned={IsBanned}", userId, cachedInfo?.IsBanned);
                     }
-                    else if (Random.Shared.NextDouble() < 0.05) // 5%采样率
+                    else if (new Random().NextDouble() < 0.05) // 5%采样率
                     {
                         _logger.LogDebug("用户禁言状态缓存命中采样: UserId={UserId}, IsBanned={IsBanned}", userId, cachedInfo?.IsBanned);
                     }
@@ -242,7 +242,7 @@ namespace TtWork.Project.Services
                         _logger.LogInformation("=== 用户14管理员信息缓存命中 === UserId={UserId}, IsAdmin={IsAdmin}, AdminTag={AdminTag}, TagClass={TagClass}", 
                             userId, cachedInfo?.IsAdmin, cachedInfo?.AdminTag, cachedInfo?.TagClass);
                     }
-                    else if (Random.Shared.NextDouble() < 0.05) // 5%采样率
+                    else if (new Random().NextDouble() < 0.05) // 5%采样率
                     {
                         _logger.LogDebug("用户管理员信息缓存命中采样: UserId={UserId}, IsAdmin={IsAdmin}", userId, cachedInfo?.IsAdmin);
                     }

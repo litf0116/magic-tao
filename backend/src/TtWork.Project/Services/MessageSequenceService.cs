@@ -3,14 +3,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using Abp.Dependency;
 using Abp.Logging;
-using Castle.Core.Logging;
 using System.Collections.Concurrent;
 using System.Threading;
 using Abp.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Dapper;
+using Microsoft.Extensions.Logging;
 using TtWork.Project.Domains;
 using TtWork.Abp.Dapper;
+using ILogger = Castle.Core.Logging.ILogger;
 
 namespace TtWork.Project.Services
 {
@@ -52,7 +53,7 @@ namespace TtWork.Project.Services
 
     public class MessageSequenceService : IMessageSequenceService
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<MessageSequenceService> _logger;
         private readonly IRepository<Message, Guid> _messageRepository;
         private readonly ISqlConnectionFactory _sqlConnectionFactory;
         
@@ -61,7 +62,7 @@ namespace TtWork.Project.Services
         private static readonly object _sequenceLock = new();
 
         public MessageSequenceService(
-            ILogger logger,
+            ILogger<MessageSequenceService> logger,
             IRepository<Message, Guid> messageRepository,
             ISqlConnectionFactory sqlConnectionFactory)
         {
@@ -160,7 +161,7 @@ namespace TtWork.Project.Services
             }
             catch (Exception ex)
             {
-                _logger.Error($"从数据库加载序列号失败: {channelKey}", ex);
+                _logger.LogError($"从数据库加载序列号失败: {channelKey}", ex);
                 return 0; // 加载失败从0开始
             }
         }
@@ -202,7 +203,7 @@ namespace TtWork.Project.Services
                     _sequenceCache[channelKey] = nextSequence;
                     
                     // 10%采样率记录序列号生成日志，避免高频日志
-                    if (Random.Shared.NextDouble() < 0.1)
+                    if (new Random().NextDouble() < 0.1)
                     {
                         _logger.LogDebug($"序列号生成成功采样: {channelKey} -> {nextSequence}");
                     }
@@ -211,11 +212,11 @@ namespace TtWork.Project.Services
             }
             catch (Exception ex)
             {
-                _logger.Error($"序列号生成失败: {channelKey}", ex);
+                _logger.LogError($"序列号生成失败: {channelKey}", ex);
                 
                 // 备用方案：使用时间戳
                 var fallbackValue = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                _logger.Warn($"使用时间戳作为序列号备用方案: {channelKey} -> {fallbackValue}");
+                _logger.LogWarning($"使用时间戳作为序列号备用方案: {channelKey} -> {fallbackValue}");
                 return fallbackValue;
             }
         }
@@ -245,7 +246,7 @@ namespace TtWork.Project.Services
                     _sequenceCache[channelKey] = nextSequence;
                     
                     // 10%采样率记录序列号生成日志，避免高频日志
-                    if (Random.Shared.NextDouble() < 0.1)
+                    if (new Random().NextDouble() < 0.1)
                     {
                         _logger.LogDebug($"序列号生成成功采样: {channelKey} -> {nextSequence}");
                     }
@@ -254,11 +255,11 @@ namespace TtWork.Project.Services
             }
             catch (Exception ex)
             {
-                _logger.Error($"序列号生成失败: {channelKey}", ex);
+                _logger.LogError($"序列号生成失败: {channelKey}", ex);
                 
                 // 备用方案：使用时间戳
                 var fallbackValue = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                _logger.Warn($"使用时间戳作为序列号备用方案: {channelKey} -> {fallbackValue}");
+                _logger.LogWarning($"使用时间戳作为序列号备用方案: {channelKey} -> {fallbackValue}");
                 return fallbackValue;
             }
         }
