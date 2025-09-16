@@ -15,6 +15,6 @@ S4_注册机 - 副本
 *.sql
 
 README2.md
-/backend/molitao-api-alpha.tar
+/backend/*.tar
 /backend/molitao-backend-latest.tar
 /backend/certs/apiclient_cert.p12

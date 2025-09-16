@@ -1,6 +1,6 @@
 <!-- BidRulesModal.vue -->
 <template>
-    <view class="modal" v-if="show">
+    <view v-if="show" class="modal">
         <view class="mask" @click="maskClick"></view>
         <view class="modal-content">
             <view class="modal-title">出价规则说明</view>
@@ -16,10 +16,10 @@
                         <view class="price-value highlight">￥{{ minBidPrice }}</view>
                     </view>
                 </view>
-                
+
                 <view class="rules-title">出价规则说明：</view>
                 <view class="rules-list">
-                    <view class="rule-item" v-for="(rule, index) in priceRules" :key="index">
+                    <view v-for="(rule, index) in priceRules" :key="index" class="rule-item">
                         <view class="rule-dot">•</view>
                         <view class="rule-text">{{ rule }}</view>
                     </view>
@@ -42,24 +42,24 @@ export default {
     props: {
         show: {
             type: Boolean,
-            default: false
+            default: false,
         },
         message: {
             type: String,
-            default: ''
+            default: '',
         },
         currentPrice: {
             type: Number,
-            default: 0
+            default: 0,
         },
         minBidPrice: {
             type: Number,
-            default: 0
+            default: 0,
         },
         maskClosable: {
             type: Boolean,
-            default: true
-        }
+            default: true,
+        },
     },
     computed: {
         priceRules() {
@@ -69,12 +69,12 @@ export default {
                 '1000~2000，10R一加',
                 '2000~5000，20R一加',
                 '5000~1W，50一加',
-                '1W以上，100一加'
+                '1W以上，100一加',
             ]
         },
         showKasecWarning() {
             return this.message && this.message.includes('卡秒期间需三倍加价')
-        }
+        },
     },
     methods: {
         maskClick() {
@@ -86,8 +86,8 @@ export default {
         confirm() {
             this.$emit('update:show', false)
             this.$emit('confirm')
-        }
-    }
+        },
+    },
 }
 </script>
 
@@ -252,4 +252,4 @@ export default {
     opacity: 0.8;
     transform: translateY(2rpx);
 }
-</style> 
+</style>

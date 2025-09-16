@@ -6,7 +6,7 @@
                 <text class="label">分类</text>
                 <view class="category-list">
                     <checkbox-group @change="onCategoryChange">
-                        <label class="category-item" v-for="item in categoryList" :key="item.categoryId">
+                        <label v-for="item in categoryList" :key="item.categoryId" class="category-item">
                             <checkbox
                                 :value="String(item.categoryId)"
                                 :checked="selectedCategories.includes(String(item.categoryId))"

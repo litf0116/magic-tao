@@ -2,7 +2,13 @@ import api from '@/utils/api'
 import { defineStore } from 'pinia'
 import { uniqBy, orderBy } from 'lodash'
 import { useEventBus } from '@vueuse/core'
-import { ChatMessageStatus, type ChatListItem, type ChatMessage, type UserDtoBase, ChatMessageType } from '../composables/types'
+import {
+    ChatMessageStatus,
+    type ChatListItem,
+    type ChatMessage,
+    type UserDtoBase,
+    ChatMessageType,
+} from '../composables/types'
 import { useStorageRef } from '@/composables/useStorageRef'
 import { useAuctionStore } from './auctionStore'
 type ChannelType = { chan: string; online: number }
@@ -427,7 +433,10 @@ export const useChatStore = defineStore('chatStore', () => {
                     if (chatMap.value.has(`${_id}`) && !reload) {
                         chatMap.value.set(
                             `${_id}`,
-                            uniqBy(orderBy([...res.items, ...chatMap.value.get(`${_id}`)!], [(msg) => msg.time], ['asc']), 'id')
+                            uniqBy(
+                                orderBy([...res.items, ...chatMap.value.get(`${_id}`)!], [(msg) => msg.time], ['asc']),
+                                'id'
+                            )
                         )
                     } else {
                         chatMap.value.set(`${_id}`, res.items)
@@ -451,7 +460,10 @@ export const useChatStore = defineStore('chatStore', () => {
                     if (chatMap.value.has(`${id}`) && !reload) {
                         chatMap.value.set(
                             `${id}`,
-                            uniqBy(orderBy([...res.items, ...chatMap.value.get(`${id}`)!], [(msg) => msg.time], ['asc']), 'id')
+                            uniqBy(
+                                orderBy([...res.items, ...chatMap.value.get(`${id}`)!], [(msg) => msg.time], ['asc']),
+                                'id'
+                            )
                         )
                     } else {
                         chatMap.value.set(`${id}`, res.items)
@@ -573,7 +585,7 @@ export const useChatStore = defineStore('chatStore', () => {
                 to: to,
                 payload: payload,
             }
-            console.log("sendMsg", data)
+            console.log('sendMsg', data)
             await api.ws
                 .sendMsg({
                     from: websocketId.value,
@@ -641,7 +653,7 @@ export const useChatStore = defineStore('chatStore', () => {
     const deleteChat = (x: ChatListItem) => {
         console.log('deleteChat', x)
         if (x.type === 1) {
-            api.client.DeleteChatList({ id: x.id }).then(() => { })
+            api.client.DeleteChatList({ id: x.id }).then(() => {})
         }
         chatList.value = chatList.value.filter((item) => item.id !== null)
         if (x.id) chatList.value = chatList.value.filter((item) => item.id !== x.id)
@@ -686,10 +698,7 @@ export const useChatStore = defineStore('chatStore', () => {
             existingChat.lastMsg = `恭喜您拍得了${itemName}`
             existingChat.time = new Date().getTime()
             // 将聊天项移到顶部
-            chatList.value = [
-                existingChat,
-                ...chatList.value.filter((item) => item.id !== dealUserId),
-            ]
+            chatList.value = [existingChat, ...chatList.value.filter((item) => item.id !== dealUserId)]
             return
         }
 
@@ -718,8 +727,8 @@ export const useChatStore = defineStore('chatStore', () => {
                 avatar: dealUserAvatar,
                 msg: lastMsg,
                 time: new Date().getTime(),
-                payload: auctionResult
-            }
+                payload: auctionResult,
+            },
         }
 
         // 添加到聊天列表顶部

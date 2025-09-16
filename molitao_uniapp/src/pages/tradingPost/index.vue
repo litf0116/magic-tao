@@ -51,8 +51,8 @@
             <!-- 搜索框 -->
             <view class="search-box">
                 <input
-                    type="text"
                     v-model="keywords"
+                    type="text"
                     class="search-input"
                     placeholder="请输入关键词"
                     placeholder-class="placeholder-style"
@@ -117,8 +117,8 @@
             <!-- 正常帖子区域 -->
             <view class="section normal-posts">
                 <!-- 帖子列表 -->
-                <view class="post-list" v-if="postList.length > 0">
-                    <view class="post-item" v-for="(item, index) in postList" :key="index" @tap="toDetail(item.postId)">
+                <view v-if="postList.length > 0" class="post-list">
+                    <view v-for="(item, index) in postList" :key="index" class="post-item" @tap="toDetail(item.postId)">
                         <view class="post-left">
                             <view class="post-title">{{ item.title }}</view>
                             <view class="post-meta">
@@ -141,7 +141,7 @@
                     </view>
                 </view>
                 <!-- 空状态显示 -->
-                <view class="empty-state" v-else>
+                <view v-else class="empty-state">
                     <image class="empty-image" src="../../static/nodata.png" mode="aspectFit"></image>
                     <text class="empty-text">暂无帖子</text>
                     <!-- <button class="post-button" @tap="onPost">发布新帖子</button> -->

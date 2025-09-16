@@ -1,5 +1,5 @@
 const protocal = {
-    protocol: "json",
+    protocol: 'json',
     version: 1,
 }
 
@@ -35,7 +35,7 @@ export class HubConnection {
         negotiateVersion?: number
     } = {}
     connection: WechatMiniprogram.SocketTask | null = null
-    url = ""
+    url = ''
     invocationId = 0
     callbacks: any = {}
 
@@ -57,9 +57,9 @@ export class HubConnection {
                 this.intervalFunction()
             }, 15000) // 15秒
             this.ping_running = true
-            console.log("Timer started.")
+            console.log('Timer started.')
         } else {
-            console.log("Timer is already running.")
+            console.log('Timer is already running.')
         }
     }
 
@@ -68,9 +68,9 @@ export class HubConnection {
             clearInterval(this.ping_timerId)
             this.ping_timerId = null
             this.ping_running = false
-            console.log("Timer stopped.")
+            console.log('Timer stopped.')
         } else {
-            console.log("Timer is not running.")
+            console.log('Timer is not running.')
         }
     }
 
@@ -82,23 +82,23 @@ export class HubConnection {
     }
 
     public start(url: string, args: object | null = null): void {
-        let negotiateUrl = url + "/negotiate"
+        let negotiateUrl = url + '/negotiate'
         if (args) {
             for (const key in args) {
                 negotiateUrl +=
-                    (negotiateUrl.indexOf("?") < 0 ? "?" : "&") +
-                    (`${key}=` + encodeURIComponent(isValidKey(key, args) ? args[key] : ""))
+                    (negotiateUrl.indexOf('?') < 0 ? '?' : '&') +
+                    (`${key}=` + encodeURIComponent(isValidKey(key, args) ? args[key] : ''))
             }
         }
 
         uni.request({
             url: negotiateUrl,
-            method: "POST",
+            method: 'POST',
             async: false,
-            header: { Authorization: `Bearer ${uni.getStorageSync("token") || ""}` },
+            header: { Authorization: `Bearer ${uni.getStorageSync('token') || ''}` },
             success: (res) => {
                 this.negotiateResponse = res.data as any
-                this.startSocket(negotiateUrl.replace("/negotiate", ""))
+                this.startSocket(negotiateUrl.replace('/negotiate', ''))
             },
             fail: (res) => {
                 console.error(`requrst ${url} error : ${res}`)
@@ -109,9 +109,9 @@ export class HubConnection {
 
     public startSocket(url: string): void {
         const connectId = this.negotiateResponse.connectionId
-        const token = uni.getStorageSync("token")
-        url += `${url.indexOf("?") < 0 ? "?" : "&"}id=${connectId}&access_token=${token}`
-        url = url.replace(/^http/, "ws")
+        const token = uni.getStorageSync('token')
+        url += `${url.indexOf('?') < 0 ? '?' : '&'}id=${connectId}&access_token=${token}`
+        url = url.replace(/^http/, 'ws')
         this.url = url
         if (this.connection != null && this.openStatus) {
             return
@@ -125,7 +125,7 @@ export class HubConnection {
             console.debug(`websocket connectioned to ${this.url}`)
             this.sendData(protocal)
             this.ping_start()
-            uni.setStorageSync("signalr_ping_time", new Date())
+            uni.setStorageSync('signalr_ping_time', new Date())
             this.openStatus = true
             this.onOpen(res)
         })
@@ -188,7 +188,7 @@ export class HubConnection {
     ): void {
         if (this.connection)
             this.connection.send({
-                data: JSON.stringify(data) + "", //
+                data: JSON.stringify(data) + '', //
                 success: success,
                 fail: fail,
                 complete: complete,
@@ -196,12 +196,12 @@ export class HubConnection {
     }
 
     public receive(data: { data: string | ArrayBuffer }): void {
-        if (data.data === "{}") {
+        if (data.data === '{}') {
             return
         }
-        const responses = (data.data as string).split("").filter((x) => x)
+        const responses = (data.data as string).split('').filter((x) => x)
         // data.data = (data.data as string).replace("", "")
-        console.log("receive", responses)
+        console.log('receive', responses)
 
         responses.forEach((x) => {
             const message = JSON.parse(x)
@@ -220,17 +220,17 @@ export class HubConnection {
                     break
                 case MessageType.Ping:
                     // Don't care about pings
-                    uni.setStorageSync("signalr_ping_time", new Date())
+                    uni.setStorageSync('signalr_ping_time', new Date())
                     this.onPing()
                     break
                 case MessageType.Close:
-                    console.log("Close message received from server.")
+                    console.log('Close message received from server.')
                     this.close({
-                        reason: "Server returned an error on close",
+                        reason: 'Server returned an error on close',
                     })
                     break
                 default:
-                    console.warn("Invalid message type: " + message.type)
+                    console.warn('Invalid message type: ' + message.type)
             }
         })
     }
@@ -291,7 +291,7 @@ export class HubConnection {
             methods.apply(this, message.arguments)
             if (message.invocationId) {
                 // This is not supported in v1. So we return an error to avoid blocking the server waiting for the response.
-                const errormsg = "Server requested a response, which is not supported in this version of the client."
+                const errormsg = 'Server requested a response, which is not supported in this version of the client.'
                 console.error(errormsg)
                 this.close({
                     reason: errormsg,

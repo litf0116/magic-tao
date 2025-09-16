@@ -37,8 +37,8 @@
                 <view class="quick-consult">
                     <button class="consult-btn" @click="adminSend(postDetail)">点击留言</button>
                     <button
-                        style="margin-top: 10px"
                         v-if="userStore.user.id === postDetail.userId"
+                        style="margin-top: 10px"
                         class="consult-btn"
                         @click="editData(postDetail)"
                     >

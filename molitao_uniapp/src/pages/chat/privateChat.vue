@@ -1,5 +1,11 @@
 <template>
-    <chatMain ref="chatRef" :options="chatOptions" @onSend="send" @loadHistoryMessage="loadHistoryMessage" @showDetail="showDetail"></chatMain>
+    <chatMain
+        ref="chatRef"
+        :options="chatOptions"
+        @onSend="send"
+        @loadHistoryMessage="loadHistoryMessage"
+        @showDetail="showDetail"
+    ></chatMain>
 
     <!-- 拍品详情弹窗 -->
     <uv-popup ref="popup" @change="popChange">
@@ -11,8 +17,8 @@
             </view>
             <div
                 class="mt-2 min-w-200px max-h-50vh overflow-scroll"
-                v-html="getStartContent(showItem!)"
                 @tap="catchImage"
+                v-html="getStartContent(showItem!)"
             ></div>
             <view class="h-8"></view>
         </view>
@@ -37,7 +43,7 @@ const chatOptions: ChatOptions = {
     showUserInfo: true,
     enableLongPress: true,
     autoScroll: true,
-    historyLoadSize: 20
+    historyLoadSize: 20,
 }
 
 const chatStore = useChatStore()

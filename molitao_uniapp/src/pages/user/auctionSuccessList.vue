@@ -22,7 +22,7 @@
 
         <uv-popup ref="popup" @change="popChange">
             <view v-if="showItem" class="p-4">
-                <div class="min-w-200px" v-html="getStartContent(showItem!)" @tap="catchImage"></div>
+                <div class="min-w-200px" @tap="catchImage" v-html="getStartContent(showItem!)"></div>
             </view>
         </uv-popup>
     </view>

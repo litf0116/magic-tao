@@ -99,4 +99,4 @@ const kasecStatusClass = computed(() => {
         transform: scale(1);
     }
 }
-</style> 
+</style>

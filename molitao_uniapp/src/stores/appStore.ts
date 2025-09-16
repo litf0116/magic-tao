@@ -1,19 +1,19 @@
-import { defineStore } from "pinia"
-const DARKMODE = "darkMode"
+import { defineStore } from 'pinia'
+const DARKMODE = 'darkMode'
 
-export const useAppStore = defineStore("appStore", () => {
+export const useAppStore = defineStore('appStore', () => {
     const darkMode = ref(uni.getStorageSync(DARKMODE) || false)
     const loading = ref(false)
 
-    const adm1 = ref("")
-    const adm2 = ref("")
-    const city = ref("")
+    const adm1 = ref('')
+    const adm2 = ref('')
+    const city = ref('')
 
     const latitude = ref(0)
     const longitude = ref(0)
 
-    const weatherIcon = ref("")
-    const weather = ref("")
+    const weatherIcon = ref('')
+    const weather = ref('')
 
     function toggleDarkMode() {
         darkMode.value = !darkMode.value
@@ -27,15 +27,15 @@ export const useAppStore = defineStore("appStore", () => {
     function getLocation() {
         return new Promise((resolve, reject) => {
             uni.getLocation({
-                type: "wgs84",
+                type: 'wgs84',
                 success: (res: any) => {
-                    console.log("getLocation", res)
+                    console.log('getLocation', res)
                     latitude.value = res.latitude
                     longitude.value = res.longitude
                     resolve({ latitude: res.latitude, longitude: res.longitude })
                 },
                 fail: (err: any) => {
-                    console.log("getLocation", err)
+                    console.log('getLocation', err)
                     reject(err)
                 },
             })
@@ -48,7 +48,7 @@ export const useAppStore = defineStore("appStore", () => {
         uni.request({
             url: url,
             success: (res: any) => {
-                console.log("getCity", res)
+                console.log('getCity', res)
 
                 if (res && res.data && res.data.location && res.data.location.length > 0) {
                     // console.log("getCity", res.data.location[0])
@@ -74,10 +74,10 @@ export const useAppStore = defineStore("appStore", () => {
             success: (res: any) => {
                 if (res && res.data && res.data.now) {
                     if (res.data.now.icon) {
-                        weatherIcon.value = "/static/weather/" + res.data.now.icon + ".png"
+                        weatherIcon.value = '/static/weather/' + res.data.now.icon + '.png'
                     }
                     if (res.data.now.temp && res.data.now.text) {
-                        weather.value = res.data.now.temp + "℃ " + res.data.now.text
+                        weather.value = res.data.now.temp + '℃ ' + res.data.now.text
                     }
                 }
                 // that.setData({

@@ -74,7 +74,7 @@
                 <img v-if="item.imageUrl" :src="item.imageUrl" mode="aspectFit" class="popup-image" />
                 <text class="popup-text">{{ item.content }}</text>
                 <view class="popup-view">
-                    <button @tap="onConfirm" class="popup-button">确定</button>
+                    <button class="popup-button" @tap="onConfirm">确定</button>
                 </view>
             </view>
         </uv-popup>

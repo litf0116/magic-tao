@@ -23,7 +23,7 @@ const errorPrompt = (err: any) => {
             uni.$emit('showBidRulesModal', {
                 message: msg,
                 // 页面组件需要自己获取并传递价格信息
-                needPriceInfo: true
+                needPriceInfo: true,
             })
         } else if (err.code === 1) {
             Tips.noCancelModal(msg)

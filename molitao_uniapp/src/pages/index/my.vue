@@ -32,8 +32,11 @@
                     <view>保证金</view>
                 </view>
             </view>
-            <view v-if="userStore.user.id" class="absolute right-4 top-4 size-6 zoom-in i-solar:settings-linear"
-                @click.stop="navTo.navTo('/pages/user/info')"></view>
+            <view
+                v-if="userStore.user.id"
+                class="absolute right-4 top-4 size-6 zoom-in i-solar:settings-linear"
+                @click.stop="navTo.navTo('/pages/user/info')"
+            ></view>
         </view>
 
         <view class="my-4 flex items-center">
@@ -129,9 +132,16 @@
         </view>
         <view class="text-center w-full text-gray-300">{{ version.version }}</view>
 
-        <custom-modal v-model:show="modalVisible" title="提示" :showCancel="false" confirmText="确定"
-            @confirm="handleConfirm">
-            <view>平台提现功能尚未完善，保证金退款，请加管理员老淡QQ：383875411，微信：18845639111，私信扫码退款。</view>
+        <custom-modal
+            v-model:show="modalVisible"
+            title="提示"
+            :showCancel="false"
+            confirmText="确定"
+            @confirm="handleConfirm"
+        >
+            <view
+                >平台提现功能尚未完善，保证金退款，请加管理员老淡QQ：383875411，微信：18845639111，私信扫码退款。</view
+            >
         </custom-modal>
     </view>
 </template>
@@ -174,7 +184,7 @@ function payDeposit() {
             paySign: res.paySign,
             success: async (res) => {
                 console.log('success:' + JSON.stringify(res))
-                
+
                 // 更新用户信息和统计数据
                 try {
                     await userStore.checkLogin(false, true)
@@ -184,7 +194,7 @@ function payDeposit() {
                     console.error('更新用户信息失败:', error)
                     getMyCount() // 即使更新失败也要更新统计数据
                 }
-                
+
                 Tips.success('支付成功，保证金已到账')
             },
             fail: (err) => {
@@ -299,11 +309,13 @@ function toIndex() {
     @apply bg-white rounded-4;
 }
 </style>
-<route lang="json">{
+<route lang="json">
+{
     "layout": "main",
     "style": {
         "navigationBarTitleText": "个人中心",
         "navigationBarBackgroundColor": "#f6f6f6",
         "navigationBarTextStyle": "black"
     }
-}</route>
+}
+</route>

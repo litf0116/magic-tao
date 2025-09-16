@@ -260,7 +260,8 @@
                 <view class="flex flex-row items-center overflow-hidden cursor-pointer">
                     <view class="text-wrap px-2 flex-1 flex flex-col">
                         <view class="text-[#ff7144] line-clamp-3">{{ showItem.Name }}</view>
-                        <view @tap="catchImage($event, showItem)" v-html="showItem.description || showItem.Description"> </view>
+                        <view @tap="catchImage($event, showItem)" v-html="showItem.description || showItem.Description">
+                        </view>
                     </view>
                 </view>
             </view>
@@ -785,7 +786,6 @@ async function onAuctionEndAction({ message, payload }: { message: any; payload:
 
         // 调用 showDetail 显示详情
         showDetails({ message, payload: auctionItemDetail })
-
     } catch (error) {
         console.error('获取拍品详情失败:', error)
         Tips.error('获取拍品详情失败，请重试')
@@ -819,7 +819,6 @@ async function onAuctionStartAction({ message, payload }: { message: any; payloa
 
         // 调用 showDetail 显示详情
         showDetails({ message, payload: auctionItemDetail })
-
     } catch (error) {
         console.error('获取拍品详情失败:', error)
         Tips.error('获取拍品详情失败，请重试')
@@ -853,7 +852,6 @@ async function onAuctionBidAction({ message, payload }: { message: any; payload:
 
         // 调用 showDetail 显示详情
         showDetails({ message, payload: auctionItemDetail })
-
     } catch (error) {
         console.error('获取拍品详情失败:', error)
         Tips.error('获取拍品详情失败，请重试')
@@ -887,7 +885,6 @@ async function onAuctionDealAction({ message, payload }: { message: any; payload
 
         // 调用 showDetail 显示详情
         showDetails({ message, payload: auctionItemDetail })
-
     } catch (error) {
         console.error('获取拍品详情失败:', error)
         Tips.error('获取拍品详情失败，请重试')

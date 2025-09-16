@@ -20,7 +20,7 @@
                 <view class="i-mdi:content-copy text-gray-500 text-xl"></view>
             </div>
         </div>
-        <div  v-if="profile.wx" class="friend-info" @click="copyText(profile.wx)">
+        <div v-if="profile.wx" class="friend-info" @click="copyText(profile.wx)">
             <div class="info-name">微信：</div>
             <div class="info-text">
                 <view> {{ profile.wx }}</view>

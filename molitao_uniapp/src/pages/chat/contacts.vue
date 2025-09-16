@@ -5,11 +5,11 @@
             scroll-y="true"
             refresher-enabled="true"
             :refresher-triggered="refresh"
-            @refresherrefresh="onRefresh"
             :enhanced="true"
             :bounce="true"
             :show-scrollbar="true"
             fast-deceleration
+            @refresherrefresh="onRefresh"
         >
             <view class="flex items-center bg-white">
                 <view class="flex-1 m-2">

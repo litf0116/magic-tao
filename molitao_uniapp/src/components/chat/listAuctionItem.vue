@@ -5,13 +5,13 @@
         @click.stop="showDetail(item)"
     >
         <div
+            v-if="checkIncludes && item.status === '上架'"
             class="text-[#935F4E] line-clamp-3"
             style="margin-right: 5px"
-            v-if="checkIncludes && item.status === '上架'"
         >
             {{ index }}
         </div>
-        <div class="text-[#935F4E] line-clamp-3" style="margin-right: 5px" v-else>{{ index }}.</div>
+        <div v-else class="text-[#935F4E] line-clamp-3" style="margin-right: 5px">{{ index }}.</div>
         <!-- <image :src="getImgUrl(item.imageUrl!, true)" class="w-16 h-16 rounded" mode="aspectFill" /> -->
         <view class="text-wrap text-xs px-2 flex-1 flex flex-col">
             <view class="text-[#935F4E] line-clamp-3">{{ item.name }}</view>

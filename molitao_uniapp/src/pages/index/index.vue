@@ -23,8 +23,8 @@
                 </view>
                 <view class="advertisingSpace">
                     <div
-                        class="advertisingSpace-item"
                         v-for="item in advertisingSpaceList"
+                        class="advertisingSpace-item"
                         @tap="onTapPostDetail(item.url)"
                     >
                         <image class="logo2" :src="item.imageUrl" />

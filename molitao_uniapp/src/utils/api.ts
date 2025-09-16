@@ -154,9 +154,11 @@ export default {
         getAuctionMidList: (data: any) =>
             request('POST', `/api/services/app/AuctionItem/GetAuctionMidList`, data) as Promise<IListType>,
         getKasecStatus: (auctionItemId: number) =>
-            request('GET', `/api/services/app/AuctionItem/GetKasecStatus?auctionItemId=${auctionItemId}`) as Promise<boolean>,
-        getDetail: (id: number) =>
-            request('GET', `/api/AuctionItem/GetDetail?id=${id}`) as Promise<AuctionItemDto>,
+            request(
+                'GET',
+                `/api/services/app/AuctionItem/GetKasecStatus?auctionItemId=${auctionItemId}`
+            ) as Promise<boolean>,
+        getDetail: (id: number) => request('GET', `/api/AuctionItem/GetDetail?id=${id}`) as Promise<AuctionItemDto>,
     },
 
     chatEmoji: {
@@ -221,12 +223,14 @@ export default {
          * @param id 用户ID
          * @returns Promise<any>
          */
-        getUserLevelInfo: (id: number): Promise<any> => request('GET', `/api/GroupChatLevelSettings/GetUserLevelInfo/${id}`),
+        getUserLevelInfo: (id: number): Promise<any> =>
+            request('GET', `/api/GroupChatLevelSettings/GetUserLevelInfo/${id}`),
         /**
          * 获取指定用户的群聊等级信息
          * @param id 用户ID
          * @returns Promise<any>
          */
-        getUserGroupLevel: (id: number): Promise<any> => request('GET', `/api/GroupChatLevelSettings/GetUserGroupLevel/${id}`),
+        getUserGroupLevel: (id: number): Promise<any> =>
+            request('GET', `/api/GroupChatLevelSettings/GetUserGroupLevel/${id}`),
     },
 }

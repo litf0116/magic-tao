@@ -63,8 +63,8 @@
             </view>
             <div
                 class="mt-2 min-w-200px max-h-50vh overflow-scroll"
-                v-html="getStartContent(showItem!)"
                 @tap="catchImage"
+                v-html="getStartContent(showItem!)"
             ></div>
             <view class="h-8"></view>
         </view>
@@ -76,7 +76,7 @@
             <img v-if="item.imageUrl" :src="item.imageUrl" mode="aspectFit" class="popup-image" />
             <text class="popup-text">{{ item.content }}</text>
             <view class="popup-view">
-                <button @tap="onConfirm" class="popup-button">确定</button>
+                <button class="popup-button" @tap="onConfirm">确定</button>
             </view>
         </view>
     </uv-popup>
@@ -156,10 +156,7 @@ onLoad(() => {
         if (data.needPriceInfo && onAuctionItem.value) {
             bidRulesCurrentPrice.value = onAuctionItem.value.currentPrice || onAuctionItem.value.startingPrice || 0
             // 计算最低出价
-            bidRulesMinPrice.value = calculateMinBidPrice(
-                bidRulesCurrentPrice.value,
-                auctionStore.isKasec
-            )
+            bidRulesMinPrice.value = calculateMinBidPrice(bidRulesCurrentPrice.value, auctionStore.isKasec)
         }
 
         bidRulesModalVisible.value = true
@@ -484,7 +481,10 @@ async function bid() {
         // 满足条件，弹出原有出价输入框
 
         // 使用工具方法计算最低出价（基于实时获取的商品信息）
-        const minPrice = calculateMinBidPrice(auctionItemDetail.currentPrice || auctionItemDetail.startingPrice, isKasecMode)
+        const minPrice = calculateMinBidPrice(
+            auctionItemDetail.currentPrice || auctionItemDetail.startingPrice,
+            isKasecMode
+        )
 
         let title = '出价'
         let placeholderText = `请输入出价金额(最低出价${minPrice})`

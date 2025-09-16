@@ -26,8 +26,8 @@
                         v-for="x in waitList"
                         :key="x.id"
                         :item="x"
-                        @showDetail="showDetail"
                         :index="getItemIndex(x)"
+                        @showDetail="showDetail"
                     />
                     <div class="h-12"></div>
                 </div>
@@ -38,8 +38,8 @@
                         v-for="(x, index) in auctionStore.list4"
                         :key="x.id"
                         :item="x"
-                        @showDetail="showDetail"
                         :index="index + 1"
+                        @showDetail="showDetail"
                     />
                     <div class="h-12"></div>
                 </div>
