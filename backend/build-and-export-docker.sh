@@ -11,7 +11,7 @@ echo "=========================================="
 
 # 定义变量
 TIMESTAMP=$(date '+%Y%m%d-%H%M%S')
-IMAGE_NAME="litengfei0302/molitao-backend:${TIMESTAMP}"
+IMAGE_NAME="litengfei0302/molitao-backend:latest"
 TAR_FILE="molitao-backend-${TIMESTAMP}.tar"
 DOCKERFILE_PATH="src/TtWork.Project.Web.Host/Dockerfile"
 
