@@ -6,6 +6,7 @@ import { ChatGroupDto, ChatMessage, ChatMessageType, UserDtoBase } from '@/api/a
 import { uniqBy, orderBy } from 'lodash'
 import { useEventBus } from '@vueuse/core'
 import { useAuctionStore } from '@/stores/auctionStore'
+import { convertImageUrl } from '@/utils/imageUrlConverter'
 
 export const onmessageKey = Symbol('onmessageKey')
 
@@ -658,7 +659,7 @@ export const useChatStore = defineStore('chat', () => {
     }
 
     const getUserAvatar = (id: number) => {
-        return 'https://cdn.molitao.top/avater.png'
+        return convertImageUrl('https://cdn.molitao.top/avater.png')
     }
 
     const getUserFriends = (status = true) => {
@@ -758,7 +759,7 @@ export const useChatStore = defineStore('chat', () => {
             type: ChatListItemType.user,
             time: new Date().getTime(),
             lastMsg: lastMsg,
-            avatar: dealUserAvatar || 'https://cdn.molitao.top/avater.png',
+            avatar: convertImageUrl(dealUserAvatar || 'https://cdn.molitao.top/avater.png'),
             unread: 0,
             order: 0,
             msg: {

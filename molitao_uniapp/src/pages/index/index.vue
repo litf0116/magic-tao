@@ -2,7 +2,10 @@
     <view class="main" style="padding-bottom: 80px">
         <view class="wrap">
             <view class="header">
-                <image class="logo2" src="https://cdn.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png" />
+                <image
+                    class="logo2"
+                    :src="convertImageUrl('https://cdn.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png')"
+                />
             </view>
             <view class="content px-4">
                 <view class="flex flex-col">
@@ -23,11 +26,12 @@
                 </view>
                 <view class="advertisingSpace">
                     <div
-                        v-for="item in advertisingSpaceList"
+                        v-for="(item, index) in advertisingSpaceList"
+                        :key="index"
                         class="advertisingSpace-item"
                         @tap="onTapPostDetail(item.url)"
                     >
-                        <image class="logo2" :src="item.imageUrl" />
+                        <image class="logo2" :src="convertImageUrl(item.imageUrl, false)" />
                         <div
                             style="
                                 position: absolute;
@@ -51,6 +55,8 @@ import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
 import type { CmsArticleDto } from '@/composables/types'
 import api from '@/utils/api'
 import { Goto } from '@/composables/goto'
+import { getImgUrl } from '@/composables'
+import { convertImageUrl } from '@/utils/imageUrlConverter'
 import { onShow, onPullDownRefresh, onShareAppMessage, onShareTimeline, onLoad } from '@dcloudio/uni-app'
 
 const appStore = useAppStore()

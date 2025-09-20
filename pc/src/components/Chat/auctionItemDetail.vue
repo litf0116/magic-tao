@@ -34,7 +34,7 @@
                 ></div>
                 <div v-else>
                     <img
-                        :src="`${item.imageUrl}`"
+                        :src="convertImageUrl(item.imageUrl)"
                         class="w-full h-48 cursor-pointer object-cover"
                         @click.stop="handleDetailImageClick(item.imageUrl)"
                     />
@@ -79,6 +79,7 @@ import { GetAuctionMidList } from '@/api/auctionMidAPI'
 import { GetDetail } from '@/api/auctionItemAPI'
 import { Tips } from '@/composables'
 import { calculateMinBidPrice } from '@/utils/auction'
+import { convertImageUrl } from '@/utils/imageUrlConverter'
 
 const userStore = useUserStore()
 const emit = defineEmits(['onEdit'])
@@ -203,7 +204,7 @@ const showImageViewer = inject('showImageViewer') as (list: string[]) => void
 function handleDetailImageClick(imageUrl: string) {
     if (!imageUrl) return
     // 移除缩略图参数，获取原图
-    let src = imageUrl.replace(/!w300$/, '')
+    let src = convertImageUrl(imageUrl.replace(/!w300$/, ''))
     showImageViewer([src])
 }
 

@@ -115,11 +115,16 @@ export function debounce(func: (...args: any[]) => void, wait: number) {
     }
 }
 
+import { convertImageUrl } from '@/utils/imageUrlConverter'
+
 export function getImgUrl(url?: string, thub = true) {
     const prefix = '!w300'
     if (!url) return ''
 
     if (!url.startsWith('http')) url = `${import.meta.env.VITE_APP_UPYUN_IMG_URL}${url}`
+
+    // 应用URL转换
+    url = convertImageUrl(url)
 
     if (url.endsWith(prefix)) {
         if (thub) return url

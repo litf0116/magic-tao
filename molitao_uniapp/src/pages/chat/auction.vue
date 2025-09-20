@@ -26,8 +26,8 @@
             <view
                 class="flex text-sm justify-center underline text-white bg-[#ff7144] py-2 mb-2 rounded-lg opacity-80"
                 @click.stop="showonAuctionDetail"
-                >拍品详情</view
-            >
+                >拍品详情
+            </view>
             <view class="py-4 px-3 bg-red-500 rounded-lg text-center opacity-80" @click.stop="bid">
                 <view class="text-sm text-white mb-2">拍卖中</view>
                 <view class="text-32rpx text-white font-700 underline">出价</view>
@@ -73,7 +73,7 @@
     <uv-popup ref="popupShowRef" type="message">
         <view v-if="item" class="popup-content">
             <text class="popup-title">公告</text>
-            <img v-if="item.imageUrl" :src="item.imageUrl" mode="aspectFit" class="popup-image" />
+            <img v-if="item.imageUrl" :src="convertImageUrl(item.imageUrl)" mode="aspectFit" class="popup-image" />
             <text class="popup-text">{{ item.content }}</text>
             <view class="popup-view">
                 <button class="popup-button" @tap="onConfirm">确定</button>
@@ -94,6 +94,7 @@
 <script setup lang="ts">
 import chatMain from '@/components/chat/chatMain.vue'
 import { getImgUrl, Tips } from '@/composables'
+import { convertImageUrl } from '@/utils/imageUrlConverter'
 import type { AnnounceDto, AuctionItemDto } from '@/composables/types'
 import auctionList from '@/components/chat/auctionList.vue'
 import BidRulesModal from '@/components/BidRulesModal.vue'
@@ -173,6 +174,7 @@ onUnmounted(() => {
 function onBidRulesConfirm() {
     bidRulesModalVisible.value = false
 }
+
 //关闭公告弹窗
 const onConfirm = () => {
     uni.setStorageSync('auctionNotice', item.value)
@@ -548,9 +550,14 @@ function showonAuctionDetail() {
 
 function showDetail(e: AuctionItemDto) {
     console.log('showDetail', e)
+    console.log('image url', e.imageUrl)
+    if (e.imageUrl) {
+        e.imageUrl = convertImageUrl(e.imageUrl)
+    }
     showItem.value = convertFields(e)
     popup.value.open('bottom')
 }
+
 //检测首字母是否大写
 const convertFields = (obj: any) => {
     const newObj: any = {}
@@ -587,16 +594,39 @@ function popChange(e: { show: boolean; type: string }) {
 function getStartContent(item: AuctionItemDto) {
     const description = item.description
     if (!description || description.trim() === '') {
+        let imageUrl = item.imageUrl ? convertImageUrl(item.imageUrl) : ''
+        if (!imageUrl) {
+            imageUrl = '/images/no_image.png'
+        }
+        console.log('imageUrl', imageUrl)
+        // 如果没有描述，则显示图片和提示文字
         // 与 PC 端保持一致，显示拍品图片
         return `<div class="flex justify-center py-4">
             <img
-                src="${item.imageUrl}"
+                src="${imageUrl}"
                 class="w-full h-48 object-cover rounded cursor-pointer"
                 alt="${item.name}"
             />
+            <div class="text-center text-gray-500 text-sm mt-2">点击图片查看大图</div>
         </div>`
     }
-    return `<div>${description}</div>`
+    console.log('description', description)
+    // description <img data-url="https://cdn.molitao.top/molitao/2025-09-20/upload_rper34g17578vqs2ri9y08zhcg8iph51.png" src="https://cdn.molitao.top/molitao/2025-09-20/upload_rper34g17578vqs2ri9y08zhcg8iph51.png!w300" style="max-width: 200px; max-height: 200px;"><div><span>120级02101水龙5胞胎队！纯血满树海！</span><br></div>
+    // 其中的图片链接需要转换
+    // 使用正则表达式替换所有 img 标签的 data-url 属性
+    const updatedDescription = description.replace(/<img[^>]+data-url=['"]([^'"]+)['"][^>]*>/g, (match, p1) => {
+        const convertedUrl = convertImageUrl(p1)
+        return match.replace(p1, convertedUrl)
+    })
+    console.log('updatedDescription', updatedDescription)
+    // src = "https://cdn.molitao.top/molitao/2025-09-20/upload_rper34g17578vqs2ri9y08zhcg8iph51.png!w300" 也要修改
+    // 使用正则表达式替换所有 img 标签的 src 属性
+    const finalDescription = updatedDescription.replace(/<img[^>]+src=['"]([^'"]+)['"][^>]*>/g, (match, p1) => {
+        const cleanUrl = p1.replace(/!w300$/, '') // 移除缩略图参数
+        const convertedUrl = convertImageUrl(cleanUrl)
+        return match.replace(p1, convertedUrl)
+    })
+    return `<div>${finalDescription}</div>`
 }
 
 function catchImage(e: any) {
@@ -609,7 +639,10 @@ function catchImage(e: any) {
         const reg = /<img.*?data-url=['"](.*?)['"].*?>/g
         let result
         while ((result = reg.exec(description)) !== null) {
-            list.push(result[1])
+            // 对每个图片URL进行转换处理
+            console.log(result)
+            const convertedUrl = convertImageUrl(result[1])
+            list.push(convertedUrl)
         }
 
         if (list.length === 0) return

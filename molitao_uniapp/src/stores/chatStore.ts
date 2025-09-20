@@ -11,6 +11,7 @@ import {
 } from '../composables/types'
 import { useStorageRef } from '@/composables/useStorageRef'
 import { useAuctionStore } from './auctionStore'
+import { convertImageUrl } from '@/utils/imageUrlConverter'
 type ChannelType = { chan: string; online: number }
 
 const LobbyChat: ChatListItem = {
@@ -620,7 +621,7 @@ export const useChatStore = defineStore('chatStore', () => {
     }
 
     const getUserAvatar = (id: number) => {
-        return 'https://cdn.molitao.top/avater.png'
+        return convertImageUrl('https://cdn.molitao.top/avater.png')
     }
 
     const getUserFriends = (status = true) => {
@@ -717,7 +718,7 @@ export const useChatStore = defineStore('chatStore', () => {
             type: ChatListItemType.user,
             time: new Date().getTime(),
             lastMsg: lastMsg,
-            avatar: dealUserAvatar || 'https://cdn.molitao.top/avater.png',
+            avatar: convertImageUrl(dealUserAvatar || 'https://cdn.molitao.top/avater.png'),
             unread: 0,
             order: 0,
             msg: {

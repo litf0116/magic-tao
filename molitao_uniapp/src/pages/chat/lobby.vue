@@ -71,7 +71,7 @@
         <uv-popup ref="popupShowRef" type="message">
             <view v-if="item" class="popup-content">
                 <text class="popup-title">公告</text>
-                <img v-if="item.imageUrl" :src="item.imageUrl" mode="aspectFit" class="popup-image" />
+                <img v-if="item.imageUrl" :src="getImgUrl(item.imageUrl, false)" mode="aspectFit" class="popup-image" />
                 <text class="popup-text">{{ item.content }}</text>
                 <view class="popup-view">
                     <button class="popup-button" @tap="onConfirm">确定</button>

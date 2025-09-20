@@ -102,7 +102,8 @@
             <!-- 热词区域 -->
             <view class="hotWords">
                 <view
-                    v-for="item in hotWordsList"
+                    v-for="(item, index) in hotWordsList"
+                    :key="index"
                     class="hotWords-item"
                     :class="{ active: hotWordsActiveKey === item.id }"
                     @tap="switchHotWords(item)"

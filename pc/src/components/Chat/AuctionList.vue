@@ -53,7 +53,7 @@
             <!-- {{ onAuctionItem }} -->
             <div class="relative h-48 overflow-hidden" @click.stop="showDetail(onAuctionItem.id)">
                 <img
-                    :src="`${onAuctionItem.imageUrl}`"
+                    :src="convertImageUrl(onAuctionItem.imageUrl)"
                     class="w-full h-48 cursor-pointer object-cover"
                     @click.stop="showDetail(onAuctionItem.id)"
                 />
@@ -155,6 +155,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useUserStore } from '@/stores/userStore'
 import { useAuctionStore } from '@/stores/auctionStore'
 import { ElRadioGroup, ElRadioButton, ElButton } from 'element-plus'
+import { convertImageUrl } from '@/utils/imageUrlConverter'
 
 const activeName = ref('1')
 
@@ -175,7 +176,7 @@ const showImageViewer = inject('showImageViewer') as (list: string[]) => void
 const handleImageClick = (imageUrl: string) => {
     if (!imageUrl) return
     // 移除缩略图参数，获取原图
-    let src = imageUrl.replace(/!w300$/, '')
+    let src = convertImageUrl(imageUrl.replace(/!w300$/, ''))
     showImageViewer([src])
 }
 

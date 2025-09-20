@@ -91,6 +91,7 @@
                                 <AuctionStartMessage
                                     v-else-if="message.type === ChatMessageType.AuctionStart && message.payload"
                                     :message="message"
+                                    :catchImage="catchImage"
                                     @action="onAuctionStartAction"
                                 />
 
@@ -260,8 +261,10 @@
                 <view class="flex flex-row items-center overflow-hidden cursor-pointer">
                     <view class="text-wrap px-2 flex-1 flex flex-col">
                         <view class="text-[#ff7144] line-clamp-3">{{ showItem.Name }}</view>
-                        <view @tap="catchImage($event, showItem)" v-html="showItem.description || showItem.Description">
-                        </view>
+                        <div
+                            @tap="catchImage($event, showItem)"
+                            v-html="showItem.description || showItem.Description"
+                        ></div>
                     </view>
                 </view>
             </view>
@@ -294,6 +297,7 @@ import type { ChatOptions } from './types'
 import { computed, defineEmits, defineProps, reactive, ref, watch } from 'vue'
 import { Goto } from '@/composables/goto'
 import { convertAuctionPayload } from '@/utils/propertyConverter'
+import { convertImageUrl } from '@/utils/imageUrlConverter'
 
 // 接收 options 属性
 const props = defineProps<{
@@ -454,7 +458,9 @@ function catchImage(e: any, payload: any) {
         const reg = /<img.*?data-url=['"](.*?)['"].*?>/g
         let result
         while ((result = reg.exec(description)) !== null) {
-            list.push(result[1])
+            // 对每个图片URL进行转换处理
+            const convertedUrl = convertImageUrl(result[1])
+            list.push(convertedUrl)
         }
 
         if (list.length === 0) return
@@ -710,7 +716,7 @@ function adminSend() {
         Goto.private({
             id: `${chat.id}`,
             name: chat.name,
-            avatar: chat.avatar || 'https://cdn.molitao.top/avater.png',
+            avatar: chat.avatar || convertImageUrl('https://cdn.molitao.top/avater.png'),
         })
         closeActionPopup()
     }
