@@ -27,16 +27,11 @@ export const calculateMinBidPrice = (currentPrice: number = 0, isKasec: boolean 
         }
     }
 
-    console.log('计算最低出价:', {
-        currentPrice,
-        minPrice,
-        isKasec,
-    })
+    // Calculate minimum bid price
 
     // 卡秒模式下，最低价格增幅为普通模式的3倍
     if (isKasec) {
         minPrice = currentPrice + (minPrice - currentPrice) * 3
-        console.log('卡秒模式 - 调整后最低出价:', minPrice)
     }
 
     return minPrice

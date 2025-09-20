@@ -29,13 +29,11 @@ export const useAppStore = defineStore('appStore', () => {
             uni.getLocation({
                 type: 'wgs84',
                 success: (res: any) => {
-                    console.log('getLocation', res)
                     latitude.value = res.latitude
                     longitude.value = res.longitude
                     resolve({ latitude: res.latitude, longitude: res.longitude })
                 },
                 fail: (err: any) => {
-                    console.log('getLocation', err)
                     reject(err)
                 },
             })
@@ -48,8 +46,6 @@ export const useAppStore = defineStore('appStore', () => {
         uni.request({
             url: url,
             success: (res: any) => {
-                console.log('getCity', res)
-
                 if (res && res.data && res.data.location && res.data.location.length > 0) {
                     // console.log("getCity", res.data.location[0])
                     const _v = res.data.location[0]

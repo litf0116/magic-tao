@@ -41,7 +41,7 @@ onPullDownRefresh(async () => {
     try {
         await paging.value?.reload()
     } catch (error) {
-        console.error('刷新失败:', error)
+        // Refresh error handling
     } finally {
         uni.stopPullDownRefresh()
     }
@@ -56,7 +56,6 @@ async function queryList(pageNo: number, pageSize: number) {
         })
         paging.value?.complete(res.items)
     } catch (error) {
-        console.error('查询失败:', error)
         paging.value?.complete(false)
     }
 }

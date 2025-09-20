@@ -101,7 +101,6 @@ export const useUserStore = defineStore('userStore', () => {
 
     const checkLogin = async (_needlogin = false, forceCheck = true) => {
         if (!token.value) {
-            console.log('notlogin... to logout')
             _logout()
             if (_needlogin) needLogin()
             return
@@ -117,7 +116,6 @@ export const useUserStore = defineStore('userStore', () => {
                     if (res.user.phoneNumber) SET_PHONE(res.user.phoneNumber)
                     if (res.roles) SET_ROLES(res.roles)
                 } else {
-                    console.log('notlogin... to logout')
                     _logout()
                     if (_needlogin) {
                         needLogin()
@@ -125,7 +123,6 @@ export const useUserStore = defineStore('userStore', () => {
                 }
             },
             (err) => {
-                console.log('notlogin', err)
                 _logout()
             }
         )
@@ -136,9 +133,7 @@ export const useUserStore = defineStore('userStore', () => {
             uni.login({
                 provider: 'weixin',
                 success: async (loginRes) => {
-                    console.log('loginRes:', loginRes)
                     if (loginRes.errMsg === 'login:ok' && loginRes.code) {
-                        console.log('code', loginRes.code)
                         return resolve(loginRes.code)
                     } else {
                         return reject()
@@ -152,13 +147,11 @@ export const useUserStore = defineStore('userStore', () => {
     const wxLogin = async () => {
         return new Promise(async (resolve, reject) => {
             await getCode().then(async (code) => {
-                console.log('getCode result:', code)
                 await api
                     .weixinMiniAuthenticate({
                         code: code,
                     })
                     .then(async (res: any) => {
-                        console.log(res)
                         if (res.accessToken) {
                             token.value = res.accessToken
                             uni.setStorageSync('token', res.accessToken)
@@ -218,11 +211,8 @@ export const useUserStore = defineStore('userStore', () => {
             uni.login({
                 provider: 'weixin',
                 success: async (loginRes) => {
-                    // console.log("loginRes:", loginRes)
                     if (loginRes.errMsg === 'login:ok' && loginRes.code) {
-                        console.log('code', loginRes.code)
                         await api.code2session({ code: loginRes.code }).then(async (res: any) => {
-                            // console.log("code2session:", res)
                             if (res.openid) {
                                 openid.value = res.openid
                                 await uni.setStorageSync('openid', res.openid)
@@ -250,10 +240,6 @@ export const useUserStore = defineStore('userStore', () => {
     const phoneLogin = async (data: { iv: string; encryptedData: string }) => {
         return new Promise(async (resolve, reject) => {
             await code2Session().then(async (res) => {
-                console.log('code2Session result:', res)
-                console.log('openid', openid.value)
-                console.log('unionid', unionid.value)
-                console.log('sessionKey', sessionKey.value)
                 await api
                     .phoneAuth({
                         openid: openid.value,

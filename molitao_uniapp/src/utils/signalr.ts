@@ -57,9 +57,8 @@ export class HubConnection {
                 this.intervalFunction()
             }, 15000) // 15秒
             this.ping_running = true
-            console.log('Timer started.')
         } else {
-            console.log('Timer is already running.')
+            // Timer is already running
         }
     }
 
@@ -68,9 +67,8 @@ export class HubConnection {
             clearInterval(this.ping_timerId)
             this.ping_timerId = null
             this.ping_running = false
-            console.log('Timer stopped.')
         } else {
-            console.log('Timer is not running.')
+            // Timer is not running
         }
     }
 
@@ -101,7 +99,6 @@ export class HubConnection {
                 this.startSocket(negotiateUrl.replace('/negotiate', ''))
             },
             fail: (res) => {
-                console.error(`requrst ${url} error : ${res}`)
                 return
             },
         })
@@ -122,7 +119,6 @@ export class HubConnection {
         })
 
         this.connection.onOpen((res) => {
-            console.debug(`websocket connectioned to ${this.url}`)
             this.sendData(protocal)
             this.ping_start()
             uni.setStorageSync('signalr_ping_time', new Date())
@@ -131,14 +127,12 @@ export class HubConnection {
         })
 
         this.connection.onClose((res) => {
-            console.debug(`websocket disconnection`)
             this.connection = null
             this.openStatus = false
             this.onClose(res)
         })
 
         this.connection.onError((res) => {
-            console.error(`websocket error msg: ${res.errMsg}`)
             this.close({
                 reason: res.errMsg,
             })
@@ -154,18 +148,17 @@ export class HubConnection {
     }
 
     public onOpen(data: object) {
-        console.debug(data)
+        // WebSocket connection opened
     }
 
     public onPing() {}
 
     public onClose(res: { code: number; reason: string }): void {
-        console.debug(res)
         this.ping_stop()
     }
 
     public onError(msg: string): void {
-        console.debug(msg)
+        // WebSocket error occurred
     }
 
     public close(options: any = {}): void {
@@ -201,7 +194,7 @@ export class HubConnection {
         }
         const responses = (data.data as string).split('').filter((x) => x)
         // data.data = (data.data as string).replace("", "")
-        console.log('receive', responses)
+        // SignalR message received
 
         responses.forEach((x) => {
             const message = JSON.parse(x)
@@ -224,13 +217,12 @@ export class HubConnection {
                     this.onPing()
                     break
                 case MessageType.Close:
-                    console.log('Close message received from server.')
                     this.close({
                         reason: 'Server returned an error on close',
                     })
                     break
                 default:
-                    console.warn('Invalid message type: ' + message.type)
+                    // Invalid message type handling
             }
         })
     }
@@ -292,13 +284,12 @@ export class HubConnection {
             if (message.invocationId) {
                 // This is not supported in v1. So we return an error to avoid blocking the server waiting for the response.
                 const errormsg = 'Server requested a response, which is not supported in this version of the client.'
-                console.error(errormsg)
                 this.close({
                     reason: errormsg,
                 })
             }
         } else {
-            console.warn(`No client method with the name '${message.target}' found.`)
+            // No client method found
         }
     }
 }

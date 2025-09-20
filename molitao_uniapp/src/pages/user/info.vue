@@ -136,7 +136,6 @@ function fetchData() {
 }
 
 const afterRead = async (event: any) => {
-    console.log('afterRead', event)
     isSaving.value = true
     let lists: any = [].concat(event.file)
     let fileListLen = fileList1.value.length
@@ -147,12 +146,10 @@ const afterRead = async (event: any) => {
             message: '上传中',
         })
     })
-    console.log('lists', lists)
 
     for (let i = 0; i < lists.length; i++) {
         await uploadImage(lists[i].url)
             .then((res: any) => {
-                console.log('uploadImage', res)
                 let item = fileList1.value[fileListLen]
                 fileList1.value.splice(
                     fileListLen,
@@ -166,7 +163,6 @@ const afterRead = async (event: any) => {
                 fileListLen++
             })
             .catch((err) => {
-                console.error(err)
                 Tips.noCancelModal(err)
                 fileList1.value.splice(fileListLen, 1)
                 fileListLen++

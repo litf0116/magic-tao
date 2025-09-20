@@ -1,5 +1,4 @@
 const errorPrompt = (err: any) => {
-    console.log('errorPrompt', err)
     if (err.validationErrors && err.validationErrors.length) {
         const info = err.validationErrors.reduce((c: any, o: any) => (c += `${o.message}\n`), '')
         uni.showModal({
@@ -54,7 +53,6 @@ const httpsPromisify = <T>(fn: (opt: any) => void) => {
                 }
             }
             options!.fail = (err: any) => {
-                console.log('httpsPromisify', err)
                 uni.hideLoading()
                 uni.hideNavigationBarLoading()
                 return reject(err)

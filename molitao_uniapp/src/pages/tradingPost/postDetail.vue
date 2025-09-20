@@ -135,7 +135,7 @@ const catchImage = (e: any) => {
             urls: list, // 需要预览的图片http链接列表
         })
     } catch (e) {
-        console.log('catchImage', e)
+        // Image preview error handling
     }
 }
 //私聊

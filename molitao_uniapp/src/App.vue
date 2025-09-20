@@ -5,7 +5,7 @@ import api from '@/utils/api'
 // console.log('pages', pages)
 
 const getSystemInfoSync = uni.getSystemInfoSync()
-console.log('getSystemInfoSync', getSystemInfoSync)
+// console.log('getSystemInfoSync', getSystemInfoSync)
 
 onLaunch(() => {
     // console.debug('App Launch')
@@ -18,7 +18,6 @@ onLaunch(() => {
         // console.log("updateManager 加载成功", updateManager)
         updateManager.onCheckForUpdate(() => {
             // 请求完新版本信息的回调
-            // console.debug(res)
         })
 
         updateManager.onUpdateReady(() => {
@@ -72,7 +71,7 @@ function ring11() {
         // console.log('开始播放')
     })
     innerAudioContext.onError(() => {
-        console.log('播放失败')
+        // console.log('播放失败')
     })
 }
 function ring17() {
@@ -83,7 +82,7 @@ function ring17() {
         // console.log('开始播放')
     })
     innerAudioContext.onError(() => {
-        console.log('播放失败')
+        // console.log('播放失败')
     })
 }
 </script>

@@ -29,21 +29,15 @@ export function uploadImage(file) {
             localPath: imageSrc,
             remotePath: path,
             success: (res) => {
-                console.log('upload finish:', res)
                 if (res.statusCode == 401) {
                     uni.removeStorageSync(Upyun.CACHE_KEY)
                     return reject('上传失败，请重新上传')
                 } else {
                     const jsonData = JSON.parse(res.data)
-                    console.log('upload success:', jsonData)
-                    console.log(upyun.domainHost)
-                    console.log(jsonData.url)
-                    console.log(`${upyun.domainHost}${jsonData.url}`)
                     return resolve(`${upyun.domainHost}${jsonData.url}`)
                 }
             },
             fail: ({ errMsg }) => {
-                console.log('upload fail:', errMsg)
                 return reject(errMsg)
             },
         })
@@ -76,12 +70,10 @@ export function upload(count = 1) {
                 upyun.upload({
                     localPath: imageSrc,
                     success: (res: any) => {
-                        console.log('upload success:', res)
                         const jsonData = JSON.parse(res.data)
                         return resolve(jsonData)
                     },
                     fail: ({ errMsg }: any) => {
-                        console.log('upload fail:', errMsg)
                         return reject(errMsg)
                     },
                 })

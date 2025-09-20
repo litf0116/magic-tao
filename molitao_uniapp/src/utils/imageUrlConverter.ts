@@ -20,7 +20,7 @@ export function convertImageUrl(url: string | undefined): string {
     }
     // 将 cdn.molitao.top 替换为 image.molitao.top
     const result = url.replace(/https?:\/\/cdn\.molitao\.top/g, 'http://image.molitao.top')
-    console.log('convertImageUrl', url, '=>', result)
+    // console.log('convertImageUrl', url, '=>', result)
     return result
 }
 

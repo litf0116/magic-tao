@@ -17,7 +17,6 @@ onLoad(async (pamams: any) => {
     //todo
     if (pamams != null) {
         const t = pamams.id + ''
-        console.log('pamams', t)
         chan.value = t
         chatStore.connectServer().then(async () => {
             if (chatStore.hasGroup(t)) {
@@ -37,7 +36,6 @@ const initGroup = async () => {
 }
 
 const historyMsgs = computed(() => {
-    console.log('historyMsgs', chatStore.chatMap)
     return chatStore.chatMap.get(`${chatStore.currentChat.id}`) || []
 })
 

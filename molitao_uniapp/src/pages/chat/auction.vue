@@ -127,7 +127,6 @@ const showUnread = ref(false)
 onLoad(() => {
     chatStore.connectServer().then(async () => {
         //todo
-        console.log('onShow')
         init('-1_auction')
     })
     //获取最新公告
@@ -209,8 +208,6 @@ const onAuctionItem = computed(() => {
 })
 
 const init = async (name: string) => {
-    console.log('Init')
-
     chatStore.SetCurrentChatId(-1, 'auction', true)
     await loadHistoryMessage(true)
 }
@@ -223,10 +220,10 @@ function sub(e: AuctionItemDto) {
             // console.log(res);
         },
         fail(res) {
-            console.log('requestSubscribeMessage fail', res)
+            // console.log('requestSubscribeMessage fail', res)
         },
         complete: (res: any) => {
-            console.log(res)
+            // console.log(res)
             if (res[msgId] !== 'reject') {
                 auctionStore.startNotify(e.id!).then(() => {
                     Tips.success('订阅成功')
@@ -249,7 +246,7 @@ async function loadHistoryMessage(force = false) {
         await chatStore.joinChannel('-1_auction')
     }
 
-    console.log('loadHistoryMessage')
+    // console.log('loadHistoryMessage')
 
     chatRef.value!.history.loading = true
 
@@ -297,7 +294,7 @@ function doPayment(
                 signType: res.signType,
                 paySign: res.paySign,
                 success: async (res) => {
-                    console.log('支付成功:', JSON.stringify(res))
+                    // console.log('支付成功:', JSON.stringify(res))
 
                     // 清除支付状态
                     uni.removeStorageSync('depositStatus')
@@ -305,9 +302,9 @@ function doPayment(
                     // 更新用户信息
                     try {
                         await userStore.checkLogin(false, true)
-                        console.log('用户信息更新成功')
+                        // console.log('用户信息更新成功')
                     } catch (error) {
-                        console.error('更新用户信息失败:', error)
+                        // console.error('更新用户信息失败:', error)
                     }
 
                     callback.success()
@@ -333,7 +330,7 @@ function doPayment(
                     }, 1500)
                 },
                 fail: (err) => {
-                    console.log('支付失败:', JSON.stringify(err))
+                    // console.log('支付失败:', JSON.stringify(err))
 
                     // 清除支付状态
                     uni.removeStorageSync('depositStatus')
@@ -344,7 +341,7 @@ function doPayment(
             })
         })
         .catch((error) => {
-            console.error('获取支付参数失败:', error)
+            // console.error('获取支付参数失败:', error)
 
             // 清除支付状态
             uni.removeStorageSync('depositStatus')
@@ -357,66 +354,55 @@ function doPayment(
 //出价
 async function bid() {
     const userId = userStore.user.id
-    console.log('开始出价流程 - 用户ID:', userId)
+    // console.log('开始出价流程 - 用户ID:', userId)
 
     try {
         // 首先获取当前拍卖商品ID
         if (!onAuctionItem.value || !onAuctionItem.value.id) {
-            console.log('没有正在拍卖的商品')
+            // console.log('没有正在拍卖的商品')
             Tips.error('没有正在拍卖的商品')
             return
         }
 
         const auctionItemId = onAuctionItem.value.id
-        console.log('当前拍卖商品ID:', auctionItemId)
+        // console.log('当前拍卖商品ID:', auctionItemId)
 
         // 获取实时的拍卖商品信息
-        console.log('正在获取实时拍卖商品信息...')
         const auctionItemDetail = await api.auctionItem.getDetail(auctionItemId)
-        console.log('拍卖商品详情获取成功:', auctionItemDetail)
 
         // 验证商品状态
         if (auctionItemDetail.status !== '拍卖中') {
-            console.log('商品不在拍卖中，状态:', auctionItemDetail.status)
+            // console.log('商品不在拍卖中，状态:', auctionItemDetail.status)
             Tips.error('商品不在拍卖中')
             return
         }
 
         // 从商品详情中获取卡秒状态
         const isKasecMode = !!auctionItemDetail.isKasec
-        console.log('卡秒状态:', isKasecMode)
+        // console.log('卡秒状态:', isKasecMode)
 
         // 同步到store（可选，用于UI显示）
         auctionStore.isKasec = isKasecMode
 
         // 获取实时用户信息
-        console.log('正在获取实时用户信息...')
         const currentUser = await api.user.get({ id: userId })
-        console.log('用户信息获取成功:', currentUser)
         const deposit = currentUser?.depositBalance || 0
-        console.log('用户信息获取成功:', {
-            userId: currentUser?.id,
-            userName: currentUser?.userName,
-            depositBalance: deposit,
-            isActive: currentUser?.isActive,
-        })
+        // console.log('用户信息获取成功:', {
+    //         userId: currentUser?.id,
+    //         userName: currentUser?.userName,
+    //         depositBalance: deposit,
+    //         isActive: currentUser?.isActive,
+    //     })
 
         // 获取用户等级信息
-        console.log('正在获取用户等级信息...')
         const levelResponse = await api.userGroupLevel.getUserLevelInfo(userId!)
         const levelInfo = levelResponse.data
         const userLevel = levelInfo?.levelSettings?.level ?? 0
         const cumulativeAmount = levelInfo?.userLevel?.cumulativeAmount ?? 0
-        console.log('用户等级信息:', {
-            userLevel,
-            cumulativeAmount,
-            levelSettings: levelInfo?.levelSettings,
-            userLevelInfo: levelInfo?.userLevel,
-        })
 
         // 新用户且保证金不足的情况
         if (userLevel === 0 && deposit < 50) {
-            console.log('新用户保证金不足:', { userLevel, deposit })
+            // console.log('新用户保证金不足:', { userLevel, deposit })
             // 先显示一个提示
             uni.showToast({
                 title: '新用户需要缴纳保证金',
@@ -424,7 +410,7 @@ async function bid() {
                 duration: 2000,
             })
 
-            console.log('准备显示保证金弹窗...')
+            // console.log('准备显示保证金弹窗...')
             try {
                 await new Promise((resolve, reject) => {
                     uni.showModal({
@@ -435,7 +421,7 @@ async function bid() {
                         confirmText: '去缴纳',
                         cancelText: '提供记录',
                         success: (res) => {
-                            console.log('保证金弹窗结果:', res)
+                            // console.log('保证金弹窗结果:', res)
                             if (res.confirm) {
                                 // 保存状态
                                 const depositStatus = {
@@ -455,10 +441,10 @@ async function bid() {
                                     },
                                     {
                                         success: () => {
-                                            console.log('支付成功')
+                                            // console.log('支付成功')
                                         },
                                         fail: () => {
-                                            console.log('支付失败')
+                                            // console.log('支付失败')
                                         },
                                     }
                                 )
@@ -468,13 +454,13 @@ async function bid() {
                             resolve(res)
                         },
                         fail: (err: any) => {
-                            console.error('保证金弹窗失败:', err)
+                            // console.error('保证金弹窗失败:', err)
                             reject(err)
                         },
                     })
                 })
             } catch (error) {
-                console.error('显示保证金弹窗出错:', error)
+                // console.error('显示保证金弹窗出错:', error)
                 Tips.error('显示弹窗失败，请重试')
             }
             return
@@ -496,7 +482,7 @@ async function bid() {
             placeholderText = `卡秒模式-需三倍加价(最低出价${minPrice})`
         }
 
-        console.log('准备显示出价弹窗...')
+        // console.log('准备显示出价弹窗...')
         // 先显示一个提示
         uni.showToast({
             title: '请输入出价金额',
@@ -512,30 +498,30 @@ async function bid() {
                     editable: true,
                     placeholderText: placeholderText,
                     success: (res) => {
-                        console.log('出价弹窗结果:', res)
+                        // console.log('出价弹窗结果:', res)
                         if (res.confirm) {
                             const value = Number(res.content)
                             if (!value) {
                                 Tips.noCancelModal('请输入数字')
                                 return
                             }
-                            console.log('用户输入出价金额:', value)
+                            // console.log('用户输入出价金额:', value)
                             auctionStore.bid(auctionItemId, value)
                         }
                         resolve(res)
                     },
                     fail: (err: any) => {
-                        console.error('出价弹窗失败:', err)
+                        // console.error('出价弹窗失败:', err)
                         reject(err)
                     },
                 })
             })
         } catch (error) {
-            console.error('显示出价弹窗出错:', error)
+            // console.error('显示出价弹窗出错:', error)
             Tips.error('显示弹窗失败，请重试')
         }
     } catch (error) {
-        console.error('出价过程发生错误:', error)
+        // console.error('出价过程发生错误:', error)
         uni.showToast({
             title: '获取商品信息失败，请稍后重试',
             icon: 'none',
@@ -549,8 +535,8 @@ function showonAuctionDetail() {
 }
 
 function showDetail(e: AuctionItemDto) {
-    console.log('showDetail', e)
-    console.log('image url', e.imageUrl)
+    // console.log('showDetail', e)
+    // console.log('image url', e.imageUrl)
     if (e.imageUrl) {
         e.imageUrl = convertImageUrl(e.imageUrl)
     }
@@ -585,7 +571,7 @@ const showItem = ref<AuctionItemDto | null>(null)
 const popup = ref(null as any)
 
 function popChange(e: { show: boolean; type: string }) {
-    console.log(e)
+    // console.log(e)
     if (e.show === false) {
         showItem.value = null
     }
@@ -598,7 +584,7 @@ function getStartContent(item: AuctionItemDto) {
         if (!imageUrl) {
             imageUrl = '/images/no_image.png'
         }
-        console.log('imageUrl', imageUrl)
+        // console.log('imageUrl', imageUrl)
         // 如果没有描述，则显示图片和提示文字
         // 与 PC 端保持一致，显示拍品图片
         return `<div class="flex justify-center py-4">
@@ -610,7 +596,7 @@ function getStartContent(item: AuctionItemDto) {
             <div class="text-center text-gray-500 text-sm mt-2">点击图片查看大图</div>
         </div>`
     }
-    console.log('description', description)
+    // console.log('description', description)
     // description <img data-url="https://cdn.molitao.top/molitao/2025-09-20/upload_rper34g17578vqs2ri9y08zhcg8iph51.png" src="https://cdn.molitao.top/molitao/2025-09-20/upload_rper34g17578vqs2ri9y08zhcg8iph51.png!w300" style="max-width: 200px; max-height: 200px;"><div><span>120级02101水龙5胞胎队！纯血满树海！</span><br></div>
     // 其中的图片链接需要转换
     // 使用正则表达式替换所有 img 标签的 data-url 属性
@@ -618,7 +604,7 @@ function getStartContent(item: AuctionItemDto) {
         const convertedUrl = convertImageUrl(p1)
         return match.replace(p1, convertedUrl)
     })
-    console.log('updatedDescription', updatedDescription)
+    // console.log('updatedDescription', updatedDescription)
     // src = "https://cdn.molitao.top/molitao/2025-09-20/upload_rper34g17578vqs2ri9y08zhcg8iph51.png!w300" 也要修改
     // 使用正则表达式替换所有 img 标签的 src 属性
     const finalDescription = updatedDescription.replace(/<img[^>]+src=['"]([^'"]+)['"][^>]*>/g, (match, p1) => {
@@ -630,7 +616,7 @@ function getStartContent(item: AuctionItemDto) {
 }
 
 function catchImage(e: any) {
-    console.log('catchImage', e)
+    // console.log('catchImage', e)
     try {
         const description = showItem.value?.description
         if (!description) return
@@ -640,7 +626,7 @@ function catchImage(e: any) {
         let result
         while ((result = reg.exec(description)) !== null) {
             // 对每个图片URL进行转换处理
-            console.log(result)
+            // console.log(result)
             const convertedUrl = convertImageUrl(result[1])
             list.push(convertedUrl)
         }
@@ -651,9 +637,9 @@ function catchImage(e: any) {
             urls: list, // 需要预览的图片http链接列表
         })
 
-        console.log('catchImage', list)
+        // console.log('catchImage', list)
     } catch (e) {
-        console.log('catchImage', e)
+        // console.log('catchImage', e)
     }
 }
 
@@ -684,10 +670,10 @@ const navigateToAdminChat = (status: 'pending' | 'record_provided') => {
     uni.navigateTo({
         url,
         success: () => {
-            console.log('跳转到管理员私信页面成功', { params })
+            // console.log('跳转到管理员私信页面成功', { params })
         },
         fail: (err: any) => {
-            console.error('跳转失败:', err)
+            // console.error('跳转失败:', err)
             Tips.error('跳转失败，请重试')
             // 清除状态
             uni.removeStorageSync('depositStatus')

@@ -153,7 +153,6 @@ export const useChatEmojiStore = defineStore('chatEmoji', () => {
     const userEmoji = ref<ChatEmojiDto[]>([])
 
     onMounted(() => {
-        console.log('useEmojiStore onMounted')
         featchUserEmoji()
     })
 
@@ -169,7 +168,6 @@ export const useChatEmojiStore = defineStore('chatEmoji', () => {
 
     function addToEmoji(e: ChatMessage) {
         return new Promise<void>((resolve) => {
-            console.log('addToEmoji', e)
             api.chatEmoji
                 .create({
                     url: e.payload.url,
@@ -182,7 +180,6 @@ export const useChatEmojiStore = defineStore('chatEmoji', () => {
     }
 
     function removeEmoji(e: ChatEmojiDto) {
-        console.log('removeEmoji', e.id)
         Tips.OkConfirm('确定删除吗？', '', true).then(() => {
             api.chatEmoji.delete(e.id!).then(() => {
                 reload()

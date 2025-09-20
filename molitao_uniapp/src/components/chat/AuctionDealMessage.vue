@@ -51,7 +51,6 @@ export default {
         // 解析payload数据，兼容老旧消息的PascalCase属性
         const payloadData = computed(() => {
             const convertedPayload = convertAuctionPayload(props.message.payload)
-            console.log('deal message payload', convertedPayload)
             return convertedPayload
         })
 

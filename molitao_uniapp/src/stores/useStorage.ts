@@ -10,7 +10,6 @@ export function useStorage(key: any, defaultValue = 0) {
             const value = uni.getStorageSync(key)
             return value !== '' ? value : defaultValue
         } catch (e) {
-            console.error(`读取${key}失败:`, e)
             return defaultValue
         }
     }
@@ -21,7 +20,7 @@ export function useStorage(key: any, defaultValue = 0) {
             uni.setStorageSync(key, newVal)
             storageRef.value = newVal
         } catch (e) {
-            console.error(`写入${key}失败:`, e)
+            // Write error handling
         }
     }
 
@@ -40,7 +39,7 @@ export function useStorage(key: any, defaultValue = 0) {
             uni.removeStorageSync(key)
             storageRef.value = defaultValue
         } catch (e) {
-            console.error(`删除${key}失败:`, e)
+            // Delete error handling
         }
     }
 

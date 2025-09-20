@@ -30,7 +30,6 @@ onLoad(() => {
     const pages = getCurrentPages()
     const page: any = pages[pages.length - 1]
     eventChannel = page.getOpenerEventChannel()
-    console.log('options', eventChannel)
 })
 
 const paging = ref<ZPagingInstance | null>(null)
@@ -42,7 +41,6 @@ onPullDownRefresh(async () => {
 })
 
 function queryList(pageNo: number, pageSize: number) {
-    console.log('queryList', pageNo, pageSize)
     api.UserBalanceLog.GetMyAll({
         sorting: 'creationTime desc',
         skipCount: (pageNo - 1) * 10,

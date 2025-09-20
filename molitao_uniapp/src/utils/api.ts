@@ -12,7 +12,6 @@ import utils from './utils'
 let host = import.meta.env.VITE_APP_BASE_API
 
 if (import.meta.env.VITE_APP_ENV === 'development') {
-    console.log(host)
     host = 'http://192.168.128.1:12580'
     // host = 'http://localhost:12580'
 }

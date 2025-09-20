@@ -56,7 +56,7 @@ export const Tips = {
                 showCancel: false,
                 content: msg,
                 success: function (rs) {
-                    console.log(rs)
+                    // console.log(rs)
                     return resolve('ok')
                 },
             })
@@ -72,10 +72,10 @@ export const Tips = {
                 confirmText: '确认',
                 success: function (res) {
                     if (res.confirm) {
-                        console.log('用户点击确定')
+                        // console.log('用户点击确定')
                         return resolve('ok')
                     } else if (res.cancel) {
-                        console.log('用户点击取消')
+                        // console.log('用户点击取消')
                         return reject('cancel')
                     }
                 },

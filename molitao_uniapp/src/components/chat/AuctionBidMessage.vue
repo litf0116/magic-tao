@@ -27,7 +27,6 @@ const payloadData = computed(() => {
 
 // 处理点击事件，emit 统一的 action 事件
 function handleAction() {
-    console.log('AuctionBid handleAction', props.message.payload)
     emit('action', { message: props.message, payload: payloadData.value })
 }
 </script>

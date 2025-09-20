@@ -58,7 +58,6 @@ function formatTime(item: AuctionItemDto) {
 }
 
 function popChange(e: { show: boolean; type: string }) {
-    console.log(e)
     if (e.show === false) {
         showItem.value = null
     }
@@ -69,7 +68,6 @@ function getStartContent(item: AuctionItemDto) {
 }
 
 function catchImage(e: any) {
-    console.log('catchImage', e)
     try {
         const description = showItem.value?.description
         if (!description) return
@@ -87,9 +85,8 @@ function catchImage(e: any) {
             urls: list, // 需要预览的图片http链接列表
         })
 
-        console.log('catchImage', list)
     } catch (e) {
-        console.log('catchImage', e)
+        // Error handling for image preview
     }
 }
 </script>

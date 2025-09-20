@@ -98,7 +98,7 @@ export function convertAuctionPayload(payload: any): any {
         try {
             payload = JSON.parse(payload)
         } catch (e) {
-            console.warn('Failed to parse payload string:', e)
+            // Failed to parse payload string
             return payload
         }
     }

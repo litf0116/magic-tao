@@ -21,13 +21,11 @@ const emit = defineEmits(['action'])
 
 const payloadData = computed(() => {
     const convertedPayload = convertAuctionPayload(props.message.payload)
-    console.log('AuctionStart payload', convertedPayload)
     return convertedPayload
 })
 
 // 处理点击事件，emit 统一的 action 事件
 function handleAction(e: any) {
-    console.log('AuctionStart handleAction', props.message.payload)
     emit('action', { message: props.message, payload: payloadData.value })
 
     // 如果提供了catchImage函数，也调用它进行图片预览

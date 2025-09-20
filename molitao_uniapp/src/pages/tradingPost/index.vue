@@ -187,7 +187,6 @@ const postCategoryList: any = ref([
 ])
 
 onMounted(() => {
-    console.log('onMounted 执行，准备加载热词...')
     loadCategoryList()
     loadLatestBulletin()
     loadData(true)
@@ -248,7 +247,6 @@ const loadData = async (isTop: boolean = false) => {
         }
         hotWordsActiveKey.value = -1
     }
-    console.log('调用 loadData 方法')
     const res: any = await api.post.GetPostAll({
         Type: activeKey.value,
         isTop: isTop,
@@ -258,11 +256,9 @@ const loadData = async (isTop: boolean = false) => {
     })
     if (isTop) {
         // 如果是加载置顶帖子
-        console.log('加载置顶帖子')
         topPostList.value = res.items
     } else {
         // 如果是加载普通帖子
-        console.log('加载普通帖子')
         if (page.value === 1 && postList.value.length > 0) {
             Tips.info('已是最新数据')
             return
@@ -279,16 +275,13 @@ const loadData = async (isTop: boolean = false) => {
             Tips.info('没有更多数据了')
             return
         }
-        console.log('帖子接口返回：', res)
         hasNextPages.value = res.hasNextPages
         postList.value.push(...res.items)
     }
 }
 //加载最新公告
 const loadLatestBulletin = () => {
-    console.log('调用 loadLatestBulletin 方法')
     api.post.GetLatestBulletin().then((res: any) => {
-        console.log('最新公告接口返回：', res)
         latestBulletin.value = res
         var content = res.content.replace(/↵/g, '') // 先去掉换行符
         var arr = content
@@ -301,22 +294,18 @@ const loadLatestBulletin = () => {
 }
 //加载热词
 const loadHotWords = () => {
-    console.log('调用 loadHotWords 方法')
     api.post
         .GetHotWordsList()
         .then((res: any) => {
-            console.log('热词接口返回：', res)
             hotWordsList.value = res.items
         })
         .catch((err: any) => {
-            console.error('热词接口异常：', err)
+            // Hot words API error handling
         })
 }
 //加载分类列表
 const loadCategoryList = () => {
-    console.log('调用 loadCategoryList 方法')
     api.post.GetCategoryList().then((res: any) => {
-        console.log('分类接口返回：', res)
         postCategoryList.value.push(...res)
     })
 }
@@ -336,7 +325,6 @@ const toDetail = (id: any) => {
 }
 //查看公告
 const getMore = (text: any) => {
-    console.log('调用 getMore 方法')
     modalConfig.show = true
     modalConfig.content = text
     emit('updateModalConfig', modalConfig)

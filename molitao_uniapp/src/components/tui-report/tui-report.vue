@@ -67,7 +67,6 @@ function imgClick(str: string) {
 
 function screenChange(e, id: string) {
     let fullScreen = e.detail.fullScreen
-    console.log('screenChange', e, id)
     if (!fullScreen) {
         //退出全屏
         const videoContext = uni.createVideoContext(id)
@@ -80,7 +79,6 @@ function goDetail(id: number) {
         url: `/pages/reportRecord/detail?id=${id}`,
         events: {
             refresh: () => {
-                console.log('eventChannel refresh')
             },
         },
     })

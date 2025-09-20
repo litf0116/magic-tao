@@ -343,7 +343,7 @@ onLoad(async () => {
 })
 
 onUnload(() => {
-    console.log('ChatMain onUnload')
+    // console.log('ChatMain onUnload')
     // 发送事件通知
     uni.$emit('refreshView')
     unsubscribe()
@@ -354,10 +354,10 @@ let timeId: any = null
 
 // LINK - 延迟加载服务器最新消息,不同则重连服务器
 function delayloadhistory() {
-    console.log('delayloadhistory')
+    // console.log('delayloadhistory')
     clearInterval(timeId)
     timeId = setInterval(() => {
-        console.log('delayloadhistory执行')
+        // console.log('delayloadhistory执行')
         //检查最后一条消息是否是historyMsgs的最后一条
         chatStore.getServerLastId().then((res) => {
             const hisLast = last(
@@ -365,7 +365,7 @@ function delayloadhistory() {
             )
             // console.log('chatStore.getServerLastId', res, hisLast)
             if (res != api.guid && res !== hisLast?.id) {
-                console.log('服务器消息与本地不同')
+                // console.log('服务器消息与本地不同')
                 chatStore.connectServer(true).then(() => {
                     loadHistoryMessage(true)
                     if (chatStore.currentChat.id === -1) {
@@ -373,7 +373,7 @@ function delayloadhistory() {
                     }
                 })
             } else {
-                console.log('服务器消息与本地相同')
+                // console.log('服务器消息与本地相同')
             }
         })
     }, 20_000)
@@ -384,7 +384,7 @@ const bus = useEventBus(onmessageKey)
 const unsubscribe = bus.on((msg: any) => {
     // console.log('chatMain onmessageKey', msg)
     // scrollToBottom()
-    console.log('msg', msg)
+    // console.log('msg', msg)
     if (msg.type === 'AuctionStart' || msg.type === 'AuctionEnd') {
         auctionStore.getList()
     }
@@ -393,12 +393,12 @@ const unsubscribe = bus.on((msg: any) => {
     }
 
     if (msg.type === 'Backout' && msg.chan === '-1_auction') {
-        console.log('拍卖行撤回')
+        // console.log('拍卖行撤回')
         auctionStore.getList()
     }
 
     if (msg.type === 'Backout') {
-        console.log('Backout', msg)
+        // console.log('Backout', msg)
         if (msg.id) {
             chatStore.removeMessage(msg.id)
         }
@@ -469,9 +469,9 @@ function catchImage(e: any, payload: any) {
             urls: list, // 需要预览的图片http链接列表
         })
 
-        console.log('catchImage', list)
+        // console.log('catchImage', list)
     } catch (e) {
-        console.log('catchImage', e)
+        // console.log('catchImage', e)
     }
 }
 
@@ -507,7 +507,7 @@ function onRecordEnd() {
     try {
         recorderManager.stop()
     } catch (e) {
-        console.log(e)
+        // console.log(e)
     }
 }
 
@@ -588,7 +588,7 @@ function renderMessageDate(message: ChatMessage, index: number) {
 function showActionPopup(msg: ChatMessage, isImg = false) {
     //停止向上传播
     // e.stopPropagation()
-    console.log('showActionPopup', msg)
+    // console.log('showActionPopup', msg)
     actionPopup.value.visible = true
     actionPopup.value.isImg = isImg
     selectMessage.value = msg
@@ -614,7 +614,7 @@ function chooseEmoji(emojiKey: string) {
     emoji.value.visible = false
 }
 function chooseUserEmoji(e: ChatEmojiDto) {
-    console.log('chooseUserEmoji', e)
+    // console.log('chooseUserEmoji', e)
     emoji.value.visible = false
 
     emit('onSend', { type: ChatMessageType.Image, data: { url: e.url } })
@@ -636,7 +636,7 @@ function showOtherTypesMessagePanel() {
 
 function sendImageMessage2() {
     upload(1).then((res) => {
-        console.log('sendImageMessage2', res)
+        // console.log('sendImageMessage2', res)
         emit('onSend', { type: ChatMessageType.Image, data: res })
         otherTypesMessagePanelVisible.value = false
     })
@@ -656,7 +656,7 @@ const selectMessage = ref<ChatMessage | null>(null)
 
 //ANCHOR - 添加好友
 function addFriend() {
-    console.log(selectMessage.value)
+    // console.log(selectMessage.value)
     if (selectMessage.value) {
         api.userFriend.addFriend({ id: selectMessage.value.from }).then(() => {
             Tips.success('添加好友成功, 请等待对方同意')
@@ -669,7 +669,7 @@ const userInfoDialogRef = ref<null | any>(null)
 const viewUserInfoId = ref(0)
 // ANCHOR - 查看用户信息
 function viewUserInfo(userId: number) {
-    console.log('viewUserInfo', userId)
+    // console.log('viewUserInfo', userId)
     // dialogVisible.value = true
     viewUserInfoId.value = userId
     userInfoDialogRef.value.open()
@@ -684,7 +684,7 @@ function addEmoji() {
 }
 //ANCHOR - 撤回消息
 function backout() {
-    console.log(selectMessage.value)
+    // console.log(selectMessage.value)
     if (selectMessage.value && selectMessage.value.id) {
         api.ws.backout(selectMessage.value).then(() => {
             Tips.success('撤回成功')
@@ -695,8 +695,7 @@ function backout() {
 
 //ANCHOR - 管理员私聊
 function adminSend() {
-    // console.log(
-    console.log(selectMessage.value)
+    // console.log(selectMessage.value)
     if (selectMessage.value && selectMessage.value.from) {
         let chat = chatStore.chatList.find((item) => item.id === selectMessage.value!.from)
 
@@ -725,7 +724,7 @@ function adminSend() {
 //ANCHOR - 禁言
 function ban() {
     if (!selectMessage.value) return
-    console.log('ban', selectMessage.value)
+    // console.log('ban', selectMessage.value)
 
     const chan = selectMessage.value.chan
     const userId = selectMessage.value.from as number
@@ -754,7 +753,7 @@ function ban() {
 
 //显示详情
 function showDetails(item: any) {
-    console.log('showDetails', item)
+    // console.log('showDetails', item)
     if (typeof item.payload === 'string') {
         item.payload = JSON.parse(item.payload!)
     }
@@ -762,7 +761,7 @@ function showDetails(item: any) {
 }
 //跳转到详情
 function goShowDetails(item: any) {
-    console.log('goShowDetails', item)
+    // console.log('goShowDetails', item)
     const convertedPayload = convertAuctionPayload(item.payload)
     if (convertedPayload.status != undefined && convertedPayload.status == '已成交') {
         popupDetailRef.value.open('bottom')
@@ -771,7 +770,7 @@ function goShowDetails(item: any) {
 }
 
 async function onAuctionEndAction({ message, payload }: { message: any; payload: any }) {
-    console.log('onAuctionEndAction', { message, payload })
+    // console.log('onAuctionEndAction', { message, payload })
 
     try {
         // 转换payload，兼容老旧消息的PascalCase属性
@@ -780,31 +779,31 @@ async function onAuctionEndAction({ message, payload }: { message: any; payload:
         // 从 payload 中获取拍品ID
         const auctionItemId = convertedPayload.id
         if (!auctionItemId) {
-            console.error('AuctionEnd payload 中缺少拍品ID')
+            // console.error('AuctionEnd payload 中缺少拍品ID')
             Tips.error('无法获取拍品信息')
             return
         }
 
         // 通过 API 获取完整的拍品信息
-        console.log('正在获取拍品详情，ID:', auctionItemId)
+        // console.log('正在获取拍品详情，ID:', auctionItemId)
         const auctionItemDetail = await api.auctionItem.getDetail(auctionItemId)
-        console.log('拍品详情获取成功:', auctionItemDetail)
+        // console.log('拍品详情获取成功:', auctionItemDetail)
 
         // 调用 showDetail 显示详情
         showDetails({ message, payload: auctionItemDetail })
     } catch (error) {
-        console.error('获取拍品详情失败:', error)
+        // console.error('获取拍品详情失败:', error)
         Tips.error('获取拍品详情失败，请重试')
 
         // 如果API调用失败，尝试使用转换后的payload数据（降级处理）
-        console.log('使用转换后的payload数据作为降级处理')
+        // console.log('使用转换后的payload数据作为降级处理')
         const convertedPayload = convertAuctionPayload(payload)
         showDetails({ message, payload: convertedPayload })
     }
 }
 
 async function onAuctionStartAction({ message, payload }: { message: any; payload: any }) {
-    console.log('onAuctionStartAction', { message, payload })
+    // console.log('onAuctionStartAction', { message, payload })
 
     try {
         // 转换payload，兼容老旧消息的PascalCase属性
@@ -813,31 +812,30 @@ async function onAuctionStartAction({ message, payload }: { message: any; payloa
         // 从 payload 中获取拍品ID
         const auctionItemId = convertedPayload.id
         if (!auctionItemId) {
-            console.error('AuctionStart payload 中缺少拍品ID')
             Tips.error('无法获取拍品信息')
             return
         }
 
         // 通过 API 获取完整的拍品信息
-        console.log('正在获取拍品详情，ID:', auctionItemId)
+        // console.log('正在获取拍品详情，ID:', auctionItemId)
         const auctionItemDetail = await api.auctionItem.getDetail(auctionItemId)
-        console.log('拍品详情获取成功:', auctionItemDetail)
+        // console.log('拍品详情获取成功:', auctionItemDetail)
 
         // 调用 showDetail 显示详情
         showDetails({ message, payload: auctionItemDetail })
     } catch (error) {
-        console.error('获取拍品详情失败:', error)
+        // console.error('获取拍品详情失败:', error)
         Tips.error('获取拍品详情失败，请重试')
 
         // 如果API调用失败，尝试使用转换后的payload数据（降级处理）
-        console.log('使用转换后的payload数据作为降级处理')
+        // console.log('使用转换后的payload数据作为降级处理')
         const convertedPayload = convertAuctionPayload(payload)
         showDetails({ message, payload: convertedPayload })
     }
 }
 
 async function onAuctionBidAction({ message, payload }: { message: any; payload: any }) {
-    console.log('onAuctionBidAction', { message, payload })
+    // console.log('onAuctionBidAction', { message, payload })
 
     try {
         // 转换payload，兼容老旧消息的PascalCase属性
@@ -846,31 +844,30 @@ async function onAuctionBidAction({ message, payload }: { message: any; payload:
         // 从 payload 中获取拍品ID
         const auctionItemId = convertedPayload.id
         if (!auctionItemId) {
-            console.error('AuctionBid payload 中缺少拍品ID')
             Tips.error('无法获取拍品信息')
             return
         }
 
         // 通过 API 获取完整的拍品信息
-        console.log('正在获取拍品详情，ID:', auctionItemId)
+        // console.log('正在获取拍品详情，ID:', auctionItemId)
         const auctionItemDetail = await api.auctionItem.getDetail(auctionItemId)
-        console.log('拍品详情获取成功:', auctionItemDetail)
+        // console.log('拍品详情获取成功:', auctionItemDetail)
 
         // 调用 showDetail 显示详情
         showDetails({ message, payload: auctionItemDetail })
     } catch (error) {
-        console.error('获取拍品详情失败:', error)
+        // console.error('获取拍品详情失败:', error)
         Tips.error('获取拍品详情失败，请重试')
 
         // 如果API调用失败，尝试使用转换后的payload数据（降级处理）
-        console.log('使用转换后的payload数据作为降级处理')
+        // console.log('使用转换后的payload数据作为降级处理')
         const convertedPayload = convertAuctionPayload(payload)
         showDetails({ message, payload: convertedPayload })
     }
 }
 
 async function onAuctionDealAction({ message, payload }: { message: any; payload: any }) {
-    console.log('onAuctionDealAction', { message, payload })
+    // console.log('onAuctionDealAction', { message, payload })
 
     try {
         // 转换payload，兼容老旧消息的PascalCase属性
@@ -879,24 +876,23 @@ async function onAuctionDealAction({ message, payload }: { message: any; payload
         // 从 payload 中获取拍品ID
         const auctionItemId = convertedPayload.id
         if (!auctionItemId) {
-            console.error('AuctionDeal payload 中缺少拍品ID')
             Tips.error('无法获取拍品信息')
             return
         }
 
         // 通过 API 获取完整的拍品信息
-        console.log('正在获取拍品详情，ID:', auctionItemId)
+        // console.log('正在获取拍品详情，ID:', auctionItemId)
         const auctionItemDetail = await api.auctionItem.getDetail(auctionItemId)
-        console.log('拍品详情获取成功:', auctionItemDetail)
+        // console.log('拍品详情获取成功:', auctionItemDetail)
 
         // 调用 showDetail 显示详情
         showDetails({ message, payload: auctionItemDetail })
     } catch (error) {
-        console.error('获取拍品详情失败:', error)
+        // console.error('获取拍品详情失败:', error)
         Tips.error('获取拍品详情失败，请重试')
 
         // 如果API调用失败，尝试使用转换后的payload数据（降级处理）
-        console.log('使用转换后的payload数据作为降级处理')
+        // console.log('使用转换后的payload数据作为降级处理')
         const convertedPayload = convertAuctionPayload(payload)
         showDetails({ message, payload: convertedPayload })
     }

@@ -12,7 +12,6 @@ import { onLoad } from '@dcloudio/uni-app'
 const appStore = useAppStore()
 
 onLoad(async () => {
-    console.log('weather onLoad')
     await appStore.getLocation().then(async (res) => {
         // console.log(res)
         await appStore.getCity(res.latitude, res.longitude)

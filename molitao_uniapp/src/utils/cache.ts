@@ -22,9 +22,7 @@ function getWithExpiry(key: string) {
         return null
     }
 
-    console.log('itemStr', itemStr)
     const item = JSON.parse(itemStr)
-    console.log('item', item)
     // compare the expiry time of the item with the current time
     const _diff = dayjs(item.expiry).diff(dayjs(), 'second')
     if (_diff < 0) {

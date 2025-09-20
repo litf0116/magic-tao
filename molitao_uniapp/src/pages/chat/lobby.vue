@@ -96,9 +96,7 @@ const filterText = ref('')
 const popupRef = ref(null as any)
 const popupShowRef = ref(null as any)
 onLoad((pamams: any) => {
-    console.log('onLoad', pamams)
     const t = pamams.id + ''
-    console.log(t)
     chan.value = t
     init()
 })
@@ -165,7 +163,6 @@ const initGroup = async (name: string) => {
 }
 
 const historyMsgs = computed(() => {
-    console.log('historyMsgs', chatStore.chatMap)
     return chatStore.chatMap.get(`${chatStore.currentChat.id}`) || []
 })
 
@@ -203,14 +200,12 @@ function send(e: { type: ChatMessageType; data: string | object }) {
 }
 
 function showGroups() {
-    console.log('showGroups', popupRef.value)
     chatStore.getGropus().then(() => {
         popupRef.value.open()
     })
 }
 
 function deleteMyGroup() {
-    console.log(myGroup.value)
     if (myGroup.value) {
         deleteChannel(myGroup.value.chan)
     }

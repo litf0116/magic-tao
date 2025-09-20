@@ -234,7 +234,6 @@ function upinImage(tempFiles: any, editorCtx: any) {
                 })
             },
             fail(err) {
-                console.log(err)
                 Tips.error('上传失败')
             },
         })

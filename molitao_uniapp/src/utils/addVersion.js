@@ -21,5 +21,5 @@ verarr[2] = parseInt(verarr[2]) + 1
 packageData.version = today + '@' + verarr.join('.') //转换为以"."分割的字符串
 //用packageData覆盖package.json内容
 fs.writeFile('./src/static/version.json', JSON.stringify(packageData, null, '\t'), (err) => {
-    console.log(err || 'version update success')
+    // Version update completed
 })

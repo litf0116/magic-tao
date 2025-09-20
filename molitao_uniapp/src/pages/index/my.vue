@@ -183,22 +183,17 @@ function payDeposit() {
             signType: res.signType,
             paySign: res.paySign,
             success: async (res) => {
-                console.log('success:' + JSON.stringify(res))
-
                 // 更新用户信息和统计数据
                 try {
                     await userStore.checkLogin(false, true)
                     getMyCount()
-                    console.log('用户信息更新成功')
                 } catch (error) {
-                    console.error('更新用户信息失败:', error)
                     getMyCount() // 即使更新失败也要更新统计数据
                 }
 
                 Tips.success('支付成功，保证金已到账')
             },
             fail: (err) => {
-                console.log('fail:' + JSON.stringify(err))
                 Tips.info('用户取消支付')
             },
         })
@@ -247,13 +242,12 @@ async function topUp() {
             signType: res.signType,
             paySign: res.paySign,
             success: (res) => {
-                console.log('success:' + JSON.stringify(res))
                 Tips.noCancelModal('充值成功,余额显示数量将会稍后更新', '充值成功').then(() => {
                     getMyCount()
                 })
             },
             fail: (err) => {
-                console.log('fail:' + JSON.stringify(err))
+                // Payment failure handling
             },
         })
     })
@@ -269,10 +263,10 @@ function testPay() {
             signType: res.signType,
             paySign: res.paySign,
             success: (res) => {
-                console.log('success:' + JSON.stringify(res))
+                // Test payment success
             },
             fail: (err) => {
-                console.log('fail:' + JSON.stringify(err))
+                // Test payment failure
             },
         })
     })

@@ -68,7 +68,6 @@ onLoad((query: any) => {
     if (query != undefined) {
         const id = parseInt(query.id + '')
         if (isNaN(id)) {
-            console.error('Invalid friend id:', query.id)
             return
         }
         friend.id = id
@@ -95,7 +94,6 @@ onLoad((query: any) => {
 
 async function loadHistoryMessage(force = false) {
     if (!chatRef.value) {
-        console.warn('chatRef is not ready')
         return
     }
 
@@ -126,7 +124,6 @@ function send(e: { type: ChatMessageType; data: string | object }) {
 
 // 拍品详情相关函数
 function showDetail(e: AuctionItemDto) {
-    console.log('showDetail', e)
     showItem.value = convertFields(e)
     popup.value.open('bottom')
 }
@@ -147,7 +144,6 @@ const convertFields = (obj: any) => {
 }
 
 function popChange(e: { show: boolean; type: string }) {
-    console.log(e)
     if (e.show === false) {
         showItem.value = null
     }
@@ -169,7 +165,6 @@ function getStartContent(item: AuctionItemDto) {
 }
 
 function catchImage(e: any) {
-    console.log('catchImage', e)
     try {
         const description = showItem.value?.description
         if (!description) return
@@ -187,9 +182,8 @@ function catchImage(e: any) {
             urls: list, // 需要预览的图片http链接列表
         })
 
-        console.log('catchImage', list)
     } catch (error) {
-        console.error('图片预览失败:', error)
+        // Image preview error handling
     }
 }
 </script>

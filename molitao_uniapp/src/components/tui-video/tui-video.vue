@@ -34,13 +34,11 @@ onMounted(() => {
 
 function playVideo() {
     // const videoContext = uni.createVideoContext(props.id)
-    console.log('playVideo', videoContext)
     videoContext.requestFullScreen()
 }
 
 function screenChange(e: any) {
     let fullScreen = e.detail.fullScreen
-    console.log('screenChange', e)
     if (!fullScreen) {
         //退出全屏
         // const videoContext = uni.createVideoContext(props.id)

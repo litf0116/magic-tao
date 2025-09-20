@@ -86,7 +86,6 @@ const init = () => {
         uni.navigateTo({ url })
         return
     }
-    console.log('onLoad 初始化')
     chatStore.getChatList()
     chatStore.connectServer().then(async () => {
         //todo
@@ -98,7 +97,6 @@ const actionPopup = reactive({
 })
 
 async function chat(chat: ChatListItem) {
-    console.log('chat', chat)
     await chatStore.SetCurrentChat(chat)
     await chatStore.SetUnread(chat, 0)
 
@@ -130,7 +128,6 @@ function deleteConversation() {
         success: async (res) => {
             if (res.confirm) {
                 let conversation: any = actionPopup.conversation!
-                console.log('删除会话', conversation)
                 chatStore.deleteChat(conversation)
             }
         },

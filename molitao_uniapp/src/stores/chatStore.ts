@@ -96,7 +96,7 @@ export const useChatStore = defineStore('chatStore', () => {
                     url: res.server,
                     success: (res) => {
                         //接口调用成功的回调函数
-                        console.log('connectSocket 接口调用成功', res)
+                        // console.log('connectSocket 接口调用成功', res)
                     },
                 })
 
@@ -109,12 +109,12 @@ export const useChatStore = defineStore('chatStore', () => {
                         }
                         if (msg.type === 'Error') {
                             // alert(msg.receipt)
-                            console.log('websocket message error', msg)
+                            // console.log('websocket message error', msg)
                             return
                         }
                         onmessage(msg)
                     } catch (e) {
-                        console.log('onMessage Error', e)
+                        // console.log('onMessage Error', e)
                         return
                     }
                 })
@@ -122,26 +122,26 @@ export const useChatStore = defineStore('chatStore', () => {
                 gsocket.onClose(() => {
                     clearTimeout(gsocketTimeId.value)
                     // Tips.info('聊天服务器连接断开')
-                    console.log('websocket disconnect')
+                    // console.log('websocket disconnect')
                     // api.ws.offline({ websocketId: websocketId.value })
                     //检查是不是在聊天室路由,如果是,则重新连接
                     const curPage = getCurrentPages()
                     const route = curPage[curPage.length - 1].route! //获取当前页面的路由
-                    console.log('route', route)
+                    // console.log('route', route)
                     if (route.startsWith('pages/chat/')) {
-                        console.log('聊天室路由,重连')
+                        // console.log('聊天室路由,重连')
                         gsocket = null
                         gsocketTimeId.value = setTimeout(function () {
                             connectServer(true)
                         }, 5000)
                     } else {
                         gsocket = null
-                        console.log('非聊天室路由,不重连')
+                        // console.log('非聊天室路由,不重连')
                     }
                 })
 
                 gsocket.onError((e) => {
-                    console.log('websocket error 5秒后重新连接', e)
+                    // console.log('websocket error 5秒后重新连接', e)
                     gsocket = null
                     clearTimeout(gsocketTimeId.value)
                     gsocketTimeId.value = setTimeout(function () {
@@ -150,9 +150,9 @@ export const useChatStore = defineStore('chatStore', () => {
                 })
 
                 gsocket.onOpen(() => {
-                    console.log('onOpen')
+                    // console.log('onOpen')
                     // await getGropus()
-                    console.log('聊天服务器连接成功')
+                    // console.log('聊天服务器连接成功')
                     Tips.success('聊天服务器连接成功')
                     return resolve('ok')
                 })
@@ -186,7 +186,7 @@ export const useChatStore = defineStore('chatStore', () => {
             }
         }
 
-        console.log('onmessage', msg)
+        // console.log('onmessage', msg)
         bus.emit(msg)
         //未读消息数量
         const unreadCount = uni.getStorageSync('unreadCount')
@@ -302,15 +302,15 @@ export const useChatStore = defineStore('chatStore', () => {
 
         // 特殊处理：解码卡秒消息和出价消息
         if (msg.type === ChatMessageType.AuctionBid && msg.payload) {
-            console.log('=== 检测到出价消息 ===')
-            console.log('消息类型:', msg.type)
-            console.log('消息payload:', msg.payload)
-            console.log('payload类型:', typeof msg.payload)
+            // console.log('=== 检测到出价消息 ===')
+            // console.log('消息类型:', msg.type)
+            // console.log('消息payload:', msg.payload)
+            // console.log('payload类型:', typeof msg.payload)
 
             // 检查是否是编码的卡秒消息
             if (msg.payload.messageType === 'KasecStatusChanged' && msg.payload.encoded) {
-                console.log('=== 检测到编码的卡秒消息 ===')
-                console.log('卡秒消息payload:', msg.payload)
+                // console.log('=== 检测到编码的卡秒消息 ===')
+                // console.log('卡秒消息payload:', msg.payload)
 
                 // 解码：将消息类型从 AuctionBid 转换为 KasecStatusChanged
                 msg.type = ChatMessageType.KasecStatusChanged
@@ -338,7 +338,7 @@ export const useChatStore = defineStore('chatStore', () => {
             }
 
             // 处理正常的出价消息
-            console.log('=== 处理正常出价消息 ===')
+            // console.log('=== 处理正常出价消息 ===')
             // 使用新的增量更新方法，避免重新请求整个列表
             if (typeof auctionStore.updateAuctionItemFromBidMessage === 'function') {
                 auctionStore.updateAuctionItemFromBidMessage(msg.payload)
@@ -347,15 +347,15 @@ export const useChatStore = defineStore('chatStore', () => {
 
         // 检查是否是编码的成交消息
         if (msg.type === ChatMessageType.AuctionEnd && msg.payload) {
-            console.log('=== 检测到AuctionEnd消息 ===')
-            console.log('消息类型:', msg.type)
-            console.log('消息payload:', msg.payload)
-            console.log('payload类型:', typeof msg.payload)
+            // console.log('=== 检测到AuctionEnd消息 ===')
+            // console.log('消息类型:', msg.type)
+            // console.log('消息payload:', msg.payload)
+            // console.log('payload类型:', typeof msg.payload)
 
             // 检查是否是编码的成交消息
             if (msg.payload.messageType === 'AuctionDeal' && msg.payload.encoded) {
-                console.log('=== 检测到编码的成交消息 ===')
-                console.log('成交消息payload:', msg.payload)
+                // console.log('=== 检测到编码的成交消息 ===')
+                // console.log('成交消息payload:', msg.payload)
 
                 // 解码：将消息类型从 AuctionEnd 转换为 AuctionDeal
                 msg.type = ChatMessageType.AuctionDeal
@@ -365,15 +365,15 @@ export const useChatStore = defineStore('chatStore', () => {
                     msg.payload = msg.payload.originalPayload
                 }
 
-                console.log('=== 成交消息解码完成 ===')
-                console.log('解码后消息类型:', msg.type)
-                console.log('解码后payload:', msg.payload)
+                // console.log('=== 成交消息解码完成 ===')
+                // console.log('解码后消息类型:', msg.type)
+                // console.log('解码后payload:', msg.payload)
             }
         }
 
         // 特殊处理：监听拍卖结束消息，为中拍用户创建聊天频道
         if (msg.type === 'AuctionEnd' && msg.payload) {
-            console.log('检测到拍卖结束消息，为中拍用户创建聊天频道', msg.payload)
+            // console.log('检测到拍卖结束消息，为中拍用户创建聊天频道', msg.payload)
             // 如果当前用户是消息发送者（拍卖师），为中拍者创建聊天会话
             const userStore = useUserStore()
             if (msg.from === userStore.user.id) {
@@ -383,15 +383,15 @@ export const useChatStore = defineStore('chatStore', () => {
     }
 
     const SetCurrentChat = (item: ChatListItem) => {
-        console.log('SetCurrentChat', item)
+        // console.log('SetCurrentChat', item)
         uni.removeStorageSync('unreadCount')
         currentChat.value = item
     }
     const SetCurrentChatId = (id: number, name = '', isGroup = true) => {
         return new Promise<void>((resolve) => {
-            console.log('SetCurrentChatId', id, name, isGroup)
+            // console.log('SetCurrentChatId', id, name, isGroup)
             const item = chatList.value.find((item) => item.id === id)
-            console.log('find', item)
+            // console.log('find', item)
             if (item) currentChat.value = item
             else
                 currentChat.value = {
@@ -403,7 +403,7 @@ export const useChatStore = defineStore('chatStore', () => {
                     unread: 0,
                     order: 0,
                 }
-            console.log('currentChat.value', currentChat.value)
+            // console.log('currentChat.value', currentChat.value)
             return resolve()
         })
     }
@@ -451,7 +451,7 @@ export const useChatStore = defineStore('chatStore', () => {
 
     const getPrivateHistory = (id: number, lastTime: number | null = null, reload = false) => {
         if (isNaN(id)) {
-            console.error('Invalid id for getPrivateHistory:', id)
+            // console.error('Invalid id for getPrivateHistory:', id)
             return Promise.resolve([])
         }
         lastTime = lastTime || new Date().getTime()
@@ -586,7 +586,7 @@ export const useChatStore = defineStore('chatStore', () => {
                 to: to,
                 payload: payload,
             }
-            console.log('sendMsg', data)
+            // console.log('sendMsg', data)
             await api.ws
                 .sendMsg({
                     from: websocketId.value,
@@ -652,7 +652,7 @@ export const useChatStore = defineStore('chatStore', () => {
     }
 
     const deleteChat = (x: ChatListItem) => {
-        console.log('deleteChat', x)
+        // console.log('deleteChat', x)
         if (x.type === 1) {
             api.client.DeleteChatList({ id: x.id }).then(() => {})
         }
@@ -666,12 +666,12 @@ export const useChatStore = defineStore('chatStore', () => {
     }
 
     const removeMessage = (id: string) => {
-        console.log('removeMessage', id)
+        // console.log('removeMessage', id)
         //从chatmap中删除此id的消息
         for (const [key, chatMessages] of chatMap.value.entries()) {
             // console.log(key, chatMessages)
             const index = chatMessages.findIndex((message) => message.id === id)
-            console.log('撤销消息index:', index)
+            // console.log('撤销消息index:', index)
             if (index !== -1) {
                 chatMessages.splice(index, 1)
                 break
@@ -688,7 +688,7 @@ export const useChatStore = defineStore('chatStore', () => {
         const itemName = auctionResult.name || auctionResult.Name
 
         if (!dealUserId || !dealUserName) {
-            console.warn('拍卖结果中缺少中拍用户信息', auctionResult)
+            // console.warn('拍卖结果中缺少中拍用户信息', auctionResult)
             return
         }
 
@@ -740,7 +740,7 @@ export const useChatStore = defineStore('chatStore', () => {
             chatMap.value.set(`${dealUserId}`, [chatItem.msg!])
         }
 
-        console.log('已为中拍用户创建聊天频道', dealUserName)
+        // console.log('已为中拍用户创建聊天频道', dealUserName)
     }
 
     const getServerLastId = () => {

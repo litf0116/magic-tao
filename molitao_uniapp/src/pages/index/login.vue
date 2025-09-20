@@ -54,7 +54,6 @@ function wxLogin(back: boolean) {
 }
 
 async function login() {
-    console.log(form.value)
     if (!/^1\d{10}$/.test(form.value.phoneNumber)) {
         Tips.info('请输入正确的手机号码')
         return
@@ -69,7 +68,6 @@ async function login() {
 }
 
 async function realLogin() {
-    console.log('realLogin')
     isloading.value = true
     await userStore.login(form.value.phoneNumber, form.value.password).then(() => {
         isloading.value = false

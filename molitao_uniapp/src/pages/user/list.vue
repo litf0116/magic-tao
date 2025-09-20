@@ -66,7 +66,6 @@ function fetchData() {
             keyword: keyword.value,
         })
         .then((res: any) => {
-            console.log(res)
             list.value = res.items
             totalCount.value = res.totalCount
         })
