@@ -171,6 +171,7 @@ import { ChatListItem } from '@/stores/chatStore'
 import { ElMessageBox } from 'element-plus'
 import { orderBy } from 'lodash'
 import dayjs from 'dayjs'
+import { convertImageUrl } from '@/utils/imageUrlConverter'
 const chatStore = useChatStore()
 const route = useRoute()
 
@@ -239,7 +240,7 @@ function chatLocation(chat: ChatListItem) {
     if (chat.type === ChatListItemType.user) {
         return {
             path: `/chat/index/privateChat/${chat.id}`,
-            query: { name: chat.name, avatar: chat.avatar || 'https://cdn.molitao.top/avater.png' },
+            query: { name: chat.name, avatar: convertImageUrl(chat.avatar) || 'http://image.molitao.top/avater.png' },
         }
     } else if (chat.id === 0) {
         return { path: `/chat/index/lobby` }

@@ -38,6 +38,7 @@ import PagedTable from '@/components/paged-table/index.vue'
 import { User } from '@element-plus/icons-vue'
 const { imagePreview, utcToLocalFull, utcToLocalDay } = useFormatter()
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { convertImageUrl } from '@/utils/imageUrlConverter'
 
 const _api = api.auctionItem
 
@@ -66,7 +67,7 @@ function chat(userId: number, name: string) {
 
     const link = router.resolve({
         path: `/chat/index/privateChat/${userId}`,
-        query: { name: name, avatar: 'https://cdn.molitao.top/avater.png' },
+        query: { name: name, avatar: 'http://image.molitao.top/avater.png' },
     })
     console.log(link)
     window.open(link.href, '_blank')

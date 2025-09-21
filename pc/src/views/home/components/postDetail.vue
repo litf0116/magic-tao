@@ -100,6 +100,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { GetPostDetail, Delete, SetPostTop, SetPostEssence } from '@/api/postAPI'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import postItem from './postItem.vue'
+import { convertImageUrl } from '@/utils/imageUrlConverter'
 
 const route = useRoute()
 const router = useRouter()
@@ -144,7 +145,7 @@ const adminSend = (res) => {
         chatStore.SetCurrentChat(chat)
         router.push({
             path: `/chat/index/privateChat/${chat.id}`,
-            query: { name: chat.name, avatar: chat.avatar || 'https://cdn.molitao.top/avater.png' },
+            query: { name: chat.name, avatar: convertImageUrl(chat.avatar) || 'http://image.molitao.top/avater.png' },
         })
     }
 }

@@ -28,9 +28,9 @@
             <!-- {{ onAuctionItem }} -->
             <div>
                 <div
-                    v-if="item.description && item.description.trim() !== '<br>' && item.description.trim() !== ''"
+                    v-if="processedDescription && processedDescription.trim() !== '<br>' && processedDescription.trim() !== ''"
                     id="auctionDesc"
-                    v-html="item.description"
+                    v-html="processedDescription"
                 ></div>
                 <div v-else>
                     <img
@@ -85,6 +85,17 @@ const userStore = useUserStore()
 const emit = defineEmits(['onEdit'])
 
 const auctionStore = useAuctionStore()
+
+// 处理描述中的图片URL转换
+const processedDescription = computed(() => {
+    if (!item.value?.description) return ''
+
+    // 处理描述中的img标签URL转换
+    return item.value.description.replace(/<img[^>]+data-url=['"]([^'"]+)['"][^>]*>/g, (match, p1) => {
+        const convertedUrl = convertImageUrl(p1)
+        return match.replace(p1, convertedUrl)
+    })
+})
 
 const dialogVisible = ref(false)
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -224,7 +235,7 @@ const show = (e: boolean, id: number) => {
                     img.addEventListener('click', () => {
                         console.log('img click', img.getAttribute('src'))
                         let src = img.getAttribute('src') as string
-                        src = src.replace(/!w300$/, '')
+                        src = convertImageUrl(src.replace(/!w300$/, ''))
                         showImageViewer([src])
                     })
                 })
@@ -234,7 +245,7 @@ const show = (e: boolean, id: number) => {
                     img.addEventListener('click', () => {
                         console.log('img click', img.getAttribute('src'))
                         let src = img.getAttribute('src') as string
-                        src = src.replace(/!w300$/, '')
+                        src = convertImageUrl(src.replace(/!w300$/, ''))
                         showImageViewer([src])
                     })
                 })
