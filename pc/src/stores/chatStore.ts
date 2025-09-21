@@ -6,7 +6,7 @@ import { ChatGroupDto, ChatMessage, ChatMessageType, UserDtoBase } from '@/api/a
 import { uniqBy, orderBy } from 'lodash'
 import { useEventBus } from '@vueuse/core'
 import { useAuctionStore } from '@/stores/auctionStore'
-import { convertImageUrl } from '@/utils/imageUrlConverter'
+import { convertImageUrl, convertObjectImageUrls } from '@/utils/imageUrlConverter'
 
 export const onmessageKey = Symbol('onmessageKey')
 
@@ -111,7 +111,7 @@ export const useChatStore = defineStore('chat', () => {
     function getChatList() {
         return new Promise<void>((resolve, reject) => {
             api.client.getChatList().then((res: any) => {
-                chatList.value = res
+                chatList.value = convertObjectImageUrls(res, ['avatar'])
                 return resolve()
             })
             return resolve()
@@ -225,6 +225,11 @@ export const useChatStore = defineStore('chat', () => {
     const router = useRouter()
 
     const onmessage = function (msg: ChatMessage) {
+        // 转换消息头像URL
+        if (msg.avatar) {
+            msg.avatar = convertImageUrl(msg.avatar)
+        }
+
         // 转换消息类型：将数值类型转换为字符串类型
         if (typeof msg.type === 'number') {
             const typeMap: { [key: number]: ChatMessageType } = {

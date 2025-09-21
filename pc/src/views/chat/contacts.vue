@@ -11,7 +11,7 @@
                         :class="{ actived: profile.friend && profile.friend.id === friend.id }"
                     >
                         <div class="friend-avatar">
-                            <img :src="friend.headImgUrl" />
+                            <img :src="convertImageUrl(friend.headImgUrl)" />
                         </div>
                         <div class="friend">
                             <div class="friend-name">{{ friend.name }}</div>
@@ -38,7 +38,7 @@
                     @click="showFriendProfile(friend)"
                 >
                     <div class="friend-avatar">
-                        <img :src="friend.headImgUrl" />
+                        <img :src="convertImageUrl(friend.headImgUrl)" />
                     </div>
                     <div class="friend">
                         <div class="friend-name">{{ friend.name }}</div>
@@ -56,7 +56,7 @@
                         <div>{{ profile.friend.name }}</div>
                     </div>
                     <div class="profile-avatar">
-                        <img :src="profile.friend.headImgUrl" />
+                        <img :src="convertImageUrl(profile.friend.headImgUrl)" />
                     </div>
                 </div>
                 <div class="friend-info">
@@ -83,6 +83,7 @@
 <script setup lang="ts">
 import api from '@/api'
 import { UserDtoBase } from '@/api/appService'
+import { convertImageUrl } from '@/utils/imageUrlConverter'
 
 const chatStore = useChatStore()
 const router = useRouter()
@@ -111,7 +112,7 @@ function privateChat() {
         path: '/chat/index/privatechat/' + profile.value.friend!.id,
         query: {
             name: profile.value.friend!.name,
-            avatar: profile.value.friend!.headImgUrl,
+            avatar: convertImageUrl(profile.value.friend!.headImgUrl),
         },
     })
 }

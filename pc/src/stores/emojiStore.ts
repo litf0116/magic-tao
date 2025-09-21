@@ -1,6 +1,7 @@
 import api from '@/api'
 import { ChatEmojiDto, ChatMessage } from '@/api/appService'
 import { defineStore, acceptHMRUpdate } from 'pinia'
+import { convertObjectImageUrls } from '@/utils/imageUrlConverter'
 
 export const useEmojiStore = defineStore('emoji', () => {
     const emojiUrl = 'https://imgcache.qq.com/open/qcloud/tim/assets/emoji/'
@@ -158,7 +159,7 @@ export const useEmojiStore = defineStore('emoji', () => {
 
     function featchUserEmoji() {
         api.chatEmoji.getAll().then((res) => {
-            userEmoji.value = res.items
+            userEmoji.value = convertObjectImageUrls(res.items, ['url'])
         })
     }
 

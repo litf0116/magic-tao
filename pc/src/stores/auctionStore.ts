@@ -7,6 +7,7 @@ import { GetAuctionMidList } from '@/api/auctionMidAPI'
 import { setKasecStatus, getKasecStatus, GetDetail } from '@/api/auctionItemAPI'
 import { ElMessage } from 'element-plus'
 import { convertAuctionPayload } from '@/utils/propertyConverter'
+import { convertObjectImageUrls } from '@/utils/imageUrlConverter'
 
 export const useAuctionStore = defineStore('auction', () => {
     const list = ref<AuctionItemDto[]>([])
@@ -254,7 +255,7 @@ export const useAuctionStore = defineStore('auction', () => {
             //待拍卖
             if (!status) {
                 api.auctionItem.getPublicList({ maxResultCount: 100 }).then((res) => {
-                    list.value = res.items!
+                    list.value = convertObjectImageUrls(res.items!, ['imageUrl'])
                     console.log('拍卖列表已刷新')
                     // Tips.success('拍卖列表已刷新')
                     return resolve()
@@ -265,7 +266,7 @@ export const useAuctionStore = defineStore('auction', () => {
                 GetAuctionMidList({ status, maxResultCount: 100 }).then((res) => {
                     if (res.status == 200) {
                         auctionMid.value.length = 0
-                        auctionMid.value = res.data.items
+                        auctionMid.value = convertObjectImageUrls(res.data.items, ['imageUrl'])
                     }
                     // Tips.success('拍卖列表已刷新')
                     return resolve()
@@ -274,7 +275,7 @@ export const useAuctionStore = defineStore('auction', () => {
             //已完成
             if (status === 4) {
                 api.auctionItem.getPublicList({ status, maxResultCount: 100 }).then((res) => {
-                    list4.value = res.items!
+                    list4.value = convertObjectImageUrls(res.items!, ['imageUrl'])
                     // Tips.success('拍卖列表已刷新')
                     return resolve()
                 })
