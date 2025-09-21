@@ -240,7 +240,7 @@ function chatLocation(chat: ChatListItem) {
     if (chat.type === ChatListItemType.user) {
         return {
             path: `/chat/index/privateChat/${chat.id}`,
-            query: { name: chat.name, avatar: convertImageUrl(chat.avatar) || 'http://image.molitao.top/avater.png' },
+            query: { name: chat.name, avatar: convertImageUrl(chat.avatar) || 'https://image.molitao.top/avater.png' },
         }
     } else if (chat.id === 0) {
         return { path: `/chat/index/lobby` }

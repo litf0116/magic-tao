@@ -67,7 +67,7 @@ function chat(userId: number, name: string) {
 
     const link = router.resolve({
         path: `/chat/index/privateChat/${userId}`,
-        query: { name: name, avatar: 'http://image.molitao.top/avater.png' },
+        query: { name: name, avatar: 'https://image.molitao.top/avater.png' },
     })
     console.log(link)
     window.open(link.href, '_blank')

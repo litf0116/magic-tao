@@ -3,6 +3,7 @@ import { getToken, removeToken, setToken } from '../utils/cookies'
 import { usePermissionStore } from './permissionStore'
 import api from '@/api'
 import { UserLoginInfoDto } from '@/api/appService'
+import { convertImageUrl } from '@/utils/imageUrlConverter'
 
 export interface IUserModuleState {
     user: UserLoginInfoDto
@@ -20,6 +21,15 @@ export const useUserStore = defineStore('user', () => {
     const permissionStore = usePermissionStore()
 
     const user: Ref<UserLoginInfoDto> = ref(Object.assign({}, defaultUser, JSON.parse(localStorage.getItem('user')!)))
+
+    // 处理用户头像URL转换
+    const processedUser = computed(() => {
+        if (!user.value || !user.value.headImgUrl) return user.value
+        return {
+            ...user.value,
+            headImgUrl: convertImageUrl(user.value.headImgUrl)
+        }
+    })
     const token = ref(getToken() || '')
     const roles = ref([] as string[])
     const permissions = ref([] as string[])
@@ -136,7 +146,7 @@ export const useUserStore = defineStore('user', () => {
     }
 
     return {
-        user,
+        user: processedUser,
         token,
         roles,
         permissions,

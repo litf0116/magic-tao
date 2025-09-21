@@ -145,7 +145,7 @@ const adminSend = (res) => {
         chatStore.SetCurrentChat(chat)
         router.push({
             path: `/chat/index/privateChat/${chat.id}`,
-            query: { name: chat.name, avatar: convertImageUrl(chat.avatar) || 'http://image.molitao.top/avater.png' },
+            query: { name: chat.name, avatar: convertImageUrl(chat.avatar) || 'https://image.molitao.top/avater.png' },
         })
     }
 }

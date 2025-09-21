@@ -659,7 +659,7 @@ export const useChatStore = defineStore('chat', () => {
     }
 
     const getUserAvatar = (id: number) => {
-        return 'http://image.molitao.top/avater.png'
+        return 'https://image.molitao.top/avater.png'
     }
 
     const getUserFriends = (status = true) => {
@@ -759,7 +759,7 @@ export const useChatStore = defineStore('chat', () => {
             type: ChatListItemType.user,
             time: new Date().getTime(),
             lastMsg: lastMsg,
-            avatar: dealUserAvatar ? convertImageUrl(dealUserAvatar) : 'http://image.molitao.top/avater.png',
+            avatar: dealUserAvatar ? convertImageUrl(dealUserAvatar) : 'https://image.molitao.top/avater.png',
             unread: 0,
             order: 0,
             msg: {

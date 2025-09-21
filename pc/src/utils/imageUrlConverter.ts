@@ -12,7 +12,12 @@ export function convertImageUrl(url: string): string {
   if (!url) return url;
 
   // 将 cdn.molitao.top 替换为 image.molitao.top
-  return url.replace(/https?:\/\/cdn\.molitao\.top/g, 'http://image.molitao.top');
+  let result = url.replace(/https?:\/\/cdn\.molitao\.top/g, 'https://image.molitao.top');
+
+  // 将 http://image.molitao.top 替换为 https://image.molitao.top
+  result = result.replace(/http:\/\/image\.molitao\.top/g, 'https://image.molitao.top');
+
+  return result;
 }
 
 /**

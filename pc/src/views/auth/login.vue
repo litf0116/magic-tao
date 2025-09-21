@@ -34,7 +34,7 @@
                 <div>
                     <img
                         class="w-72"
-                        :src="'http://image.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png!w300'"
+                        :src="'https://image.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png!w300'"
                     />
                 </div>
                 <div class="mt-6">
