@@ -4,7 +4,7 @@
             class="scroll-container"
             scroll-y="true"
             refresher-enabled="true"
-            :refresher-triggered="refresh"
+            :refresher-triggered="loadingState.refreshing"
             :lower-threshold="150"
             :enhanced="true"
             :bounce="true"
@@ -56,8 +56,9 @@
                     class="search-input"
                     placeholder="请输入关键词"
                     placeholder-class="placeholder-style"
+                    @input="debouncedSearch"
                 />
-                <image src="../../static/搜索.png" class="search-icon" mode="aspectFit" @tap="loadData"></image>
+                <image src="../../static/搜索.png" class="search-icon" mode="aspectFit" @tap="handleSearch"></image>
             </view>
             <!-- 此处是置顶帖子的位置 -->
             <view class="section top-posts">
@@ -155,14 +156,27 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import api from '@/utils/api'
+import { Tips } from '@/composables'
+
+// 统一的分页管理
+const PAGE_SIZE = 20
+const pagination = reactive({
+    page: 1,
+    pageSize: PAGE_SIZE,
+    hasNextPages: false
+})
+
+// 加载状态管理
+const loadingState = reactive({
+    refreshing: false,
+    loadingMore: false,
+    error: null
+})
 
 const activeKey = ref(-1)
 const keywords = ref('')
-const page = ref(1)
-const pageSize = ref(20)
 const topPostList: any = ref([]) //置顶帖子列表
 const postList: any = ref([]) //帖子列表
-const hasNextPages = ref(false) //是否有下一页
 const latestBulletin: any = ref({}) //最新公告
 const bulletinList: any = ref([]) //公告列表
 const hotWordsList: any = ref([]) //热词列表
@@ -187,96 +201,163 @@ const postCategoryList: any = ref([
 ])
 
 onMounted(() => {
-    loadCategoryList()
-    loadLatestBulletin()
-    loadData(true)
-    // 初始化热词
-    loadHotWords()
-    loadData()
-    uni.hideHomeButton()
+    initializeData()
 })
 
 // 切换分类
 const switchCategory = (key: number) => {
     activeKey.value = key
-    page.value = 1
-    postList.value.length = 0
-    loadData()
+    pagination.page = 1
+    postList.value = []
+    loadPostList()
 }
-//是否切换过热词
-const isSwitchHotWords = ref(false)
+//初始化数据
+const initializeData = async () => {
+    try {
+        await Promise.all([
+            loadCategoryList(),
+            loadLatestBulletin(),
+            loadHotWords(),
+            loadTopPosts(),
+            loadPostList()
+        ])
+        uni.hideHomeButton()
+    } catch (error) {
+        console.error('初始化数据失败:', error)
+        Tips.error('加载失败，请重试')
+    }
+}
+
+//防抖函数
+const debounce = (fn: Function, delay: number) => {
+    let timer: any
+    return function (this: any, ...args: any[]) {
+        clearTimeout(timer)
+        timer = setTimeout(() => fn.apply(this, args), delay)
+    }
+}
+
+// 搜索处理 - 防抖
+const debouncedSearch = debounce(async () => {
+    pagination.page = 1
+    postList.value = []
+    await loadPostList()
+}, 500)
+
+// 搜索按钮点击处理
+const handleSearch = async () => {
+    pagination.page = 1
+    postList.value = []
+    await loadPostList()
+}
+
+// 加载置顶帖子
+const loadTopPosts = async () => {
+    try {
+        const res: any = await api.post.GetPostAll({
+            Type: activeKey.value,
+            isTop: true,
+            Keyword: keywords.value,
+            SkipCount: 0,
+            MaxResultCount: 999, // 置顶帖子不需要分页
+        })
+        topPostList.value = res.items || []
+    } catch (error) {
+        console.error('加载置顶帖子失败:', error)
+        topPostList.value = []
+    }
+}
+
+// 加载普通帖子列表
+const loadPostList = async () => {
+    try {
+        // 重置热词状态
+        if (keywords.value === '') {
+            hotWordsActiveKey.value = -1
+        }
+
+        const res: any = await api.post.GetPostAll({
+            Type: activeKey.value,
+            isTop: false,
+            Keyword: keywords.value,
+            SkipCount: (pagination.page - 1) * pagination.pageSize,
+            MaxResultCount: pagination.pageSize,
+        })
+
+        if (pagination.page === 1) {
+            postList.value = res.items || []
+            if (postList.value.length === 0) {
+                Tips.info('暂无数据')
+            }
+        } else {
+            postList.value.push(...(res.items || []))
+        }
+
+        pagination.hasNextPages = res.hasNextPages || false
+    } catch (error) {
+        console.error('加载帖子列表失败:', error)
+        loadingState.error = '加载失败'
+        Tips.error('加载失败，请重试')
+    }
+}
 //热词切换
 const switchHotWords = (key: any) => {
     hotWordsActiveKey.value = key.id
     keywords.value = key.title
-    page.value = 1
-    postList.value.length = 0
-    isSwitchHotWords.value = true
-    loadData()
+    pagination.page = 1
+    postList.value = []
+    loadPostList()
 }
 
 //下拉刷新
 const onRefresh = async () => {
-    refresh.value = true
-    page.value = 1
-    pageSize.value = 50
-    postList.value.length = 0
-    await loadData()
-    setTimeout(() => {
-        refresh.value = false
-    }, 300)
+    if (loadingState.refreshing) return
+
+    loadingState.refreshing = true
+    loadingState.error = null
+
+    try {
+        // 重置分页状态
+        pagination.page = 1
+
+        // 并行加载置顶帖子和普通帖子
+        await Promise.all([
+            loadTopPosts(),
+            loadPostList()
+        ])
+
+        Tips.success('刷新成功')
+    } catch (error) {
+        console.error('刷新失败:', error)
+        loadingState.error = '刷新失败'
+        Tips.error('刷新失败，请重试')
+    } finally {
+        setTimeout(() => {
+            loadingState.refreshing = false
+        }, 300)
+    }
 }
+
 // 上拉加载
 const onLoadMore = async () => {
-    if (hasNextPages.value) {
-        page.value++
-        if (pageSize.value != 20) {
-            pageSize.value = 20
-        }
-        await loadData()
-    } else {
-        Tips.info('没有更多数据了')
-    }
-}
-//加载数据
-const loadData = async (isTop: boolean = false) => {
-    if (keywords.value === '') {
-        if (isSwitchHotWords.value) {
-            postList.value.length = 0
-            isSwitchHotWords.value = false
-        }
-        hotWordsActiveKey.value = -1
-    }
-    const res: any = await api.post.GetPostAll({
-        Type: activeKey.value,
-        isTop: isTop,
-        Keyword: keywords.value,
-        SkipCount: page.value,
-        MaxResultCount: pageSize.value,
-    })
-    if (isTop) {
-        // 如果是加载置顶帖子
-        topPostList.value = res.items
-    } else {
-        // 如果是加载普通帖子
-        if (page.value === 1 && postList.value.length > 0) {
-            Tips.info('已是最新数据')
-            return
-        }
-        if (page.value === 1 && postList.value.length === 0 && res.items.length === 0) {
-            Tips.info('暂无数据')
-            return
-        }
-        if (page.value === 1) {
-            postList.value.length = 0 // 清空列表
-        }
-        // 合并新数据到现有列表
-        if (res.items.length === 0) {
+    if (loadingState.loadingMore || !pagination.hasNextPages) {
+        if (!pagination.hasNextPages) {
             Tips.info('没有更多数据了')
-            return
         }
-        hasNextPages.value = res.hasNextPages
-        postList.value.push(...res.items)
+        return
+    }
+
+    loadingState.loadingMore = true
+
+    try {
+        pagination.page++
+        await loadPostList()
+    } catch (error) {
+        console.error('加载更多失败:', error)
+        loadingState.error = '加载失败'
+        Tips.error('加载失败，请重试')
+    } finally {
+        loadingState.loadingMore = false
     }
 }
 //加载最新公告

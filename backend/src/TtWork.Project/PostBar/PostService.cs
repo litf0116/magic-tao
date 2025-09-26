@@ -30,43 +30,47 @@ namespace TtWork.Project.PostBar
     {
         private readonly ISqlSugarClient _sqlSugarClient;
         private readonly IAbpSession _abpSession;
+
         public PostService(ISqlSugarClient sqlSugar, IAbpSession abpSession)
         {
             _sqlSugarClient = sqlSugar;
             _abpSession = abpSession;
         }
+
         /// <summary>
         /// 后台获取数据
         /// </summary>
         /// <returns></returns>
         [HttpGet("GetAdminList")]
         [AbpAuthorize]
-        public  dynamic GetAdminList(AppResultRequestDto input)
+        public dynamic GetAdminList(AppResultRequestDto input)
         {
             try
             {
                 int totalCount = 0;
-                var items =  _sqlSugarClient.Queryable<tb_post>()
-                   .LeftJoin<UserInfoEntity>((a, c) => a.userId == c.Id)
-                   .WhereIF(!string.IsNullOrEmpty(input.Keyword), (a, c) => a.title.Contains(input.Keyword) || a.content.Contains(input.Keyword))
-                   .Select((a, c) => new PostDto
-                   {
-                       title = a.title,
-                       content = a.content,
-                       postId = a.postId,
-                       createdAt = a.createdAt,
-                       isEssence = a.isEssence,
-                       categoryId = a.categoryId,
-                       isTop = a.isTop,
-                       likeCount = a.likeCount,
-                       replyCount = a.replyCount,
-                       viewCount = a.viewCount,
-                       userId = a.userId,
-                       userName = c.Name,
-                       userAvatar = c.HeadImgUrl,
-                   })
-                   .OrderByDescending(a => a.postId)        // 最后按帖子ID降序
-                   .ToPageList(input.SkipCount, input.MaxResultCount,ref totalCount);
+                var items = _sqlSugarClient.Queryable<tb_post>()
+                    .LeftJoin<UserInfoEntity>((a, c) => a.userId == c.Id)
+                    .WhereIF(input.Status.HasValue, (a, c) => a.status == input.Status.Value)
+                    .WhereIF(!string.IsNullOrEmpty(input.Keyword),
+                        (a, c) => a.title.Contains(input.Keyword) || a.content.Contains(input.Keyword))
+                    .Select((a, c) => new PostDto
+                    {
+                        title = a.title,
+                        content = a.content,
+                        postId = a.postId,
+                        createdAt = a.createdAt,
+                        isEssence = a.isEssence,
+                        categoryId = a.categoryId,
+                        isTop = a.isTop,
+                        likeCount = a.likeCount,
+                        replyCount = a.replyCount,
+                        viewCount = a.viewCount,
+                        userId = a.userId,
+                        userName = c.Name,
+                        userAvatar = c.HeadImgUrl,
+                    })
+                    .OrderByDescending(a => a.postId) // 最后按帖子ID降序
+                    .ToPageList(input.SkipCount, input.MaxResultCount, ref totalCount);
                 //查询帖子类型
                 var categoryList = _sqlSugarClient.Queryable<tb_postCategory>().ToList();
                 //处理数据
@@ -83,6 +87,7 @@ namespace TtWork.Project.PostBar
                         }
                     }
                 }
+
                 return new { totalCount = totalCount, items = items };
             }
             catch (Exception ex)
@@ -90,6 +95,7 @@ namespace TtWork.Project.PostBar
                 throw new UserFriendlyException($"错误信息：" + ex.Message);
             }
         }
+
         /// <summary>
         /// 获取数据
         /// </summary>
@@ -100,30 +106,32 @@ namespace TtWork.Project.PostBar
             try
             {
                 var items = await _sqlSugarClient.Queryable<tb_post>()
-                   .LeftJoin<UserInfoEntity>((a, c) => a.userId == c.Id)
-                   .WhereIF(!string.IsNullOrEmpty(input.Keyword), (a, c) => a.title.Contains(input.Keyword)||a.content.Contains(input.Keyword))
-                   .WhereIF(input.Type != -1, (a, c) => a.categoryId.Contains(input.Type.ToString()))
-                  .WhereIF(input.IsTop.HasValue, (a, c) => a.isTop == input.IsTop.Value) // New filter condition
-                   .Select((a, c) => new PostDto
-                   {
-                       title = a.title,
-                       content = a.content,
-                       postId = a.postId,
-                       createdAt = a.createdAt,
-                       isEssence = a.isEssence,
-                       categoryId = a.categoryId,
-                       isTop = a.isTop,
-                       likeCount = a.likeCount,
-                       replyCount = a.replyCount,
-                       viewCount = a.viewCount,
-                       userId = a.userId,
-                       userName = c.Name,
-                       userAvatar = c.HeadImgUrl,
-                   })
-                   .OrderByDescending(a => a.isTop)         // 先按置顶降序
-                   .OrderByDescending(a => a.isEssence)     // 再按精华降序
-                   .OrderByDescending(a => a.postId)        // 最后按帖子ID降序
-                   .ToPagedListAsync(input.SkipCount, input.MaxResultCount);
+                    .LeftJoin<UserInfoEntity>((a, c) => a.userId == c.Id)
+                    .Where(a => a.status == 1) // 只返回正常状态的帖子 (1=正常, 2=关闭, 3=删除)
+                    .WhereIF(!string.IsNullOrEmpty(input.Keyword),
+                        (a, c) => a.title.Contains(input.Keyword) || a.content.Contains(input.Keyword))
+                    .WhereIF(input.Type != -1, (a, c) => a.categoryId.Contains(input.Type.ToString()))
+                    .WhereIF(input.IsTop.HasValue, (a, c) => a.isTop == input.IsTop.Value) // New filter condition
+                    .Select((a, c) => new PostDto
+                    {
+                        title = a.title,
+                        content = a.content,
+                        postId = a.postId,
+                        createdAt = a.createdAt,
+                        isEssence = a.isEssence,
+                        categoryId = a.categoryId,
+                        isTop = a.isTop,
+                        likeCount = a.likeCount,
+                        replyCount = a.replyCount,
+                        viewCount = a.viewCount,
+                        userId = a.userId,
+                        userName = c.Name,
+                        userAvatar = c.HeadImgUrl,
+                    })
+                    // .OrderByDescending(a => a.isTop)         // 先按置顶降序
+                    .OrderByDescending(a => a.isEssence) // 再按精华降序
+                    .OrderByDescending(a => a.postId) // 最后按帖子ID降序
+                    .ToPagedListAsync(input.SkipCount, input.MaxResultCount);
                 //查询帖子类型
                 var categoryList = _sqlSugarClient.Queryable<tb_postCategory>().ToList();
                 //处理数据
@@ -140,13 +148,15 @@ namespace TtWork.Project.PostBar
                         }
                     }
                 }
-                return new { totalCount = items.TotalCount, items = items.Items, HasNextPages=items.HasNextPages };
+
+                return new { totalCount = items.TotalCount, items = items.Items, HasNextPages = items.HasNextPages };
             }
             catch (Exception ex)
             {
                 throw new UserFriendlyException($"错误信息：" + ex.Message);
             }
         }
+
         /// <summary>
         /// 获取数据详情
         /// </summary>
@@ -160,27 +170,27 @@ namespace TtWork.Project.PostBar
             {
                 //查询详情
                 var info = await _sqlSugarClient.Queryable<tb_post>()
-                   .LeftJoin<UserInfoEntity>((a, c) => a.userId == c.Id)
-                   .Where((a, c) => a.postId == id)
-                   .Select((a, c) => new PostDto
-                   {
-                       title = a.title,
-                       content = a.content,
-                       postId = a.postId,
-                       categoryId = a.categoryId,
-                       createdAt = a.createdAt,
-                       isEssence = a.isEssence,
-                       isTop = a.isTop,
-                       likeCount = a.likeCount,
-                       replyCount = a.replyCount,
-                       viewCount = a.viewCount,
-                       userId = a.userId,
-                       userName = c.Name,
-                       userAvatar = c.HeadImgUrl,
-                       wechat = c.wx,
-                       qq = c.qq,
-                       LastModifierUserId = c.Id
-                   }).FirstAsync();
+                    .LeftJoin<UserInfoEntity>((a, c) => a.userId == c.Id)
+                    .Where((a, c) => a.postId == id)
+                    .Select((a, c) => new PostDto
+                    {
+                        title = a.title,
+                        content = a.content,
+                        postId = a.postId,
+                        categoryId = a.categoryId,
+                        createdAt = a.createdAt,
+                        isEssence = a.isEssence,
+                        isTop = a.isTop,
+                        likeCount = a.likeCount,
+                        replyCount = a.replyCount,
+                        viewCount = a.viewCount,
+                        userId = a.userId,
+                        userName = c.Name,
+                        userAvatar = c.HeadImgUrl,
+                        wechat = c.wx,
+                        qq = c.qq,
+                        LastModifierUserId = c.Id
+                    }).FirstAsync();
                 if (info == null)
                 {
                     throw new UserFriendlyException($"当前数据不存在");
@@ -190,12 +200,14 @@ namespace TtWork.Project.PostBar
                 {
                     //查询帖子类型
                     var categoryId = info.categoryId.Split(',').ToList();
-                    var categoryList = _sqlSugarClient.Queryable<tb_postCategory>().Where(w => categoryId.Contains(w.categoryId.ToString())).ToList();
+                    var categoryList = _sqlSugarClient.Queryable<tb_postCategory>()
+                        .Where(w => categoryId.Contains(w.categoryId.ToString())).ToList();
                     if (categoryList.Count > 0)
                     {
                         info.categoryName = string.Join(",", categoryList.Select(s => s.name));
                     }
                 }
+
                 return info;
             }
             catch (Exception ex)
@@ -203,6 +215,7 @@ namespace TtWork.Project.PostBar
                 throw new UserFriendlyException($"删除失败，错误信息：" + ex.Message);
             }
         }
+
         /// <summary>
         /// 添加数据
         /// </summary>
@@ -223,6 +236,7 @@ namespace TtWork.Project.PostBar
                 throw new UserFriendlyException($"添加失败，错误信息：" + ex.Message);
             }
         }
+
         /// <summary>
         /// 修改数据
         /// </summary>
@@ -239,15 +253,17 @@ namespace TtWork.Project.PostBar
                 {
                     throw new UserFriendlyException($"当前数据不存在");
                 }
+
                 await _sqlSugarClient.Updateable(input)
-                     .IgnoreColumns(it => new { it.createdAt, it.updatedAt })
-                     .Where(w => w.postId == input.postId).ExecuteCommandAsync();
+                    .IgnoreColumns(it => new { it.createdAt, it.updatedAt })
+                    .Where(w => w.postId == input.postId).ExecuteCommandAsync();
             }
             catch (Exception ex)
             {
                 throw new UserFriendlyException($"修改失败，错误信息：" + ex.Message);
             }
         }
+
         /// <summary>
         /// 删除数据
         /// </summary>
@@ -264,6 +280,7 @@ namespace TtWork.Project.PostBar
                 {
                     throw new UserFriendlyException($"当前数据不存在");
                 }
+
                 await _sqlSugarClient.Deleteable<tb_post>().Where(w => w.postId == id).ExecuteCommandAsync();
             }
             catch (Exception ex)
@@ -271,6 +288,7 @@ namespace TtWork.Project.PostBar
                 throw new UserFriendlyException($"删除失败，错误信息：" + ex.Message);
             }
         }
+
         /// <summary>
         /// 设置置顶帖
         /// </summary>
@@ -288,7 +306,8 @@ namespace TtWork.Project.PostBar
                 {
                     throw new UserFriendlyException($"当前数据不存在");
                 }
-                info.isTop =!info.isTop;
+
+                info.isTop = !info.isTop;
                 await _sqlSugarClient.Updateable<tb_post>(info).Where(w => w.postId == id).ExecuteCommandAsync();
             }
             catch (Exception ex)
@@ -296,6 +315,7 @@ namespace TtWork.Project.PostBar
                 throw new UserFriendlyException($"置顶失败，错误信息：" + ex.Message);
             }
         }
+
         /// <summary>
         /// 设置精华帖
         /// </summary>
@@ -313,6 +333,7 @@ namespace TtWork.Project.PostBar
                 {
                     throw new UserFriendlyException($"当前数据不存在");
                 }
+
                 info.isEssence = !info.isEssence;
                 await _sqlSugarClient.Updateable<tb_post>(info).Where(w => w.postId == id).ExecuteCommandAsync();
             }
