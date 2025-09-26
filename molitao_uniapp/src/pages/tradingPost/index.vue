@@ -415,7 +415,7 @@ const getMore = (text: any) => {
 </script>
 <style>
 .scroll-container {
-    height: calc(100vh - 40px);  /* 为底部tabbar留出空间 */
+    height: 100vh;
     width: 100%;
 
     -webkit-overflow-scrolling: touch;
@@ -425,7 +425,6 @@ const getMore = (text: any) => {
 .container {
     padding: 20rpx;
     height: 100vh;
-    padding-bottom: 120rpx;  /* 确保内容不被底部tabbar遮挡 */
 }
 
 .bottom-spacer {
