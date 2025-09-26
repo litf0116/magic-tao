@@ -1,5 +1,5 @@
 <template>
-    <view class="container" style="margin-bottom: 52px">
+    <view class="container">
         <scroll-view
             class="scroll-container"
             scroll-y="true"
@@ -149,6 +149,8 @@
                     <!-- <button class="post-button" @tap="onPost">发布新帖子</button> -->
                 </view>
             </view>
+            <!-- 底部留白区域，确保最后一个帖子不被tabbar遮挡 -->
+            <view class="bottom-spacer"></view>
         </scroll-view>
     </view>
 </template>
@@ -413,11 +415,22 @@ const getMore = (text: any) => {
 </script>
 <style>
 .scroll-container {
-    height: 100vh;
+    height: calc(100vh - 40px);  /* 为底部tabbar留出空间 */
     width: 100%;
 
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
+}
+
+.container {
+    padding: 20rpx;
+    height: 100vh;
+    padding-bottom: 120rpx;  /* 确保内容不被底部tabbar遮挡 */
+}
+
+.bottom-spacer {
+    height: 120rpx;  /* 底部留白，确保最后一个帖子完全可见 */
+    width: 100%;
 }
 
 .scroll-content {
@@ -680,10 +693,6 @@ uni-modal .uni-modal__bd {
 }
 </style>
 <style>
-.container {
-    padding: 20rpx;
-    height: 100vh;
-}
 
 .filter-section {
     display: flex;
