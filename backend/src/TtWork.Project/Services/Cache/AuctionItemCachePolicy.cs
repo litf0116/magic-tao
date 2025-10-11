@@ -60,7 +60,11 @@ namespace TtWork.Project.Services.Cache
             {
                 (int)AuctionStatusEnum.拍卖中 => TimeSpan.FromSeconds(30), // 拍卖中列表，30秒缓存
                 (int)AuctionStatusEnum.上架 => TimeSpan.FromMinutes(5), // 待拍卖列表，5分钟缓存
-                (int)AuctionStatusEnum.已成交 => TimeSpan.FromMinutes(10), // 已成交列表，10分钟缓存
+                (int)AuctionStatusEnum.已成交 => TimeSpan.FromMinutes(15), // 已成交列表，15分钟缓存（相对稳定）
+                (int)AuctionStatusEnum.交易成功 => TimeSpan.FromHours(1), // 交易成功，1小时缓存
+                (int)AuctionStatusEnum.卖家失约 => TimeSpan.FromHours(2), // 失约状态，2小时缓存
+                (int)AuctionStatusEnum.买家失约 => TimeSpan.FromHours(2), // 失约状态，2小时缓存
+                (int)AuctionStatusEnum.交易关闭 => TimeSpan.FromHours(3), // 关闭状态，3小时缓存
                 _ => TimeSpan.FromMinutes(DEFAULT_EXPIRE_MINUTES) // 其他状态，默认10分钟
             };
         }
@@ -123,8 +127,7 @@ namespace TtWork.Project.Services.Cache
         /// <returns>是否启用</returns>
         public static bool IsCacheEnabled()
         {
-            // 可以根据系统配置或负载情况动态返回
-            return false;
+            return AuctionCacheConfiguration.IsCacheEnabled;
         }
 
         /// <summary>

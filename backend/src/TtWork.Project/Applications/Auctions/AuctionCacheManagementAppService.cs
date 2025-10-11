@@ -1,12 +1,21 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Abp.Application.Services.Dto;
 using Abp.Authorization;
 using Abp.Dependency;
+using Abp.Domain.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using TtWork.Abp.Definitions;
+using TtWork.Abp.Applications;
 using TtWork.Project.Services.Cache;
+using TtWork.Project.Domains;
 using MediatR;
 using TtWork.Project.Events;
+using TtWork.Abp.Applications.Dtos;
+using Abp.UI;
 
 namespace TtWork.Project.Applications.Auctions
 {
@@ -19,15 +28,18 @@ namespace TtWork.Project.Applications.Auctions
         private readonly IAuctionItemCacheService _cacheService;
         private readonly IMediator _mediator;
         private readonly ILogger<AuctionCacheManagementAppService> _logger;
+        private readonly IRepository<AuctionItem, long> _auctionItemRepository;
 
         public AuctionCacheManagementAppService(
             IAuctionItemCacheService cacheService,
             IMediator mediator,
-            ILogger<AuctionCacheManagementAppService> logger)
+            ILogger<AuctionCacheManagementAppService> logger,
+            IRepository<AuctionItem, long> auctionItemRepository)
         {
             _cacheService = cacheService;
             _mediator = mediator;
             _logger = logger;
+            _auctionItemRepository = auctionItemRepository;
         }
 
         /// <summary>
@@ -37,8 +49,112 @@ namespace TtWork.Project.Applications.Auctions
         [HttpGet("api/AuctionCache/Stats")]
         public async Task<object> GetCacheStats()
         {
-            _logger.LogInformation("管理员请求获取拍卖品缓存统计信息");
-            return await _cacheService.GetCacheStatsAsync();
+            try
+            {
+                _logger.LogInformation("管理员请求获取拍卖品缓存统计信息");
+
+                var cacheStats = await _cacheService.GetCacheStatsAsync();
+
+                // 获取拍品统计信息
+                var totalItems = await _auctionItemRepository.CountAsync();
+                var activeItems = await _auctionItemRepository.CountAsync(x => x.Status == AuctionStatusEnum.拍卖中);
+                var completedItems = await _auctionItemRepository.CountAsync(x => x.Status == AuctionStatusEnum.已成交);
+                var listedItems = await _auctionItemRepository.CountAsync(x => x.Status == AuctionStatusEnum.上架);
+
+                return new
+                {
+                    CacheStats = cacheStats,
+                    AuctionStats = new
+                    {
+                        TotalItems = totalItems,
+                        ActiveItems = activeItems,
+                        CompletedItems = completedItems,
+                        ListedItems = listedItems,
+                        ActiveRate = totalItems > 0 ? (double)activeItems / totalItems * 100 : 0,
+                        CompletedRate = totalItems > 0 ? (double)completedItems / totalItems * 100 : 0
+                    },
+                    CachePolicy = new
+                    {
+                        IsEnabled = AuctionItemCachePolicy.IsCacheEnabled(),
+                        DefaultExpireMinutes = AuctionItemCachePolicy.DEFAULT_EXPIRE_MINUTES,
+                        ShortExpireSeconds = AuctionItemCachePolicy.SHORT_EXPIRE_SECONDS,
+                        LongExpireHours = AuctionItemCachePolicy.LONG_EXPIRE_HOURS
+                    },
+                    Timestamp = DateTime.UtcNow
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "获取缓存统计信息失败");
+                throw new UserFriendlyException("获取缓存统计信息失败：" + ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 获取缓存健康状态
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("api/AuctionCache/Health")]
+        public async Task<object> GetCacheHealthStatus()
+        {
+            try
+            {
+                var stats = await _cacheService.GetCacheStatsAsync();
+
+                // 健康检查逻辑
+                var healthChecks = new List<object>();
+
+                if (!AuctionItemCachePolicy.IsCacheEnabled())
+                {
+                    healthChecks.Add(new { Type = "Warning", Message = "缓存功能已禁用" });
+                }
+
+                // 检查拍品数量是否合理
+                var totalItems = await _auctionItemRepository.CountAsync();
+                if (totalItems == 0)
+                {
+                    healthChecks.Add(new { Type = "Info", Message = "系统中没有拍品数据" });
+                }
+
+                return new
+                {
+                    IsHealthy = healthChecks.All(x => !((dynamic)x).Type.ToString().Equals("Error")),
+                    HealthChecks = healthChecks,
+                    Recommendations = GetHealthRecommendations(),
+                    LastCheckTime = DateTime.UtcNow
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "获取缓存健康状态失败");
+                return new
+                {
+                    IsHealthy = false,
+                    Error = ex.Message,
+                    LastCheckTime = DateTime.UtcNow
+                };
+            }
+        }
+
+        /// <summary>
+        /// 获取健康建议
+        /// </summary>
+        /// <returns></returns>
+        private List<string> GetHealthRecommendations()
+        {
+            var recommendations = new List<string>();
+
+            if (!AuctionItemCachePolicy.IsCacheEnabled())
+            {
+                recommendations.Add("建议启用缓存以提升系统性能");
+            }
+
+            recommendations.Add("定期监控缓存命中率");
+            recommendations.Add("在高访问时段前预热缓存");
+            recommendations.Add("监控Redis内存使用情况");
+            recommendations.Add("关注缓存失效策略的准确性");
+
+            return recommendations;
         }
 
         /// <summary>

@@ -526,6 +526,9 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                     }
                 }
 
+                // 发布拍卖结束事件
+                await _mediator.Publish(new AuctionEndedEvent(result, hasBids));
+
                 await uow.CompleteAsync();
             }
             catch (Exception ex)
@@ -1013,6 +1016,9 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                     _logger.LogWarning("成交用户ID为空，无法发送私信, AuctionItemId={AuctionItemId}", input.Id);
                 }
             }
+
+            // 发布拍卖结束事件
+            await _mediator.Publish(new AuctionEndedEvent(result, hasBids));
 
             return result;
         }
