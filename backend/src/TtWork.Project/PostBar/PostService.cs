@@ -168,10 +168,10 @@ namespace TtWork.Project.PostBar
         {
             try
             {
-                //查询详情
+                //查询详情（只查询正常状态、关闭状态的帖子，删除状态的不显示）
                 var info = await _sqlSugarClient.Queryable<tb_post>()
                     .LeftJoin<UserInfoEntity>((a, c) => a.userId == c.Id)
-                    .Where((a, c) => a.postId == id)
+                    .Where((a, c) => a.postId == id && a.status != 3)
                     .Select((a, c) => new PostDto
                     {
                         title = a.title,
@@ -193,7 +193,7 @@ namespace TtWork.Project.PostBar
                     }).FirstAsync();
                 if (info == null)
                 {
-                    throw new UserFriendlyException($"当前数据不存在");
+                    throw new UserFriendlyException($"当前数据不存在或已被删除");
                 }
 
                 if (!string.IsNullOrEmpty(info.categoryId))
@@ -254,6 +254,12 @@ namespace TtWork.Project.PostBar
                     throw new UserFriendlyException($"当前数据不存在");
                 }
 
+                // 检查帖子状态，删除状态的帖子不能修改
+                if (info.status == 3)
+                {
+                    throw new UserFriendlyException($"已删除的帖子无法修改");
+                }
+
                 await _sqlSugarClient.Updateable(input)
                     .IgnoreColumns(it => new { it.createdAt, it.updatedAt })
                     .Where(w => w.postId == input.postId).ExecuteCommandAsync();
@@ -265,7 +271,7 @@ namespace TtWork.Project.PostBar
         }
 
         /// <summary>
-        /// 删除数据
+        /// 删除数据（软删除）
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
@@ -281,7 +287,17 @@ namespace TtWork.Project.PostBar
                     throw new UserFriendlyException($"当前数据不存在");
                 }
 
-                await _sqlSugarClient.Deleteable<tb_post>().Where(w => w.postId == id).ExecuteCommandAsync();
+                // 检查帖子当前状态，只能删除正常状态或关闭状态的帖子
+                if (info.status == 3)
+                {
+                    throw new UserFriendlyException($"帖子已经删除，无法重复删除");
+                }
+
+                // 软删除：将状态更新为3（删除）
+                await _sqlSugarClient.Updateable<tb_post>()
+                    .SetColumns(p => new tb_post { status = 3 })
+                    .Where(w => w.postId == id)
+                    .ExecuteCommandAsync();
             }
             catch (Exception ex)
             {
@@ -340,6 +356,48 @@ namespace TtWork.Project.PostBar
             catch (Exception ex)
             {
                 throw new UserFriendlyException($"设置精华帖失败，错误信息：" + ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 更新帖子状态
+        /// </summary>
+        /// <param name="input">包含帖子ID和新状态的输入对象</param>
+        /// <returns></returns>
+        /// <exception cref="UserFriendlyException"></exception>
+        [HttpPost("UpdateStatus")]
+        [AbpAuthorize]
+        public async Task UpdateStatus(UpdatePostStatusInput input)
+        {
+            try
+            {
+                // 验证状态值的有效性
+                if (input.Status < 1 || input.Status > 3)
+                {
+                    throw new UserFriendlyException($"状态值无效，只能为1（正常）、2（关闭）或3（删除）");
+                }
+
+                var info = await _sqlSugarClient.Queryable<tb_post>().FirstAsync(f => f.postId == input.PostId);
+                if (info == null)
+                {
+                    throw new UserFriendlyException($"当前数据不存在");
+                }
+
+                // 验证状态变更的业务逻辑
+                if (info.status == input.Status)
+                {
+                    throw new UserFriendlyException($"帖子已经是该状态，无需重复设置");
+                }
+
+                // 更新状态
+                await _sqlSugarClient.Updateable<tb_post>()
+                    .SetColumns(p => new tb_post { status = input.Status })
+                    .Where(w => w.postId == input.PostId)
+                    .ExecuteCommandAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new UserFriendlyException($"更新状态失败，错误信息：" + ex.Message);
             }
         }
     }
