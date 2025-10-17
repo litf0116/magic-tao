@@ -29,6 +29,69 @@ public class ChatChannelService : DomainService
     }
 
     /// <summary>
+    /// 删除用户的会话显示
+    /// 只设置指定用户的状态为已删除，不影响对方
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="otherUserId">对方用户ID</param>
+    public async Task DeleteUserChannelAsync(long userId, long otherUserId)
+    {
+        var channelId = CreatePrivateChannelId(userId, otherUserId);
+        var channel = await _chatChannelRepository.FirstOrDefaultAsync(x => x.ChannelId == channelId);
+
+        if (channel != null)
+        {
+            channel.SetUserStatus(userId, ChatChannelStatus.Deleted);
+            await _chatChannelRepository.UpdateAsync(channel);
+        }
+    }
+
+    /// <summary>
+    /// 恢复用户的会话显示
+    /// 当有新消息时自动调用此方法
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="otherUserId">对方用户ID</param>
+    public async Task RestoreUserChannelAsync(long userId, long otherUserId)
+    {
+        var channelId = CreatePrivateChannelId(userId, otherUserId);
+        var channel = await _chatChannelRepository.FirstOrDefaultAsync(x => x.ChannelId == channelId);
+
+        if (channel != null && channel.GetUserStatus(userId) == ChatChannelStatus.Deleted)
+        {
+            channel.SetUserStatus(userId, ChatChannelStatus.Normal);
+            await _chatChannelRepository.UpdateAsync(channel);
+        }
+    }
+
+    /// <summary>
+    /// 批量恢复用户的会话显示
+    /// 用于用户重新登录时自动恢复所有会话（可选功能）
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    public async Task RestoreAllUserChannelsAsync(long userId)
+    {
+        var channels = await _chatChannelRepository.GetAll()
+            .Where(channel => channel.ChannelType == ChatChannelType.Private &&
+                           (channel.User1Id == userId || channel.User2Id == userId) &&
+                           (channel.User1Id == userId ? channel.User1Status : channel.User2Status) == ChatChannelStatus.Deleted)
+            .ToListAsync();
+
+        foreach (var channel in channels)
+        {
+            channel.SetUserStatus(userId, ChatChannelStatus.Normal);
+        }
+
+        if (channels.Any())
+        {
+            foreach (var channel in channels)
+            {
+                await _chatChannelRepository.UpdateAsync(channel);
+            }
+        }
+    }
+
+    /// <summary>
     /// 获取或创建私聊频道
     /// </summary>
     /// <param name="user1Id">用户1 ID</param>
@@ -155,29 +218,68 @@ public class ChatChannelService : DomainService
     }
 
     /// <summary>
-    /// 获取用户可见的聊天频道列表（已过滤删除的聊天）
+    /// 获取用户可见的聊天频道列表（用户状态字段版本）
+    /// 极简查询，单次SQL，无需连表和内存过滤
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns>可见的聊天频道列表</returns>
     public async Task<List<ChatChannel>> GetVisibleChannelsForUserAsync(long userId)
     {
-        var query = from channel in _chatChannelRepository.GetAll().AsNoTracking()
-                    where channel.IsActive && channel.LastMessageId != null
-                    where channel.ChannelType == ChatChannelType.System ||
-                          channel.User1Id == userId ||
-                          channel.User2Id == userId
-                    // 对于私聊频道，过滤掉用户已删除的聊天
-                    where channel.ChannelType == ChatChannelType.System ||
-                          (channel.ChannelType == ChatChannelType.Private &&
-                           !_chatListDeleteRepository.GetAll().Any(delete =>
-                               delete.UserId == userId &&
-                               delete.ToUserId == (channel.User1Id == userId ? channel.User2Id : channel.User1Id)))
-                    orderby channel.ChannelType,  // 系统频道优先
-                            channel.SortOrder descending,  // 按排序权重
-                            channel.LastMessageTime descending  // 最后按时间
-                    select channel;
+        var query = _chatChannelRepository.GetAll()
+            .AsNoTracking()
+            .Where(channel => channel.IsActive && channel.LastMessageId != null)
+            .Where(channel =>
+                // 系统频道：所有人可见
+                channel.ChannelType == ChatChannelType.System ||
+                // 私聊频道：用户参与且状态正常
+                (channel.ChannelType == ChatChannelType.Private &&
+                 ((channel.User1Id == userId && channel.User1Status == ChatChannelStatus.Normal) ||
+                  (channel.User2Id == userId && channel.User2Status == ChatChannelStatus.Normal))))
+            .OrderBy(channel => channel.ChannelType)
+            .ThenByDescending(channel => channel.SortOrder)
+            .ThenByDescending(channel => channel.LastMessageTime);
 
         return await query.ToListAsync();
+    }
+
+    /// <summary>
+    /// 获取用户可见的聊天频道列表（原始版本 - 保留用于兼容）
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <returns>可见的聊天频道列表</returns>
+    public async Task<List<ChatChannel>> GetVisibleChannelsForUserAsyncLegacy(long userId)
+    {
+        // 1. 先获取用户删除的聊天列表（单次查询，避免N+1问题）
+        var deletedUserIds = await _chatListDeleteRepository.GetAll()
+            .AsNoTracking()
+            .Where(x => x.UserId == userId)
+            .Select(x => x.ToUserId)
+            .ToListAsync();
+
+        // 2. 查询用户可见的频道（主查询，避免子查询）
+        var channels = await _chatChannelRepository.GetAll()
+            .AsNoTracking()
+            .Where(channel => channel.IsActive && channel.LastMessageId != null)
+            .Where(channel =>
+                // 系统频道：所有人可见
+                channel.ChannelType == ChatChannelType.System ||
+                // 私聊频道：用户参与
+                (channel.ChannelType == ChatChannelType.Private &&
+                 (channel.User1Id == userId || channel.User2Id == userId)))
+            .ToListAsync();
+
+        // 3. 在内存中过滤已删除的私聊频道（避免子查询）
+        var result = channels
+            .Where(channel =>
+                channel.ChannelType == ChatChannelType.System ||
+                (channel.ChannelType == ChatChannelType.Private &&
+                 !deletedUserIds.Contains(channel.GetOtherUserId(userId) ?? 0)))
+            .OrderBy(channel => channel.ChannelType)
+            .ThenByDescending(channel => channel.SortOrder)
+            .ThenByDescending(channel => channel.LastMessageTime)
+            .ToList();
+
+        return result;
     }
 
     /// <summary>

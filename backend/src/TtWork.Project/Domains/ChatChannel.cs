@@ -32,6 +32,10 @@ public class ChatChannel : Entity<long>, IHasCreationTime, IHasModificationTime
         User1Id = smallerId;
         User2Id = largerId;
 
+        // 初始化用户状态（默认都可见）
+        User1Status = ChatChannelStatus.Normal;
+        User2Status = ChatChannelStatus.Normal;
+
         if (lastMessage != null)
         {
             UpdateLastMessage(lastMessage);
@@ -79,6 +83,18 @@ public class ChatChannel : Entity<long>, IHasCreationTime, IHasModificationTime
     /// 参与者2的用户ID（私聊时使用，较大的ID）
     /// </summary>
     public long? User2Id { get; set; }
+
+    /// <summary>
+    /// 用户1的会话状态
+    /// Normal=正常显示, Deleted=已删除
+    /// </summary>
+    public ChatChannelStatus User1Status { get; set; } = ChatChannelStatus.Normal;
+
+    /// <summary>
+    /// 用户2的会话状态
+    /// Normal=正常显示, Deleted=已删除
+    /// </summary>
+    public ChatChannelStatus User2Status { get; set; } = ChatChannelStatus.Normal;
 
     /// <summary>
     /// 最后一条消息ID
@@ -145,6 +161,13 @@ public class ChatChannel : Entity<long>, IHasCreationTime, IHasModificationTime
         LastMessageTime = message.Time;
         LastModificationTime = DateTime.Now;
         MessageCount++;
+
+        // 当有新消息时，自动恢复两个用户的会话状态
+        if (ChannelType == ChatChannelType.Private)
+        {
+            User1Status = ChatChannelStatus.Normal;
+            User2Status = ChatChannelStatus.Normal;
+        }
     }
 
     /// <summary>
@@ -174,6 +197,63 @@ public class ChatChannel : Entity<long>, IHasCreationTime, IHasModificationTime
         return User1Id == currentUserId ? User2Id :
                User2Id == currentUserId ? User1Id : null;
     }
+
+    /// <summary>
+    /// 获取用户在频道中的状态
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <returns>用户的会话状态</returns>
+    public ChatChannelStatus GetUserStatus(long userId)
+    {
+        if (ChannelType == ChatChannelType.System)
+            return ChatChannelStatus.Normal;
+
+        if (User1Id == userId)
+            return User1Status;
+
+        if (User2Id == userId)
+            return User2Status;
+
+        return ChatChannelStatus.Normal;
+    }
+
+    /// <summary>
+    /// 设置用户在频道中的状态
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <param name="status">状态</param>
+    public void SetUserStatus(long userId, ChatChannelStatus status)
+    {
+        if (ChannelType == ChatChannelType.System)
+            return;
+
+        if (User1Id == userId)
+        {
+            User1Status = status;
+        }
+        else if (User2Id == userId)
+        {
+            User2Status = status;
+        }
+
+        LastModificationTime = DateTime.Now;
+    }
+
+    /// <summary>
+    /// 检查用户是否能看到这个频道
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <returns>是否可见</returns>
+    public bool IsVisibleToUser(long userId)
+    {
+        if (!IsActive || !IsUserInChannel(userId))
+            return false;
+
+        if (ChannelType == ChatChannelType.System)
+            return true;
+
+        return GetUserStatus(userId) == ChatChannelStatus.Normal;
+    }
 }
 
 /// <summary>
@@ -195,4 +275,30 @@ public enum ChatChannelType
     /// 群聊（预留）
     /// </summary>
     Group = 3
+}
+
+/// <summary>
+/// 用户会话状态
+/// </summary>
+public enum ChatChannelStatus
+{
+    /// <summary>
+    /// 正常显示
+    /// </summary>
+    Normal = 0,
+
+    /// <summary>
+    /// 已删除（对用户隐藏）
+    /// </summary>
+    Deleted = 1,
+
+    /// <summary>
+    /// 已置顶（预留）
+    /// </summary>
+    Pinned = 2,
+
+    /// <summary>
+    /// 已静音（预留）
+    /// </summary>
+    Muted = 3
 }
