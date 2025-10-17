@@ -497,8 +497,8 @@ namespace TtWork.Project.Services
 
                 return userDto.RoleNames switch
                 {
-                    var roles when roles.Contains("Admin") => new AdminInfo { IsAdmin = true, AdminTag = "系统管理员", TagClass = "tag_Admin" },
                     var roles when roles.Contains("AuctionManager") => new AdminInfo { IsAdmin = true, AdminTag = "拍卖师", TagClass = "tag_AuctionManager" },
+                    var roles when roles.Contains("Admin") => new AdminInfo { IsAdmin = true, AdminTag = "系统管理员", TagClass = "tag_Admin" },
                     var roles when roles.Contains("Manager") => new AdminInfo { IsAdmin = true, AdminTag = "管理员", TagClass = "tag_Manager" },
                     var roles when roles.Contains("AuctionUser") => new AdminInfo { IsAdmin = false, AdminTag = "竞拍用户", TagClass = "tag_AudtionUser" },
                     _ => new AdminInfo { IsAdmin = false, AdminTag = "", TagClass = "" }
