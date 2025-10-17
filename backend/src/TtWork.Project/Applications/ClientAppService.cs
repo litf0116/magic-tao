@@ -52,7 +52,6 @@ public class ClientAppService(
     IRepository<UserFriend> userFriendRepository,
     IRepository<Message, Guid> messageRepository,
     IRepository<User, long> userRepository,
-    IRepository<ChatListDelete> chatListDeleteRepository,
     ChatChannelService chatChannelService,
     ILogger<ClientAppService> logger,
     IHttpContextAccessor httpContextAccessor,
@@ -68,7 +67,6 @@ public class ClientAppService(
     IConfiguration _configuration
 ) : AbpAppServiceBase
 {
-    public IRepository<ChatListDelete> ChatListDeleteRepository { get; } = chatListDeleteRepository;
 
     /// <summary>
     /// 保证金支付
@@ -311,100 +309,15 @@ public class ClientAppService(
     }
 
     /// <summary>
-    /// 获取聊天列表（原始版本）
-    /// 注意：此方法性能较差，建议使用 GetChatListOptimized 方法
+    /// 获取聊天列表（当前版本）
+    /// 已切换到性能优化版本，使用用户状态字段和Redis缓存
     /// </summary>
     /// <returns>聊天列表</returns>
     [HttpGet]
-    [Obsolete("此方法性能较差，建议使用 GetChatListOptimized 方法")]
     public async Task<List<ChatListItem>> GetChatList()
     {
-        List<ChatListItem> s = [];
-        // var lastlobbyMsg = await messageRepository.GetAll().AsNoTracking().Where(x => x.Chan == LOBBY && x.Type == ChatMessageType.Text).OrderByDescending(x => x.Time)
-        // .FirstOrDefaultAsync();
-        var lastauctionMsg = await messageRepository.GetAll().AsNoTracking()
-            .Where(x => x.Chan == AUCTION && x.Type == ChatMessageType.Text).OrderByDescending(x => x.Time)
-            .FirstOrDefaultAsync();
-        //s.Add(new ChatListItem()
-        //{
-        //    id = 0,
-        //    lastMsg = $"{lastlobbyMsg?.Msg}",
-        //    name = "lobby",
-        //    order = 100,
-        //    time = lastlobbyMsg?.Time ?? 0,
-        //    type = 0,
-        //    unread = 0
-        //});
-        s.Add(new ChatListItem()
-        {
-            id = -1,
-            lastMsg = $"{lastauctionMsg?.Msg}",
-            name = "auction",
-            order = 99,
-            time = lastauctionMsg?.Time ?? 0,
-            type = 0,
-            unread = 0
-        });
-        if (AbpSession.UserId.HasValue)
-        {
-            List<ChatListItem> s2 = [];
-            var userId = AbpSession.UserId.Value;
-            var chatDeleteList = await chatListDeleteRepository.GetAll().AsNoTracking().Where(x => x.UserId == userId)
-                .ToListAsync();
-            var messageList = await messageRepository.GetAll().AsNoTracking().Where(x =>
-                    x.Chan == null && (x.To == userId || x.From == userId) && x.To != null)
-                .OrderByDescending(x => x.Time)
-                .GroupBy(m => new { m.From, m.To })
-                .Select(g => new
-                {
-                    g.Key.To,
-                    g.Key.From,
-                    LatestMessage = g.OrderByDescending(m => m.Time).FirstOrDefault()
-                })
-                .ToListAsync();
-
-
-            //Console.WriteLine(messageList.ToJsonString());
-
-            foreach (var item in messageList)
-            {
-                if (item.LatestMessage.From == userId)
-                {
-                    var toUser = await userCache.GetAsync(item.LatestMessage.To!.Value);
-                    if (toUser != null)
-                    {
-                        s2.Add(new ChatListItem
-                        {
-                            id = toUser.Id,
-                            lastMsg = $"{item.LatestMessage.Msg}",
-                            name = toUser.Name,
-                            avatar = toUser.HeadImgUrl,
-                            order = 0,
-                            time = item.LatestMessage.Time,
-                            type = 1,
-                            unread = 0
-                        });
-                    }
-                }
-                else
-                    s2.Add(new ChatListItem
-                    {
-                        id = item.LatestMessage.From,
-                        lastMsg = $"{item.LatestMessage.Msg}",
-                        name = $"{item.LatestMessage.FromName}",
-                        avatar = item.LatestMessage.Avatar ?? "",
-                        order = 0,
-                        time = item.LatestMessage.Time,
-                        type = 1,
-                        unread = 0
-                    });
-            }
-
-            s.AddRange(s2.GroupBy(x => x.id).Select(g => g.OrderByDescending(x => x.time).First()).ToList()
-                .Where(item => chatDeleteList.All(x => x.ToUserId != item.id)).ToList());
-        }
-
-        return s;
+        // 直接调用性能优化版本
+        return await GetChatListOptimized();
     }
 
     /// <summary>
@@ -583,61 +496,7 @@ public class ClientAppService(
         return await GetChatList();
     }
 
-    /// <summary>
-    /// 获取聊天列表（性能对比版本 - 原始删除表方案）
-    /// 用于性能对比测试，保留原始实现
-    /// </summary>
-    /// <returns>聊天列表</returns>
-    [HttpGet]
-    public async Task<List<ChatListItem>> GetChatListLegacy()
-    {
-        var result = new List<ChatListItem>();
-
-        if (AbpSession.UserId.HasValue)
-        {
-            var userId = AbpSession.UserId.Value;
-
-            // 使用原始的删除表方案进行查询
-            var channels = await chatChannelService.GetVisibleChannelsForUserAsyncLegacy(userId);
-
-            // 预先收集所有需要查询的用户ID，批量获取用户信息
-            var privateChannelUserIds = channels
-                .Where(c => c.ChannelType == ChatChannelType.Private)
-                .Select(c => c.GetOtherUserId(userId) ?? 0)
-                .Where(id => id > 0)
-                .Distinct()
-                .ToList();
-
-            // 批量获取用户基本信息（性能最优）
-            var userBasicInfos = await chatUserCache.GetBatchUserBasicAsync(privateChannelUserIds);
-
-            // 处理频道转换
-            foreach (var channel in channels)
-            {
-                var chatItem = ConvertChannelToChatListItem(channel, userId, userBasicInfos);
-                if (chatItem != null)
-                {
-                    result.Add(chatItem);
-                }
-            }
-        }
-        else
-        {
-            // 未登录用户只显示系统频道
-            var systemChannels = await chatChannelService.GetVisibleChannelsForUserAsyncLegacy(0);
-            foreach (var channel in systemChannels.Where(x => x.ChannelType == ChatChannelType.System))
-            {
-                var chatItem = ConvertChannelToChatListItem(channel, 0, null);
-                if (chatItem != null)
-                {
-                    result.Add(chatItem);
-                }
-            }
-        }
-
-        return result;
-    }
-
+  
     /// <summary>
     /// 将系统频道ID转换为前端需要的数字ID
     /// </summary>
@@ -813,10 +672,8 @@ public class ClientAppService(
         // 获取用户可见的频道列表（内部已处理删除过滤）
         var channels = await chatChannelService.GetVisibleChannelsForUserAsync(userId);
 
-        // 获取用户删除的聊天数量
-        var deletedChatsCount = await chatListDeleteRepository.GetAll()
-            .Where(x => x.UserId == userId)
-            .CountAsync();
+        // 获取用户删除的聊天数量（使用用户状态字段）
+        var deletedChatsCount = await chatChannelService.GetUserDeletedChannelsCountAsync(userId);
 
         return new ChatChannelStats
         {
@@ -831,28 +688,7 @@ public class ClientAppService(
         };
     }
 
-    /// <summary>
-    /// 获取可自动恢复的聊天频道列表
-    /// 显示哪些隐藏的聊天可能会因为新消息而自动恢复
-    /// </summary>
-    /// <returns>可自动恢复的频道列表</returns>
-    [HttpGet("GetAutoRestorableChannels")]
-    [AbpAuthorize]
-    public async Task<object> GetAutoRestorableChannels()
-    {
-        var userId = AbpSession.UserId!.Value;
-        var restorableChannelIds = await chatChannelService.GetAutoRestorableChannelsAsync(userId);
-
-        return new
-        {
-            count = restorableChannelIds.Count,
-            channels = restorableChannelIds,
-            message = restorableChannelIds.Count > 0
-                ? $"有 {restorableChannelIds.Count} 个隐藏的聊天可能会因为新消息而自动恢复"
-                : "当前没有可自动恢复的隐藏聊天"
-        };
     }
-}
 
 public record ChatListItem
 {

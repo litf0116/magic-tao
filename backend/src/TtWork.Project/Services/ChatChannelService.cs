@@ -16,16 +16,13 @@ public class ChatChannelService : DomainService
 {
     private readonly IRepository<ChatChannel, long> _chatChannelRepository;
     private readonly IRepository<Message, Guid> _messageRepository;
-    private readonly IRepository<ChatListDelete> _chatListDeleteRepository;
 
     public ChatChannelService(
         IRepository<ChatChannel, long> chatChannelRepository,
-        IRepository<Message, Guid> messageRepository,
-        IRepository<ChatListDelete> chatListDeleteRepository)
+        IRepository<Message, Guid> messageRepository)
     {
         _chatChannelRepository = chatChannelRepository;
         _messageRepository = messageRepository;
-        _chatListDeleteRepository = chatListDeleteRepository;
     }
 
     /// <summary>
@@ -242,46 +239,7 @@ public class ChatChannelService : DomainService
         return await query.ToListAsync();
     }
 
-    /// <summary>
-    /// 获取用户可见的聊天频道列表（原始版本 - 保留用于兼容）
-    /// </summary>
-    /// <param name="userId">用户ID</param>
-    /// <returns>可见的聊天频道列表</returns>
-    public async Task<List<ChatChannel>> GetVisibleChannelsForUserAsyncLegacy(long userId)
-    {
-        // 1. 先获取用户删除的聊天列表（单次查询，避免N+1问题）
-        var deletedUserIds = await _chatListDeleteRepository.GetAll()
-            .AsNoTracking()
-            .Where(x => x.UserId == userId)
-            .Select(x => x.ToUserId)
-            .ToListAsync();
-
-        // 2. 查询用户可见的频道（主查询，避免子查询）
-        var channels = await _chatChannelRepository.GetAll()
-            .AsNoTracking()
-            .Where(channel => channel.IsActive && channel.LastMessageId != null)
-            .Where(channel =>
-                // 系统频道：所有人可见
-                channel.ChannelType == ChatChannelType.System ||
-                // 私聊频道：用户参与
-                (channel.ChannelType == ChatChannelType.Private &&
-                 (channel.User1Id == userId || channel.User2Id == userId)))
-            .ToListAsync();
-
-        // 3. 在内存中过滤已删除的私聊频道（避免子查询）
-        var result = channels
-            .Where(channel =>
-                channel.ChannelType == ChatChannelType.System ||
-                (channel.ChannelType == ChatChannelType.Private &&
-                 !deletedUserIds.Contains(channel.GetOtherUserId(userId) ?? 0)))
-            .OrderBy(channel => channel.ChannelType)
-            .ThenByDescending(channel => channel.SortOrder)
-            .ThenByDescending(channel => channel.LastMessageTime)
-            .ToList();
-
-        return result;
-    }
-
+    
     /// <summary>
     /// 检查用户是否删除了与指定用户的聊天
     /// </summary>
@@ -298,28 +256,28 @@ public class ChatChannelService : DomainService
 
     /// <summary>
     /// 软删除频道（对用户隐藏）
-    /// 注意：当有新消息时，隐藏的频道会自动恢复显示
+    /// 现在使用用户状态字段来管理删除状态
     /// </summary>
     /// <param name="otherUserId">对方用户ID</param>
     /// <param name="currentUserId">当前用户ID</param>
     public async Task HideChannelForUserAsync(long otherUserId, long currentUserId)
     {
-        // 查找对应的私聊频道
-        var channelId = CreatePrivateChannelId(currentUserId, otherUserId);
-        var channel = await _chatChannelRepository.FirstOrDefaultAsync(x => x.ChannelId == channelId);
+        await DeleteUserChannelAsync(currentUserId, otherUserId);
+    }
 
-        if (channel != null)
-        {
-            // 频道隐藏是通过 ChatListDelete 表来实现的
-            // 当有新消息时，UpdateChannelLastMessageAsync 方法会自动删除 ChatListDelete 记录
-            // 从而实现自动恢复聊天显示的效果
-
-            // 这里不需要修改 ChatChannel 表，因为隐藏状态是用户级别的
-            // 而 ChatChannel 表存储的是全局的频道信息
-        }
-
-        // 当前实现：依赖 ChatListDelete 表来标记隐藏状态
-        // 自动恢复逻辑在 UpdateChannelLastMessageAsync 方法中实现
+    /// <summary>
+    /// 获取用户删除的聊天频道数量
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <returns>删除的频道数量</returns>
+    public async Task<int> GetUserDeletedChannelsCountAsync(long userId)
+    {
+        return await _chatChannelRepository.GetAll()
+            .AsNoTracking()
+            .CountAsync(channel =>
+                channel.ChannelType == ChatChannelType.Private &&
+                ((channel.User1Id == userId && channel.User1Status == ChatChannelStatus.Deleted) ||
+                 (channel.User2Id == userId && channel.User2Status == ChatChannelStatus.Deleted)));
     }
 
     /// <summary>
@@ -406,33 +364,4 @@ public class ChatChannelService : DomainService
         }
     }
 
-    /// <summary>
-    /// 检查并获取需要自动恢复的频道列表
-    /// 这个方法可以用于批量检查哪些频道可以被自动恢复
-    /// </summary>
-    /// <param name="userId">用户ID</param>
-    /// <returns>可以自动恢复的频道ID列表</returns>
-    public async Task<List<string>> GetAutoRestorableChannelsAsync(long userId)
-    {
-        var restorableChannels = new List<string>();
-
-        // 获取用户所有隐藏的聊天记录
-        var hiddenChats = await _chatListDeleteRepository.GetAll()
-            .Where(x => x.UserId == userId)
-            .ToListAsync();
-
-        foreach (var hiddenChat in hiddenChats)
-        {
-            // 检查是否存在对应的私聊频道
-            var channelId = CreatePrivateChannelId(userId, hiddenChat.ToUserId);
-            var channel = await _chatChannelRepository.FirstOrDefaultAsync(x => x.ChannelId == channelId);
-
-            if (channel != null && channel.LastMessageId.HasValue)
-            {
-                restorableChannels.Add(channelId);
-            }
-        }
-
-        return restorableChannels;
     }
-}
