@@ -16,3 +16,4 @@ Use `@/openspec/AGENTS.md` to learn:
 Keep this managed block so 'openspec update' can refresh the instructions.
 
 <!-- OPENSPEC:END -->
+- 删除方法的时候检查一下这个方式是否在前端或者小程序中有使用。如果存在使用则不能删除

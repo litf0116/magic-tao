@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TtWork.Project.EntityFrameworkCore;
 
@@ -11,9 +12,11 @@ using TtWork.Project.EntityFrameworkCore;
 namespace TtWork.Project.Migrations
 {
     [DbContext(typeof(AbpDbContext))]
-    partial class AbpDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251017223515_AddChatChannelUserStatus")]
+    partial class AddChatChannelUserStatus
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
