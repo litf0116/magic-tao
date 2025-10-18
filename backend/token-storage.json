@@ -1,0 +1,32 @@
+{
+  "tokens": {
+    "user_2_admin": {
+      "userId": 2,
+      "userName": "admin",
+      "email": "admin@wujiangapp.com",
+      "role": "Admin",
+      "tenantId": 1,
+      "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjIiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJhZG1pbkB3dWppYW5nYXBwLmNvbSIsIkFzcE5ldC5JZGVudGl0eS5TZWN1cml0eVN0YW1wIjoiWExYUjZUVzNZM01HQjREVFJKUTNTQlVHM0dGVzZBM08iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJBZG1pbiIsImh0dHA6Ly93d3cuYXNwbmV0Ym9pbGVycGxhdGUuY29tL2lkZW50aXR5L2NsYWltcy90ZW5hbnRJZCI6IjEiLCJzdWIiOiIyIiwianRpIjoiMmU3MGI2NDgtYjBkMS00MGY0LWFkNjAtNWZmZDYyODc1OWVjIiwiaWF0IjoxNzYwNzY2NzYyLCJ0b2tlbl92YWxpZGl0eV9rZXkiOiIyODFiZGI5NS0xY2UzLTQ3ZWQtODgwMC1lODUyNGU4NDFiNjQiLCJ1c2VyX2lkZW50aWZpZXIiOiIyQDEiLCJ0b2tlbl90eXBlIjoiMCIsInJlZnJlc2hfdG9rZW5fdmFsaWRpdHlfa2V5IjoiNGNlYzRmNmEtYTNmMi00ZTQ2LWJmNDUtNjFhM2RiNjZiNGY1IiwibmJmIjoxNzYwNzY2NzYyLCJleHAiOjE3NjEzNzE1NjIsImlzcyI6IkFicCIsImF1ZCI6IkFicCJ9.vK0QsZLfUHQp9GKD7Q9rwtbSvmT7CP6tbks8GvnXtP0",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjIiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJhZG1pbkB3dWppYW5nYXBwLmNvbSIsIkFzcE5ldC5JZGVudGl0eS5TZWN1cml0eVN0YW1wIjoiWExYUjZUVzNZM01HQjREVFJKUTNTQlVHM0dGVzZBM08iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJBZG1pbiIsImh0dHA6Ly93d3cuYXNwbmV0Ym9pbGVycGxhdGUuY29tL2lkZW50aXR5L2NsYWltcy90ZW5hbnRJZCI6IjEiLCJzdWIiOiIyIiwianRpIjoiMTRmNmZjZTMtMWRiNC00MTI3LWI3NmItN2ZiYzQzYTI5MWI4IiwiaWF0IjoxNzYwNzY2NzYxLCJ0b2tlbl92YWxpZGl0eV9rZXkiOiI0Y2VjNGY2YS1hM2YyLTRlNDYtYmY0NS02MWEzZGI2NmI0ZjUiLCJ1c2VyX2lkZW50aWZpZXIiOiIyQDEiLCJ0b2tlbl90eXBlIjoiMSIsIm5iZiI6MTc2MDc2Njc2MiwiZXhwIjoxNzYxMzcxNTYyLCJpc3MiOiJBYnAiLCJhdWQiOiJBYnAifQ.CAAdFVEj1VDS6Lou2wYyo6eCBgj-3Df4osfCxagcH-Q",
+      "expireInSeconds": 604800,
+      "refreshTokenExpireInSeconds": 604800,
+      "generatedAt": "2025-10-18T13:52:42Z",
+      "generatedFrom": "127.0.0.1"
+    }
+  },
+  "api_info": {
+    "base_url": "http://localhost:12580",
+    "generate_token_endpoint": "/api/TokenAuth/GenerateTokenForUser",
+    "ip_restriction": "Only accessible from 127.0.0.1 or ::1",
+    "usage": {
+      "authorization_header": "Authorization: Bearer {accessToken}",
+      "example_curl": "curl -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' http://localhost:12580/api/services/app/User/GetProfile"
+    }
+  },
+  "security_notes": {
+    "warning": "These tokens are sensitive and should only be used for testing/development purposes",
+    "ip_restriction": "The GenerateTokenForUser endpoint is restricted to localhost access only",
+    "token_expiry": "Tokens expire after 7 days",
+    "refresh_available": "Refresh tokens can be used to obtain new access tokens before expiry"
+  }
+}

@@ -758,7 +758,7 @@ namespace TtWork.Project.Web.Controllers
         }
 
         /// <summary>
-        /// 为指定用户生成token（管理员权限）
+        /// 为指定用户生成token（管理员权限，仅限本地访问）
         /// </summary>
         /// <param name="input">生成token请求</param>
         /// <returns>token信息</returns>
@@ -767,6 +767,18 @@ namespace TtWork.Project.Web.Controllers
         {
             try
             {
+                // 获取客户端IP地址
+                var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+                // 限制只能从本地访问
+                if (clientIp != "127.0.0.1" && clientIp != "::1")
+                {
+                    Logger.Warn($"非法IP尝试访问GenerateTokenForUser接口: {clientIp}");
+                    throw new UserFriendlyException("此接口仅允许本地访问");
+                }
+
+                Logger.Info($"本地IP {clientIp} 正在为用户ID {input.UserId} 生成token");
+
                 // 验证输入参数
                 if (input.UserId <= 0)
                 {
@@ -809,6 +821,8 @@ namespace TtWork.Project.Web.Controllers
                     )
                 );
 
+                Logger.Info($"成功为用户 {user.UserName} (ID: {user.Id}) 生成token");
+
                 return new GenerateTokenForUserResult
                 {
                     AccessToken = accessToken,
@@ -826,7 +840,7 @@ namespace TtWork.Project.Web.Controllers
             }
             catch (Exception ex)
             {
-                Logger.Error( "为用户生成token失败，用户ID: " +input.UserId,ex );
+                Logger.Error("为用户生成token失败，用户ID: " + input.UserId, ex);
                 throw new UserFriendlyException("生成token失败: " + ex.Message);
             }
         }
