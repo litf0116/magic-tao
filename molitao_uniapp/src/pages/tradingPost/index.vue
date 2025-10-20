@@ -165,14 +165,14 @@ const PAGE_SIZE = 20
 const pagination = reactive({
     page: 1,
     pageSize: PAGE_SIZE,
-    hasNextPages: false
+    hasNextPages: false,
 })
 
 // 加载状态管理
 const loadingState = reactive({
     refreshing: false,
     loadingMore: false,
-    error: null
+    error: null,
 })
 
 const activeKey = ref(-1)
@@ -216,13 +216,7 @@ const switchCategory = (key: number) => {
 //初始化数据
 const initializeData = async () => {
     try {
-        await Promise.all([
-            loadCategoryList(),
-            loadLatestBulletin(),
-            loadHotWords(),
-            loadTopPosts(),
-            loadPostList()
-        ])
+        await Promise.all([loadCategoryList(), loadLatestBulletin(), loadHotWords(), loadTopPosts(), loadPostList()])
         uni.hideHomeButton()
     } catch (error) {
         console.error('初始化数据失败:', error)
@@ -282,7 +276,7 @@ const loadPostList = async () => {
             Type: activeKey.value,
             isTop: false,
             Keyword: keywords.value,
-            SkipCount: (pagination.page - 1) * pagination.pageSize,
+            SkipCount: pagination.page,
             MaxResultCount: pagination.pageSize,
         })
 
@@ -323,10 +317,7 @@ const onRefresh = async () => {
         pagination.page = 1
 
         // 并行加载置顶帖子和普通帖子
-        await Promise.all([
-            loadTopPosts(),
-            loadPostList()
-        ])
+        await Promise.all([loadTopPosts(), loadPostList()])
 
         Tips.success('刷新成功')
     } catch (error) {
@@ -428,7 +419,7 @@ const getMore = (text: any) => {
 }
 
 .bottom-spacer {
-    height: 120rpx;  /* 底部留白，确保最后一个帖子完全可见 */
+    height: 120rpx; /* 底部留白，确保最后一个帖子完全可见 */
     width: 100%;
 }
 
@@ -692,7 +683,6 @@ uni-modal .uni-modal__bd {
 }
 </style>
 <style>
-
 .filter-section {
     display: flex;
     justify-content: space-between;
