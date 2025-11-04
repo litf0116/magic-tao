@@ -235,3 +235,58 @@ const onUploadError = (error: any) => {
     Tips.error(`上传失败：${error.errMsg || '未知错误'}`)
 }
 </script>
+
+<style lang="scss" scoped>
+/* 自定义头像删除按钮样式，让删除按钮更大更容易点击 */
+:deep(.uv-upload__deletable) {
+    width: 24px !important;
+    height: 24px !important;
+    background-color: rgba(245, 63, 63, 0.9) !important;
+    border-bottom-left-radius: 12px !important;
+    top: -2px !important;
+    right: -2px !important;
+
+    /* 增加触摸区域 */
+    &::before {
+        content: '';
+        position: absolute;
+        top: -8px;
+        left: -8px;
+        right: -8px;
+        bottom: -8px;
+        z-index: -1;
+    }
+
+    .uv-upload__deletable__icon {
+        transform: scale(1) !important;
+
+        /* 调整图标位置 */
+        :deep(.uv-icon) {
+            font-size: 14px !important;
+        }
+    }
+
+    /* 悬停效果 */
+    &:active {
+        background-color: rgba(220, 38, 38, 1) !important;
+        transform: scale(0.95);
+    }
+}
+
+/* 确保删除按钮在最上层 */
+:deep(.uv-upload__wrap__preview) {
+    .uv-upload__deletable {
+        z-index: 10 !important;
+    }
+}
+
+/* 优化头像预览区域的视觉效果 */
+:deep(.uv-upload__wrap__preview) {
+    border-radius: 8px;
+    overflow: hidden;
+
+    .uv-upload__wrap__preview__image {
+        border-radius: 8px;
+    }
+}
+</style>
