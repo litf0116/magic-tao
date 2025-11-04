@@ -181,7 +181,6 @@ function catchImage(e: any) {
             current: list[0], // 当前显示图片的http链接
             urls: list, // 需要预览的图片http链接列表
         })
-
     } catch (error) {
         // Image preview error handling
     }

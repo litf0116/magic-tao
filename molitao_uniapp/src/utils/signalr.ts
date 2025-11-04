@@ -222,7 +222,7 @@ export class HubConnection {
                     })
                     break
                 default:
-                    // Invalid message type handling
+                // Invalid message type handling
             }
         })
     }

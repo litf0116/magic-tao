@@ -388,11 +388,11 @@ async function bid() {
         const currentUser = await api.user.get({ id: userId })
         const deposit = currentUser?.depositBalance || 0
         // console.log('用户信息获取成功:', {
-    //         userId: currentUser?.id,
-    //         userName: currentUser?.userName,
-    //         depositBalance: deposit,
-    //         isActive: currentUser?.isActive,
-    //     })
+        //         userId: currentUser?.id,
+        //         userName: currentUser?.userName,
+        //         depositBalance: deposit,
+        //         isActive: currentUser?.isActive,
+        //     })
 
         // 获取用户等级信息
         const levelResponse = await api.userGroupLevel.getUserLevelInfo(userId!)

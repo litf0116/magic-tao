@@ -78,8 +78,7 @@ function goDetail(id: number) {
     uni.navigateTo({
         url: `/pages/seekHelp/detail?id=${id}`,
         events: {
-            refresh: () => {
-            },
+            refresh: () => {},
         },
     })
 }

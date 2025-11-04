@@ -78,8 +78,7 @@ function goDetail(id: number) {
     uni.navigateTo({
         url: `/pages/reportRecord/detail?id=${id}`,
         events: {
-            refresh: () => {
-            },
+            refresh: () => {},
         },
     })
 }
