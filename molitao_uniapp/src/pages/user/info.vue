@@ -10,11 +10,21 @@
                     :fileList="fileList1"
                     :multiple="false"
                     :maxCount="1"
+                    :maxSize="5 * 1024 * 1024"
                     width="200rpx"
                     height="200rpx"
+                    :previewFullImage="true"
+                    :deletable="true"
+                    :disabled="isSaving"
+                    uploadIcon="camera-fill"
+                    uploadIconColor="#909399"
+                    uploadText="点击上传"
                     @after-read="afterRead"
                     @delete="deletePic"
+                    @oversize="onOversize"
+                    @error="onUploadError"
                 ></uv-upload>
+                <view class="text-xs text-gray-500 mt-2"> 支持JPG、PNG、GIF、WEBP格式，建议尺寸200x200像素 </view>
             </uv-form-item>
             <uv-form-item :labelWidth="220" label="昵称" prop="name" borderBottom>
                 <uv-input v-model="form.name" placeholder="请输入昵称"></uv-input>
@@ -89,9 +99,15 @@ const isSaving = ref(false)
 const fileList1 = ref([] as any[])
 
 function submit() {
-    if (!fileList1.value.length) return Tips.info('请上传头像')
+    // 智能头像处理：新用户需要上传头像，老用户可以保留或更换头像
+    if (!form.value.headImgUrl && !fileList1.value.length) {
+        return Tips.info('请上传头像')
+    }
 
-    form.value.headImgUrl = fileList1.value[0].url
+    // 如果上传了新头像，使用新头像地址
+    if (fileList1.value.length > 0 && fileList1.value[0].url) {
+        form.value.headImgUrl = fileList1.value[0].url
+    }
 
     formRef.value
         .validate()
@@ -121,24 +137,46 @@ function realSave() {
 }
 
 function fetchData() {
-    api.user.get({ id: userStore.user.id }).then((res: any) => {
-        form.value = res
-        if (res.headImgUrl) {
-            fileList1.value = [
-                {
-                    url: res.headImgUrl,
-                    status: 'success',
-                    message: '',
-                },
-            ]
-        }
-    })
+    api.user
+        .get({ id: userStore.user.id })
+        .then((res: any) => {
+            form.value = res
+            // 确保现有头像正确加载到fileList中，支持用户更换头像
+            if (res.headImgUrl) {
+                fileList1.value = [
+                    {
+                        url: res.headImgUrl,
+                        status: 'success',
+                        message: '',
+                        deletable: true, // 允许删除现有头像
+                    },
+                ]
+            } else {
+                // 如果没有头像，清空fileList，允许用户上传新头像
+                fileList1.value = []
+            }
+        })
+        .catch((err) => {
+            Tips.error('获取用户信息失败，请重试')
+        })
 }
 
 const afterRead = async (event: any) => {
+    // 防止重复上传
+    if (isSaving.value) {
+        Tips.info('正在上传中，请稍候...')
+        return
+    }
+
     isSaving.value = true
     let lists: any = [].concat(event.file)
     let fileListLen = fileList1.value.length
+
+    // 如果用户已有头像，先清空再添加新头像
+    if (fileList1.value.length > 0) {
+        fileList1.value = []
+    }
+
     lists.map((item: any) => {
         fileList1.value.push({
             ...item,
@@ -148,30 +186,52 @@ const afterRead = async (event: any) => {
     })
 
     for (let i = 0; i < lists.length; i++) {
-        await uploadImage(lists[i].url)
-            .then((res: any) => {
-                let item = fileList1.value[fileListLen]
-                fileList1.value.splice(
-                    fileListLen,
-                    1,
-                    Object.assign(item, {
-                        status: 'success',
-                        message: '',
-                        url: res,
-                    })
-                )
-                fileListLen++
-            })
-            .catch((err) => {
-                Tips.noCancelModal(err)
-                fileList1.value.splice(fileListLen, 1)
-                fileListLen++
-            })
+        try {
+            const uploadResult = await uploadImage(lists[i].url)
+            let item = fileList1.value[fileListLen]
+            fileList1.value.splice(
+                fileListLen,
+                1,
+                Object.assign(item, {
+                    status: 'success',
+                    message: '上传成功',
+                    url: uploadResult,
+                    deletable: true,
+                })
+            )
+            fileListLen++
+            Tips.success('头像上传成功')
+        } catch (err: any) {
+            Tips.error(`头像上传失败：${err}`)
+            fileList1.value.splice(fileListLen, 1)
+            fileListLen++
+        }
     }
     isSaving.value = false
 }
 
 const deletePic = (event: any) => {
-    fileList1.value.splice(event.index, 1)
+    uni.showModal({
+        title: '提示',
+        content: '确定要删除当前头像吗？',
+        success: (res) => {
+            if (res.confirm) {
+                fileList1.value.splice(event.index, 1)
+                // 同时清空表单中的头像地址，让用户可以重新上传
+                form.value.headImgUrl = ''
+                Tips.success('头像已删除，请重新上传新头像')
+            }
+        },
+    })
+}
+
+// 处理文件大小超限
+const onOversize = (file: any) => {
+    Tips.error('图片大小不能超过5MB，请压缩后重新上传')
+}
+
+// 处理上传错误
+const onUploadError = (error: any) => {
+    Tips.error(`上传失败：${error.errMsg || '未知错误'}`)
 }
 </script>
