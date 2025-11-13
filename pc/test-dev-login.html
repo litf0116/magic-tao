@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>开发调试登录测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-color: #ffeaa7;
+            color: #856404;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>开发调试登录功能测试</h1>
+
+    <div class="test-section warning">
+        <h3>⚠️ 注意</h3>
+        <p>此测试页面仅用于开发环境。请确保：</p>
+        <ul>
+            <li>后台服务运行在 http://localhost:12580</li>
+            <li>当前为开发环境</li>
+            <li>GenerateTokenForUser 接口可用</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h3>🔧 API测试</h3>
+        <p>测试直接调用 GenerateTokenForUser 接口：</p>
+        <button onclick="testGenerateToken(1)">获取用户1 Token</button>
+        <button onclick="testGenerateToken(2)">获取用户2 Token</button>
+        <button onclick="testGenerateToken(3)">获取用户3 Token</button>
+        <button onclick="testGenerateToken(14)">获取用户14 Token</button>
+        <div id="api-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🌐 前端测试</h3>
+        <p>访问前端登录页面：</p>
+        <a href="http://localhost:4201/#/auth/login" target="_blank">
+            <button>打开登录页面</button>
+        </a>
+        <p>在登录页面的密码登录区域，您应该能看到三个黄色的"开发调试登录"按钮。</p>
+    </div>
+
+    <div class="test-section">
+        <h3>📋 使用说明</h3>
+        <ol>
+            <li>确保后台服务正在运行（端口12580）</li>
+            <li>确保前端开发服务器正在运行（端口4201）</li>
+            <li>打开登录页面 <a href="http://localhost:4201/#/auth/login" target="_blank">http://localhost:4201/#/auth/login</a></li>
+            <li>切换到"密码/验证码登录"标签</li>
+            <li>在开发调试区域，点击对应的用户登录按钮</li>
+            <li>系统会自动获取该用户的token并完成登录</li>
+        </ol>
+    </div>
+
+    <script>
+        async function testGenerateToken(userId) {
+            const resultDiv = document.getElementById('api-result');
+            resultDiv.innerHTML = '<p>正在请求用户 ' + userId + ' 的token...</p>';
+
+            try {
+                const response = await fetch('http://localhost:12580/api/TokenAuth/GenerateTokenForUser', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ userId: userId })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h4>✅ 成功获取用户 ${userId} 的Token</h4>
+                        <p><strong>用户名:</strong> ${data.result.userName}</p>
+                        <p><strong>用户ID:</strong> ${data.result.userId}</p>
+                        <p><strong>Token过期时间:</strong> ${data.result.expireInSeconds} 秒</p>
+                        <details>
+                            <summary>查看完整Token信息</summary>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </details>
+                    </div>
+                `;
+
+                // 同时将token保存到localStorage，方便测试
+                localStorage.setItem('test_token_' + userId, data.result.accessToken);
+                localStorage.setItem('test_user_' + userId, JSON.stringify(data.result));
+
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ 获取Token失败</h4>
+                        <p><strong>错误信息:</strong> ${error.message}</p>
+                        <p>请检查后台服务是否正常运行在 http://localhost:12580</p>
+                    </div>
+                `;
+                console.error('Error:', error);
+            }
+        }
+
+        // 页面加载时显示当前环境信息
+        window.onload = function() {
+            console.log('开发调试登录测试页面已加载');
+            console.log('后台API地址: http://localhost:12580');
+            console.log('前端地址: http://localhost:4201');
+        };
+    </script>
+</body>
+</html>

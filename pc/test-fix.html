@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token修复测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { margin: 10px; padding: 10px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        .result { margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Token修复测试</h1>
+
+    <button onclick="testFixedToken()">测试修复后的用户14登录</button>
+    <div id="result" class="result">点击按钮开始测试...</div>
+
+    <script>
+        async function testFixedToken() {
+            try {
+                // 模拟userStore的generateTokenForUser调用
+                const response = await fetch('/api/TokenAuth/GenerateTokenForUser', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: 14 })
+                });
+
+                const res = await response.json();
+
+                document.getElementById('result').innerHTML = `
+                    <h3>API响应:</h3>
+                    <pre>${JSON.stringify(res, null, 2)}</pre>
+
+                    <h3>修复后的处理:</h3>
+                    <p><strong>res.data存在:</strong> ${!!res.data}</p>
+                    <p><strong>res.data.accessToken:</strong> ${res.data?.accessToken ? '✅ 存在' : '❌ 不存在'}</p>
+                    <p><strong>res.data.accessToken长度:</strong> ${res.data?.accessToken?.length || 0}</p>
+
+                    <h3>设置到localStorage:</h3>
+                    <p><strong>设置前:</strong> ${localStorage.getItem('token') ? '已存在' : '不存在'}</p>
+                `;
+
+                // 模拟修复后的处理逻辑
+                const tokenData = res.data || res;
+                if (tokenData.accessToken) {
+                    localStorage.setItem('token', tokenData.accessToken);
+                    document.getElementById('result').innerHTML += `
+                        <p><strong>设置后:</strong> ${localStorage.getItem('token') ? '✅ 已设置' : '❌ 设置失败'}</p>
+                        <p><strong>Token前50字符:</strong> ${localStorage.getItem('token')?.substring(0, 50)}...</p>
+                    `;
+                }
+
+            } catch (error) {
+                document.getElementById('result').innerHTML = `<p style="color: red;">❌ 错误: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

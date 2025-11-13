@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token存储测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+        .storage-item {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 3px;
+        }
+        .storage-key {
+            font-weight: bold;
+            color: #495057;
+        }
+        .storage-value {
+            word-break: break-all;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔐 Token存储测试工具</h1>
+
+    <div class="test-section info">
+        <h3>📋 说明</h3>
+        <p>此工具用于测试和验证登录token的存储功能。可以检查localStorage和Cookie中的token状态。</p>
+    </div>
+
+    <div class="test-section">
+        <h3>🔍 当前存储状态</h3>
+        <button onclick="checkStorageStatus()">检查存储状态</button>
+        <div id="storage-status"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🧪 Token生成测试</h3>
+        <button onclick="testTokenGeneration(2)">生成用户2 Token</button>
+        <button onclick="testTokenGeneration(14)">生成用户14 Token</button>
+        <div id="token-generation-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>💾 存储功能测试</h3>
+        <button onclick="testTokenStorage(2)">测试用户2存储</button>
+        <button onclick="testTokenStorage(14)">测试用户14存储</button>
+        <div id="storage-test-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🗑️ 清理功能</h3>
+        <button onclick="clearStorage()">清理所有存储</button>
+        <div id="clear-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>📝 调试信息</h3>
+        <button onclick="showDebugInfo()">显示调试信息</button>
+        <div id="debug-info"></div>
+    </div>
+
+    <script>
+        // API配置
+        const API_BASE = 'http://localhost:12580';
+
+        /**
+         * 检查当前存储状态
+         */
+        function checkStorageStatus() {
+            const resultDiv = document.getElementById('storage-status');
+
+            const localStorageToken = localStorage.getItem('token');
+            const userInfo = localStorage.getItem('user');
+            const cookies = document.cookie.split(';').map(c => c.trim());
+            const tokenCookie = cookies.find(c => c.startsWith('token='));
+            const accessTokenCookie = cookies.find(c => c.startsWith('access_token='));
+
+            let html = '<h4>📊 存储状态检查结果：</h4>';
+
+            // localStorage状态
+            html += '<div class="storage-item">';
+            html += '<div class="storage-key">localStorage:</div>';
+            html += `<div class="storage-value">token: ${localStorageToken ? '✅ 已设置' : '❌ 未设置'}</div>`;
+            html += `<div class="storage-value">user: ${userInfo ? '✅ 已设置' : '❌ 未设置'}</div>`;
+            if (localStorageToken) {
+                html += `<div class="storage-value">token值: ${localStorageToken.substring(0, 50)}...</div>`;
+            }
+            if (userInfo) {
+                html += `<div class="storage-value">用户信息: ${userInfo.substring(0, 100)}...</div>`;
+            }
+            html += '</div>';
+
+            // Cookie状态
+            html += '<div class="storage-item">';
+            html += '<div class="storage-key">Cookie:</div>';
+            html += `<div class="storage-value">token: ${tokenCookie ? '✅ 已设置' : '❌ 未设置'}</div>`;
+            html += `<div class="storage-value">access_token: ${accessTokenCookie ? '✅ 已设置' : '❌ 未设置'}</div>`;
+            if (tokenCookie) {
+                html += `<div class="storage-value">token值: ${tokenCookie.substring(0, 50)}...</div>`;
+            }
+            html += '</div>';
+
+            // 总体状态
+            const allStored = !!(localStorageToken && userInfo && tokenCookie);
+            html += `<div class="${allStored ? 'success' : 'error'}">`;
+            html += `<strong>总体状态: ${allStored ? '✅ 所有存储正常' : '❌ 存储不完整'}</strong>`;
+            html += '</div>';
+
+            resultDiv.innerHTML = html;
+        }
+
+        /**
+         * 生成token
+         */
+        async function generateToken(userId) {
+            try {
+                const response = await fetch(`${API_BASE}/api/TokenAuth/GenerateTokenForUser`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ userId: userId })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                if (!data.success) {
+                    throw new Error(data.error?.message || '生成token失败');
+                }
+
+                return data.result;
+            } catch (error) {
+                console.error('生成token失败:', error);
+                throw error;
+            }
+        }
+
+        /**
+         * 测试token生成
+         */
+        async function testTokenGeneration(userId) {
+            const resultDiv = document.getElementById('token-generation-result');
+            resultDiv.innerHTML = '<p>正在生成用户 ' + userId + ' 的token...</p>';
+
+            try {
+                const tokenData = await generateToken(userId);
+
+                let html = '<div class="success">';
+                html += '<h4>✅ Token生成成功！</h4>';
+                html += `<p><strong>用户ID:</strong> ${tokenData.userId}</p>`;
+                html += `<p><strong>用户名:</strong> ${tokenData.userName}</p>`;
+                html += `<p><strong>Token长度:</strong> ${tokenData.accessToken.length} 字符</p>`;
+                html += `<p><strong>过期时间:</strong> ${tokenData.expireInSeconds} 秒</p>`;
+                html += '<details>';
+                html += '<summary>查看完整Token信息</summary>';
+                html += `<pre>${JSON.stringify(tokenData, null, 2)}</pre>`;
+                html += '</details>';
+                html += '</div>';
+
+                resultDiv.innerHTML = html;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error"><h4>❌ Token生成失败</h4><p>${error.message}</p></div>`;
+            }
+        }
+
+        /**
+         * 设置token到存储
+         */
+        function setTokenToStorage(tokenData) {
+            // 设置localStorage
+            localStorage.setItem('token', tokenData.accessToken);
+            localStorage.setItem('user', JSON.stringify({
+                id: tokenData.userId,
+                userName: tokenData.userName,
+                emailAddress: tokenData.emailAddress || '',
+            }));
+
+            // 设置Cookie
+            document.cookie = `token=${tokenData.accessToken}; path=/; max-age=${tokenData.expireInSeconds}`;
+            document.cookie = `access_token=${tokenData.accessToken}; path=/; max-age=${tokenData.expireInSeconds}`;
+
+            console.log('Token已设置到存储');
+        }
+
+        /**
+         * 测试token存储
+         */
+        async function testTokenStorage(userId) {
+            const resultDiv = document.getElementById('storage-test-result');
+            resultDiv.innerHTML = '<p>正在测试用户 ' + userId + ' 的token存储...</p>';
+
+            try {
+                // 生成token
+                const tokenData = await generateToken(userId);
+
+                // 存储token
+                setTokenToStorage(tokenData);
+
+                // 验证存储
+                setTimeout(() => {
+                    const localStorageToken = localStorage.getItem('token');
+                    const userInfo = localStorage.getItem('user');
+                    const cookies = document.cookie.split(';').map(c => c.trim());
+                    const tokenCookie = cookies.find(c => c.startsWith('token='));
+
+                    const allStored = !!(localStorageToken && userInfo && tokenCookie);
+
+                    let html = `<div class="${allStored ? 'success' : 'error'}">`;
+                    html += '<h4>' + (allStored ? '✅' : '❌') + ' Token存储测试结果</h4>';
+                    html += `<p>localStorage token: ${localStorageToken ? '✅' : '❌'}</p>`;
+                    html += `<p>localStorage user: ${userInfo ? '✅' : '❌'}</p>`;
+                    html += `<p>Cookie token: ${tokenCookie ? '✅' : '❌'}</p>`;
+                    html += `<p><strong>总体状态: ${allStored ? '所有存储正常' : '存储不完整'}</strong></p>`;
+                    html += '</div>';
+
+                    resultDiv.innerHTML = html;
+                }, 100);
+
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error"><h4>❌ Token存储测试失败</h4><p>${error.message}</p></div>`;
+            }
+        }
+
+        /**
+         * 清理存储
+         */
+        function clearStorage() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+
+            // 清理Cookie
+            document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+
+            document.getElementById('clear-result').innerHTML =
+                '<div class="success"><h4>✅ 存储已清理</h4><p>所有localStorage和Cookie已被清除</p></div>';
+
+            // 重新检查状态
+            setTimeout(checkStorageStatus, 100);
+        }
+
+        /**
+         * 显示调试信息
+         */
+        function showDebugInfo() {
+            const debugDiv = document.getElementById('debug-info');
+
+            let html = '<h4>🔍 调试信息：</h4>';
+            html += '<div class="storage-item">';
+            html += '<div class="storage-key">localStorage内容:</div>';
+            html += '<div class="storage-value"><pre>' + JSON.stringify(localStorage, null, 2) + '</pre></div>';
+            html += '</div>';
+
+            html += '<div class="storage-item">';
+            html += '<div class="storage-key">Cookie内容:</div>';
+            html += '<div class="storage-value"><pre>' + document.cookie + '</pre></div>';
+            html += '</div>';
+
+            html += '<div class="storage-item">';
+            html += '<div class="storage-key">页面URL:</div>';
+            html += '<div class="storage-value">' + window.location.href + '</div>';
+            html += '</div>';
+
+            debugDiv.innerHTML = html;
+        }
+
+        // 页面加载时自动检查存储状态
+        window.onload = function() {
+            checkStorageStatus();
+            console.log('Token存储测试工具已加载');
+        };
+    </script>
+</body>
+</html>
