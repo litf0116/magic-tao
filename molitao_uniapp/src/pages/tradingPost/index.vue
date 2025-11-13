@@ -74,7 +74,7 @@
                         @tap="toDetail(item.postId)"
                     >
                         <view class="post-left">
-                            <view class="post-title">{{ item.title }}</view>
+                            <view class="post-title" :class="{ 'is-top': item.isTop }">{{ item.title }}</view>
                             <view class="post-meta">
                                 <view class="meta-left">
                                     <text
@@ -594,6 +594,10 @@ uni-modal .uni-modal__bd {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: normal;
+}
+
+.post-title.is-top {
+    color: #ff4d00;
 }
 
 .post-meta {

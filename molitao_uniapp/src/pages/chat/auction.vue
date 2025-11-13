@@ -505,6 +505,13 @@ async function bid() {
                                 Tips.noCancelModal('请输入数字')
                                 return
                             }
+
+                            // 验证最低出价为5R
+                            if (value < 5) {
+                                Tips.noCancelModal('最低出价为5R，请重新出价')
+                                return
+                            }
+
                             // console.log('用户输入出价金额:', value)
                             auctionStore.bid(auctionItemId, value)
                         }

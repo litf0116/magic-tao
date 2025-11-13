@@ -378,7 +378,15 @@ async function bid() {
         })
             .then(({ value }) => {
                 console.log('用户输入出价金额:', value)
-                auctionStore.bid(onAuctionItem.value!.id!, parseInt(value))
+                const bidAmount = parseInt(value)
+
+                // 验证最低出价为5R
+                if (bidAmount < 5) {
+                    ElMessage.error('最低出价为5R，请重新出价')
+                    return
+                }
+
+                auctionStore.bid(onAuctionItem.value!.id!, bidAmount)
             })
             .catch(() => {
                 console.log('用户取消出价')

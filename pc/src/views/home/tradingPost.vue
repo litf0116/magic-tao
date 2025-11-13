@@ -62,7 +62,7 @@
 
                     <!-- 标题 -->
                     <div class="post-title">
-                        <span class="title-text">{{ post.title }}</span>
+                        <span class="title-text" :class="{ 'is-top': post.isTop != 0 }">{{ post.title }}</span>
                     </div>
 
                     <!-- 右侧信息 -->
@@ -580,6 +580,10 @@ const goToDetail = (id) => {
     text-overflow: ellipsis;
     white-space: nowrap;
     display: block;
+}
+
+.title-text.is-top {
+    color: #ff4d00;
 }
 
 .post-side {
