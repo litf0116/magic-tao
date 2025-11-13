@@ -35,6 +35,25 @@
                 </div>
             </div>
 
+            <!-- 搜索发现 -->
+            <div class="search-div">
+                <div class="search-input">
+                    <div class="hotWords">
+                        <div class="title" style="width: 120px">搜索发现：</div>
+                        <div style="display: flex; flex-wrap: wrap">
+                            <div
+                                v-for="(item, index) in hotWordsList"
+                                class="item"
+                                :class="{ active: hotWordsActiveKey === item.id }"
+                                @click="onHotWordActive(item)"
+                            >
+                                {{ item.title }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- 在这个位置插入置顶帖的列表 -->
             <div class="top-posts">
                 <div class="title">置顶帖子</div>
@@ -75,19 +94,6 @@
 
             <div class="search-div">
                 <div class="search-input">
-                    <div class="hotWords">
-                        <div class="title" style="width: 120px">搜索发现：</div>
-                        <div style="display: flex; flex-wrap: wrap">
-                            <div
-                                v-for="(item, index) in hotWordsList"
-                                class="item"
-                                :class="{ active: hotWordsActiveKey === item.id }"
-                                @click="onHotWordActive(item)"
-                            >
-                                {{ item.title }}
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
 

@@ -59,6 +59,18 @@
                     @input="debouncedSearch"
                 />
                 <image src="../../static/搜索.png" class="search-icon" mode="aspectFit" @tap="handleSearch"></image>
+            </div>
+            <!-- 热词区域 -->
+            <view class="hotWords">
+                <view
+                    v-for="(item, index) in hotWordsList"
+                    :key="index"
+                    class="hotWords-item"
+                    :class="{ active: hotWordsActiveKey === item.id }"
+                    @tap="switchHotWords(item)"
+                >
+                    {{ item.title }}
+                </view>
             </view>
             <!-- 此处是置顶帖子的位置 -->
             <view class="section top-posts">
@@ -99,19 +111,7 @@
                     <image class="empty-image" src="../../static/nodata.png" mode="aspectFit"></image>
                     <text class="empty-text">暂无置顶帖子</text>
                 </view>
-            </view>
-            <!-- 热词区域 -->
-            <view class="hotWords">
-                <view
-                    v-for="(item, index) in hotWordsList"
-                    :key="index"
-                    class="hotWords-item"
-                    :class="{ active: hotWordsActiveKey === item.id }"
-                    @tap="switchHotWords(item)"
-                >
-                    {{ item.title }}
-                </view>
-            </view>
+            </div>
             <!-- 发帖按钮 -->
             <view class="post-button" @tap="onPostTap"> 我要发帖 </view>
             <!-- 分隔区域 -->
