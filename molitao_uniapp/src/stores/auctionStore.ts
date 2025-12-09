@@ -20,9 +20,17 @@ export const useAuctionStore = defineStore('auction', () => {
     }
 
     async function syncKasecStatus(auctionId: number) {
-        // 假设有 getKasecStatus API
-        const res = await api.auctionItem.getKasecStatus(auctionId)
-        isKasec.value = !!res
+        try {
+            const res = await api.auctionItem.getKasecStatus(auctionId)
+            const kasecStatus = !!res
+            isKasec.value = kasecStatus
+            return kasecStatus
+        } catch (error) {
+            console.error('获取卡秒状态失败:', error)
+            // 如果获取失败，默认为false
+            isKasec.value = false
+            return false
+        }
     }
 
     function end(auctionItemId: number) {
