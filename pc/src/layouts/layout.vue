@@ -2,15 +2,15 @@
     <main class="min-h-screen">
         <div class="wrap">
             <div class="header">
-                <img class="logo2" :src="'https://image.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png'" />
+                <img class="logo2" :src="'https://image.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png'"/>
             </div>
-            <public-nav />
+            <public-nav/>
             <div class="content px-4">
                 <router-view v-slot="{ Component, route }">
-                    <component :is="Component" :key="route.fullPath" />
+                    <component :is="Component" :key="route.fullPath"/>
                 </router-view>
             </div>
-            <Footer />
+            <Footer/>
         </div>
     </main>
 </template>
@@ -25,7 +25,7 @@ main {
     display: flex;
     justify-content: center;
     // align-items: center;
-    background: #eefaff url('https://image.molitao.top/molitao/2025-03-30/upload_3wj6aaa2dnfyy9zq63x6iuyv75bfnudn.png') no-repeat center top;
+    background: #eefaff url('@/assets/top-banner.png') no-repeat center top;
 }
 
 .wrap {
@@ -33,7 +33,6 @@ main {
 
     .header {
         @apply w-full text-center h-[200px] lg:h-[500px] flex flex-col justify-end items-center lg:w-918px lg:mx-auto;
-        background: url('https://image.molitao.top/20250330/04j40l4ynlbh3v3h4bgfe7j2pxiqjg8d.png') no-repeat center top / cover;
 
         .logo2 {
             @apply mb-1 w-231px lg:w-513px lg:mb-4;
