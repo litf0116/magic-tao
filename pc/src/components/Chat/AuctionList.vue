@@ -360,14 +360,17 @@ async function bid() {
         const minPrice = calculateMinBidPrice(onAuctionItem.value.currentPrice, auctionStore.isKasec)
 
         let message = `请输入出价金额(最低出价${minPrice})`
+        let dialogTitle = '出价'
+
         if (auctionStore.isKasec) {
+            dialogTitle = '卡秒出价 - 需三倍加价'
             message =
-                `<div style='color:red;border:1px solid red;padding:4px;margin-bottom:8px;'>您已卡秒出价，需加够三倍竞拍价才有效（最低出价：${minPrice}）</div>` +
+                `<div style='color:red;border:1px solid red;padding:4px;margin-bottom:8px;'>您已卡秒出价，需加够三倍加价才有效（最低出价：${minPrice}）</div>` +
                 message
         }
 
         console.log('显示出价弹窗...')
-        ElMessageBox.prompt(message, '出价', {
+        ElMessageBox.prompt(message, dialogTitle, {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
             inputPattern: /\d+/,

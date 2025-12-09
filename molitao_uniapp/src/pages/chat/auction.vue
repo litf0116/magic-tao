@@ -377,12 +377,9 @@ async function bid() {
             return
         }
 
-        // 从商品详情中获取卡秒状态
-        const isKasecMode = !!auctionItemDetail.isKasec
+        // 使用专门API获取卡秒状态
+        const isKasecMode = await auctionStore.syncKasecStatus(auctionItemId)
         // console.log('卡秒状态:', isKasecMode)
-
-        // 同步到store（可选，用于UI显示）
-        auctionStore.isKasec = isKasecMode
 
         // 获取实时用户信息
         const currentUser = await api.user.get({ id: userId })
@@ -474,29 +471,16 @@ async function bid() {
             isKasecMode
         )
 
-        let title = '出价'
-        let placeholderText = `请输入出价金额(最低出价${minPrice})`
-
-        if (isKasecMode) {
-            title = '卡秒出价'
-            placeholderText = `卡秒模式-需三倍加价(最低出价${minPrice})`
-        }
-
-        // console.log('准备显示出价弹窗...')
-        // 先显示一个提示
-        uni.showToast({
-            title: '请输入出价金额',
-            icon: 'none',
-            duration: 2000,
-        })
-
+        // 直接显示出价弹窗，根据模式展示不同信息
         try {
-            await new Promise((resolve, reject) => {
+            await new Promise<void>((resolve, reject) => {
                 uni.showModal({
-                    title: title,
-                    content: '', // 清空content，避免作为默认值显示在输入框中
+                    title: isKasecMode ? '卡秒出价' : '出价',
+                    content: '', // 保持空的内容，让用户输入
                     editable: true,
-                    placeholderText: placeholderText,
+                    placeholderText: isKasecMode
+                        ? `⚠️ 卡秒模式-需三倍加价(最低出价${minPrice})`
+                        : `请输入出价金额(最低出价${minPrice})`,
                     success: (res) => {
                         // console.log('出价弹窗结果:', res)
                         if (res.confirm) {
@@ -509,6 +493,12 @@ async function bid() {
                             // 验证最低出价为5R
                             if (value < 5) {
                                 Tips.noCancelModal('最低出价为5R，请重新出价')
+                                return
+                            }
+
+                            // 卡秒模式额外验证
+                            if (isKasecMode && value < minPrice) {
+                                Tips.noCancelModal(`卡秒模式需要三倍加价，最低出价为${minPrice}`)
                                 return
                             }
 
