@@ -465,6 +465,12 @@ async function bid() {
 
         // 满足条件，弹出原有出价输入框
 
+        // 使用工具方法计算最低出价（基于实时获取的商品信息）
+        const minPrice = calculateMinBidPrice(
+            auctionItemDetail.currentPrice || auctionItemDetail.startingPrice,
+            isKasecMode
+        )
+
         // 直接显示出价弹窗，根据模式展示不同信息
         try {
             await new Promise<void>((resolve, reject) => {
