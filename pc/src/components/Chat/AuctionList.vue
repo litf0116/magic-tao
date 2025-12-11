@@ -17,7 +17,6 @@
                         v-for="x in waitList"
                         :key="x.id"
                         :item="x"
-                        :index="getItemIndex(x)"
                         @showDetail="showDetail"
                     />
                     <div class="h-4"></div>
@@ -25,18 +24,21 @@
             </template>
             <!-- <template v-else-if="activeName === '2'">
                 <div class="grid grid-cols-1 gap-2">
-                    <list-auction-item v-for="(x, index) in auctionStore.auctionMid" :key="x.id" :item="x"
-                        :index="index + 1" @showDetail="showDetail" />
+                    <list-auction-item
+                        v-for="x in auctionStore.auctionMid"
+                        :key="x.id"
+                        :item="x"
+                        @showDetail="showDetail"
+                    />
                     <div class="h-4"></div>
                 </div>
             </template> -->
             <template v-else-if="activeName === '3'">
                 <div class="grid grid-cols-1 gap-2">
                     <list-auction-item
-                        v-for="(x, index) in auctionStore.list4"
+                        v-for="x in auctionStore.list4"
                         :key="x.id"
                         :item="x"
-                        :index="index + 1"
                         @showDetail="showDetail"
                     />
                     <div class="h-4"></div>
@@ -217,15 +219,6 @@ watch(
 )
 
 watch(
-    () => waitList.value,
-    () => {
-        // 当待拍卖列表变化时重置索引计数器
-        normalIndex = 0
-    },
-    { deep: true }
-)
-
-watch(
     () => onAuctionItem.value && onAuctionItem.value.id,
     (id) => {
         if (id) auctionStore.syncKasecStatus(id)
@@ -261,14 +254,7 @@ function getListHeight() {
     return onAuctionItem.value ? '354px' : '624px'
 }
 
-let normalIndex = 0
-const getItemIndex = (item) => {
-    if (item.name.includes('空降')) {
-        return ''
-    }
-    normalIndex++
-    return normalIndex
-}
+// getItemIndex 函数已移除，序号现在存储在 item.displayIndex 中
 
 //LINK - 结束竞拍
 function end() {

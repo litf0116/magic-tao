@@ -7,7 +7,7 @@ import { GetAuctionMidList } from '@/api/auctionMidAPI'
 import { setKasecStatus, getKasecStatus, GetDetail } from '@/api/auctionItemAPI'
 import { ElMessage } from 'element-plus'
 import { convertAuctionPayload } from '@/utils/propertyConverter'
-import { convertObjectImageUrls } from '@/utils/imageUrlConverter'
+import { convertObjectImageUrlsArray } from '@/utils/imageUrlConverter'
 
 export const useAuctionStore = defineStore('auction', () => {
     const list = ref<AuctionItemDto[]>([])
@@ -18,6 +18,19 @@ export const useAuctionStore = defineStore('auction', () => {
 
     const userStore = useUserStore()
     const chatStore = useChatStore()
+
+    // 辅助函数：为拍卖品列表计算显示序号
+    function calculateDisplayIndices(items: AuctionItemDto[]): AuctionItemDto[] {
+        let currentIndex = 1
+        return items.map(item => {
+            // 空降商品不显示序号
+            if (item.name?.includes('空降')) {
+                return { ...item, displayIndex: '' }
+            }
+            // 其他商品从1开始连续编号
+            return { ...item, displayIndex: currentIndex++ }
+        })
+    }
 
     // 新增：从出价消息直接更新拍品信息
     function updateAuctionItemFromBidMessage(bidMessagePayload: any) {
@@ -49,6 +62,15 @@ export const useAuctionStore = defineStore('auction', () => {
             currentPriceUserName: convertedPayload.currentPriceUserName,
         }
 
+        // 辅助函数：更新项目时保持 displayIndex
+        const updateItem = (item: AuctionItemDto) => {
+            return {
+                ...item,
+                ...updatedData,
+                displayIndex: item.displayIndex // 确保不覆盖原有的 displayIndex
+            }
+        }
+
         console.log('要更新的数据:', updatedData)
         console.log('当前list长度:', list.value.length)
         console.log('当前auctionMid长度:', auctionMid.value.length)
@@ -59,7 +81,7 @@ export const useAuctionStore = defineStore('auction', () => {
         if (listIndex !== -1) {
             console.log('找到待拍卖列表中的拍品，索引:', listIndex)
             console.log('更新前:', list.value[listIndex])
-            list.value[listIndex] = { ...list.value[listIndex], ...updatedData }
+            list.value[listIndex] = updateItem(list.value[listIndex])
             console.log('更新后:', list.value[listIndex])
         } else {
             console.log('在待拍卖列表中未找到拍品ID:', auctionItemId)
@@ -70,7 +92,7 @@ export const useAuctionStore = defineStore('auction', () => {
         if (auctionMidIndex !== -1) {
             console.log('找到拍卖中列表中的拍品，索引:', auctionMidIndex)
             console.log('更新前:', auctionMid.value[auctionMidIndex])
-            auctionMid.value[auctionMidIndex] = { ...auctionMid.value[auctionMidIndex], ...updatedData }
+            auctionMid.value[auctionMidIndex] = updateItem(auctionMid.value[auctionMidIndex])
             console.log('更新后:', auctionMid.value[auctionMidIndex])
         } else {
             console.log('在拍卖中列表中未找到拍品ID:', auctionItemId)
@@ -85,7 +107,7 @@ export const useAuctionStore = defineStore('auction', () => {
         if (list4Index !== -1) {
             console.log('找到已完成列表中的拍品，索引:', list4Index)
             console.log('更新前:', list4.value[list4Index])
-            list4.value[list4Index] = { ...list4.value[list4Index], ...updatedData }
+            list4.value[list4Index] = updateItem(list4.value[list4Index])
             console.log('更新后:', list4.value[list4Index])
         } else {
             console.log('在已完成列表中未找到拍品ID:', auctionItemId)
@@ -255,8 +277,15 @@ export const useAuctionStore = defineStore('auction', () => {
             //待拍卖
             if (!status) {
                 api.auctionItem.getPublicList({ maxResultCount: 100 }).then((res) => {
-                    list.value = convertObjectImageUrls(res.items!, ['imageUrl'])
-                    console.log('拍卖列表已刷新')
+                    console.log('=== getList 待拍卖列表 API响应 ===')
+                    console.log('返回数据条数:', res.items?.length)
+                    console.log('第一条数据ID:', res.items?.[0]?.id)
+                    console.log('最后一条数据ID:', res.items?.[res.items?.length - 1]?.id)
+
+                    // 处理图片URL并计算序号
+                    const itemsWithImages = convertObjectImageUrlsArray(res.items!, ['imageUrl'])
+                    list.value = calculateDisplayIndices(itemsWithImages)
+                    console.log('拍卖列表已刷新，实际数据条数:', list.value.length)
                     // Tips.success('拍卖列表已刷新')
                     return resolve()
                 })
@@ -265,8 +294,14 @@ export const useAuctionStore = defineStore('auction', () => {
             if (status === 2) {
                 GetAuctionMidList({ status, maxResultCount: 100 }).then((res) => {
                     if (res.status == 200) {
+                        console.log('=== getList 拍卖中列表 API响应 ===')
+                        console.log('返回数据条数:', res.data?.items?.length)
+
                         auctionMid.value.length = 0
-                        auctionMid.value = convertObjectImageUrls(res.data.items, ['imageUrl'])
+                        // 处理图片URL并计算序号
+                        const itemsWithImages = convertObjectImageUrlsArray(res.data.items, ['imageUrl'])
+                        auctionMid.value = calculateDisplayIndices(itemsWithImages)
+                        console.log('拍卖中列表已刷新，实际数据条数:', auctionMid.value.length)
                     }
                     // Tips.success('拍卖列表已刷新')
                     return resolve()
@@ -275,7 +310,14 @@ export const useAuctionStore = defineStore('auction', () => {
             //已完成
             if (status === 4) {
                 api.auctionItem.getPublicList({ status, maxResultCount: 100 }).then((res) => {
-                    list4.value = convertObjectImageUrls(res.items!, ['imageUrl'])
+                    console.log('=== getList 已完成列表 API响应 ===')
+                    console.log('返回数据条数:', res.items?.length)
+                    console.log('第一条数据ID:', res.items?.[0]?.id)
+
+                    // 处理图片URL并计算序号
+                    const itemsWithImages = convertObjectImageUrlsArray(res.items!, ['imageUrl'])
+                    list4.value = calculateDisplayIndices(itemsWithImages)
+                    console.log('已完成列表已刷新，实际数据条数:', list4.value.length)
                     // Tips.success('拍卖列表已刷新')
                     return resolve()
                 })

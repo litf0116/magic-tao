@@ -5066,6 +5066,9 @@ export interface AuctionItemDto {
 
     /**  */
     isKasec?: boolean
+
+    /** 显示序号（空降商品为空字符串） */
+    displayIndex?: string | number
 }
 
 export interface AuctionItemDtoListResultDto {

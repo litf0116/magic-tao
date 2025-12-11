@@ -8,7 +8,7 @@
             <div v-if="checkIncludes && item.status === '上架'" class="text-[#935F4E] line-clamp-3">
                 {{ item.name }}
             </div>
-            <div v-else class="text-[#935F4E] line-clamp-3">{{ index }}. {{ item.name }}</div>
+            <div v-else class="text-[#935F4E] line-clamp-3">{{ item.displayIndex }}. {{ item.name }}</div>
             <div v-if="item.finalPrice" class="flex justify-between">
                 <div class="text-red-500">
                     成交价:<b>￥{{ item.finalPrice }}</b>
@@ -36,9 +36,7 @@ const props = defineProps({
         type: Object as PropType<AuctionItemDto>,
         required: true,
     },
-    index: {
-        required: true,
-    },
+    // 移除 index 参数，直接使用 item.displayIndex
 })
 
 const checkIncludes = computed(() => {

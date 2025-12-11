@@ -38,7 +38,7 @@ export function convertObjectImageUrls<T extends Record<string, any>>(
 ): T {
   if (!obj || typeof obj !== 'object') return obj;
 
-  const result = { ...obj };
+  const result = { ...obj } as any;
 
   for (const key of urlKeys) {
     if (result[key] && typeof result[key] === 'string') {
@@ -47,6 +47,21 @@ export function convertObjectImageUrls<T extends Record<string, any>>(
   }
 
   return result;
+}
+
+/**
+ * 批量转换对象数组中的图片URL
+ * @param objects 对象数组
+ * @param urlKeys 需要转换的URL键名数组
+ * @returns 转换后的对象数组
+ */
+export function convertObjectImageUrlsArray<T extends Record<string, any>>(
+  objects: T[],
+  urlKeys: string[] = ['avatar', 'url', 'imageUrl', 'image', 'src']
+): T[] {
+  if (!Array.isArray(objects)) return objects;
+
+  return objects.map(obj => convertObjectImageUrls(obj, urlKeys));
 }
 
 /**
@@ -62,5 +77,6 @@ export default {
   convertImageUrl,
   convertImageUrls,
   convertObjectImageUrls,
+  convertObjectImageUrlsArray,
   convertEnvImageUrl
 };
