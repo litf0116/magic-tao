@@ -26,7 +26,7 @@
             <view
                 class="flex text-sm justify-center underline text-white bg-[#ff7144] py-2 mb-2 rounded-lg opacity-80"
                 @click.stop="showonAuctionDetail"
-                >拍品详情
+            >拍品详情
             </view>
             <view class="py-4 px-3 bg-red-500 rounded-lg text-center opacity-80" @click.stop="bid">
                 <view class="text-sm text-white mb-2">拍卖中</view>
@@ -45,7 +45,7 @@
 
     <uv-popup ref="popupRef" mode="right">
         <view class="w-65vw h-100vh">
-            <auctionList @showDetail="showDetail" />
+            <auctionList @showDetail="showDetail"/>
         </view>
     </uv-popup>
 
@@ -73,7 +73,7 @@
     <uv-popup ref="popupShowRef" type="message">
         <view v-if="item" class="popup-content">
             <text class="popup-title">公告</text>
-            <img v-if="item.imageUrl" :src="convertImageUrl(item.imageUrl)" mode="aspectFit" class="popup-image" />
+            <img v-if="item.imageUrl" :src="convertImageUrl(item.imageUrl)" mode="aspectFit" class="popup-image"/>
             <text class="popup-text">{{ item.content }}</text>
             <view class="popup-view">
                 <button class="popup-button" @tap="onConfirm">确定</button>
@@ -89,20 +89,33 @@
         :minBidPrice="bidRulesMinPrice"
         @confirm="onBidRulesConfirm"
     />
+
+    <!-- 简单出价弹窗 - 替换 uni.showModal -->
+    <SimpleBidModal
+        ref="simpleBidModal"
+        v-model:show="bidModalVisible"
+        :title="bidModalTitle"
+        :placeholder="bidModalPlaceholder"
+        :isKasec="isKasecMode"
+        :minPrice="minPrice"
+        @confirm="onBidConfirm"
+        @cancel="onBidCancel"
+    />
 </template>
 
 <script setup lang="ts">
 import chatMain from '@/components/chat/chatMain.vue'
-import { getImgUrl, Tips } from '@/composables'
-import { convertImageUrl } from '@/utils/imageUrlConverter'
-import type { AnnounceDto, AuctionItemDto } from '@/composables/types'
+import {getImgUrl, Tips} from '@/composables'
+import {convertImageUrl} from '@/utils/imageUrlConverter'
+import type {AnnounceDto, AuctionItemDto} from '@/composables/types'
 import auctionList from '@/components/chat/auctionList.vue'
 import BidRulesModal from '@/components/BidRulesModal.vue'
+import SimpleBidModal from '@/components/SimpleBidModal.vue'
 import api from '@/utils/api'
-import { calculateMinBidPrice } from '@/utils/auction'
-import { onLoad, onShow, onReady } from '@dcloudio/uni-app'
-import { ChatMessageType } from '@/composables/types'
-import { nextTick, onUnmounted } from 'vue'
+import {calculateMinBidPrice} from '@/utils/auction'
+import {onLoad, onShow, onReady} from '@dcloudio/uni-app'
+import {ChatMessageType} from '@/composables/types'
+import {nextTick, onUnmounted} from 'vue'
 
 // import AuctionList from '@/components/chat/AuctionList.vue'
 const chatStore = useChatStore()
@@ -120,6 +133,14 @@ const bidRulesMessage = ref('')
 const bidRulesCurrentPrice = ref(0)
 const bidRulesMinPrice = ref(0)
 
+// 简单出价弹窗相关
+const bidModalVisible = ref(false)
+const bidModalTitle = ref('')
+const bidModalPlaceholder = ref('')
+const currentAuctionItemId = ref<number | null>(null)
+const isKasecMode = ref(false)
+const minPrice = ref(0)
+
 //未读消息条数
 const unread = ref('')
 const showUnread = ref(false)
@@ -130,7 +151,7 @@ onLoad(() => {
         init('-1_auction')
     })
     //获取最新公告
-    api.announce.getLatest({ id: 2 }).then((res) => {
+    api.announce.getLatest({id: 2}).then((res) => {
         item.value = res
         nextTick(() => {
             var noticeInfo = uni.getStorageSync('auctionNotice')
@@ -172,6 +193,37 @@ onUnmounted(() => {
 // 出价规则弹窗确认处理
 function onBidRulesConfirm() {
     bidRulesModalVisible.value = false
+}
+
+// 简单出价弹窗确认处理
+function onBidConfirm(res: any) {
+    if (res.confirm) {
+        const value = Number(res.content)
+        if (!value) {
+            Tips.noCancelModal('请输入数字')
+            return
+        }
+
+        // 验证最低出价为5R
+        if (value < 5) {
+            Tips.noCancelModal('最低出价为5R，请重新出价')
+            return
+        }
+
+        // 卡秒模式额外验证
+        if (isKasecMode && value < minPrice.value) {
+            Tips.noCancelModal(`卡秒模式需要三倍加价，最低出价为${minPrice}`)
+            return
+        }
+
+        // 执行出价
+        auctionStore.bid(currentAuctionItemId.value!, value)
+    }
+}
+
+// 简单出价弹窗取消处理
+function onBidCancel(res: any) {
+    // 取消操作，不做处理
 }
 
 //关闭公告弹窗
@@ -267,7 +319,8 @@ async function loadHistoryMessage(force = false) {
 //LINK[epic=消息发送] - 拍卖消息发送逻辑
 function send(e: { type: ChatMessageType; data: string | object }) {
     if (e.type === ChatMessageType.Image) {
-        chatStore.sendChannelMsg('[图片]', '', ChatMessageType.Image, e.data).then(() => {})
+        chatStore.sendChannelMsg('[图片]', '', ChatMessageType.Image, e.data).then(() => {
+        })
     } else if (e.type === ChatMessageType.Text) {
         chatStore.sendChannelMsg(e.data as string, '', ChatMessageType.Text).then(() => {
             //
@@ -284,7 +337,7 @@ function doPayment(
     callback: { success: () => void; fail: () => void }
 ) {
     api.client
-        .payDeposit({ openid: userStore.openid, amount: params.amount })
+        .payDeposit({openid: userStore.openid, amount: params.amount})
         .then((res: any) => {
             wx.requestPayment({
                 provider: 'wxpay',
@@ -378,11 +431,11 @@ async function bid() {
         }
 
         // 使用专门API获取卡秒状态
-        const isKasecMode = await auctionStore.syncKasecStatus(auctionItemId)
-        // console.log('卡秒状态:', isKasecMode)
+        const kasecStatus = await auctionStore.syncKasecStatus(auctionItemId)
+        // console.log('卡秒状态:', kasecStatus)
 
         // 获取实时用户信息
-        const currentUser = await api.user.get({ id: userId })
+        const currentUser = await api.user.get({id: userId})
         const deposit = currentUser?.depositBalance || 0
         // console.log('用户信息获取成功:', {
         //         userId: currentUser?.id,
@@ -466,53 +519,22 @@ async function bid() {
         // 满足条件，弹出原有出价输入框
 
         // 使用工具方法计算最低出价（基于实时获取的商品信息）
-        const minPrice = calculateMinBidPrice(
+        const calculatedMinPrice = calculateMinBidPrice(
             auctionItemDetail.currentPrice || auctionItemDetail.startingPrice,
-            isKasecMode
+            kasecStatus
         )
 
         // 直接显示出价弹窗，根据模式展示不同信息
         try {
-            await new Promise<void>((resolve, reject) => {
-                uni.showModal({
-                    title: isKasecMode ? '卡秒出价' : '出价',
-                    content: '', // 保持空的内容，让用户输入
-                    editable: true,
-                    placeholderText: isKasecMode
-                        ? `⚠️ 卡秒模式-需三倍加价(最低出价${minPrice})`
-                        : `请输入出价金额(最低出价${minPrice})`,
-                    success: (res) => {
-                        // console.log('出价弹窗结果:', res)
-                        if (res.confirm) {
-                            const value = Number(res.content)
-                            if (!value) {
-                                Tips.noCancelModal('请输入数字')
-                                return
-                            }
+            // 设置弹窗参数
+            currentAuctionItemId.value = auctionItemId
+            isKasecMode.value = kasecStatus
+            minPrice.value = calculatedMinPrice
+            bidModalTitle.value = kasecStatus ? '卡秒出价' : '出价'
+            bidModalPlaceholder.value = `请输入出价金额(最低出价${calculatedMinPrice})`
 
-                            // 验证最低出价为5R
-                            if (value < 5) {
-                                Tips.noCancelModal('最低出价为5R，请重新出价')
-                                return
-                            }
-
-                            // 卡秒模式额外验证
-                            if (isKasecMode && value < minPrice) {
-                                Tips.noCancelModal(`卡秒模式需要三倍加价，最低出价为${minPrice}`)
-                                return
-                            }
-
-                            // console.log('用户输入出价金额:', value)
-                            auctionStore.bid(auctionItemId, value)
-                        }
-                        resolve(res)
-                    },
-                    fail: (err: any) => {
-                        // console.error('出价弹窗失败:', err)
-                        reject(err)
-                    },
-                })
-            })
+            // 显示弹窗
+            bidModalVisible.value = true
         } catch (error) {
             // console.error('显示出价弹窗出错:', error)
             Tips.error('显示弹窗失败，请重试')
@@ -737,8 +759,8 @@ const navigateToAdminChat = (status: 'pending' | 'record_provided') => {
 </style>
 <route lang="json">
 {
-    "style": {
-        "navigationBarTitleText": "拍卖行"
-    }
+"style": {
+"navigationBarTitleText": "拍卖行"
+}
 }
 </route>
