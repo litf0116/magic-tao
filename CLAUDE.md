@@ -17,3 +17,5 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 
 <!-- OPENSPEC:END -->
 - 删除方法的时候检查一下这个方式是否在前端或者小程序中有使用。如果存在使用则不能删除
+- 登录账号 admin 密码 123456
+- 我们调用登录接口执行之后获取的 token 信息及时更新到 @docs/Authorization.md 中，支持给后续接口调用使用

@@ -39,7 +39,7 @@ public class BidHistoryAppService : AbpAsyncCrudAppService<BidHistory, BidHistor
     public async Task<object> DateAnlayse(AppResultRequestDto input) {
         var query = await Repository.GetAll()
             .WhereIf(input.From.HasValue, x => x.CreationTime >= input.From)
-            .WhereIf(input.To.HasValue, x => x.CreationTime <= input.From)
+            .WhereIf(input.To.HasValue, x => x.CreationTime <= input.To)
             .GroupBy(row => new {
                 row.CreationTime.Year,
                 row.CreationTime.Month,
