@@ -48,6 +48,7 @@ using TtWork.Project.Web.Authentication.JwtBearer;
 using Nest;
 using TtWork.Abp;
 using TtWork.Project.Web.Host.HealthChecks;
+using TtWork.Lib;
 using TtWork.Project.Web.Host.Services;
 
 namespace TtWork.Project.Web.Host.Startup
@@ -73,7 +74,17 @@ namespace TtWork.Project.Web.Host.Startup
                 cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
             services.Configure<RedisOptions>(_appConfiguration.GetSection("Redis"));
+
+            // Redis 服务注册
             services.AddSingleton<IRedisClient, RedisClient>();
+            services.AddSingleton<IRedisPerformanceMonitor, RedisPerformanceMonitor>();
+
+            // HttpClient 服务注册
+            services.AddSingleton<IHttpClientService, HttpClientService>();
+
+            // 替换为增强的健康检查
+            services.AddTransient<RedisHealthCheck>(); // 保留原有的以避免破坏性更改
+            services.AddTransient<RedisHealthCheckEnhanced>();
 
             services.AddSingleton<IPlatformCertificateManager, PlatformCertificateManager>();
             services.AddSingleton<ISignatureGenerator, SignatureGenerator>();
@@ -81,15 +92,16 @@ namespace TtWork.Project.Web.Host.Startup
 
             // 添加性能监控服务
             services.AddHostedService<PerformanceCounterService>();
+            services.AddHostedService<RedisMonitoringService>();
 
             // 注册健康检查服务到依赖注入容器
             services.AddTransient<DatabaseHealthCheck>();
-            services.AddTransient<RedisHealthCheck>();
 
-            // 添加健康检查
+            // 添加健康检查（使用增强版）
             services.AddHealthChecks()
                 .AddCheck<DatabaseHealthCheck>("database")
-                .AddCheck<RedisHealthCheck>("redis");
+                .AddCheck<RedisHealthCheck>("redis") // 保留原有的
+                .AddCheck<RedisHealthCheckEnhanced>("redis-enhanced"); // 新增增强版
 
             // MVC
             services.AddControllersWithViews(opt => { opt.InputFormatters.Add(new XmlSerializerInputFormatter(opt)); })
@@ -167,6 +179,8 @@ namespace TtWork.Project.Web.Host.Startup
 
         public void Configure(IApplicationBuilder app)
         {
+            // 初始化 HttpClient 扩展
+            HttpEx.Initialize(app.ApplicationServices);
 
             //Initializes ABP framework.
             app.UseAbp(options => { options.UseAbpRequestLocalization = false; }); //used below: UseAbpRequestLocalization
