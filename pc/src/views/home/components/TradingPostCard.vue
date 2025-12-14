@@ -65,6 +65,41 @@
                         </div>
                         <span class="news-date">24/03/01</span>
                     </div>
+                    <div class="news-item">
+                        <div class="news-content">
+                            <div class="diamond"></div>
+                            <span class="news-text">游戏公告内容游戏公告内容游戏公告内容游戏公</span>
+                        </div>
+                        <span class="news-date">24/03/01</span>
+                    </div>
+                    <div class="news-item">
+                        <div class="news-content">
+                            <div class="diamond"></div>
+                            <span class="news-text">游戏公告内容游戏公告内容游戏公告内容游戏公</span>
+                        </div>
+                        <span class="news-date">24/03/01</span>
+                    </div>
+                    <div class="news-item">
+                        <div class="news-content">
+                            <div class="diamond"></div>
+                            <span class="news-text">游戏公告内容游戏公告内容游戏公告内容游戏公</span>
+                        </div>
+                        <span class="news-date">24/03/01</span>
+                    </div>
+                    <div class="news-item">
+                        <div class="news-content">
+                            <div class="diamond"></div>
+                            <span class="news-text">游戏公告内容游戏公告内容游戏公告内容游戏公</span>
+                        </div>
+                        <span class="news-date">24/03/01</span>
+                    </div>
+                    <div class="news-item">
+                        <div class="news-content">
+                            <div class="diamond"></div>
+                            <span class="news-text">游戏公告内容游戏公告内容游戏公告内容游戏公</span>
+                        </div>
+                        <span class="news-date">24/03/01</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -79,7 +114,7 @@
 .trading-post-card {
     width: 630px;
     height: 760px;
-    background: url('@/assets/images/panel_background_2.png') no-repeat center center;
+    background: url('@/assets/images/panel_background.png') no-repeat center center;
     background-size: 100% 100%;
     display: flex;
     flex-direction: column;
@@ -196,7 +231,7 @@
             gap: 20px;
 
             width: 470px;
-            height: 270px;
+            height: 470px;
 
             .news-header {
                 width: 116px;
@@ -223,9 +258,10 @@
                 align-items: flex-start;
                 padding: 0px;
                 gap: 15px;
+                overflow-y: auto;
 
                 width: 470px;
-                height: 215px;
+                height: 415px;
 
                 .news-item {
                     display: flex;
