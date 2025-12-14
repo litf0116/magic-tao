@@ -143,8 +143,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 100px 72px;
     margin-top: 30px;
+    width: 100%;
 
     .placeholder {
       color: #666;
