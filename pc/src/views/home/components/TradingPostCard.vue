@@ -140,7 +140,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 100px 72px;
+        padding: 30px 72px;
         margin: 30px auto 0;
         width: calc(100% - 144px); /* 减去左右padding */
 
