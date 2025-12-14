@@ -5,8 +5,8 @@
                 <img class="logo2" :src="'https://image.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png'"/>
             </div>
             <public-nav/>
-            <div class="content px-4">
-                <router-view v-slot="{ Component, route }">
+            <div class="content" :class="route.path === '/index' ? '' : 'with-decoration' px-4">
+                <router-view v-slot="{ Component }">
                     <component :is="Component" :key="route.fullPath"/>
                 </router-view>
             </div>
@@ -16,8 +16,11 @@
 </template>
 
 <script lang="ts" setup>
+import { useRoute } from 'vue-router'
 import PublicNav from './publicNav.vue'
 import Footer from '@/components/Footer.vue'
+
+const route = useRoute()
 </script>
 
 <style lang="scss" scoped>
@@ -43,19 +46,23 @@ main {
 
     .content {
         @apply w-full min-h-400px relative mt-24px lg:mt-53px w-[90vw] xl:w-[1232px];
+    }
+
+    // 只在非首页显示的装饰样式
+    .content.with-decoration {
         background: url('https://image.molitao.top/molitao/2025-03-30/upload_qxgt8fo3iymdi0heth3rnqipc83rzawn.png') repeat-y center center / 100% 100%;
-    }
 
-    .content::before {
-        content: '';
-        @apply block absolute w-full h-18px -top-18px lg:-top-53px lg:h-53px left-0 right-0;
-        background: url('https://image.molitao.top/molitao/2025-03-30/upload_iw2aq9rsovog4lr3v036irwm90nyos20.png') no-repeat center center / 100% 100%;
-    }
+        &::before {
+            content: '';
+            @apply block absolute w-full h-18px -top-18px lg:-top-53px lg:h-53px left-0 right-0;
+            background: url('https://image.molitao.top/molitao/2025-03-30/upload_iw2aq9rsovog4lr3v036irwm90nyos20.png') no-repeat center center / 100% 100%;
+        }
 
-    .content::after {
-        content: '';
-        @apply block absolute w-full h-18px -bottom-18px lg:h-45px lg:-bottom-45px left-0 right-0;
-        background: url('https://image.molitao.top/molitao/2025-03-30/upload_to45oxex09l2uu1ltntj09n6z1x4y0df.png') no-repeat center center / 100% 100%;
+        &::after {
+            content: '';
+            @apply block absolute w-full h-18px -bottom-18px lg:h-45px lg:-bottom-45px left-0 right-0;
+            background: url('https://image.molitao.top/molitao/2025-03-30/upload_to45oxex09l2uu1ltntj09n6z1x4y0df.png') no-repeat center center / 100% 100%;
+        }
     }
 }
 </style>
