@@ -41,28 +41,42 @@
 
   .title-bar {
     display: flex;
-    align-items: center;
+    flex-direction: row;
     justify-content: space-between;
-    width: 90%;
-    height: 80px;
+    align-items: center;
+    padding: 0px;
+    gap: 20px;
+
+    width: 520px;
+    height: 46px;
     background: rgba(255, 255, 255, 0.9);
     border-radius: 40px;
-    padding: 0 30px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+    flex: none;
+    order: 0;
+    align-self: stretch;
+    flex-grow: 0;
 
     .title-image {
       width: auto;
-      height: 50px;
+      height: 36px; /* 调整高度以适应46px的标题栏 */
       object-fit: contain;
+      flex: none;
+      order: 0;
+      flex-grow: 0;
     }
 
     .description {
       flex: 1;
-      margin: 0 30px;
+      margin: 0;
       color: #333;
-      font-size: 14px;
+      font-size: 12px;
       text-align: center;
       line-height: 1.4;
+
+      flex: none;
+      order: 1;
+      flex-grow: 0;
     }
 
     .action-button {
@@ -83,7 +97,7 @@
       transition: all 0.3s ease;
 
       flex: none;
-      order: 1;
+      order: 2;
       flex-grow: 0;
 
       span {
