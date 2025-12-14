@@ -67,6 +67,9 @@ const openLink = (url: string) => {
         position: relative;
         width: 1300px;
         height: 204px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
 
         background-image: url('@/assets/images/ad_background.png');
         background-size: cover;
@@ -87,6 +90,7 @@ const openLink = (url: string) => {
             border-width: 8px;
             height: auto;
             min-height: 150px;
+            padding: 10px 0;
         }
     }
 
@@ -97,20 +101,12 @@ const openLink = (url: string) => {
         align-items: flex-start;
         padding: 20px 30px;
         gap: 16px;
-        position: absolute;
-        width: 1300px;
+        width: 100%;
         height: 154px;
-        left: calc(50% - 1300px/2);
-        top: 327px;
-        border-radius: 20px;
-        overflow: hidden;
 
         @media (max-width: 1400px) {
             width: 100%;
             max-width: 1200px;
-            position: relative;
-            left: auto;
-            top: auto;
             height: auto;
             min-height: 154px;
             flex-wrap: wrap;
