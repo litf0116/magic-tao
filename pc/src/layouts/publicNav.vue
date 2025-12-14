@@ -38,7 +38,7 @@ function go(x: { name: string; path: string; url?: string | undefined }) {
     }
 
     .nav-item.current {
-        color: #b45000;
+        color: #ffffff;
         background: url('@/assets/images/menu_selected.png') no-repeat center 3px / 100% 100%;
     }
 }
