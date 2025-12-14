@@ -55,19 +55,17 @@ const openLink = (url: string) => {
 .advertisement-banner {
     /* Rectangle 31 样式 */
     box-sizing: border-box;
-    position: absolute;
     width: 1300px;
     height: 204px;
-    left: calc(50% - 1300px/2);
-    //top: 289px;
     background: #FFF2E8;
     border: 14px solid #AE6F4D;
     border-radius: 20px;
+    margin: 0 auto;
+    margin-bottom: 30px;
 
     /* 响应式调整 */
     @media (max-width: 1400px) {
         width: calc(100vw - 40px);
-        left: 20px;
         height: auto;
         min-height: 180px;
     }
@@ -76,11 +74,8 @@ const openLink = (url: string) => {
         border-width: 8px;
         height: auto;
         min-height: 150px;
-        top: auto;
-        position: relative;
-        margin-top: 20px;
-        left: auto;
         width: calc(100% - 40px);
+        margin-bottom: 20px;
     }
 
     .banner-content {
