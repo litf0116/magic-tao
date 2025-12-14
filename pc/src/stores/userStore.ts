@@ -2,7 +2,6 @@ import { defineStore } from 'pinia'
 import { getToken, removeToken, setToken } from '../utils/cookies'
 import { usePermissionStore } from './permissionStore'
 import api from '@/api'
-import { generateTokenForUser } from '@/api/devAuthAPI'
 import { UserLoginInfoDto } from '@/api/appService'
 import { convertImageUrl } from '@/utils/imageUrlConverter'
 
@@ -74,48 +73,7 @@ export const useUserStore = defineStore('user', () => {
         })
     }
 
-    // 开发调试登录 - 使用用户ID直接生成token
-    function devLogin(userId: number) {
-        return new Promise((resolve, reject) => {
-            // 检查是否为开发环境
-            if (import.meta.env.MODE !== 'development') {
-                reject(new Error('开发调试登录仅在开发环境中可用'))
-                return
-            }
-
-            console.log('🔧 UserStore.devLogin 开始为用户', userId, '生成token...')
-
-            generateTokenForUser(userId)
-                .then(
-                    async (res: any) => {
-                        console.log('📊 UserStore.devLogin 收到API响应:', res)
-
-                        // 修复：res.data 包含实际的token数据
-                        const tokenData = res.data || res;
-                        console.log('📋 tokenData.accessToken:', tokenData.accessToken)
-                        console.log('📋 tokenData.accessToken类型:', typeof tokenData.accessToken)
-                        console.log('📋 tokenData.accessToken长度:', tokenData.accessToken?.length || 0)
-
-                        if (!tokenData.accessToken) {
-                            console.error('❌ UserStore.devLogin: accessToken为空!')
-                            console.error('res对象:', JSON.stringify(res, null, 2))
-                            reject(new Error('API返回的accessToken为空'))
-                            return
-                        }
-
-                        token.value = tokenData.accessToken!
-                        setToken(tokenData.accessToken!)
-                        console.log('✅ UserStore.devLogin: token已设置')
-                        resolve(tokenData.accessToken!)
-                    },
-                    (error) => {
-                        console.error('❌ UserStore.devLogin: API调用失败:', error)
-                        reject(error)
-                    }
-                )
-        })
-    }
-
+  
     function SET_USER(payload: UserLoginInfoDto) {
         user.value = payload
         localStorage.setItem('user', JSON.stringify(payload))
@@ -202,7 +160,6 @@ export const useUserStore = defineStore('user', () => {
         getUserInfo,
         SET_TOKEN,
         login,
-        devLogin,
         logout,
     }
 })

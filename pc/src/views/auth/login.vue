@@ -53,44 +53,6 @@
                         >登录</el-button
                     >
                 </div>
-                <!-- 开发调试登录 -->
-                <div v-if="isDev" class="mt-4">
-                    <div class="text-gray-500 text-sm mb-2">开发调试登录：</div>
-                    <div class="flex flex-wrap gap-2">
-                        <el-button
-                            :loading="devLoading"
-                            size="small"
-                            type="warning"
-                            @click="devLoginAsUser(1)"
-                        >
-                            用户1登录
-                        </el-button>
-                        <el-button
-                            :loading="devLoading"
-                            size="small"
-                            type="warning"
-                            @click="devLoginAsUser(2)"
-                        >
-                            用户2登录
-                        </el-button>
-                        <el-button
-                            :loading="devLoading"
-                            size="small"
-                            type="warning"
-                            @click="devLoginAsUser(3)"
-                        >
-                            用户3登录
-                        </el-button>
-                        <el-button
-                            :loading="devLoading"
-                            size="small"
-                            type="warning"
-                            @click="devLoginAsUser(14)"
-                        >
-                            用户14登录
-                        </el-button>
-                    </div>
-                </div>
                 <div class="text-blue-400 text-sm mt-6 cursor-pointer" @click="loginType = 1">使用扫码登录</div>
             </template>
         </div>
@@ -107,7 +69,6 @@ const route = useRoute()
 
 const loginType = ref(1)
 const loading = ref(false)
-const devLoading = ref(false)
 const qrTimeout = ref(false)
 const form = reactive({
     username: '',
@@ -115,10 +76,6 @@ const form = reactive({
     rememberClient: false,
 })
 
-// 检查是否为开发环境
-const isDev = computed(() => {
-    return import.meta.env.MODE === 'development'
-})
 let interVal: number | undefined = undefined
 
 let expiredTimer: number | undefined = undefined
@@ -197,25 +154,6 @@ async function login() {
     )
 }
 
-// 开发调试登录
-async function devLoginAsUser(userId: number) {
-    devLoading.value = true
-    try {
-        await userStore.devLogin(userId)
-        await userStore.getUserInfo()
-        clearInterval(interVal)
-        if (route.query.redirect) window.location.href = '/index.html#' + route.query.redirect
-        else window.location.href = '/index.html'
-    } catch (error: any) {
-        console.error('开发调试登录失败:', error)
-        ElMessage({
-            type: 'error',
-            message: `开发调试登录失败: ${error.message}`,
-        })
-    } finally {
-        devLoading.value = false
-    }
-}
 
 onUnmounted(() => {
     clearInterval(interVal)

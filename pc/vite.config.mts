@@ -18,16 +18,7 @@ export default defineConfig(({ command, mode }) => {
                 '/api': {
                     target: 'http://127.0.0.1:12580',
                     changeOrigin: true,
-                    secure: false,
-                    configure: (proxy, options) => {
-                        proxy.on('proxyReq', (proxyReq, req, res) => {
-                            // 对于开发调试接口，强制使用本地请求头
-                            if (req.url?.includes('/GenerateTokenForUser')) {
-                                proxyReq.setHeader('X-Forwarded-For', '127.0.0.1');
-                                proxyReq.setHeader('X-Real-IP', '127.0.0.1');
-                            }
-                        });
-                    }
+                    secure: false
                 }
             }
         },
