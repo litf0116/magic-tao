@@ -60,8 +60,6 @@ const openLink = (url: string) => {
     background: #FFF2E8;
     border: 14px solid #AE6F4D;
     border-radius: 20px;
-    margin: 0 auto;
-    margin-bottom: 30px;
 
     /* 响应式调整 */
     @media (max-width: 1400px) {
@@ -75,7 +73,6 @@ const openLink = (url: string) => {
         height: auto;
         min-height: 150px;
         width: calc(100% - 40px);
-        margin-bottom: 20px;
     }
 
     .banner-content {

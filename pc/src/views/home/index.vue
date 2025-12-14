@@ -30,7 +30,7 @@ import AuctionCard from './components/AuctionCard.vue'
   width: 1300px; /* 与广告横幅相同的宽度 */
   display: flex;
   justify-content: space-between; /* 两端对齐 */
-  margin-top: 0;
+  margin-top: 30px; /* 替代广告横幅的 margin-bottom */
 
   @media (max-width: 1400px) {
     width: calc(100vw - 40px); /* 与广告横幅相同的响应式宽度 */
@@ -43,6 +43,7 @@ import AuctionCard from './components/AuctionCard.vue'
     width: calc(100% - 40px);
     gap: 20px;
     padding: 0;
+    margin-top: 20px; /* 移动端减小间距 */
   }
 }
 </style>
