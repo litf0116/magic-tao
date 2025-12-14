@@ -87,7 +87,7 @@
       padding: 8px 12px;
       gap: 10px;
 
-      width: 80px;
+      width: 120px;
       height: 30px;
 
       background: #62331E;
