@@ -35,13 +35,30 @@ function go(x: { name: string; path: string; url?: string | undefined }) {
     .nav-item {
         @apply w-163px flex flex-center text-center text-[#045a39] md:font-bold text-10px md:text-14px lg:text-18px cursor-pointer hover:text-[#b45000] hover:scale-105 transition-all duration-300;
         background: url('@/assets/images/menu_normal.png') no-repeat center 3px / 100% 100%;
+        position: relative;
+
+        /* 选中状态使用CSS效果替代 */
+        &::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(180, 80, 0, 0.1);
+            border-radius: inherit;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
     }
 
     .nav-item.current {
         color: #b45000;
-        background-image: url('@/assets/images/menu_selected.png');
-        /* 临时使用normal图片，后续需要替换为正确的选中状态图片 */
-        /* background-image: url('@/assets/images/menu_normal.png'); */
+        transform: scale(1.05);
+
+        &::after {
+            opacity: 1;
+        }
     }
 }
 </style>

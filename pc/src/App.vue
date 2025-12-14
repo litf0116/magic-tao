@@ -16,13 +16,18 @@ import NProgress from 'nprogress'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import '@/style.scss'
 
-const whiteList = ['/index', '/auth/login', '/register', '/error-page']
+const whiteList = ['/', '/index', '/auth/login', '/register', '/error-page']
 const route = useRoute()
 const router = useRouter()
 const path = computed(() => route.path)
 
 const userStore = useUserStore()
-userStore.getUserInfo()
+// 异步获取用户信息，避免阻塞页面加载
+if (userStore.token) {
+    userStore.getUserInfo().catch(() => {
+        // 获取用户信息失败时不做处理，让路由守卫处理重定向
+    })
+}
 
 provide('path', path)
 
