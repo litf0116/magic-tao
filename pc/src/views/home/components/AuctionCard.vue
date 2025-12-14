@@ -12,7 +12,7 @@
 
       <!-- 右侧操作按钮 -->
       <button class="action-button">
-        进入拍卖行
+        <span>进入拍卖行</span>
       </button>
     </div>
 
@@ -66,20 +66,45 @@
     }
 
     .action-button {
-      padding: 10px 20px;
-      background: linear-gradient(135deg, #FF9800, #F57C00);
-      color: white;
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      padding: 8px 12px;
+      gap: 10px;
+
+      width: 80px;
+      height: 30px;
+
+      background: #62331E;
       border: none;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: bold;
+      border-radius: 60px;
       cursor: pointer;
       transition: all 0.3s ease;
-      box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+
+      flex: none;
+      order: 1;
+      flex-grow: 0;
+
+      span {
+        width: 56px;
+        height: 14px;
+
+        font-family: 'Source Han Sans CN', sans-serif;
+        font-style: normal;
+        font-weight: 500;
+        font-size: 14px;
+        line-height: 100%;
+        color: #E6AC7A;
+
+        flex: none;
+        order: 0;
+        flex-grow: 0;
+      }
 
       &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
+        background: #7A4326;
+        transform: scale(1.05);
       }
     }
   }
