@@ -60,10 +60,22 @@ public class MessageAppService(IRepository<Message, Guid> repository, ISqlSugarC
         var orderedResult = result.OrderBy(x => x.Time).ToList();
         var list = new ListResultDto<ChatMessage>(ObjectMapper.Map<List<ChatMessage>>(orderedResult));
 
+        // 优化：使用字典提高查找性能，避免每次遍历
+        var userGroupLevelDict = userGroupLevel.ToDictionary(x => x.UserId);
+
+        // 默认等级信息
+        var defaultLevelInfo = new
+        {
+            UserId = groupChatLevel.Id,
+            Name = groupChatLevel.Name,
+            Level = groupChatLevel.Level,
+            BorderColor = groupChatLevel.BorderColor,
+            RightBorderColor = groupChatLevel.RightBorderColor
+        };
+
         foreach (var item in list.Items)
         {
-            var info = userGroupLevel.Where(w => w.UserId == item.from).FirstOrDefault();
-            if (info != null)
+            if (userGroupLevelDict.TryGetValue(item.from, out var info))
             {
                 item.userChatLevel = new
                 {
@@ -76,14 +88,7 @@ public class MessageAppService(IRepository<Message, Guid> repository, ISqlSugarC
             }
             else
             {
-                item.userChatLevel = new
-                {
-                    UserId = groupChatLevel.Id,
-                    Name = groupChatLevel.Name,
-                    Level = groupChatLevel.Level,
-                    BorderColor = groupChatLevel.BorderColor,
-                    RightBorderColor = groupChatLevel.RightBorderColor
-                };
+                item.userChatLevel = defaultLevelInfo;
             }
         }
 
@@ -141,10 +146,22 @@ public class MessageAppService(IRepository<Message, Guid> repository, ISqlSugarC
         var orderedResult = result.OrderBy(x => x.Time).ToList();
         var list = new ListResultDto<ChatMessage>(ObjectMapper.Map<List<ChatMessage>>(orderedResult));
 
+        // 优化：使用字典提高查找性能，避免每次遍历
+        var userGroupLevelDict = userGroupLevel.ToDictionary(x => x.UserId);
+
+        // 默认等级信息
+        var defaultLevelInfo = new
+        {
+            UserId = groupChatLevel.Id,
+            Name = groupChatLevel.Name,
+            Level = groupChatLevel.Level,
+            BorderColor = groupChatLevel.BorderColor,
+            RightBorderColor = groupChatLevel.RightBorderColor
+        };
+
         foreach (var item in list.Items)
         {
-            var info = userGroupLevel.Where(w => w.UserId == item.from).FirstOrDefault();
-            if (info != null)
+            if (userGroupLevelDict.TryGetValue(item.from, out var info))
             {
                 item.userChatLevel = new
                 {
@@ -157,14 +174,7 @@ public class MessageAppService(IRepository<Message, Guid> repository, ISqlSugarC
             }
             else
             {
-                item.userChatLevel = new
-                {
-                    UserId = groupChatLevel.Id,
-                    Name = groupChatLevel.Name,
-                    Level = groupChatLevel.Level,
-                    BorderColor = groupChatLevel.BorderColor,
-                    RightBorderColor = groupChatLevel.RightBorderColor
-                };
+                item.userChatLevel = defaultLevelInfo;
             }
         }
 

@@ -1,12 +1,12 @@
-import { defineStore } from 'pinia'
-import { useLocalStorage } from '@vueuse/core'
+import {defineStore} from 'pinia'
+import {useLocalStorage} from '@vueuse/core'
 import api from '@/api'
-import { BASE_API_URL } from '@/utils/request'
-import { ChatGroupDto, ChatMessage, ChatMessageType, UserDtoBase } from '@/api/appService'
-import { uniqBy, orderBy } from 'lodash'
-import { useEventBus } from '@vueuse/core'
-import { useAuctionStore } from '@/stores/auctionStore'
-import { convertImageUrl, convertObjectImageUrls } from '@/utils/imageUrlConverter'
+import {BASE_API_URL} from '@/utils/request'
+import {ChatGroupDto, ChatMessage, ChatMessageType, UserDtoBase} from '@/api/appService'
+import {uniqBy, orderBy} from 'lodash'
+import {useEventBus} from '@vueuse/core'
+import {useAuctionStore} from '@/stores/auctionStore'
+import {convertImageUrl, convertObjectImageUrls, convertObjectImageUrlsArray} from '@/utils/imageUrlConverter'
 
 export const onmessageKey = Symbol('onmessageKey')
 
@@ -65,7 +65,7 @@ export const useChatStore = defineStore('chat', () => {
     const friends0 = ref<UserDtoBase[]>([])
     const groups = ref<ChatGroupDto[]>([])
     const currentChat = ref(LobbyChat)
-    const inputChannelMsg = ref<InputChannelMsgType>({ type: 'text', content: '' })
+    const inputChannelMsg = ref<InputChannelMsgType>({type: 'text', content: ''})
 
     //聊天对象表
     const chatList: Ref<ChatListItem[]> = useLocalStorage('chatList', [LobbyChat, AuctionChat])
@@ -86,7 +86,7 @@ export const useChatStore = defineStore('chat', () => {
             const qrLoginUrl = `${BASE_API_URL}/api/tokenAuth/qrLogin?state=${str}`
             console.log('qrLoginUrl', qrLoginUrl)
             qrUrl.value = `${BASE_API_URL}/home/qr?str=${qrLoginUrl}`
-            api.tokenAuth.pubQrLogin({ state: str }).then((res) => {
+            api.tokenAuth.pubQrLogin({state: str}).then((res) => {
                 pubQrUrl.value = res
             })
         } else {
@@ -111,10 +111,13 @@ export const useChatStore = defineStore('chat', () => {
     function getChatList() {
         return new Promise<void>((resolve, reject) => {
             api.client.getChatList().then((res: any) => {
-                chatList.value = convertObjectImageUrls(res, ['avatar'])
-                return resolve()
+                console.log(res);
+                chatList.value = convertObjectImageUrlsArray(res, ['avatar'])
+                resolve()
+            }).catch((error) => {
+                console.error('获取聊天列表失败:', error)
+                reject(error)
             })
-            return resolve()
         })
     }
 
@@ -276,7 +279,7 @@ export const useChatStore = defineStore('chat', () => {
                 chatMap.value.delete(`${_id}`)
                 if (currentChat.value.id === _id) {
                     Tips.info('房间已解散')
-                    router.push({ path: '/chat/index/lobby', replace: true })
+                    router.push({path: '/chat/index/lobby', replace: true})
                 }
             } else {
                 //踢出某人
@@ -288,7 +291,7 @@ export const useChatStore = defineStore('chat', () => {
                     chatList.value = chatList.value.filter((item) => item.id !== _id)
                     chatMap.value.delete(`${_id}`)
                     Tips.noCancelConfirm('你已被房主踢出房间')
-                    router.push({ path: '/chat/index/lobby', replace: true })
+                    router.push({path: '/chat/index/lobby', replace: true})
                 }
             }
         } else if (msg.chan) {
@@ -353,7 +356,7 @@ export const useChatStore = defineStore('chat', () => {
 
         // 处理卡秒状态变更系统消息
         if (msg.type === ChatMessageType.KasecStatusChanged && msg.payload) {
-            const { auctionItemId, isKasec } = msg.payload
+            const {auctionItemId, isKasec} = msg.payload
             // 只处理当前拍卖频道
             if (currentChat.value.id === -1) {
                 auctionStore.syncKasecStatus(auctionItemId)
@@ -386,7 +389,7 @@ export const useChatStore = defineStore('chat', () => {
                 msg.type = ChatMessageType.KasecStatusChanged
 
                 // 处理卡秒状态变更
-                const { auctionItemId, isKasec } = msg.payload
+                const {auctionItemId, isKasec} = msg.payload
                 if (auctionItemId && typeof isKasec === 'boolean') {
                     // 只处理当前拍卖频道
                     if (currentChat.value.id === -1) {
@@ -461,7 +464,7 @@ export const useChatStore = defineStore('chat', () => {
     const getGroupHistory = (groupName = '', lastTime?: number, reload = false) => {
         lastTime = lastTime || new Date().getTime()
         return new Promise<ChatMessage[]>((resolve) => {
-            api.message.getChanHistory({ chan: groupName, lastTime: lastTime }).then((res) => {
+            api.message.getChanHistory({chan: groupName, lastTime: lastTime}).then((res) => {
                 if (res.items && res.items.length > 0) {
                     const _t = groupName.split('_')
                     let _id = parseInt(_t[0])
@@ -492,7 +495,7 @@ export const useChatStore = defineStore('chat', () => {
         }
         lastTime = lastTime || new Date().getTime()
         return new Promise<ChatMessage[]>((resolve) => {
-            api.message.getPrivateHistory({ id: id, lastTime: lastTime! }).then((res) => {
+            api.message.getPrivateHistory({id: id, lastTime: lastTime!}).then((res) => {
                 console.log('getPrivateHistory', res.items)
                 if (res.items) {
                     if (chatMap.value.has(`${id}`) && !reload) {
@@ -514,18 +517,18 @@ export const useChatStore = defineStore('chat', () => {
     }
 
     const leaveChannel = async (chan: string) => {
-        await api.ws.leaveChannel({ chan: chan }).then(async (res) => {
+        await api.ws.leaveChannel({chan: chan}).then(async (res) => {
             // joinedChannel.value = joinedChannel.value.filter((item) => item !== chan)
             chatList.value = chatList.value.filter((item) => item.id !== parseInt(chan.split('_')[0]))
             chatMap.value.delete(`${parseInt(chan.split('_')[0])}`)
-            router.push({ path: '/chat/index/lobby', replace: true })
+            router.push({path: '/chat/index/lobby', replace: true})
         })
     }
 
     const joinChannel = async (chan: string) => {
         return new Promise((resolve, reject) => {
             api.ws
-                .subChannel({ body: { websocketId: websocketId.value, channel: chan } })
+                .subChannel({body: {websocketId: websocketId.value, channel: chan}})
                 .then(async (res) => {
                     // joinedChannel.value.push(chan)
                     await sendChannelMsg('', chan, ChatMessageType.Welcome)
@@ -538,7 +541,7 @@ export const useChatStore = defineStore('chat', () => {
     }
     const deleteChannel = async (group: ChatGroupDto) => {
         return new Promise(async (resolve) => {
-            api.chatGroup.delete({ id: group.id }).then(() => {
+            api.chatGroup.delete({id: group.id}).then(() => {
                 return resolve('ok')
             })
         })
@@ -668,7 +671,7 @@ export const useChatStore = defineStore('chat', () => {
     }
 
     const getUserFriends = (status = true) => {
-        api.userFriend.getUserFriends({ id: websocketId.value, status: status }).then((res) => {
+        api.userFriend.getUserFriends({id: websocketId.value, status: status}).then((res) => {
             if (status) friends.value = res.items!
             else friends0.value = res.items!
         })
@@ -697,7 +700,7 @@ export const useChatStore = defineStore('chat', () => {
     const deleteChat = (x: ChatListItem) => {
         console.log('deleteChat', x)
         if (x.type === 1) {
-            api.client.deleteChatList({ id: x.id }).then(() => {
+            api.client.deleteChatList({id: x.id}).then(() => {
                 // 删除聊天记录成功
             })
         }
@@ -794,12 +797,12 @@ export const useChatStore = defineStore('chat', () => {
             if (currentChat.value.type === 0) {
                 //群聊
                 const chan = `${currentChat.value.id}_${currentChat.value.name}`
-                api.message.getChanLastId({ chan }).then((res) => {
+                api.message.getChanLastId({chan}).then((res) => {
                     return resolve(res)
                 })
             } else if (currentChat.value.type === 1) {
                 //私聊
-                api.message.getPrivateLastId({ id: currentChat.value.id }).then((res) => {
+                api.message.getPrivateLastId({id: currentChat.value.id}).then((res) => {
                     return resolve(res)
                 })
             } else {

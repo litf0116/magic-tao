@@ -21,8 +21,8 @@ namespace TtWork.Project.Services.Cache
                     return bool.TryParse(envValue, out var result) && result;
                 }
 
-                // 默认使用策略中的设置
-                return AuctionItemCachePolicy.IsCacheEnabled();
+                // 默认启用缓存
+                return true;
             }
             set
             {

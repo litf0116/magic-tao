@@ -136,7 +136,7 @@ export const useUserStore = defineStore('user', () => {
 
     // 拉取用户信息
     const getUserInfo = () => {
-        api.session
+        return api.session
             .getCurrentLoginInformations()
             .then(async (res: any) => {
                 if (!res.user) {
@@ -152,9 +152,11 @@ export const useUserStore = defineStore('user', () => {
                     permissions: res.permissions!,
                     roles: res.roles,
                 })
+                return res
             })
             .catch(() => {
                 logout()
+                throw new Error('获取用户信息失败')
             })
     }
 

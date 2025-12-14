@@ -127,7 +127,15 @@ namespace TtWork.Project.Services.Cache
         /// <returns>是否启用</returns>
         public static bool IsCacheEnabled()
         {
-            return AuctionCacheConfiguration.IsCacheEnabled;
+            // 检查环境变量
+            var envValue = Environment.GetEnvironmentVariable("AUCTION_CACHE_ENABLED");
+            if (!string.IsNullOrEmpty(envValue))
+            {
+                return bool.TryParse(envValue, out var result) && result;
+            }
+
+            // 默认启用缓存
+            return true;
         }
 
         /// <summary>
