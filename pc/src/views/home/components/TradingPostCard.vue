@@ -1,7 +1,7 @@
 <template>
   <div class="trading-post-card">
-    <!-- 标题 -->
-    <h2 class="title">交易站</h2>
+    <!-- 标题图片 -->
+    <img class="title-image" src="@/assets/images/title_trade.png" alt="交易站" />
 
     <!-- 内容区域 -->
     <div class="content-area">
@@ -25,12 +25,11 @@
   flex-direction: column;
   align-items: center;
 
-  .title {
-    color: white;
-    font-size: 36px;
-    font-weight: bold;
+  .title-image {
     margin-top: 50px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    width: auto;
+    height: auto;
+    max-width: 80%;
   }
 
   .content-area {
