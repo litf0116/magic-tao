@@ -21,8 +21,6 @@
   height: 760px;
   background: url('@/assets/images/panel_background_2.png') no-repeat center center;
   background-size: 100% 100%;
-  // 添加橙色滤镜以区分交易站
-  filter: hue-rotate(20deg) saturate(1.2);
   display: flex;
   flex-direction: column;
   align-items: center;
