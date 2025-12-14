@@ -7,12 +7,12 @@
 
       <!-- 中间描述文字 -->
       <div class="description">
-        玩家之间自由交易装备、道具、宠物等游戏物品
+          商品多多任你挑选
       </div>
 
       <!-- 右侧操作按钮 -->
       <button class="action-button">
-        <span>进入交易站</span>
+        <span>点击进入</span>
       </button>
     </div>
 
@@ -44,13 +44,11 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    padding: 0px;
+    padding: 0 50px;
     gap: 20px;
 
     width: 520px;
     height: 46px;
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 40px;
 
     flex: none;
     order: 0;
