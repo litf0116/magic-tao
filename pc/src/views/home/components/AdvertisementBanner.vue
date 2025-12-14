@@ -59,7 +59,7 @@ const openLink = (url: string) => {
     width: 1300px;
     height: 204px;
     left: calc(50% - 1300px/2);
-    top: 289px;
+    //top: 289px;
     background: #FFF2E8;
     border: 14px solid #AE6F4D;
     border-radius: 20px;

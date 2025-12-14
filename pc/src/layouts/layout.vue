@@ -45,7 +45,7 @@ main {
     }
 
     .content {
-        @apply w-full min-h-400px relative mt-24px lg:mt-53px w-[90vw] xl:w-[1232px];
+        @apply w-full min-h-400px relative mt-24px w-[90vw] xl:w-[1232px];
     }
 
     // 只在非首页显示的装饰样式
