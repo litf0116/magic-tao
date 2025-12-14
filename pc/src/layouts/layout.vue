@@ -5,7 +5,7 @@
                 <img class="logo2" :src="'https://image.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png'"/>
             </div>
             <public-nav/>
-            <div class="content" :class="route.path === '/index' ? '' : 'with-decoration' px-4">
+            <div class="content px-4" :class="route.path === '/index' ? '' : 'with-decoration'">
                 <router-view v-slot="{ Component }">
                     <component :is="Component" :key="route.fullPath"/>
                 </router-view>
