@@ -19,27 +19,18 @@
             </el-carousel>
         </div>
     </div>
-    <div style="display: flex; margin-top: 10px; justify-content: center">
-        <div
-            v-for="(item, index) in advertisingSpaceList"
-            style="width: 200px; height: 150px; margin: 3px; position: relative; cursor: pointer"
-            @click="openNewPage(item.url)"
-        >
-            <img style="width: 100%; height: 100%" :src="item.imageUrl" />
-            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff">
-                {{ item.title }}
-            </div>
-        </div>
-    </div>
+
+    <!-- 广告展示区域 -->
+    <AdvertisementBanner />
 </template>
 
 <script setup lang="ts">
 import api from '@/api'
 import { GetTypeList } from '@/api/advertisingSpaceAPI'
 import { CmsArticleDto } from '@/api/appService'
+import AdvertisementBanner from './components/AdvertisementBanner.vue'
 
 const router = useRouter()
-const advertisingSpaceList = ref([])
 
 const toLobby = () => {
     router.push({ path: 'forum/tradingPost' })
@@ -48,8 +39,8 @@ const toLobby = () => {
 const toAuction = () => {
     router.push({ name: 'auction' })
 }
+
 onMounted(() => {
-    getData()
     fetchCmsData()
 })
 const articleList = ref<CmsArticleDto[]>([])
@@ -58,17 +49,5 @@ function fetchCmsData() {
     api.cmsArticle.getAllPublic({ pid: 1 }).then((res) => {
         articleList.value = res.items
     })
-}
-//获取广告位数据
-const getData = async () => {
-    var res = await GetTypeList(1)
-    if (res.data) {
-        advertisingSpaceList.value = res.data.items
-    }
-}
-// 跳转地址
-const openNewPage = (url) => {
-    // 打开外部链接
-    window.open(url, '_blank', 'noopener,noreferrer')
 }
 </script>
