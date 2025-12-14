@@ -59,14 +59,12 @@ const openLink = (url: string) => {
     justify-content: center;
 
     .banner-content {
-        width: 1300px;
-        max-width: 95vw;
-
         /* 应用提供的样式 */
         box-sizing: border-box;
         position: relative;
         width: 1300px;
         height: 204px;
+        max-width: calc(100vw - 40px); /* 确保不超过视口宽度，留出边距 */
         display: flex;
         align-items: center;
         justify-content: center;
