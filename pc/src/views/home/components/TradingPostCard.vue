@@ -2,12 +2,15 @@
   <div class="trading-post-card">
     <!-- 标题栏 -->
     <div class="title-bar">
-      <!-- 左侧标题图片 -->
-      <img class="title-image" src="@/assets/images/title_trade.png" alt="交易站" />
+      <!-- 左侧容器：标题和描述 -->
+      <div class="title-container">
+        <!-- 标题图片 -->
+        <img class="title-image" src="@/assets/images/title_trade.png" alt="交易站" />
 
-      <!-- 中间描述文字 -->
-      <div class="description">
-          商品多多任你挑选
+        <!-- 描述文字 -->
+        <div class="description">
+            商品多多任你挑选
+        </div>
       </div>
 
       <!-- 右侧操作按钮 -->
@@ -44,38 +47,51 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    padding: 0 50px;
+    padding: 0px;
     gap: 20px;
 
     width: 520px;
     height: 46px;
 
-    flex: none;
-    order: 0;
-    align-self: stretch;
-    flex-grow: 0;
+    .title-container {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      padding: 0px;
+      gap: 20px;
 
-    .title-image {
-      width: auto;
-      height: 36px; /* 调整高度以适应46px的标题栏 */
-      object-fit: contain;
+      margin: 0 auto;
+      width: 257px;
+      height: 46px;
+
       flex: none;
       order: 0;
       flex-grow: 0;
-    }
 
-    .description {
-      margin: 0;
-      margin-left: 10px;
-      color: #333;
-      font-size: 12px;
-      text-align: left;
-      line-height: 1.4;
-      white-space: nowrap;
+      .title-image {
+        width: auto;
+        height: 46px; /* 充满容器高度 */
+        object-fit: contain;
+        flex: none;
+        order: 0;
+        flex-grow: 0;
+      }
 
-      flex: none;
-      order: 1;
-      flex-grow: 0;
+      .description {
+        width: 128px;
+        height: 16px;
+
+        font-family: 'Source Han Sans CN';
+        font-style: normal;
+        font-weight: 400;
+        font-size: 16px;
+        line-height: 100%;
+        color: #5B3B2D;
+
+        flex: none;
+        order: 1;
+        flex-grow: 0;
+      }
     }
 
     .action-button {
@@ -86,29 +102,29 @@
       padding: 8px 12px;
       gap: 10px;
 
-      width: 120px;
+      width: 80px;
       height: 30px;
 
-      background: #E6AC7A;
+      background: #62331E;
       border: none;
       border-radius: 60px;
       cursor: pointer;
       transition: all 0.3s ease;
 
       flex: none;
-      order: 2;
+      order: 1;
       flex-grow: 0;
 
       span {
         width: 56px;
         height: 14px;
 
-        font-family: 'Source Han Sans CN', sans-serif;
+        font-family: 'Source Han Sans CN';
         font-style: normal;
         font-weight: 500;
         font-size: 14px;
         line-height: 100%;
-        color: #62331E;
+        color: #E6AC7A;
 
         flex: none;
         order: 0;
@@ -116,7 +132,7 @@
       }
 
       &:hover {
-        background: #EEBE9C;
+        background: #7A4326;
         transform: scale(1.05);
       }
     }
