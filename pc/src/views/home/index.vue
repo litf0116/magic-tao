@@ -27,20 +27,22 @@ import AuctionCard from './components/AuctionCard.vue'
 }
 
 .modules-container {
+  width: 1300px; /* 与广告横幅相同的宽度 */
   display: flex;
-  justify-content: center;
-  gap: 40px;
+  justify-content: space-between; /* 两端对齐 */
   margin-top: 0;
 
   @media (max-width: 1400px) {
+    width: calc(100vw - 40px); /* 与广告横幅相同的响应式宽度 */
     flex-direction: column;
     align-items: center;
     gap: 30px;
   }
 
   @media (max-width: 768px) {
+    width: calc(100% - 40px);
     gap: 20px;
-    padding: 0 10px;
+    padding: 0;
   }
 }
 </style>
