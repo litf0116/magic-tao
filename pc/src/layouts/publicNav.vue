@@ -33,7 +33,8 @@ function go(x: { name: string; path: string; url?: string | undefined }) {
     @apply w-[90vw] xl:w-[1232px] h-30px md:h-59px flex justify-center space-x-10px -mb-30px z-20;
 
     .nav-item {
-        @apply w-163px flex flex-center text-center text-[#045a39] md:font-bold text-10px md:text-14px lg:text-18px cursor-pointer hover:text-[#b45000] hover:scale-105 transition-all duration-300;
+        @apply w-163px flex flex-center text-center md:font-bold text-10px md:text-14px lg:text-18px cursor-pointer hover:scale-105 transition-all duration-300;
+        color: #833A00;
         background: url('@/assets/images/menu_normal.png') no-repeat center 3px / 100% 100%;
     }
 
