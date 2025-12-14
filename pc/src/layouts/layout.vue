@@ -25,7 +25,9 @@ main {
     display: flex;
     justify-content: center;
     // align-items: center;
-    background: #eefaff url('@/assets/top-banner.png') no-repeat center top;
+    background: #eefaff url('@/assets/images/migrated-image.png') no-repeat center top;
+    background-size: cover;
+    background-attachment: fixed;
 }
 
 .wrap {
