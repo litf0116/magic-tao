@@ -141,8 +141,8 @@
         align-items: center;
         justify-content: center;
         padding: 100px 72px;
-        margin-top: 30px;
-        width: 100%;
+        margin: 30px auto 0;
+        width: calc(100% - 144px); /* 减去左右padding */
 
         .placeholder {
             color: #666;
