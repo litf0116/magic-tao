@@ -68,7 +68,10 @@ const openLink = (url: string) => {
         width: 1300px;
         height: 204px;
 
-        background: #FFF2E8;
+        background-image: url('@/assets/images/ad_background.png');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
         border: 14px solid #AE6F4D;
         border-radius: 20px;
 
