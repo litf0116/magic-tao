@@ -21,8 +21,52 @@
 
         <!-- 内容区域 -->
         <div class="content-area">
-            <!-- 帖子列表内容将在这里添加 -->
-            <div class="placeholder">交易站内容即将上线...</div>
+            <!-- 新闻列表 -->
+            <div class="news-container">
+                <!-- 标题区域 -->
+                <div class="news-header">
+                    <span class="news-title">最新发布</span>
+                </div>
+
+                <!-- 列表内容 -->
+                <div class="news-list">
+                    <div class="news-item">
+                        <div class="news-content">
+                            <div class="diamond"></div>
+                            <span class="news-text">游戏公告内容游戏公告内容游戏公告内容游戏公</span>
+                        </div>
+                        <span class="news-date">24/03/01</span>
+                    </div>
+                    <div class="news-item">
+                        <div class="news-content">
+                            <div class="diamond"></div>
+                            <span class="news-text">游戏公告内容游戏公告内容游戏公告内容游戏公</span>
+                        </div>
+                        <span class="news-date">24/03/01</span>
+                    </div>
+                    <div class="news-item">
+                        <div class="news-content">
+                            <div class="diamond"></div>
+                            <span class="news-text">游戏公告内容游戏公告内容游戏公告内容游戏公</span>
+                        </div>
+                        <span class="news-date">24/03/01</span>
+                    </div>
+                    <div class="news-item">
+                        <div class="news-content">
+                            <div class="diamond"></div>
+                            <span class="news-text">游戏公告内容游戏公告内容游戏公告内容游戏公</span>
+                        </div>
+                        <span class="news-date">24/03/01</span>
+                    </div>
+                    <div class="news-item">
+                        <div class="news-content">
+                            <div class="diamond"></div>
+                            <span class="news-text">游戏公告内容游戏公告内容游戏公告内容游戏公</span>
+                        </div>
+                        <span class="news-date">24/03/01</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -144,10 +188,109 @@
         margin: 30px auto 0;
         width: calc(100% - 144px); /* 减去左右padding */
 
-        .placeholder {
-            color: #666;
-            font-size: 18px;
-            text-align: center;
+        .news-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 0px;
+            gap: 20px;
+
+            width: 470px;
+            height: 270px;
+
+            .news-header {
+                width: 116px;
+                height: 35px;
+                background: linear-gradient(90deg, #74422C 0%, #D89476 82.76%);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 5px;
+
+                .news-title {
+                    font-family: 'Source Han Sans CN';
+                    font-style: normal;
+                    font-weight: 700;
+                    font-size: 18px;
+                    line-height: 100%;
+                    color: #5B3B2D;
+                }
+            }
+
+            .news-list {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 0px;
+                gap: 15px;
+
+                width: 470px;
+                height: 215px;
+
+                .news-item {
+                    display: flex;
+                    flex-direction: row;
+                    align-items: flex-start;
+                    padding: 0px 0px 15px;
+                    gap: 50px;
+
+                    width: 470px;
+                    height: 31px;
+                    border-bottom: 1px dashed #976464;
+
+                    .news-content {
+                        display: flex;
+                        flex-direction: row;
+                        align-items: center;
+                        padding: 0px;
+                        gap: 10px;
+
+                        width: 354px;
+                        height: 16px;
+
+                        .diamond {
+                            width: 5.66px;
+                            height: 5.66px;
+                            background: #E6AC7A;
+                            transform: rotate(45deg);
+                            flex: none;
+                            order: 0;
+                            flex-grow: 0;
+                        }
+
+                        .news-text {
+                            width: 336px;
+                            height: 16px;
+                            font-family: 'Source Han Sans CN';
+                            font-style: normal;
+                            font-weight: 400;
+                            font-size: 16px;
+                            line-height: 100%;
+                            color: #CCA396;
+                            flex: none;
+                            order: 1;
+                            flex-grow: 0;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            white-space: nowrap;
+                        }
+                    }
+
+                    .news-date {
+                        width: 66px;
+                        height: 16px;
+                        font-family: 'Source Han Sans CN';
+                        font-style: normal;
+                        font-weight: 400;
+                        font-size: 16px;
+                        line-height: 100%;
+                        color: #BD8775;
+                        flex: none;
+                        order: 1;
+                        flex-grow: 0;
+                    }
+                }
+            }
         }
     }
 }
