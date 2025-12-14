@@ -91,42 +91,80 @@ const openLink = (url: string) => {
     }
 
     .ad-container {
-        width: 100%;
-        height: 100%;
+        /* 应用提供的Frame 78样式 */
         display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 20px;
-        padding: 20px;
+        flex-direction: row;
+        align-items: flex-start;
+        padding: 20px 30px;
+        gap: 16px;
+        position: absolute;
+        width: 1300px;
+        height: 154px;
+        left: calc(50% - 1300px/2);
+        top: 327px;
+        border-radius: 20px;
+        overflow: hidden;
+
+        @media (max-width: 1400px) {
+            width: 100%;
+            max-width: 1200px;
+            position: relative;
+            left: auto;
+            top: auto;
+            height: auto;
+            min-height: 154px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
 
         @media (max-width: 768px) {
-            flex-wrap: wrap;
+            padding: 15px;
             gap: 10px;
-            padding: 10px;
+            height: auto;
         }
     }
 
     .ad-item {
         position: relative;
         cursor: pointer;
-        transition: transform 0.3s ease;
+        transition: all 0.3s ease;
+        flex: none;
+        flex-grow: 1;
 
-        /* 响应式尺寸 */
-        width: 200px;
-        height: 150px;
+        /* 应用提供的Rectangle 32样式 */
+        width: 193.33px;
+        height: 114px;
+        background: #F3D9B3;
+        border-radius: 10px;
+        overflow: hidden;
 
         @media (max-width: 1400px) {
-            width: 180px;
-            height: 135px;
+            width: calc(20% - 12.8px);
+            max-width: 180px;
+            height: 106px;
+        }
+
+        @media (max-width: 1200px) {
+            width: calc(33.33% - 10.67px);
+            max-width: 160px;
         }
 
         @media (max-width: 768px) {
-            width: 150px;
-            height: 112px;
+            width: calc(50% - 5px);
+            height: 90px;
+            max-width: 140px;
+        }
+
+        @media (max-width: 480px) {
+            width: 100%;
+            height: 100px;
+            max-width: 200px;
         }
 
         &:hover {
-            transform: scale(1.05);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            background: #E5C299;
         }
     }
 
