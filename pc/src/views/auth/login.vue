@@ -54,6 +54,44 @@
                     >
                 </div>
                 <div class="text-blue-400 text-sm mt-6 cursor-pointer" @click="loginType = 1">使用扫码登录</div>
+
+                <!-- Token登录入口 -->
+                <div v-if="isDevMode" class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded">
+                    <div class="text-yellow-600 font-semibold mb-2">🔧 Token直接登录</div>
+                    <div class="space-y-3">
+                        <div>
+                            <el-input
+                                v-model="tokenInput"
+                                type="textarea"
+                                :rows="3"
+                                placeholder="粘贴完整的access token"
+                                class="w-full"
+                                size="small"
+                            />
+                        </div>
+                        <div class="flex gap-2">
+                            <el-button
+                                type="warning"
+                                size="small"
+                                @click="tokenLogin"
+                                :loading="loading"
+                            >
+                                使用Token登录
+                            </el-button>
+                            <el-button
+                                type="info"
+                                size="small"
+                                plain
+                                @click="clearToken"
+                            >
+                                清空
+                            </el-button>
+                        </div>
+                    </div>
+                    <div class="text-xs text-yellow-500 mt-2">
+                        提示：直接使用有效的access token，无需用户名密码验证
+                    </div>
+                </div>
             </template>
         </div>
     </div>
@@ -74,6 +112,12 @@ const form = reactive({
     username: '',
     password: '',
     rememberClient: false,
+})
+const tokenInput = ref('') // token输入
+
+// 判断是否为开发模式
+const isDevMode = computed(() => {
+    return import.meta.env.DEV
 })
 let interVal: number | undefined = undefined
 
@@ -151,6 +195,62 @@ async function login() {
             })
         }
     )
+}
+
+// Token直接登录
+async function tokenLogin() {
+    if (!tokenInput.value.trim()) {
+        ElMessage({
+            type: 'warning',
+            message: '请输入token',
+        })
+        return
+    }
+
+    loading.value = true
+
+    try {
+        // 直接设置token
+        userStore.SET_TOKEN(tokenInput.value.trim())
+
+        // 验证token是否已设置
+        console.log('Token已设置:', localStorage.getItem('token'))
+
+        // 验证token并获取用户信息
+        await userStore.getUserInfo()
+        clearInterval(interVal)
+
+        loading.value = false
+
+        ElMessage({
+            type: 'success',
+            message: 'Token登录成功！',
+        })
+
+        // 延迟跳转，确保状态已更新
+        setTimeout(() => {
+            if (route.query.redirect) {
+                window.location.href = '/index.html#' + route.query.redirect
+            } else {
+                window.location.href = '/index.html'
+            }
+        }, 500)
+    } catch (error: any) {
+        loading.value = false
+
+        // 清除无效的token
+        userStore.RESET_TOKEN()
+
+        ElMessage({
+            type: 'error',
+            message: `Token无效或已过期: ${error.message || '请检查token是否正确'}`,
+        })
+    }
+}
+
+// 清空token输入
+function clearToken() {
+    tokenInput.value = ''
 }
 
 onUnmounted(() => {
