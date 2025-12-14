@@ -90,7 +90,7 @@
       width: 120px;
       height: 30px;
 
-      background: #62331E;
+      background: #E6AC7A;
       border: none;
       border-radius: 60px;
       cursor: pointer;
@@ -109,7 +109,7 @@
         font-weight: 500;
         font-size: 14px;
         line-height: 100%;
-        color: #E6AC7A;
+        color: #62331E;
 
         flex: none;
         order: 0;
@@ -117,7 +117,7 @@
       }
 
       &:hover {
-        background: #7A4326;
+        background: #EEBE9C;
         transform: scale(1.05);
       }
     }
