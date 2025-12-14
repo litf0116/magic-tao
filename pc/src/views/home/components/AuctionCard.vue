@@ -185,8 +185,8 @@
   .content-area {
     flex: 1;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
+    align-items: flex-start;
     padding: 30px 72px;
     margin: 30px auto 0;
     width: calc(100% - 144px); /* 减去左右padding */
