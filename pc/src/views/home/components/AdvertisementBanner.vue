@@ -53,42 +53,46 @@ const openLink = (url: string) => {
 
 <style lang="scss" scoped>
 .advertisement-banner {
-    width: 100%;
-    margin-top: 20px;
-    display: flex;
-    justify-content: center;
+    /* Rectangle 31 样式 */
+    box-sizing: border-box;
+    position: absolute;
+    width: 1300px;
+    height: 204px;
+    left: calc(50% - 1300px/2);
+    top: 289px;
+    background: #FFF2E8;
+    border: 14px solid #AE6F4D;
+    border-radius: 20px;
+
+    /* 响应式调整 */
+    @media (max-width: 1400px) {
+        width: calc(100vw - 40px);
+        left: 20px;
+        height: auto;
+        min-height: 180px;
+    }
+
+    @media (max-width: 768px) {
+        border-width: 8px;
+        height: auto;
+        min-height: 150px;
+        top: auto;
+        position: relative;
+        margin-top: 20px;
+        left: auto;
+        width: calc(100% - 40px);
+    }
 
     .banner-content {
-        /* 应用提供的样式 */
-        box-sizing: border-box;
-        position: relative;
-        width: 1300px;
-        height: 204px;
-        max-width: calc(100vw - 40px); /* 确保不超过视口宽度，留出边距 */
+        width: 100%;
+        height: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
-
-        background-image: url('@/assets/images/ad_background.png');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        border: 14px solid #AE6F4D;
-        border-radius: 20px;
-
-        /* 响应式调整 */
-        @media (max-width: 1400px) {
-            width: 100%;
-            max-width: 1200px;
-            height: auto;
-            min-height: 180px;
-        }
+        padding: 20px 0;
 
         @media (max-width: 768px) {
-            border-width: 8px;
-            height: auto;
-            min-height: 150px;
-            padding: 10px 0;
+            padding: 15px 0;
         }
     }
 
@@ -97,14 +101,12 @@ const openLink = (url: string) => {
         display: flex;
         flex-direction: row;
         align-items: flex-start;
-        padding: 20px 30px;
+        padding: 0 30px;
         gap: 16px;
         width: 100%;
         height: 154px;
 
         @media (max-width: 1400px) {
-            width: 100%;
-            max-width: 1200px;
             height: auto;
             min-height: 154px;
             flex-wrap: wrap;
@@ -112,7 +114,7 @@ const openLink = (url: string) => {
         }
 
         @media (max-width: 768px) {
-            padding: 15px;
+            padding: 0 15px;
             gap: 10px;
             height: auto;
         }
