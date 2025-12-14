@@ -67,12 +67,13 @@
     }
 
     .description {
-      flex: 1;
       margin: 0;
+      margin-left: 10px;
       color: #333;
       font-size: 12px;
-      text-align: center;
+      text-align: left;
       line-height: 1.4;
+      white-space: nowrap;
 
       flex: none;
       order: 1;
