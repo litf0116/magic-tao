@@ -128,6 +128,7 @@
     border-image-width: 150px 0 150px 0;   // 匹配边框宽度
     border-image-repeat: stretch stretch; // 拉伸模式
     background-clip: padding-box;           // 确保内容区域清晰
+    background-color: rgba(255, 255, 255, 0); // 确保内容区域透明但可见
 
     .content-wrapper {
         position: relative;
