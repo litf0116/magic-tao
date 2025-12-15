@@ -1,19 +1,6 @@
 <template>
     <div class="trading-post-card">
-        <!-- 三层背景容器 -->
-        <div class="background-layers">
-            <!-- 顶部 100px 不拉伸 -->
-            <div class="bg-layer bg-top"></div>
-
-            <!-- 中间 1px 拉伸到剩余高度 -->
-            <div class="bg-layer bg-middle"></div>
-
-            <!-- 底部 100px 不拉伸 -->
-            <div class="bg-layer bg-bottom"></div>
-        </div>
-
-        <!-- 内容包装器 -->
-        <div class="content-wrapper">
+                <div class="content-wrapper">
             <!-- 标题栏 -->
             <div class="title-bar">
                 <!-- 左侧容器：标题和描述 -->
@@ -134,45 +121,13 @@
     flex-direction: column;
     align-items: center;
 
-
-    .background-layers {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-
-        .bg-layer {
-            position: absolute;
-            left: 0;
-            width: 100%;
-            background-image: url('@/assets/images/panel_background.png');
-            background-repeat: no-repeat;
-        }
-
-        .bg-top {
-            top: 0;
-            height: 150px;
-            background-position: center top;
-            background-size: 100% auto;
-        }
-
-        .bg-middle {
-            top: 150px;
-            bottom: 150px;
-            background-position: center center; // 从图片中间截取1px
-            background-size: 100% 1px;
-            background-repeat: repeat-y;
-        }
-
-        .bg-bottom {
-            bottom: 0;
-            height: 150px;
-            background-position: center bottom;
-            background-size: 100% auto;
-        }
-    }
+    // 边框图片实现 - 替代三层背景
+    border: 150px solid transparent;
+    border-image-source: url('@/assets/images/panel_background.png');
+    border-image-slice: 150px 0 150px 0;  // 上右下左
+    border-image-width: 150px 0 150px 0;   // 匹配边框宽度
+    border-image-repeat: stretch stretch; // 拉伸模式
+    background-clip: padding-box;           // 确保内容区域清晰
 
     .content-wrapper {
         position: relative;
