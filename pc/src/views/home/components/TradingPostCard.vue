@@ -137,7 +137,7 @@
         border: 150px solid transparent;
         border-left: none;
         border-right: none;
-        border-image: url("@/assets/images/panel_background.png") 150 0 150 0  fill stretch;
+        border-image: url("@/assets/images/panel_background.png") 110 0 110 0  fill stretch;
         pointer-events: none; // 不阻挡用户交互
         z-index: 0;
     }
