@@ -87,16 +87,36 @@ const getLatestAuctionItems = async () => {
         })
 
         console.log('=== AuctionCard 匿名拍品列表 API响应 ===')
-        console.log('返回数据条数:', res.items?.length)
+        console.log('完整响应数据:', res)
+        console.log('响应数据类型:', typeof res)
+        console.log('res.items:', res.items)
+        console.log('res.data:', res.data)
+        console.log('res.data.items:', res.data?.items)
+
+        // 尝试从不同的路径获取数据
+        let items = []
+        if (res.items) {
+            items = res.items
+        } else if (res.data?.items) {
+            items = res.data.items
+        } else if (Array.isArray(res.data)) {
+            items = res.data
+        } else if (Array.isArray(res)) {
+            items = res
+        }
+
+        console.log('最终获取的数据条数:', items.length)
+        console.log('第一条数据:', items[0])
 
         // 处理图片URL
-        const itemsWithImages = convertObjectImageUrlsArray(res.items || [], ['imageUrl'])
+        const itemsWithImages = convertObjectImageUrlsArray(items || [], ['imageUrl'])
         publicList.value = itemsWithImages.map((item, index) => ({
             ...item,
             displayIndex: item.name?.includes('空降') ? '' : (index + 1).toString()
         }))
 
         console.log('拍卖卡片数据刷新，实际数据条数:', publicList.value.length)
+        console.log('格式化后的第一条数据:', publicList.value[0])
     } catch (error) {
         console.error('获取拍卖商品失败:', error)
         publicList.value = []
