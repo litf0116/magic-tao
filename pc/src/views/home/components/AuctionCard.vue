@@ -19,7 +19,7 @@
                 </div>
 
                 <!-- 右侧操作按钮 -->
-                <button class="action-button">
+                <button class="action-button" @click="goToAuction">
                     <span>点击进入</span>
                 </button>
             </div>
@@ -113,7 +113,15 @@
 </template>
 
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
+
 // 拍卖行卡片组件
+const router = useRouter()
+
+// 跳转到拍卖行页面
+const goToAuction = () => {
+    router.push('/chat/auction/auction')
+}
 </script>
 
 <style lang="scss" scoped>
