@@ -33,76 +33,22 @@
                     </div>
 
                     <!-- 列表内容 -->
-                    <div class="news-list">
-                        <div class="news-item">
+                    <div class="news-list" v-loading="loading">
+                        <div
+                            v-for="item in newsList"
+                            :key="item.id"
+                            class="news-item"
+                        >
                             <div class="news-content">
                                 <div class="diamond"></div>
-                                <span class="news-text">游戏公告内容游戏公告内容游戏公告内容游戏公</span>
+                                <span class="news-text">{{ item.text }}</span>
                             </div>
-                            <span class="news-date">24/03/01</span>
+                            <span class="news-date">{{ item.date }}</span>
                         </div>
-                        <div class="news-item">
-                            <div class="news-content">
-                                <div class="diamond"></div>
-                                <span class="news-text">游戏公告内容游戏公告内容游戏公告内容游戏公</span>
-                            </div>
-                            <span class="news-date">24/03/01</span>
-                        </div>
-                        <div class="news-item">
-                            <div class="news-content">
-                                <div class="diamond"></div>
-                                <span class="news-text">游戏公告内容游戏公告内容游戏公告内容游戏公</span>
-                            </div>
-                            <span class="news-date">24/03/01</span>
-                        </div>
-                        <div class="news-item">
-                            <div class="news-content">
-                                <div class="diamond"></div>
-                                <span class="news-text">游戏公告内容游戏公告内容游戏公告内容游戏公</span>
-                            </div>
-                            <span class="news-date">24/03/01</span>
-                        </div>
-                        <div class="news-item">
-                            <div class="news-content">
-                                <div class="diamond"></div>
-                                <span class="news-text">游戏公告内容游戏公告内容游戏公告内容游戏公</span>
-                            </div>
-                            <span class="news-date">24/03/01</span>
-                        </div>
-                        <div class="news-item">
-                            <div class="news-content">
-                                <div class="diamond"></div>
-                                <span class="news-text">游戏公告内容游戏公告内容游戏公告内容游戏公</span>
-                            </div>
-                            <span class="news-date">24/03/01</span>
-                        </div>
-                        <div class="news-item">
-                            <div class="news-content">
-                                <div class="diamond"></div>
-                                <span class="news-text">游戏公告内容游戏公告内容游戏公告内容游戏公</span>
-                            </div>
-                            <span class="news-date">24/03/01</span>
-                        </div>
-                        <div class="news-item">
-                            <div class="news-content">
-                                <div class="diamond"></div>
-                                <span class="news-text">游戏公告内容游戏公告内容游戏公告内容游戏公</span>
-                            </div>
-                            <span class="news-date">24/03/01</span>
-                        </div>
-                        <div class="news-item">
-                            <div class="news-content">
-                                <div class="diamond"></div>
-                                <span class="news-text">游戏公告内容游戏公告内容游戏公告内容游戏公</span>
-                            </div>
-                            <span class="news-date">24/03/01</span>
-                        </div>
-                        <div class="news-item">
-                            <div class="news-content">
-                                <div class="diamond"></div>
-                                <span class="news-text">游戏公告内容游戏公告内容游戏公告内容游戏公</span>
-                            </div>
-                            <span class="news-date">24/03/01</span>
+
+                        <!-- 空状态处理 -->
+                        <div v-if="newsList.length === 0 && !loading" class="empty-state">
+                            暂无最新帖子
                         </div>
                     </div>
                 </div>
@@ -113,6 +59,8 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { GetList } from '@/api/postAPI'
+import { ref, onMounted } from 'vue'
 
 // 交易站卡片组件
 const router = useRouter()
@@ -121,6 +69,52 @@ const router = useRouter()
 const goToTradingPost = () => {
     router.push('/forum/tradingPost')
 }
+
+// 响应式数据
+const newsList = ref([])
+const loading = ref(false)
+
+// 获取最新10条帖子
+const getLatestPosts = async () => {
+    loading.value = true
+    try {
+        const response = await GetList({
+            Type: -1,                // 获取所有分类
+            Keyword: '',             // 不搜索关键词
+            SkipCount: 0,            // 从第一条开始
+            MaxResultCount: 10,      // 获取10条
+            isTop: false,           // 不包含置顶帖
+        })
+
+        if (response.data && response.data.items) {
+            // 处理返回的数据
+            newsList.value = response.data.items.map(post => ({
+                id: post.postId,
+                text: post.title,
+                date: formatDate(post.createdAt)
+            }))
+        }
+    } catch (error) {
+        console.error('获取最新帖子失败:', error)
+    } finally {
+        loading.value = false
+    }
+}
+
+// 格式化日期为 24/03/01 格式
+const formatDate = (dateStr) => {
+    if (!dateStr) return ''
+    const date = new Date(dateStr)
+    const year = date.getFullYear() % 100 // 取后两位
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}/${month}/${day}`
+}
+
+// 组件挂载时获取数据
+onMounted(() => {
+    getLatestPosts()
+})
 </script>
 
 <style lang="scss" scoped>
@@ -360,6 +354,19 @@ const goToTradingPost = () => {
                             order: 1;
                             flex-grow: 0;
                         }
+                    }
+
+                    .empty-state {
+                        width: 100%;
+                        height: 31px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-family: 'Source Han Sans CN';
+                        font-style: normal;
+                        font-weight: 400;
+                        font-size: 14px;
+                        color: #BD8775;
                     }
                 }
             }
