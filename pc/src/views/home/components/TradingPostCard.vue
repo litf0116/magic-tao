@@ -123,7 +123,7 @@
 
     // 边框图片实现 - 单一属性替代三层背景
     border: 150px solid transparent;
-    border-image: url("@/assets/images/panel_background.png") 150 0 150 0 fill / 1px 150px stretch;
+    border-image: url("@/assets/images/panel_background.png") 150 0 stretch;
 
     .content-wrapper {
         position: relative;
