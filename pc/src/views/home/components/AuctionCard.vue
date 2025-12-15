@@ -74,13 +74,13 @@ const goToAuction = () => {
 
 // 响应式数据
 const loading = ref(false)
-const waitList = computed(() => auctionStore.list) // 待拍卖商品列表
+const publicList = computed(() => auctionStore.publicList) // 匿名访问的公开拍品列表
 
-// 获取最新10条待拍商品
+// 获取最新10条待拍商品（使用匿名接口）
 const getLatestAuctionItems = async () => {
     loading.value = true
     try {
-        await auctionStore.getList(undefined, 10) // 获取10条待拍卖商品
+        await auctionStore.getPublicList(10) // 使用匿名接口获取10条待拍卖商品
     } catch (error) {
         console.error('获取拍卖商品失败:', error)
     } finally {
@@ -90,7 +90,7 @@ const getLatestAuctionItems = async () => {
 
 // 格式化商品数据
 const formatAuctionItems = computed(() => {
-    return waitList.value.map(item => ({
+    return publicList.value.map(item => ({
         id: item.id,
         name: item.name || '未知商品',
         date: formatDate(item.createdAt || new Date()),

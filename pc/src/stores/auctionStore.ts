@@ -4,7 +4,7 @@ import { ref } from 'vue'
 import { AuctionItemDto, ChatMessageType } from '@/api/appService'
 import api from '@/api'
 import { GetAuctionMidList } from '@/api/auctionMidAPI'
-import { setKasecStatus, getKasecStatus, GetDetail } from '@/api/auctionItemAPI'
+import { setKasecStatus, getKasecStatus, GetDetail, GetPublicListAnonymous } from '@/api/auctionItemAPI'
 import { ElMessage } from 'element-plus'
 import { convertAuctionPayload } from '@/utils/propertyConverter'
 import { convertObjectImageUrlsArray } from '@/utils/imageUrlConverter'
@@ -13,6 +13,7 @@ export const useAuctionStore = defineStore('auction', () => {
     const list = ref<AuctionItemDto[]>([])
     const list4 = ref<AuctionItemDto[]>([])
     const auctionMid = ref<AuctionItemDto[]>([])
+    const publicList = ref<AuctionItemDto[]>([]) // 匿名访问的公开拍品列表
     // 卡秒状态
     const isKasec = ref(false)
 
@@ -327,6 +328,32 @@ export const useAuctionStore = defineStore('auction', () => {
         // fetch auctions from the server
     }
 
+    // 获取匿名公开拍品列表（用于首页展示）
+    function getPublicList(maxResultCount: number = 10) {
+        return new Promise<void>((resolve) => {
+            GetPublicListAnonymous({
+                maxResultCount,
+                skipCount: 0,
+                sorting: 'creationTime desc' // 按创建时间倒序
+            }).then((res) => {
+                console.log('=== getPublicList 匿名拍品列表 API响应 ===')
+                console.log('返回数据条数:', res.items?.length)
+                console.log('第一条数据ID:', res.items?.[0]?.id)
+                console.log('最后一条数据ID:', res.items?.[res.items?.length - 1]?.id)
+
+                // 处理图片URL并计算序号
+                const itemsWithImages = convertObjectImageUrlsArray(res.items || [], ['imageUrl'])
+                publicList.value = calculateDisplayIndices(itemsWithImages)
+                console.log('匿名拍品列表已刷新，实际数据条数:', publicList.value.length)
+                return resolve()
+            }).catch((error) => {
+                console.error('获取匿名拍品列表失败:', error)
+                publicList.value = []
+                return resolve()
+            })
+        })
+    }
+
     function startAuction(id: number) {
         api.auctionItem.startAuction({ id: id }).then((res) => {
             // TODO:通知拍卖房间的人刷新拍品列表
@@ -345,11 +372,13 @@ export const useAuctionStore = defineStore('auction', () => {
         list,
         list4,
         auctionMid,
+        publicList, // 匿名访问的公开拍品列表
         bid,
         end,
         startNotify,
         startAuction,
         getList,
+        getPublicList, // 获取匿名公开拍品列表
         isKasec,
         setKasec,
         syncKasecStatus,
