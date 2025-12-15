@@ -165,8 +165,8 @@ function bid(id) {
 
         let minPrice = 0
         if (info.currentPrice) {
-            // 使用工具方法计算最低出价
-            minPrice = calculateMinBidPrice(info.currentPrice, false) // 这里没有卡秒模式，所以传false
+            // 使用工具方法计算最低出价，传入全局卡秒状态
+            minPrice = calculateMinBidPrice(info.currentPrice, auctionStore.isKasec)
         }
 
         ElMessageBox.prompt(`请输入出价金额(最低出价${minPrice})`, '出价', {
@@ -228,6 +228,14 @@ const show = (e: boolean, id: number) => {
             //     return;
             // }
             item.value = res.data
+
+            // 同步卡秒状态，确保使用最新的状态
+            if (res.data.status === '拍卖中') {
+                auctionStore.syncKasecStatus(id).catch(error => {
+                    console.error('同步卡秒状态失败:', error)
+                })
+            }
+
             nextTick(() => {
                 const images = document.querySelectorAll('#auctionDesc img')
                 images.forEach((img) => {
