@@ -308,6 +308,7 @@ onMounted(() => {
                             gap: 10px;
                             flex: 1;
                             min-width: 0; /* 确保flex子项可以收缩 */
+                            overflow: hidden; /* 确保内容不会溢出 */
 
                             .diamond {
                                 width: 5.66px;
@@ -342,8 +343,11 @@ onMounted(() => {
                             line-height: 100%;
                             color: #BD8775;
                             flex-shrink: 0; /* 防止时间文字被压缩 */
-                            width: 66px; /* 固定时间区域宽度 */
+                            flex-basis: 80px; /* 确保足够宽度显示完整日期 */
+                            min-width: 80px; /* 最小宽度保证时间显示 */
+                            max-width: 80px; /* 最大宽度保持一致性 */
                             text-align: right;
+                            overflow: visible; /* 确保时间文字不被隐藏 */
                         }
                     }
 
