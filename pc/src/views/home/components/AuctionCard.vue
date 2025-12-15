@@ -134,9 +134,11 @@
         left: 0;
         width: 100%;
         height: 100%;
-        // 使用border-image实现背景拉伸
+        // 使用border-image实现背景拉伸 上下border 150 左右 border 0
         border: 150px solid transparent;
-        border-image: url("@/assets/images/panel_background.png") 150 0 stretch;
+        border-left: none;
+        border-right: none;
+        border-image: url("@/assets/images/panel_background.png") 150 0 150 0  fill stretch;
         pointer-events: none; // 不阻挡用户交互
         z-index: 0;
     }
