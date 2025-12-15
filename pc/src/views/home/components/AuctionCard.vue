@@ -60,12 +60,12 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { useAuctionStore } from '@/stores/auctionStore'
+import { GetPublicListAnonymous } from '@/api/auctionItemAPI'
+import { convertObjectImageUrlsArray } from '@/utils/imageUrlConverter'
 import { ref, onMounted, computed } from 'vue'
 
 // 拍卖行卡片组件
 const router = useRouter()
-const auctionStore = useAuctionStore()
 
 // 跳转到拍卖行页面
 const goToAuction = () => {
@@ -74,15 +74,32 @@ const goToAuction = () => {
 
 // 响应式数据
 const loading = ref(false)
-const publicList = computed(() => auctionStore.publicList) // 匿名访问的公开拍品列表
+const publicList = ref([]) // 本地存储的拍品列表
 
-// 获取最新10条待拍商品（使用匿名接口）
+// 获取最新10条待拍商品（直接调用匿名接口）
 const getLatestAuctionItems = async () => {
     loading.value = true
     try {
-        await auctionStore.getPublicList(10) // 使用匿名接口获取10条待拍卖商品
+        const res = await GetPublicListAnonymous({
+            maxResultCount: 10,
+            skipCount: 0,
+            sorting: 'creationTime desc' // 按创建时间倒序
+        })
+
+        console.log('=== AuctionCard 匿名拍品列表 API响应 ===')
+        console.log('返回数据条数:', res.items?.length)
+
+        // 处理图片URL
+        const itemsWithImages = convertObjectImageUrlsArray(res.items || [], ['imageUrl'])
+        publicList.value = itemsWithImages.map((item, index) => ({
+            ...item,
+            displayIndex: item.name?.includes('空降') ? '' : (index + 1).toString()
+        }))
+
+        console.log('拍卖卡片数据刷新，实际数据条数:', publicList.value.length)
     } catch (error) {
         console.error('获取拍卖商品失败:', error)
+        publicList.value = []
     } finally {
         loading.value = false
     }
