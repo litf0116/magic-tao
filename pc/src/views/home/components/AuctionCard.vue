@@ -34,76 +34,22 @@
                     </div>
 
                     <!-- 列表内容 -->
-                    <div class="auction-list">
-                        <div class="auction-item">
+                    <div class="auction-list" v-loading="loading">
+                        <div
+                            v-for="item in formatAuctionItems"
+                            :key="item.id"
+                            class="auction-item"
+                        >
                             <div class="auction-content">
                                 <div class="diamond"></div>
-                                <span class="auction-text">稀有装备拍卖内容拍卖内容拍卖内容拍卖内容</span>
+                                <span class="auction-text">{{ item.name }}</span>
                             </div>
-                            <span class="auction-date">24/03/01</span>
+                            <span class="auction-date">{{ item.date }}</span>
                         </div>
-                        <div class="auction-item">
-                            <div class="auction-content">
-                                <div class="diamond"></div>
-                                <span class="auction-text">稀有装备拍卖内容拍卖内容拍卖内容拍卖内容</span>
-                            </div>
-                            <span class="auction-date">24/03/01</span>
-                        </div>
-                        <div class="auction-item">
-                            <div class="auction-content">
-                                <div class="diamond"></div>
-                                <span class="auction-text">稀有装备拍卖内容拍卖内容拍卖内容拍卖内容</span>
-                            </div>
-                            <span class="auction-date">24/03/01</span>
-                        </div>
-                        <div class="auction-item">
-                            <div class="auction-content">
-                                <div class="diamond"></div>
-                                <span class="auction-text">稀有装备拍卖内容拍卖内容拍卖内容拍卖内容</span>
-                            </div>
-                            <span class="auction-date">24/03/01</span>
-                        </div>
-                        <div class="auction-item">
-                            <div class="auction-content">
-                                <div class="diamond"></div>
-                                <span class="auction-text">稀有装备拍卖内容拍卖内容拍卖内容拍卖内容</span>
-                            </div>
-                            <span class="auction-date">24/03/01</span>
-                        </div>
-                        <div class="auction-item">
-                            <div class="auction-content">
-                                <div class="diamond"></div>
-                                <span class="auction-text">稀有装备拍卖内容拍卖内容拍卖内容拍卖内容</span>
-                            </div>
-                            <span class="auction-date">24/03/01</span>
-                        </div>
-                        <div class="auction-item">
-                            <div class="auction-content">
-                                <div class="diamond"></div>
-                                <span class="auction-text">稀有装备拍卖内容拍卖内容拍卖内容拍卖内容</span>
-                            </div>
-                            <span class="auction-date">24/03/01</span>
-                        </div>
-                        <div class="auction-item">
-                            <div class="auction-content">
-                                <div class="diamond"></div>
-                                <span class="auction-text">稀有装备拍卖内容拍卖内容拍卖内容拍卖内容</span>
-                            </div>
-                            <span class="auction-date">24/03/01</span>
-                        </div>
-                        <div class="auction-item">
-                            <div class="auction-content">
-                                <div class="diamond"></div>
-                                <span class="auction-text">稀有装备拍卖内容拍卖内容拍卖内容拍卖内容</span>
-                            </div>
-                            <span class="auction-date">24/03/01</span>
-                        </div>
-                        <div class="auction-item">
-                            <div class="auction-content">
-                                <div class="diamond"></div>
-                                <span class="auction-text">稀有装备拍卖内容拍卖内容拍卖内容拍卖内容</span>
-                            </div>
-                            <span class="auction-date">24/03/01</span>
+
+                        <!-- 空状态处理 -->
+                        <div v-if="formatAuctionItems.length === 0 && !loading" class="empty-state">
+                            暂无待拍商品
                         </div>
                     </div>
                 </div>
@@ -114,14 +60,59 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { useAuctionStore } from '@/stores/auctionStore'
+import { ref, onMounted, computed } from 'vue'
 
 // 拍卖行卡片组件
 const router = useRouter()
+const auctionStore = useAuctionStore()
 
 // 跳转到拍卖行页面
 const goToAuction = () => {
     router.push('/chat/auction/auction')
 }
+
+// 响应式数据
+const loading = ref(false)
+const waitList = computed(() => auctionStore.list) // 待拍卖商品列表
+
+// 获取最新10条待拍商品
+const getLatestAuctionItems = async () => {
+    loading.value = true
+    try {
+        await auctionStore.getList(undefined, 10) // 获取10条待拍卖商品
+    } catch (error) {
+        console.error('获取拍卖商品失败:', error)
+    } finally {
+        loading.value = false
+    }
+}
+
+// 格式化商品数据
+const formatAuctionItems = computed(() => {
+    return waitList.value.map(item => ({
+        id: item.id,
+        name: item.name || '未知商品',
+        date: formatDate(item.createdAt || new Date()),
+        imageUrl: item.imageUrl,
+        seller: item.sellerInfo || '未知卖家'
+    }))
+})
+
+// 格式化日期为 24/03/01 格式
+const formatDate = (dateStr) => {
+    if (!dateStr) return ''
+    const date = new Date(dateStr)
+    const year = date.getFullYear() % 100 // 取后两位
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}/${month}/${day}`
+}
+
+// 组件挂载时获取数据
+onMounted(() => {
+    getLatestAuctionItems()
+})
 </script>
 
 <style lang="scss" scoped>
@@ -301,8 +292,7 @@ const goToAuction = () => {
 
                     .auction-item {
                         display: flex;
-                        flex-direction: row;
-                        align-items: flex-start;
+                        align-items: center;
                         gap: 10px;
 
                         width: 470px;
@@ -311,26 +301,21 @@ const goToAuction = () => {
 
                         .auction-content {
                             display: flex;
-                            flex-direction: row;
                             align-items: center;
-                            padding: 0px;
                             gap: 10px;
-
-                            //width: 354px;
-                            height: 16px;
+                            flex: 1;
+                            min-width: 0; /* 确保flex子项可以收缩 */
+                            overflow: hidden; /* 确保内容不会溢出 */
 
                             .diamond {
                                 width: 5.66px;
                                 height: 5.66px;
                                 background: #E6AC7A;
                                 transform: rotate(45deg);
-                                flex: none;
-                                order: 0;
-                                flex-grow: 0;
+                                flex-shrink: 0;
                             }
 
                             .auction-text {
-                                //width: 336px;
                                 height: 16px;
                                 font-family: 'Source Han Sans CN';
                                 font-style: normal;
@@ -338,17 +323,15 @@ const goToAuction = () => {
                                 font-size: 16px;
                                 line-height: 100%;
                                 color: #CCA396;
-                                flex: none;
-                                order: 1;
-                                flex-grow: 0;
                                 overflow: hidden;
                                 text-overflow: ellipsis;
                                 white-space: nowrap;
+                                flex: 1; /* 占据剩余空间 */
+                                min-width: 0; /* 允许收缩到最小宽度 */
                             }
                         }
 
                         .auction-date {
-                            //width: 66px;
                             height: 16px;
                             font-family: 'Source Han Sans CN';
                             font-style: normal;
@@ -356,10 +339,26 @@ const goToAuction = () => {
                             font-size: 16px;
                             line-height: 100%;
                             color: #BD8775;
-                            flex: none;
-                            order: 1;
-                            flex-grow: 0;
+                            flex-shrink: 0; /* 防止时间文字被压缩 */
+                            flex-basis: 80px; /* 确保足够宽度显示完整日期 */
+                            min-width: 80px; /* 最小宽度保证时间显示 */
+                            max-width: 80px; /* 最大宽度保持一致性 */
+                            text-align: right;
+                            overflow: visible; /* 确保时间文字不被隐藏 */
                         }
+                    }
+
+                    .empty-state {
+                        width: 100%;
+                        height: 31px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-family: 'Source Han Sans CN';
+                        font-style: normal;
+                        font-weight: 400;
+                        font-size: 14px;
+                        color: #BD8775;
                     }
                 }
             }

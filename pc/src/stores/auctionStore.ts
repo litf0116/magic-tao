@@ -272,11 +272,11 @@ export const useAuctionStore = defineStore('auction', () => {
             })
     }
 
-    function getList(status: number | undefined = undefined) {
+    function getList(status: number | undefined = undefined, maxResultCount: number = 100) {
         return new Promise<void>((resolve) => {
             //待拍卖
             if (!status) {
-                api.auctionItem.getPublicList({ maxResultCount: 100 }).then((res) => {
+                api.auctionItem.getPublicList({ maxResultCount }).then((res) => {
                     console.log('=== getList 待拍卖列表 API响应 ===')
                     console.log('返回数据条数:', res.items?.length)
                     console.log('第一条数据ID:', res.items?.[0]?.id)
@@ -292,7 +292,7 @@ export const useAuctionStore = defineStore('auction', () => {
             }
             //拍卖中
             if (status === 2) {
-                GetAuctionMidList({ status, maxResultCount: 100 }).then((res) => {
+                GetAuctionMidList({ status, maxResultCount }).then((res) => {
                     if (res.status == 200) {
                         console.log('=== getList 拍卖中列表 API响应 ===')
                         console.log('返回数据条数:', res.data?.items?.length)
@@ -309,7 +309,7 @@ export const useAuctionStore = defineStore('auction', () => {
             }
             //已完成
             if (status === 4) {
-                api.auctionItem.getPublicList({ status, maxResultCount: 100 }).then((res) => {
+                api.auctionItem.getPublicList({ status, maxResultCount }).then((res) => {
                     console.log('=== getList 已完成列表 API响应 ===')
                     console.log('返回数据条数:', res.items?.length)
                     console.log('第一条数据ID:', res.items?.[0]?.id)
