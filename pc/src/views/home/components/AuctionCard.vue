@@ -1,5 +1,8 @@
 <template>
     <div class="auction-card">
+        <!-- 背景包装器 - 与卡片同尺寸 -->
+        <div class="background-wrapper"></div>
+
         <!-- 内容包装器 -->
         <div class="content-wrapper">
             <!-- 标题栏 -->
@@ -122,20 +125,20 @@
     flex-direction: column;
     align-items: center;
 
-    // 使用伪元素作为背景图层，不挤占内容空间
+    // 使用background-wrapper实现背景拉伸，与卡片同尺寸
     border: none;
 
-    &::before {
-        content: '';
+    .background-wrapper {
         position: absolute;
-        top: -150px;
+        top: 0;
         left: 0;
-        right: 0;
-        bottom: -150px;
-        background: url("@/assets/images/panel_background.png") no-repeat;
-        background-size: 100% 100%;
-        background-position: center;
-        z-index: -1; // 确保在内容下方
+        width: 100%;
+        height: 100%;
+        // 使用border-image实现背景拉伸
+        border: 150px solid transparent;
+        border-image: url("@/assets/images/panel_background.png") 150 0 stretch;
+        pointer-events: none; // 不阻挡用户交互
+        z-index: 0;
     }
 
     .content-wrapper {
@@ -147,7 +150,7 @@
         flex-direction: column;
         align-items: center;
         justify-content: start;
-        padding: 150px 0 20px; // 为上下背景装饰预留空间
+        padding-top: 20px; // 恢复原有padding
 
         .title-bar {
             display: flex;
