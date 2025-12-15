@@ -8,7 +8,7 @@
                     class="ad-item"
                     @click="openLink(item.url)"
                 >
-                    <img :src="item.imageUrl" :alt="item.title" class="ad-image" />
+                    <img :src="item.imageUrl" :alt="item.title" class="ad-image"/>
                     <div class="ad-title">{{ item.title }}</div>
                 </div>
             </div>
@@ -17,8 +17,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { GetTypeList } from '@/api/advertisingSpaceAPI'
+import {ref, onMounted} from 'vue'
+import {GetTypeList} from '@/api/advertisingSpaceAPI'
 
 interface AdvertisementItem {
     id?: number
@@ -81,7 +81,7 @@ const openLink = (url: string) => {
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 20px 0;
+        padding: 30px 0;
 
         @media (max-width: 768px) {
             padding: 15px 0;

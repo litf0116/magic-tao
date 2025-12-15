@@ -1,14 +1,14 @@
 <template>
-  <div class="home-container">
-    <!-- 广告展示区域 -->
-    <AdvertisementBanner/>
+    <div class="home-container">
+        <!-- 广告展示区域 -->
+        <AdvertisementBanner/>
 
-    <!-- 双模块容器 -->
-    <div class="modules-container">
-      <TradingPostCard />
-      <AuctionCard />
+        <!-- 双模块容器 -->
+        <div class="modules-container">
+            <TradingPostCard/>
+            <AuctionCard/>
+        </div>
     </div>
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -19,31 +19,32 @@ import AuctionCard from './components/AuctionCard.vue'
 
 <style lang="scss" scoped>
 .home-container {
-  position: relative;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: -34px;
 }
 
 .modules-container {
-  width: 1300px; /* 与广告横幅相同的宽度 */
-  display: flex;
-  justify-content: space-between; /* 两端对齐 */
-  margin-top: 30px; /* 替代广告横幅的 margin-bottom */
+    width: 1300px; /* 与广告横幅相同的宽度 */
+    display: flex;
+    justify-content: space-between; /* 两端对齐 */
+    margin-top: 30px; /* 替代广告横幅的 margin-bottom */
 
-  @media (max-width: 1400px) {
-    width: calc(100vw - 40px); /* 与广告横幅相同的响应式宽度 */
-    flex-direction: column;
-    align-items: center;
-    gap: 30px;
-  }
+    @media (max-width: 1400px) {
+        width: calc(100vw - 40px); /* 与广告横幅相同的响应式宽度 */
+        flex-direction: column;
+        align-items: center;
+        gap: 30px;
+    }
 
-  @media (max-width: 768px) {
-    width: calc(100% - 40px);
-    gap: 20px;
-    padding: 0;
-    margin-top: 20px; /* 移动端减小间距 */
-  }
+    @media (max-width: 768px) {
+        width: calc(100% - 40px);
+        gap: 20px;
+        padding: 0;
+        margin-top: 20px; /* 移动端减小间距 */
+    }
 }
 </style>
