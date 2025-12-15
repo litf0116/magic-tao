@@ -122,14 +122,9 @@
     flex-direction: column;
     align-items: center;
 
-    // 边框图片实现 - 替代三层背景
+    // 边框图片实现 - 单一属性替代三层背景
     border: 150px solid transparent;
-    border-image-source: url('@/assets/images/panel_background.png');
-    border-image-slice: 150px 0 150px 0;  // 上右下左
-    border-image-width: 150px 0 150px 0;   // 匹配边框宽度
-    border-image-repeat: stretch stretch; // 拉伸模式
-    background-clip: padding-box;           // 确保内容区域清晰
-    background-color: rgba(255, 255, 255, 0); // 确保内容区域透明但可见
+    border-image: url("@/assets/images/panel_background.png") 150 0 150 0 fill / 1px 150px stretch;
 
     .content-wrapper {
         position: relative;
