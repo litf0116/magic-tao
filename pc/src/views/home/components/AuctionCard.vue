@@ -82,7 +82,7 @@ const getLatestAuctionItems = async () => {
     try {
         const res = await GetPublicListAnonymous({
             maxResultCount: 10,
-            skipCount: 0,
+            skipCount: 1,
             sorting: 'creationTime desc' // 按创建时间倒序
         })
 
