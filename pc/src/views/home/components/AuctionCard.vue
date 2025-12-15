@@ -14,7 +14,7 @@
 
                     <!-- 描述文字 -->
                     <div class="description">
-                        竞拍稀有道具，获取限定装备
+                        每晚7：30-12：30
                     </div>
                 </div>
 
@@ -225,7 +225,6 @@
                 flex-grow: 0;
 
                 span {
-                    width: 56px;
                     height: 14px;
 
                     font-family: 'Source Han Sans CN';

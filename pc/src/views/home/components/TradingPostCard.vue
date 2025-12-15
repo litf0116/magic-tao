@@ -18,7 +18,7 @@
                 </div>
 
                 <!-- 右侧操作按钮 -->
-                <button class="action-button">
+                <button class="action-button" @click="goToTradingPost">
                     <span>点击进入</span>
                 </button>
             </div>
@@ -112,7 +112,15 @@
 </template>
 
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
+
 // 交易站卡片组件
+const router = useRouter()
+
+// 跳转到交易站列表页面
+const goToTradingPost = () => {
+    router.push('/forum/tradingPost')
+}
 </script>
 
 <style lang="scss" scoped>
@@ -224,7 +232,6 @@
                 flex-grow: 0;
 
                 span {
-                    width: 56px;
                     height: 14px;
 
                     font-family: 'Source Han Sans CN';
