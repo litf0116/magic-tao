@@ -295,8 +295,7 @@ onMounted(() => {
 
                     .news-item {
                         display: flex;
-                        flex-direction: row;
-                        align-items: flex-start;
+                        align-items: center;
                         gap: 10px;
 
                         width: 470px;
@@ -305,26 +304,20 @@ onMounted(() => {
 
                         .news-content {
                             display: flex;
-                            flex-direction: row;
                             align-items: center;
-                            padding: 0px;
                             gap: 10px;
-
-                            //width: 354px;
-                            height: 16px;
+                            flex: 1;
+                            min-width: 0; /* 确保flex子项可以收缩 */
 
                             .diamond {
                                 width: 5.66px;
                                 height: 5.66px;
                                 background: #E6AC7A;
                                 transform: rotate(45deg);
-                                flex: none;
-                                order: 0;
-                                flex-grow: 0;
+                                flex-shrink: 0;
                             }
 
                             .news-text {
-                                //width: 336px;
                                 height: 16px;
                                 font-family: 'Source Han Sans CN';
                                 font-style: normal;
@@ -332,17 +325,15 @@ onMounted(() => {
                                 font-size: 16px;
                                 line-height: 100%;
                                 color: #CCA396;
-                                flex: none;
-                                order: 1;
-                                flex-grow: 0;
                                 overflow: hidden;
                                 text-overflow: ellipsis;
                                 white-space: nowrap;
+                                flex: 1; /* 占据剩余空间 */
+                                min-width: 0; /* 允许收缩到最小宽度 */
                             }
                         }
 
                         .news-date {
-                            //width: 66px;
                             height: 16px;
                             font-family: 'Source Han Sans CN';
                             font-style: normal;
@@ -350,9 +341,9 @@ onMounted(() => {
                             font-size: 16px;
                             line-height: 100%;
                             color: #BD8775;
-                            flex: none;
-                            order: 1;
-                            flex-grow: 0;
+                            flex-shrink: 0; /* 防止时间文字被压缩 */
+                            width: 66px; /* 固定时间区域宽度 */
+                            text-align: right;
                         }
                     }
 
