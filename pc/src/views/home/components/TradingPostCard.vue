@@ -121,9 +121,21 @@
     flex-direction: column;
     align-items: center;
 
-    // 边框图片实现 - 单一属性替代三层背景
-    border: 150px solid transparent;
-    border-image: url("@/assets/images/panel_background.png") 150 0 stretch;
+    // 使用伪元素作为背景图层，不挤占内容空间
+    border: none;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: -150px;
+        left: 0;
+        right: 0;
+        bottom: -150px;
+        background: url("@/assets/images/panel_background.png") no-repeat;
+        background-size: 100% 100%;
+        background-position: center;
+        z-index: -1; // 确保在内容下方
+    }
 
     .content-wrapper {
         position: relative;
@@ -134,7 +146,7 @@
         flex-direction: column;
         align-items: center;
         justify-content: start;
-        padding-top: 20px;
+        padding: 150px 0 20px; // 为上下背景装饰预留空间
 
         .title-bar {
             display: flex;
