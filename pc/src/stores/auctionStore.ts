@@ -266,7 +266,7 @@ export const useAuctionStore = defineStore('auction', () => {
                     bidUserAvatar: userStore.user.headImgUrl,
                 },
             })
-            .then((res) => {
+            .then(() => {
                 // 注意：出价消息已由后端发送，前端无需重复发送
                 Tips.success('出价成功')
             })
@@ -334,7 +334,7 @@ export const useAuctionStore = defineStore('auction', () => {
         })
     }
 
-    function startNotify(id: number) {
+    function startNotify() {
         return new Promise<void>((resolve) => {
             return resolve()
             // api.auctionItem.subStartNotify({ auctionItemId, openid: userStore.openid }).then((res) => {
