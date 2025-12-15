@@ -117,8 +117,8 @@
 
 <style lang="scss" scoped>
 .trading-post-card {
-    width: 630px;
-    min-height: 760px;
+    width: 623px;
+    min-height: 491px;
     position: relative;
     display: flex;
     flex-direction: column;
@@ -132,12 +132,12 @@
         top: 0;
         left: 0;
         width: 100%;
-        height: 100%;
+        height: calc(100% - 80px);
         // 使用border-image实现背景拉伸 上下border 150 左右 border 0
-        border: 150px solid transparent;
+        border: 100px solid transparent;
         border-left: none;
         border-right: none;
-        border-image: url("@/assets/images/panel_background.png") 110 0 110 0  fill stretch;
+        border-image: url("@/assets/images/panel_background.png") 100 0 100 0  fill stretch;
         pointer-events: none; // 不阻挡用户交互
         z-index: 0;
     }
