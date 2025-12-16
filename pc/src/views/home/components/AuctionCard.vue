@@ -314,21 +314,21 @@ onMounted(() => {
 
                     .auction-item {
                         display: flex;
-                        align-items: center; /* 恢复居中对齐 */
+                        align-items: flex-start; /* 改为顶部对齐，支持多行文本 */
                         gap: 10px;
 
                         /* 双列布局，每个item占据一列 */
                         width: 100%;
-                        height: 31px; /* 恢复固定高度 */
+                        min-height: 31px; /* 改为最小高度，允许自动增高 */
+                        padding: 5px 0; /* 添加上下内边距，给多行文本留出空间 */
                         border-bottom: 1px dashed #976464;
 
                         .auction-content {
                             display: flex;
-                            align-items: center; /* 恢复居中对齐 */
+                            align-items: flex-start; /* 改为顶部对齐 */
                             gap: 10px;
                             flex: 1;
                             min-width: 0; /* 确保flex子项可以收缩 */
-                            overflow: hidden; /* 确保内容不会溢出 */
 
                             .diamond {
                                 width: 5.66px;
@@ -336,19 +336,19 @@ onMounted(() => {
                                 background: #E6AC7A;
                                 transform: rotate(45deg);
                                 flex-shrink: 0;
+                                margin-top: 5px; /* 调整菱形位置，与第一行文本对齐 */
                             }
 
                             .auction-text {
-                                height: 16px; /* 恢复固定高度 */
+                                /* 移除固定高度限制 */
                                 font-family: 'Source Han Sans CN';
                                 font-style: normal;
                                 font-weight: 400;
                                 font-size: 16px;
-                                line-height: 100%; /* 恢复单行行高 */
+                                line-height: 1.4; /* 设置合适的行高 */
                                 color: #CCA396;
-                                overflow: hidden;
-                                text-overflow: ellipsis; /* 恢复省略号 */
-                                white-space: nowrap; /* 恢复不换行 */
+                                word-wrap: break-word; /* 允许长单词换行 */
+                                word-break: break-all; /* 允许任意位置换行 */
                                 flex: 1; /* 占据剩余空间 */
                                 min-width: 0; /* 允许收缩到最小宽度 */
                             }
