@@ -8,8 +8,11 @@
                     class="ad-item"
                     @click="openLink(item.url)"
                 >
-                    <img :src="item.imageUrl" :alt="item.title" class="ad-image"/>
-                    <div class="ad-title">{{ item.title }}</div>
+                    <!-- 处理占位符图片 -->
+                    <div v-if="!item.imageUrl" class="ad-placeholder"></div>
+                    <img v-else :src="item.imageUrl" :alt="item.title" class="ad-image" @error="handleImageError"/>
+                    <!-- 只有有图片时才显示标题 -->
+                    <div v-if="item.imageUrl" class="ad-title">{{ item.title }}</div>
                 </div>
             </div>
         </div>
@@ -27,7 +30,18 @@ interface AdvertisementItem {
     url: string
 }
 
-const advertisementList = ref<AdvertisementItem[]>([])
+// 创建6个空的广告位占位符
+const createPlaceholderAds = (): AdvertisementItem[] => {
+    return Array.from({ length: 6 }, (_, index) => ({
+        id: index,
+        title: '', // 空广告位不需要标题
+        imageUrl: '',
+        url: ''
+    }))
+}
+
+// 初始化时设置6个占位符
+const advertisementList = ref<AdvertisementItem[]>(createPlaceholderAds())
 
 onMounted(async () => {
     await fetchAdvertisements()
@@ -37,16 +51,51 @@ const fetchAdvertisements = async () => {
     try {
         const res = await GetTypeList(1)
         if (res.data && res.data.items) {
-            advertisementList.value = res.data.items
+            // 获取真实数据
+            const realAds = res.data.items
+
+            // 创建新的数组，保持6个位置
+            const updatedAds: AdvertisementItem[] = []
+
+            // 用真实数据替换前N个占位符
+            for (let i = 0; i < 6; i++) {
+                if (i < realAds.length) {
+                    updatedAds.push(realAds[i])
+                } else {
+                    // 如果真实数据不足6个，剩余位置使用占位符
+                    updatedAds.push({
+                        id: i,
+                        title: '', // 空广告位不需要标题
+                        imageUrl: '',
+                        url: ''
+                    })
+                }
+            }
+
+            // 更新广告列表
+            advertisementList.value = updatedAds
         }
     } catch (error) {
         console.error('获取广告数据失败:', error)
+        // 获取失败时继续使用占位符
     }
 }
 
 const openLink = (url: string) => {
-    if (url) {
+    // 只有真实广告（有URL）才能点击打开
+    if (url && url !== '') {
         window.open(url, '_blank', 'noopener,noreferrer')
+    }
+}
+
+// 处理图片加载失败
+const handleImageError = (event: Event) => {
+    const target = event.target as HTMLImageElement
+    // 隐藏失败的图片，显示占位符
+    target.style.display = 'none'
+    const placeholder = target.previousElementSibling as HTMLElement
+    if (placeholder && placeholder.classList.contains('ad-placeholder')) {
+        placeholder.style.display = 'block'
     }
 }
 </script>
@@ -161,6 +210,14 @@ const openLink = (url: string) => {
         height: 100%;
         object-fit: cover;
         border-radius: 6px;
+    }
+
+    .ad-placeholder {
+        width: 100%;
+        height: 100%;
+        background: #F3D9B3;
+        border-radius: 6px;
+        display: none; /* 默认隐藏，图片加载失败时显示 */
     }
 
     .ad-title {
