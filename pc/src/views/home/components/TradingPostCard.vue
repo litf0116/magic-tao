@@ -38,6 +38,7 @@
                             v-for="item in newsList"
                             :key="item.id"
                             class="news-item"
+                            @click="goToPostDetail(item.id)"
                         >
                             <div class="news-content">
                                 <div class="diamond"></div>
@@ -68,6 +69,11 @@ const router = useRouter()
 // 跳转到交易站列表页面
 const goToTradingPost = () => {
     router.push('/forum/tradingPost')
+}
+
+// 跳转到帖子详情页面
+const goToPostDetail = (postId: string) => {
+    router.push(`/forum/postDetail/${postId}`)
 }
 
 // 响应式数据
@@ -301,6 +307,12 @@ onMounted(() => {
                         width: 470px;
                         height: 31px;
                         border-bottom: 1px dashed #976464;
+                        cursor: pointer; /* 添加鼠标指针，提示可点击 */
+                        transition: background-color 0.2s ease; /* 添加过渡效果 */
+
+                        &:hover {
+                            background-color: rgba(230, 172, 122, 0.1); /* 悬停时添加背景色 */
+                        }
 
                         .news-content {
                             display: flex;
