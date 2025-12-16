@@ -44,7 +44,6 @@
                                 <div class="diamond"></div>
                                 <span class="auction-text">{{ item.name }}</span>
                             </div>
-                            <span class="auction-date">{{ item.date }}</span>
                         </div>
 
                         <!-- 空状态处理 -->
@@ -76,12 +75,12 @@ const goToAuction = () => {
 const loading = ref(false)
 const publicList = ref([]) // 本地存储的拍品列表
 
-// 获取最新10条待拍商品（直接调用匿名接口）
+// 获取最新20条待拍商品（直接调用匿名接口）
 const getLatestAuctionItems = async () => {
     loading.value = true
     try {
         const res = await GetPublicListAnonymous({
-            maxResultCount: 10,
+            maxResultCount: 20,
             skipCount: 1,
             sorting: 'creationTime desc' // 按创建时间倒序
         })
@@ -129,22 +128,9 @@ const getLatestAuctionItems = async () => {
 const formatAuctionItems = computed(() => {
     return publicList.value.map(item => ({
         id: item.id,
-        name: item.name || '未知商品',
-        date: formatDate(item.createdAt || new Date()),
-        imageUrl: item.imageUrl,
-        seller: item.sellerInfo || '未知卖家'
+        name: item.name || '未知商品'
     }))
 })
-
-// 格式化日期为 24/03/01 格式
-const formatDate = (dateStr) => {
-    if (!dateStr) return ''
-    const date = new Date(dateStr)
-    const year = date.getFullYear() % 100 // 取后两位
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    return `${year}/${month}/${day}`
-}
 
 // 组件挂载时获取数据
 onMounted(() => {
@@ -319,10 +305,9 @@ onMounted(() => {
                 }
 
                 .auction-list {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: flex-start;
-                    gap: 15px;
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 15px 20px; /* 行间距15px，列间距20px */
                     overflow-y: auto;
 
                     width: 470px;
@@ -332,7 +317,8 @@ onMounted(() => {
                         align-items: center;
                         gap: 10px;
 
-                        width: 470px;
+                        /* 双列布局，每个item占据一列 */
+                        width: 100%;
                         height: 31px;
                         border-bottom: 1px dashed #976464;
 
@@ -367,25 +353,11 @@ onMounted(() => {
                                 min-width: 0; /* 允许收缩到最小宽度 */
                             }
                         }
-
-                        .auction-date {
-                            height: 16px;
-                            font-family: 'Source Han Sans CN';
-                            font-style: normal;
-                            font-weight: 400;
-                            font-size: 16px;
-                            line-height: 100%;
-                            color: #BD8775;
-                            flex-shrink: 0; /* 防止时间文字被压缩 */
-                            flex-basis: 80px; /* 确保足够宽度显示完整日期 */
-                            min-width: 80px; /* 最小宽度保证时间显示 */
-                            max-width: 80px; /* 最大宽度保持一致性 */
-                            text-align: right;
-                            overflow: visible; /* 确保时间文字不被隐藏 */
-                        }
                     }
 
                     .empty-state {
+                        /* 空状态跨两列显示 */
+                        grid-column: 1 / -1;
                         width: 100%;
                         height: 31px;
                         display: flex;
