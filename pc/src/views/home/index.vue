@@ -24,7 +24,7 @@ import AuctionCard from './components/AuctionCard.vue'
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: -34px;
+    margin-top: -40px;
 }
 
 .modules-container {

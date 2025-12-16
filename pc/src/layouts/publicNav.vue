@@ -30,7 +30,7 @@ function go(x: { name: string; path: string; url?: string | undefined }) {
 
 <style lang="scss" scoped>
 .nav {
-    @apply w-[90vw] xl:w-[1232px] h-30px md:h-59px flex justify-center space-x-10px -mb-30px z-20;
+    @apply w-[90vw] xl:w-[1232px] h-30px md:h-59px flex justify-center space-x-10px z-20;
 
     .nav-item {
         @apply w-163px flex flex-center text-center md:font-bold text-10px md:text-14px lg:text-18px cursor-pointer hover:scale-105 transition-all duration-300;

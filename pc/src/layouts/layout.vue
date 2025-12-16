@@ -45,11 +45,12 @@ main {
     }
 
     .content {
-        @apply w-full min-h-400px relative mt-24px w-[90vw] xl:w-[1232px];
+        @apply w-full min-h-400px relative w-[90vw] xl:w-[1232px];
     }
 
     // 只在非首页显示的装饰样式
     .content.with-decoration {
+        margin-top: 15px;
         background: url('https://image.molitao.top/molitao/2025-03-30/upload_qxgt8fo3iymdi0heth3rnqipc83rzawn.png') repeat-y center center / 100% 100%;
 
         &::before {
