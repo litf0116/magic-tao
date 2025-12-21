@@ -28,7 +28,7 @@ namespace TtWork.Project {
         public const string SensitiveWordsCacheKey = "SensitiveWords";
 
         public const string UserBanText = "您的账号严重违反了【魔力淘】平台规定，予以封号处理，解决封号问题请联系拍卖师老淡QQ：383875411";
-        public const string UserDefaultAvatar = "https://cdn.molitao.top/avater.png";
+        public const string UserDefaultAvatar = "http://image.molitao.top/avater.png";
 
 
         public const decimal 保证金 = 51m;

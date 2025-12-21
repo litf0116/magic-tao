@@ -45,6 +45,13 @@ public class RollBackAuctionEvent(AuctionItemDto payload) : MediatR.INotificatio
                 if (auctionItem.CurrentPrice == notification.Payload.CurrentPrice) {
                     //如果当前价格和传入的价格一致,则回滚到上一次的价格
                     auctionItem.RollBack(previousBid);
+
+                    // 简单修复：如果previousBid为null，使用起拍价
+                    if (previousBid == null) {
+                        auctionItem.CurrentPrice = auctionItem.StartingPrice;
+                        auctionItem.CurrentPriceUserId = null;
+                        auctionItem.CurrentPriceUserName = null;
+                    }
                 }
             }
         }
