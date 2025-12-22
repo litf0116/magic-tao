@@ -277,7 +277,7 @@ public class BidEligibilityService : IBidEligibilityService
                 .Where((a, b) => a.UserId == user.Id)
                 .Select((a, b) => new { a.UserId, b.Level })
                 .FirstAsync();
-            
+
             int userLevel = userGroupLevel?.Level ?? 0;
             result.UserLevel = userLevel;
 
@@ -303,7 +303,7 @@ public class BidEligibilityService : IBidEligibilityService
                 // 非管理员检查禁言状态
                 var banedUser = await _banedUserRepository.FirstOrDefaultAsync(a =>
                     a.UserId == userId && a.Chan == "-1_auction" && a.EndTime > DateTime.Now);
-                
+
                 if (banedUser != null)
                 {
                     result.CanBid = false;
@@ -334,6 +334,7 @@ public class BidEligibilityService : IBidEligibilityService
             }
 
             // 5. 计算最低出价
+            // 简化：如果当前价格为null，直接使用起拍价
             var basePrice = find.CurrentPrice ?? find?.StartingPrice ?? 1;
             var minPrice = 0;
 
@@ -421,7 +422,7 @@ public class BidEligibilityService : IBidEligibilityService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "检查出价资格时发生错误，用户ID: {UserId}, 拍卖商品ID: {AuctionItemId}", 
+            _logger.LogError(ex, "检查出价资格时发生错误，用户ID: {UserId}, 拍卖商品ID: {AuctionItemId}",
                 input.BidUserId, input.AuctionItemId);
             result.CanBid = false;
             result.Reason = $"检查出价资格时发生错误: {ex.Message}";
@@ -513,7 +514,7 @@ public class BidEligibilityService : IBidEligibilityService
                 .Where((a, b) => a.UserId == user.Id)
                 .Select((a, b) => new { a.UserId, b.Level })
                 .FirstAsync();
-            
+
             int userLevel = userGroupLevel?.Level ?? 0;
             result.UserLevel = userLevel;
 
@@ -534,7 +535,7 @@ public class BidEligibilityService : IBidEligibilityService
                 // 非管理员检查禁言状态
                 var banedUser = await _banedUserRepository.FirstOrDefaultAsync(a =>
                     a.UserId == userId && a.Chan == "-1_auction" && a.EndTime > DateTime.Now);
-                
+
                 if (banedUser != null)
                 {
                     result.CanBid = false;
@@ -587,4 +588,4 @@ public class BidEligibilityService : IBidEligibilityService
 
         return (false, "", "");
     }
-} 
+}

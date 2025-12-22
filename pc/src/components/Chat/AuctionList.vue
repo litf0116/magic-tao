@@ -199,8 +199,8 @@ onMounted(() => {
 watch(
     () => activeName.value,
     (val) => {
-        // 重置索引计数器
-        normalIndex = 0
+        // 重置索引计数器（如果有需要的话）
+        // normalIndex = 0
 
         if (val === '1') {
             auctionStore.getList().then(() => {
