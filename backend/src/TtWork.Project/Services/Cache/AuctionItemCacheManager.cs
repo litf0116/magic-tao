@@ -392,7 +392,6 @@ namespace TtWork.Project.Services.Cache
 
         private async Task<ListResultDto<AuctionItemDto>> GetAuctionListFromDatabaseAsync(AppResultRequestDto input)
         {
-            // 如果没有传递 MaxResultCount，设置默认值 100
             if (input.MaxResultCount <= 0)
             {
                 input.MaxResultCount = 100;
