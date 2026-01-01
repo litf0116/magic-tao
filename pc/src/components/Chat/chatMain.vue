@@ -1262,6 +1262,7 @@ function getLevelStyle(userChatLevel) {
     padding: 1px 3px;
     background: #000000;
     color: #FFD700;
+    font-family: "Microsoft YaHei", "微软雅黑", sans-serif;
 }
 
 .level-8-ultimate {
@@ -1282,6 +1283,7 @@ function getLevelStyle(userChatLevel) {
     );
     background-size: 400%;
     animation: rainbow-bg 6s linear infinite;
+    font-family: "Microsoft YaHei", "微软雅黑", sans-serif;
 }
 
 @keyframes rainbow-bg {
