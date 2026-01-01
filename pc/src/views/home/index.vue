@@ -28,13 +28,14 @@ import AuctionCard from './components/AuctionCard.vue'
 }
 
 .modules-container {
-    width: 1300px; /* 与广告横幅相同的宽度 */
+    width: 1300px;
     display: flex;
-    justify-content: space-between; /* 两端对齐 */
-    margin-top: 30px; /* 替代广告横幅的 margin-bottom */
+    justify-content: center;
+    gap: 10px;
+    margin-top: 30px;
 
     @media (max-width: 1400px) {
-        width: calc(100vw - 40px); /* 与广告横幅相同的响应式宽度 */
+        width: calc(100vw - 40px);
         flex-direction: column;
         align-items: center;
         gap: 30px;
@@ -44,7 +45,7 @@ import AuctionCard from './components/AuctionCard.vue'
         width: calc(100% - 40px);
         gap: 20px;
         padding: 0;
-        margin-top: 20px; /* 移动端减小间距 */
+        margin-top: 20px;
     }
 }
 </style>
