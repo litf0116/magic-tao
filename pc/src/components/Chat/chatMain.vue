@@ -1262,6 +1262,7 @@ function getLevelStyle(userChatLevel) {
     padding: 1px 3px;
     background: #000000;
     color: #FFD700;
+    border: 1px solid #FFD700;
     font-family: "Microsoft YaHei", "微软雅黑", sans-serif;
 }
 
