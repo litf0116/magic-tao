@@ -1259,10 +1259,11 @@ function getLevelStyle(userChatLevel) {
 .level-7-premium {
     border-radius: 4px;
     font-weight: bold;
-    padding: 1px 3px;
+    padding: 2px 6px;
     background: #000000;
     color: #FFD700;
-    border: 1px solid #FFD700;
+    border: 2px solid #FFD700;
+    box-shadow: 0 0 6px rgba(255, 215, 0, 0.6);
     font-family: "Microsoft YaHei", "微软雅黑", sans-serif;
 }
 

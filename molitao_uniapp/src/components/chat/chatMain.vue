@@ -1519,10 +1519,11 @@ function getLevelStyle(userChatLevel) {
 .level-7-premium {
     border-radius: 8rpx;
     font-weight: bold;
-    padding: 2rpx 6rpx;
+    padding: 4rpx 8rpx;
     background: #000000;
     color: #FFD700;
-    border: 1rpx solid #FFD700;
+    border: 2rpx solid #FFD700;
+    box-shadow: 0 0 6rpx rgba(255, 215, 0, 0.6);
     font-family: "Microsoft YaHei", "微软雅黑", sans-serif;
 }
 
