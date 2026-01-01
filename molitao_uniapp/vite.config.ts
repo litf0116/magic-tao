@@ -43,7 +43,14 @@ export default defineConfig({
             dts: './auto-imports.d.ts',
         }),
     ],
-    css: {},
+    css: {
+        preprocessorOptions: {
+            scss: {
+                quietDeps: true,
+                silenceDeprecations: ['import', 'global-builtin', 'legacy-js-api'],
+            },
+        },
+    },
     esbuild: {
         // drop: ['console', 'debugger'],
     },

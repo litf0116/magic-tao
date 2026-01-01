@@ -724,14 +724,11 @@ function getLevelStyle(userChatLevel) {
         }
     }
 
-    // 第8级：彩虹渐变边框效果，金色文字
+    // 第8级：炫彩渐变动画背景 + 金色文字
     if (userChatLevel.level === 8) {
         return {
-            background: 'linear-gradient(45deg, #FF6B6B, #4ECDC4, #45B7D1, #FFA07A, #98D8C8, #F7DC6F)',
-            border: '2px solid transparent',
             color: '#FFD700',
-            boxShadow: '0 0 15px rgba(255, 215, 0, 0.7)',
-            textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)'
+            textShadow: '0 0 8px rgba(255, 215, 0, 0.8), 1px 1px 2px rgba(0, 0, 0, 0.5)'
         }
     }
 
@@ -1269,15 +1266,34 @@ function getLevelStyle(userChatLevel) {
 }
 
 .level-8-ultimate {
-    /* 第8级：彩虹渐变边框效果 */
-    border-radius: 5px;
+    border-radius: 4px;
     font-weight: bold;
-    padding: 1px 4px;
-    animation: rainbow-glow 3s ease-in-out infinite alternate;
+    padding: 2px 6px;
+    background: linear-gradient(
+        45deg,
+        #ff0000,
+        #ff7300,
+        #fffb00,
+        #48ff00,
+        #00ffd5,
+        #002bff,
+        #7a00ff,
+        #ff00c8,
+        #ff0000
+    );
+    background-size: 400%;
+    animation: rainbow-bg 6s linear infinite;
 }
 
-@keyframes rainbow-glow {
-    0% { filter: hue-rotate(0deg); }
-    100% { filter: hue-rotate(360deg); }
+@keyframes rainbow-bg {
+    0% {
+        background-position: 0 0;
+    }
+    50% {
+        background-position: 400% 0;
+    }
+    100% {
+        background-position: 0 0;
+    }
 }
 </style>

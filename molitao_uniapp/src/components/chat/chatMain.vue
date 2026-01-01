@@ -64,10 +64,10 @@
                                         class="tag_AuctionManager"
                                         :class="{
                                             'level-7-premium': message.userChatLevel.level === 7,
-                                            'level-8-ultimate': message.userChatLevel.level === 8
+                                            'level-8-ultimate': message.userChatLevel.level === 8,
                                         }"
                                         :style="getLevelStyle(message.userChatLevel)"
-                                        style="margin-right: 5px;"
+                                        style="margin-right: 5px"
                                     >
                                         {{ message.userChatLevel.name }}
                                     </div>
@@ -909,26 +909,22 @@ function getLevelStyle(userChatLevel) {
         return {
             background: '#000000',
             border: '2rpx solid #FFD700',
-            color: '#FFD700',
-            boxShadow: '0 0 10rpx rgba(255, 215, 0, 0.5)'
+            color: '#ffffff',
         }
     }
 
-    // 第8级：彩虹渐变边框效果，金色文字
+    // 第8级：炫彩渐变动画背景 + 金色文字
     if (userChatLevel.level === 8) {
         return {
-            background: 'linear-gradient(45deg, #FF6B6B, #4ECDC4, #45B7D1, #FFA07A, #98D8C8, #F7DC6F)',
-            border: '2rpx solid transparent',
             color: '#FFD700',
-            boxShadow: '0 0 15rpx rgba(255, 215, 0, 0.7)',
-            textShadow: '1rpx 1rpx 2rpx rgba(0, 0, 0, 0.8)'
+            textShadow: '0 0 8rpx rgba(255, 215, 0, 0.8), 2rpx 2rpx 4rpx rgba(0, 0, 0, 0.5)',
         }
     }
 
     // 其他等级：保持原有的渐变效果
     return {
         background: `linear-gradient(90deg,${userChatLevel.borderColor},${userChatLevel.rightBorderColor})`,
-        color: '#fff'
+        color: '#fff',
     }
 }
 </script>
@@ -1520,24 +1516,44 @@ function getLevelStyle(userChatLevel) {
     height: 50rpx;
 }
 
-// 高级等级样式
+/* 高级等级样式 */
 .level-7-premium {
-    // 第7级：黑底金边效果
+    /* 第7级：黑底金边效果 */
     border-radius: 8rpx;
     font-weight: bold;
     padding: 2rpx 6rpx;
 }
 
 .level-8-ultimate {
-    // 第8级：彩虹渐变边框效果
-    border-radius: 10rpx;
+    position: relative;
+    border-radius: 8rpx;
     font-weight: bold;
-    padding: 2rpx 8rpx;
-    animation: rainbow-glow 3s ease-in-out infinite alternate;
+    padding: 4rpx 10rpx;
+    background: linear-gradient(
+        45deg,
+        #ff0000,
+        #ff7300,
+        #fffb00,
+        #48ff00,
+        #00ffd5,
+        #002bff,
+        #7a00ff,
+        #ff00c8,
+        #ff0000
+    );
+    background-size: 400%;
+    animation: rainbow-bg 6s linear infinite;
 }
 
-@keyframes rainbow-glow {
-    0% { filter: hue-rotate(0deg); }
-    100% { filter: hue-rotate(360deg); }
+@keyframes rainbow-bg {
+    0% {
+        background-position: 0 0;
+    }
+    50% {
+        background-position: 400% 0;
+    }
+    100% {
+        background-position: 0 0;
+    }
 }
 </style>
