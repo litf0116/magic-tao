@@ -59,7 +59,7 @@
                     @input="debouncedSearch"
                 />
                 <image src="../../static/搜索.png" class="search-icon" mode="aspectFit" @tap="handleSearch"></image>
-            </div>
+            </view>
             <!-- 热词区域 -->
             <view class="hotWords">
                 <view
@@ -111,7 +111,7 @@
                     <image class="empty-image" src="../../static/nodata.png" mode="aspectFit"></image>
                     <text class="empty-text">暂无置顶帖子</text>
                 </view>
-            </div>
+            </view>
             <!-- 发帖按钮 -->
             <view class="post-button" @tap="onPostTap"> 我要发帖 </view>
             <!-- 分隔区域 -->

@@ -335,7 +335,7 @@ public class BidEligibilityService : IBidEligibilityService
 
             // 5. 计算最低出价
             // 简化：如果当前价格为null，直接使用起拍价
-            var basePrice = find.CurrentPrice ?? find?.StartingPrice ?? 1;
+            var basePrice = find.CurrentPrice ?? find?.StartingPrice ?? 5;
             var minPrice = 0;
 
             if (find.CurrentPrice.HasValue)
@@ -343,7 +343,7 @@ public class BidEligibilityService : IBidEligibilityService
                 // 最低加价规则
                 if (find.CurrentPrice.Value < 100)
                 {
-                    minPrice = find.CurrentPrice.Value + 1;
+                    minPrice = find.CurrentPrice.Value + 5;
                 }
                 else if (find.CurrentPrice.Value < 1000)
                 {

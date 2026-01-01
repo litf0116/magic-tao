@@ -75,7 +75,7 @@
                                         :style="getLevelStyle(message.userChatLevel)"
                                         style="margin-right: 5px;"
                                     >
-                                        {{ message.userChatLevel.name }}
+                                        <span>{{ message.userChatLevel.name }}</span>
                                     </div>
                                     {{ message.fromName }}
                                     <!-- {{ dayjs(message.time).format('MM-DD HH:mm') }} -->
@@ -714,13 +714,11 @@ function onAuctionDealAction({ message, payload }) {
 function getLevelStyle(userChatLevel) {
     if (!userChatLevel) return {}
 
-    // 第7级：黑底金边效果
+    // 第7级：黑底金字
     if (userChatLevel.level === 7) {
         return {
             background: '#000000',
-            border: '2px solid #FFD700',
             color: '#FFD700',
-            boxShadow: '0 0 10px rgba(255, 215, 0, 0.5)'
         }
     }
 
@@ -1259,10 +1257,11 @@ function getLevelStyle(userChatLevel) {
 
 /* 高级等级样式 */
 .level-7-premium {
-    /* 第7级：黑底金边效果 */
     border-radius: 4px;
     font-weight: bold;
     padding: 1px 3px;
+    background: #000000;
+    color: #FFD700;
 }
 
 .level-8-ultimate {
