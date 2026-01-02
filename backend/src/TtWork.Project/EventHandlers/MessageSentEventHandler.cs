@@ -86,15 +86,22 @@ public class MessageSentEventHandler : IAsyncEventHandler<ChatMessageSentEvent>,
     {
         try
         {
-            // 删除相关的聊天删除记录，恢复聊天显示
-            await _chatListDeleteRepository.GetAll().Where(x =>
-                (x.UserId == fromUserId && x.ToUserId == toUserId) ||
-                (x.UserId == toUserId && x.ToUserId == fromUserId)).ExecuteDeleteAsync();
+            // 删除 T_ChatListDelete 记录
+            await _chatListDeleteRepository.GetAll()
+                .Where(x => 
+                    (x.UserId == fromUserId && x.ToUserId == toUserId) ||
+                    (x.UserId == toUserId && x.ToUserId == fromUserId))
+                .ExecuteDeleteAsync();
+
+            // 恢复接收方的会话状态
+            await _chatChannelService.RestoreUserChannelAsync(toUserId, fromUserId);
+            
+            // 恢复发送方的状态
+            await _chatChannelService.RestoreUserChannelAsync(fromUserId, toUserId);
         }
         catch (Exception)
         {
-            // 恢复失败不影响主流程
-            // Logger.Error($"恢复聊天删除记录失败: FromUserId={fromUserId}, ToUserId={toUserId}", ex);
+            // 静默处理，不影响主流程
         }
     }
 }

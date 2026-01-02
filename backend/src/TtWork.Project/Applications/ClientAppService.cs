@@ -66,7 +66,6 @@ public class ClientAppService(
     IConfiguration _configuration
 ) : AbpAppServiceBase
 {
-
     /// <summary>
     /// 保证金支付
     /// </summary>
@@ -332,6 +331,8 @@ public class ClientAppService(
             .Select(c => ConvertToChatListItem(c, userId, userInfos))
             .Where(x => x != null)
             .Select(x => x!)
+            .OrderByDescending(x => x.order)
+            .ThenByDescending(x => x.time)
             .ToList();
     }
 
@@ -344,7 +345,6 @@ public class ClientAppService(
                 id = c.ChannelId switch
                 {
                     "-1_auction" => -1,
-                    "0_lobby" => 0,
                     _ => c.ChannelId.GetHashCode()
                 },
                 lastMsg = c.LastMessageContent ?? "",
@@ -527,6 +527,49 @@ public class ClientAppService(
     }
 
     /// <summary>
+    /// 同步用户删除状态
+    /// 将 T_ChatListDelete 数据同步到 ChatChannel.UserStatus
+    /// 用于修复数据不一致问题
+    /// </summary>
+    /// <returns></returns>
+    [HttpPost("SyncUserDeleteStatus")]
+    [AbpAuthorize]
+    public async Task<object> SyncUserDeleteStatus()
+    {
+        try
+        {
+            await chatChannelService.SyncUserStatusFromChatListDeleteAsync(AbpSession.UserId!.Value);
+            return new { success = true, message = "状态同步完成" };
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "状态同步失败");
+            return new { success = false, message = $"同步失败: {ex.Message}" };
+        }
+    }
+
+    /// <summary>
+    /// 管理员：批量同步所有用户删除状态
+    /// 将 T_ChatListDelete 表中所有用户的状态同步到 ChatChannel.UserStatus
+    /// </summary>
+    /// <returns></returns>
+    [HttpPost("SyncAllUserDeleteStatus")]
+    [AbpAuthorize]
+    public async Task<object> SyncAllUserDeleteStatus()
+    {
+        try
+        {
+            await chatChannelService.SyncAllUserStatusFromChatListDeleteAsync();
+            return new { success = true, message = "全量同步完成" };
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "全量同步失败");
+            return new { success = false, message = $"同步失败: {ex.Message}" };
+        }
+    }
+
+    /// <summary>
     /// 获取用户聊天频道统计信息
     /// </summary>
     /// <returns>聊天频道统计信息</returns>
@@ -554,8 +597,7 @@ public class ClientAppService(
                 : 0
         };
     }
-
-    }
+}
 
 public record ChatListItem
 {

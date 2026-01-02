@@ -649,6 +649,50 @@ public class ChatChannelService : DomainService
 
         return result;
     }
+
+    /// <summary>
+    /// 从 T_ChatListDelete 同步用户删除状态到 UserStatus
+    /// 用于数据一致性修复
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    public async Task SyncUserStatusFromChatListDeleteAsync(long userId)
+    {
+        var deletedUserIds = await _chatListDeleteRepository.GetAll()
+            .AsNoTracking()
+            .Where(x => x.UserId == userId)
+            .Select(x => x.ToUserId)
+            .ToListAsync();
+
+        foreach (var otherUserId in deletedUserIds)
+        {
+            var channelId = CreatePrivateChannelId(userId, otherUserId);
+            var channel = await _chatChannelRepository.FirstOrDefaultAsync(x => x.ChannelId == channelId);
+            
+            if (channel != null)
+            {
+                channel.SetUserStatus(userId, ChatChannelStatus.Deleted);
+                await _chatChannelRepository.UpdateAsync(channel);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 批量同步所有用户的删除状态
+    /// 执行一次性的数据修复
+    /// </summary>
+    public async Task SyncAllUserStatusFromChatListDeleteAsync()
+    {
+        var userIds = await _chatListDeleteRepository.GetAll()
+            .AsNoTracking()
+            .Select(x => x.UserId)
+            .Distinct()
+            .ToListAsync();
+
+        foreach (var userId in userIds)
+        {
+            await SyncUserStatusFromChatListDeleteAsync(userId);
+        }
+    }
 }
 
 /// <summary>
