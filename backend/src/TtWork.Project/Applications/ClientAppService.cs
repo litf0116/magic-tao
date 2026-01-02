@@ -319,7 +319,7 @@ public class ClientAppService(
     [HttpGet]
     public async Task<List<ChatListItem>> GetChatList()
     {
-        return await GetChatListOptimized();
+        return await GetChatListV2Impl();
     }
 
     /// <summary>
