@@ -28,7 +28,9 @@ main {
     display: flex;
     justify-content: center;
     // align-items: center;
-    background: #eefaff url('https://image.molitao.top/molitao/2025-03-30/upload_3wj6aaa2dnfyy9zq63x6iuyv75bfnudn.png') no-repeat center top;
+    background: #eefaff url('@/assets/images/migrated-image.png') no-repeat center top;
+    background-size: cover;
+    background-attachment: fixed;
 }
 
 .wrap {
