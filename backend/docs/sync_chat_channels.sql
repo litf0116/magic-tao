@@ -31,7 +31,9 @@ FROM T_Message m
 INNER JOIN (
     SELECT Chan, MAX(Time) AS MaxTime
     FROM T_Message
-    WHERE Chan IS NOT NULL AND Chan != ''
+    WHERE Chan IS NOT NULL
+      AND Chan != ''
+      AND To IS NULL  -- 系统消息：To 为空
     GROUP BY Chan
 ) t ON m.Chan = t.Chan AND m.Time = t.MaxTime
 ON DUPLICATE KEY UPDATE
