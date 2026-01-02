@@ -334,18 +334,14 @@ public class ChatChannelService : DomainService
     }
 
     /// <summary>
-    /// 获取用户删除的聊天频道数量
+    /// 获取用户已删除的聊天数量
     /// </summary>
     /// <param name="userId">用户ID</param>
-    /// <returns>删除的频道数量</returns>
+    /// <returns>已删除的聊天数量</returns>
     public async Task<int> GetUserDeletedChannelsCountAsync(long userId)
     {
-        return await _chatChannelRepository.GetAll()
-            .AsNoTracking()
-            .CountAsync(channel =>
-                channel.ChannelType == ChatChannelType.Private &&
-                ((channel.User1Id == userId && channel.User1Status == ChatChannelStatus.Deleted) ||
-                 (channel.User2Id == userId && channel.User2Status == ChatChannelStatus.Deleted)));
+        return await _chatListDeleteRepository.GetAll()
+            .CountAsync(x => x.UserId == userId);
     }
 
     /// <summary>
