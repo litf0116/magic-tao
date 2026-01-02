@@ -277,6 +277,32 @@ public class ChatChannelService : DomainService
         return result;
     }
 
+    /// <summary>
+    /// 获取用户可见的聊天频道列表（版本二：使用子查询过滤删除表）
+    /// 2025-09-17 时的实现版本
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <returns>可见的聊天频道列表</returns>
+    public async Task<List<ChatChannel>> GetVisibleChannelsForUserAsyncV2(long userId)
+    {
+        var query = from channel in _chatChannelRepository.GetAll().AsNoTracking()
+                    where channel.IsActive && channel.LastMessageId != null
+                    where channel.ChannelType == ChatChannelType.System ||
+                          channel.User1Id == userId ||
+                          channel.User2Id == userId
+                    where channel.ChannelType == ChatChannelType.System ||
+                          (channel.ChannelType == ChatChannelType.Private &&
+                           !_chatListDeleteRepository.GetAll().Any(delete =>
+                               delete.UserId == userId &&
+                               delete.ToUserId == (channel.User1Id == userId ? channel.User2Id : channel.User1Id)))
+                    orderby channel.ChannelType,
+                            channel.SortOrder descending,
+                            channel.LastMessageTime descending
+                    select channel;
+
+        return await query.ToListAsync();
+    }
+
     
     /// <summary>
     /// 检查用户是否删除了与指定用户的聊天
