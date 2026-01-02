@@ -16,13 +16,16 @@ public class ChatChannelService : DomainService
 {
     private readonly IRepository<ChatChannel, long> _chatChannelRepository;
     private readonly IRepository<Message, Guid> _messageRepository;
+    private readonly IRepository<ChatListDelete, int> _chatListDeleteRepository;
 
     public ChatChannelService(
         IRepository<ChatChannel, long> chatChannelRepository,
-        IRepository<Message, Guid> messageRepository)
+        IRepository<Message, Guid> messageRepository,
+        IRepository<ChatListDelete, int> chatListDeleteRepository)
     {
         _chatChannelRepository = chatChannelRepository;
         _messageRepository = messageRepository;
+        _chatListDeleteRepository = chatListDeleteRepository;
     }
 
     /// <summary>
@@ -237,6 +240,41 @@ public class ChatChannelService : DomainService
             .ThenByDescending(channel => channel.LastMessageTime);
 
         return await query.ToListAsync();
+    }
+
+    /// <summary>
+    /// 获取用户可见的聊天频道（原始版本 - 使用删除表方案）
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <returns>可见的聊天频道列表</returns>
+    public async Task<List<ChatChannel>> GetVisibleChannelsForUserAsyncLegacy(long userId)
+    {
+        var deletedUserIds = await _chatListDeleteRepository.GetAll()
+            .AsNoTracking()
+            .Where(x => x.UserId == userId)
+            .Select(x => x.ToUserId)
+            .ToListAsync();
+
+        var channels = await _chatChannelRepository.GetAll()
+            .AsNoTracking()
+            .Where(channel => channel.IsActive && channel.LastMessageId != null)
+            .Where(channel =>
+                channel.ChannelType == ChatChannelType.System ||
+                (channel.ChannelType == ChatChannelType.Private &&
+                 (channel.User1Id == userId || channel.User2Id == userId)))
+            .ToListAsync();
+
+        var result = channels
+            .Where(channel =>
+                channel.ChannelType == ChatChannelType.System ||
+                (channel.ChannelType == ChatChannelType.Private &&
+                 !deletedUserIds.Contains(channel.GetOtherUserId(userId) ?? 0)))
+            .OrderBy(channel => channel.ChannelType)
+            .ThenByDescending(channel => channel.SortOrder)
+            .ThenByDescending(channel => channel.LastMessageTime)
+            .ToList();
+
+        return result;
     }
 
     

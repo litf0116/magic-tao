@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -309,15 +309,13 @@ public class ClientAppService(
     }
 
     /// <summary>
-    /// 获取聊天列表（当前版本）
-    /// 已切换到性能优化版本，使用用户状态字段和Redis缓存
+    /// 获取聊天列表（使用原始版本，无Redis缓存）
     /// </summary>
     /// <returns>聊天列表</returns>
     [HttpGet]
     public async Task<List<ChatListItem>> GetChatList()
     {
-        // 直接调用性能优化版本
-        return await GetChatListOptimized();
+        return await GetChatListLegacy();
     }
 
     /// <summary>
@@ -494,6 +492,56 @@ public class ClientAppService(
     public async Task<List<ChatListItem>> GetChatListV2()
     {
         return await GetChatList();
+    }
+
+    /// <summary>
+    /// 获取聊天列表（原始版本，无Redis缓存）
+    /// 使用删除表方案进行查询
+    /// </summary>
+    /// <returns>聊天列表</returns>
+    [HttpGet]
+    public async Task<List<ChatListItem>> GetChatListLegacy()
+    {
+        var result = new List<ChatListItem>();
+
+        if (AbpSession.UserId.HasValue)
+        {
+            var userId = AbpSession.UserId.Value;
+
+            var channels = await chatChannelService.GetVisibleChannelsForUserAsyncLegacy(userId);
+
+            var privateChannelUserIds = channels
+                .Where(c => c.ChannelType == ChatChannelType.Private)
+                .Select(c => c.GetOtherUserId(userId) ?? 0)
+                .Where(id => id > 0)
+                .Distinct()
+                .ToList();
+
+            var userBasicInfos = await chatUserCache.GetBatchUserBasicAsync(privateChannelUserIds);
+
+            foreach (var channel in channels)
+            {
+                var chatItem = ConvertChannelToChatListItem(channel, userId, userBasicInfos);
+                if (chatItem != null)
+                {
+                    result.Add(chatItem);
+                }
+            }
+        }
+        else
+        {
+            var systemChannels = await chatChannelService.GetVisibleChannelsForUserAsyncLegacy(0);
+            foreach (var channel in systemChannels.Where(x => x.ChannelType == ChatChannelType.System))
+            {
+                var chatItem = ConvertChannelToChatListItem(channel, 0, null);
+                if (chatItem != null)
+                {
+                    result.Add(chatItem);
+                }
+            }
+        }
+
+        return result;
     }
 
   
