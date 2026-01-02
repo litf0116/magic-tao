@@ -146,3 +146,57 @@ WHERE IsActive = 1;
 -- | From   | 发送者ID            | 发送者ID      |
 -- | To     | NULL                | 接收者ID      |
 -- =====================================================
+
+
+-- =====================================================
+-- 4. 同步删除状态（根据 T_ChatListDelete 表）
+-- 将用户已删除的对话状态设置为 Deleted
+-- ChatChannelStatus: 0 = Normal, 1 = Deleted
+-- =====================================================
+
+-- 4.1 更新 User1Status（当 UserId 等于 User1Id 时）
+UPDATE T_ChatChannel c
+INNER JOIN T_ChatListDelete d ON c.User1Id = d.UserId
+SET c.User1Status = 1  -- 1 = Deleted
+WHERE c.ChannelType = 1  -- 私聊频道
+  AND c.User1Status = 0  -- 原本是正常状态
+  AND c.User2Id = d.ToUserId;  -- 对应对方用户
+
+-- 4.2 更新 User2Status（当 UserId 等于 User2Id 时）
+UPDATE T_ChatChannel c
+INNER JOIN T_ChatListDelete d ON c.User2Id = d.UserId
+SET c.User2Status = 1  -- 1 = Deleted
+WHERE c.ChannelType = 1  -- 私聊频道
+  AND c.User2Status = 0  -- 原本是正常状态
+  AND c.User1Id = d.ToUserId;  -- 对应对方用户
+
+
+-- =====================================================
+-- 5. 验证删除状态同步结果
+-- =====================================================
+
+-- 5.1 查看删除状态统计
+SELECT
+    COUNT(*) AS TotalDeletedRecords,
+    COUNT(DISTINCT UserId) AS UsersWhoDeleted,
+    COUNT(DISTINCT ToUserId) AS UsersBeenDeleted
+FROM T_ChatListDelete;
+
+-- 5.2 查看被标记为删除的频道数量
+SELECT
+    COUNT(CASE WHEN User1Status = 1 THEN 1 END) AS ChannelsHiddenByUser1,
+    COUNT(CASE WHEN User2Status = 1 THEN 1 END) AS ChannelsHiddenByUser2,
+    COUNT(*) AS TotalPrivateChannels
+FROM T_ChatChannel
+WHERE ChannelType = 1;
+
+-- 5.3 查看被用户隐藏的频道详情
+SELECT
+    ChannelId,
+    User1Id,
+    User2Id,
+    CASE WHEN User1Status = 1 THEN 'User1已删除' ELSE '' END AS StatusInfo
+FROM T_ChatChannel
+WHERE ChannelType = 1 AND User1Status = 1
+ORDER BY LastMessageTime DESC
+LIMIT 20;
