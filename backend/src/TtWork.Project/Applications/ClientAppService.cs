@@ -51,16 +51,13 @@ public class ClientAppService(
     IRepository<WechatPaymentNotification, Ulid> wechatPaymentNotificationRepository,
     IRepository<AuctionItem, long> auctionItemRepository,
     IRepository<UserFriend> userFriendRepository,
-    IRepository<Message, Guid> messageRepository,
     IRepository<User, long> userRepository,
     IRepository<ChatListDelete, int> chatListDeleteRepository,
     ChatChannelService chatChannelService,
     ILogger<ClientAppService> logger,
     IHttpContextAccessor httpContextAccessor,
     IMediator mediator,
-    UserCache userCache,
     ChatUserCache chatUserCache,
-    ChatListCacheService chatListCache,
     IRepository<PayOrder, Ulid> payOrderRepository,
     IAbpSession _abpSession,
     ISqlSugarClient _sqlSugar,
@@ -69,7 +66,6 @@ public class ClientAppService(
     IConfiguration _configuration
 ) : AbpAppServiceBase
 {
-    public IRepository<ChatListDelete, int> ChatListDeleteRepository { get; } = chatListDeleteRepository;
 
     /// <summary>
     /// 保证金支付
@@ -312,254 +308,75 @@ public class ClientAppService(
     }
 
     /// <summary>
-    /// 获取聊天列表（最新优化版本）
-    /// 使用用户状态字段 + Redis 缓存，性能最优
+    /// 获取聊天列表（实时版本 - 直接从数据库查询）
     /// </summary>
     /// <returns>聊天列表</returns>
     [HttpGet]
     public async Task<List<ChatListItem>> GetChatList()
     {
-        return await GetChatListV2Impl();
-    }
-
-    /// <summary>
-    /// 获取聊天列表（最新优化版本）
-    /// 使用用户状态字段 + Redis 缓存，性能最优
-    /// </summary>
-    /// <returns>聊天列表</returns>
-    [HttpGet]
-    public async Task<List<ChatListItem>> GetChatListV2()
-    {
-        return await GetChatListOptimized();
-    }
-
-    /// <summary>
-    /// 获取聊天列表（版本二实现 - 已废弃，统一使用最新版本）
-    /// </summary>
-    [Obsolete("此方法已废弃，请使用 GetChatList")]
-    private async Task<List<ChatListItem>> GetChatListV2Impl()
-    {
-        var result = new List<ChatListItem>();
-
-        if (AbpSession.UserId.HasValue)
-        {
-            var userId = AbpSession.UserId.Value;
-
-            var channels = await chatChannelService.GetVisibleChannelsForUserAsyncV2(userId);
-
-            var privateChannelUserIds = channels
-                .Where(c => c.ChannelType == Domains.ChatChannelType.Private)
-                .Select(c => c.GetOtherUserId(userId) ?? 0)
-                .Where(id => id > 0)
-                .Distinct()
-                .ToList();
-
-            var userBasicInfos = await chatUserCache.GetBatchUserBasicAsync(privateChannelUserIds);
-
-            foreach (var channel in channels)
-            {
-                var chatItem = ConvertChannelToChatListItem(channel, userId, userBasicInfos);
-                if (chatItem != null)
-                {
-                    result.Add(chatItem);
-                }
-            }
-        }
-        else
-        {
-            var systemChannels = await chatChannelService.GetVisibleChannelsForUserAsyncV2(0);
-            foreach (var channel in systemChannels.Where(x => x.ChannelType == Domains.ChatChannelType.System))
-            {
-                var chatItem = ConvertChannelToChatListItem(channel, 0, null);
-                if (chatItem != null)
-                {
-                    result.Add(chatItem);
-                }
-            }
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 获取聊天列表（极致优化版本 - 用户状态字段 + Redis缓存）
-    /// 性能最优，单次SQL查询，无连表操作，支持用户状态隔离和Redis缓存
-    /// </summary>
-    /// <returns>聊天列表</returns>
-    [HttpGet]
-    public async Task<List<ChatListItem>> GetChatListOptimized()
-    {
-        if (AbpSession.UserId.HasValue)
-        {
-            var userId = AbpSession.UserId.Value;
-
-            // 优化：优先从Redis缓存获取
-            var cachedResult = await chatListCache.GetCachedChatListAsync(userId);
-            if (cachedResult != null)
-            {
-                logger.LogDebug($"Redis缓存命中，用户ID: {userId}, 聊天数量: {cachedResult.Count}");
-                return cachedResult;
-            }
-
-            // 缓存未命中，执行数据库查询
-            var result = await GenerateChatListFromDatabaseAsync(userId);
-
-            // 缓存结果到Redis
-            await chatListCache.SetCachedChatListAsync(userId, result);
-
-            return result;
-        }
-        else
-        {
-            // 未登录用户只显示系统频道（不使用缓存，因为变化较少）
-            return await GenerateSystemChannelsListAsync();
-        }
-    }
-
-    /// <summary>
-    /// 从数据库生成聊天列表（用户状态字段版本）
-    /// 单次SQL查询，性能最优
-    /// </summary>
-    /// <param name="userId">用户ID</param>
-    /// <returns>聊天列表</returns>
-    private async Task<List<ChatListItem>> GenerateChatListFromDatabaseAsync(long userId)
-    {
-        var result = new List<ChatListItem>();
-
-        // 使用 ChatChannelService 获取可见的频道列表（用户状态字段版本）
-        // 单次SQL查询，无需连表和内存过滤
+        var userId = AbpSession.UserId ?? 0;
         var channels = await chatChannelService.GetVisibleChannelsForUserAsync(userId);
+        if (channels.Count == 0)
+            return new List<ChatListItem>();
 
-        // 优化：预先收集所有需要查询的用户ID，批量获取用户信息
-        var privateChannelUserIds = channels
+        var privateUserIds = channels
             .Where(c => c.ChannelType == ChatChannelType.Private)
             .Select(c => c.GetOtherUserId(userId) ?? 0)
             .Where(id => id > 0)
             .Distinct()
             .ToList();
 
-        // 批量获取用户基本信息（性能最优）
-        var userBasicInfos = await chatUserCache.GetBatchUserBasicAsync(privateChannelUserIds);
+        var userInfos = await chatUserCache.GetBatchUserBasicAsync(privateUserIds);
 
-        // 处理频道转换
-        foreach (var channel in channels)
-        {
-            var chatItem = ConvertChannelToChatListItem(channel, userId, userBasicInfos);
-            if (chatItem != null)
-            {
-                result.Add(chatItem);
-            }
-        }
-
-        logger.LogDebug($"从数据库生成聊天列表，用户ID: {userId}, 频道数量: {channels.Count}, 私聊数量: {result.Count(x => x.type == 1)}");
-        return result;
+        return channels
+            .Select(c => ConvertToChatListItem(c, userId, userInfos))
+            .Where(x => x != null)
+            .Select(x => x!)
+            .ToList();
     }
 
-    /// <summary>
-    /// 生成系统频道列表（未登录用户）
-    /// </summary>
-    /// <returns>系统频道列表</returns>
-    private async Task<List<ChatListItem>> GenerateSystemChannelsListAsync()
+    private ChatListItem? ConvertToChatListItem(ChatChannel c, long userId, Dictionary<long, UserBasicInfo> userInfos)
     {
-        var result = new List<ChatListItem>();
-
-        // 未登录用户只显示系统频道
-        var systemChannels = await chatChannelService.GetVisibleChannelsForUserAsync(0);
-        foreach (var channel in systemChannels.Where(x => x.ChannelType == ChatChannelType.System))
+        if (c.ChannelType == ChatChannelType.System)
         {
-            var chatItem = ConvertChannelToChatListItem(channel, 0, null);
-            if (chatItem != null)
+            return new()
             {
-                result.Add(chatItem);
-            }
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 将ChatChannel转换为ChatListItem
-    /// </summary>
-    /// <param name="channel">频道实体</param>
-    /// <param name="currentUserId">当前用户ID</param>
-    /// <param name="userBasicInfos">用户基本信息字典（可为null）</param>
-    /// <returns>聊天列表项或null</returns>
-    private ChatListItem? ConvertChannelToChatListItem(
-        Domains.ChatChannel channel,
-        long currentUserId,
-        Dictionary<long, UserBasicInfo>? userBasicInfos)
-    {
-        if (channel.ChannelType == Domains.ChatChannelType.System)
-        {
-            // 系统频道
-            return new ChatListItem
-            {
-                id = GetSystemChannelId(channel.ChannelId), // 转换为前端需要的ID格式
-                lastMsg = channel.LastMessageContent ?? "",
-                name = channel.ChannelName ?? channel.ChannelId,
-                order = channel.SortOrder,
-                time = channel.LastMessageTime,
-                type = 0, // 系统频道
-                unread = 0, // 暂时都为0，后续可以实现未读计数
+                id = c.ChannelId switch
+                {
+                    "-1_auction" => -1,
+                    "0_lobby" => 0,
+                    _ => c.ChannelId.GetHashCode()
+                },
+                lastMsg = c.LastMessageContent ?? "",
+                name = c.ChannelName ?? c.ChannelId,
+                order = c.SortOrder,
+                time = c.LastMessageTime,
+                type = 0,
+                unread = 0,
                 avatar = ""
             };
         }
-        else if (channel.ChannelType == Domains.ChatChannelType.Private && currentUserId > 0)
-        {
-            // 私聊频道
-            var otherUserId = channel.GetOtherUserId(currentUserId);
 
-            if (otherUserId.HasValue)
+        if (c.ChannelType == ChatChannelType.Private && userId > 0)
+        {
+            var otherId = c.GetOtherUserId(userId);
+            if (otherId.HasValue && userInfos.TryGetValue(otherId.Value, out var info))
             {
-                // 优化：使用预加载的用户信息，避免循环查询
-                if (userBasicInfos != null && userBasicInfos.TryGetValue(otherUserId.Value, out var userBasicInfo))
+                return new()
                 {
-                    return new ChatListItem
-                    {
-                        id = otherUserId.Value,
-                        lastMsg = channel.LastMessageContent ?? "",
-                        name = userBasicInfo.Name,
-                        avatar = userBasicInfo.HeadImgUrl ?? "",
-                        order = channel.SortOrder,
-                        time = channel.LastMessageTime,
-                        type = 1, // 私聊
-                        unread = 0 // 暂时都为0，后续可以实现未读计数
-                    };
-                }
-                else
-                {
-                    // 降级方案：如果批量查询失败，使用消息中的发送者信息
-                    return new ChatListItem
-                    {
-                        id = otherUserId.Value,
-                        lastMsg = channel.LastMessageContent ?? "",
-                        name = channel.LastMessageFromName ?? $"用户{otherUserId.Value}",
-                        avatar = channel.LastMessageFromAvatar ?? "",
-                        order = channel.SortOrder,
-                        time = channel.LastMessageTime,
-                        type = 1, // 私聊
-                        unread = 0
-                    };
-                }
+                    id = otherId.Value,
+                    lastMsg = c.LastMessageContent ?? "",
+                    name = info.Name,
+                    avatar = info.HeadImgUrl ?? "",
+                    order = c.SortOrder,
+                    time = c.LastMessageTime,
+                    type = 1,
+                    unread = 0
+                };
             }
         }
 
         return null;
-    }
-
-    /// <summary>
-    /// 将系统频道ID转换为前端需要的数字ID
-    /// </summary>
-    /// <param name="channelId">频道ID</param>
-    /// <returns>数字ID</returns>
-    private static long GetSystemChannelId(string channelId)
-    {
-        return channelId switch
-        {
-            "-1_auction" => -1,
-            "0_lobby" => 0,
-            _ => channelId.GetHashCode() // 其他频道使用哈希值
-        };
     }
 
     /// <summary>

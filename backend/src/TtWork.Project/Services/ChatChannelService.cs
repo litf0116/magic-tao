@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Abp.Domain.Repositories;
 using Abp.Domain.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using TtWork.Project.Domains;
 
 namespace TtWork.Project.Services;
@@ -219,7 +220,7 @@ public class ChatChannelService : DomainService
 
     /// <summary>
     /// 获取用户可见的聊天频道列表（用户状态字段版本）
-    /// 极简查询，单次SQL，无需连表和内存过滤
+    /// 单次SQL查询，性能最优
     /// </summary>
     /// <param name="userId">用户ID</param>
     /// <returns>可见的聊天频道列表</returns>
@@ -227,6 +228,7 @@ public class ChatChannelService : DomainService
     {
         var query = _chatChannelRepository.GetAll()
             .AsNoTracking()
+            .IgnoreQueryFilters()
             .Where(channel => channel.IsActive && channel.LastMessageId != null)
             .Where(channel =>
                 // 系统频道：所有人可见
@@ -239,7 +241,9 @@ public class ChatChannelService : DomainService
             .ThenByDescending(channel => channel.SortOrder)
             .ThenByDescending(channel => channel.LastMessageTime);
 
-        return await query.ToListAsync();
+        var result = await query.ToListAsync();
+        Logger.Debug($"GetVisibleChannelsForUserAsync: userId={userId}, totalChannels={result.Count}");
+        return result;
     }
 
     /// <summary>
@@ -428,4 +432,254 @@ public class ChatChannelService : DomainService
         }
     }
 
+    /// <summary>
+    /// 同步聊天频道数据
+    /// 根据 Message 表数据创建或更新 ChatChannel 表记录
+    /// 用于 V1 版本数据迁移到 V2/V3 版本
+    /// </summary>
+    /// <param name="maxBatchCount">最大处理用户数（分批处理避免内存溢出）</param>
+    /// <returns>同步结果统计</returns>
+    public async Task<ChannelSyncResult> SyncChannelsFromMessageAsync(int maxBatchCount = 1000)
+    {
+        var result = new ChannelSyncResult
+        {
+            StartTime = DateTime.Now
+        };
+
+        try
+        {
+            // 1. 同步系统频道
+            var systemChannels = await _messageRepository.GetAll()
+                .AsNoTracking()
+                .Where(x => !string.IsNullOrEmpty(x.Chan))
+                .GroupBy(x => x.Chan)
+                .Select(g => new
+                {
+                    ChannelId = g.Key,
+                    ChannelName = GetSystemChannelName(g.Key),
+                    LastMessage = g.OrderByDescending(m => m.Time).FirstOrDefault(),
+                    MessageCount = g.Count()
+                })
+                .ToListAsync();
+
+            int systemChannelCreated = 0;
+            int systemChannelUpdated = 0;
+
+            foreach (var sc in systemChannels)
+            {
+                var channel = await GetOrCreateSystemChannelAsync(sc.ChannelId, sc.ChannelName);
+
+                if (channel.LastMessageId == null && sc.LastMessage != null)
+                {
+                    channel.UpdateLastMessage(sc.LastMessage);
+                    await _chatChannelRepository.UpdateAsync(channel);
+                    systemChannelUpdated++;
+                }
+                else if (sc.LastMessage != null && channel.LastMessageTime < sc.LastMessage.Time)
+                {
+                    channel.UpdateLastMessage(sc.LastMessage);
+                    await _chatChannelRepository.UpdateAsync(channel);
+                    systemChannelUpdated++;
+                }
+                else if (channel.Id == 0)
+                {
+                    systemChannelCreated++;
+                }
+            }
+
+            result.SystemChannelsCreated = systemChannelCreated;
+            result.SystemChannelsUpdated = systemChannelUpdated;
+
+            // 2. 获取所有活跃用户（有聊天记录的用户）
+            var activeUserIds = await _messageRepository.GetAll()
+                .AsNoTracking()
+                .Where(x => x.To != null)
+                .SelectMany(x => new[] { x.From, x.To.Value })
+                .Distinct()
+                .ToListAsync();
+
+            result.TotalActiveUsers = activeUserIds.Count;
+
+            // 3. 分批处理私聊频道
+            int privateChannelCreated = 0;
+            int privateChannelUpdated = 0;
+            int processedUsers = 0;
+            int batchNumber = 0;
+
+            foreach (var userId in activeUserIds)
+            {
+                batchNumber++;
+                processedUsers++;
+
+                // 获取该用户的所有私聊对话
+                var privateChats = await _messageRepository.GetAll()
+                    .AsNoTracking()
+                    .Where(x => x.Chan == null && (x.From == userId || x.To == userId) && x.To != null)
+                    .GroupBy(x => new
+                    {
+                        User1 = x.From < x.To ? x.From : x.To.Value,
+                        User2 = x.From > x.To ? x.From : x.To.Value
+                    })
+                    .Select(g => new
+                    {
+                        g.Key.User1,
+                        g.Key.User2,
+                        LastMessage = g.OrderByDescending(m => m.Time).FirstOrDefault(),
+                        MessageCount = g.Count()
+                    })
+                    .ToListAsync();
+
+                foreach (var pc in privateChats)
+                {
+                    var channel = await GetOrCreatePrivateChannelAsync(pc.User1, pc.User2);
+
+                    if (pc.LastMessage != null)
+                    {
+                        bool needUpdate = channel.LastMessageId == null ||
+                                         (pc.LastMessage.Time > channel.LastMessageTime);
+
+                        if (needUpdate)
+                        {
+                            channel.UpdateLastMessage(pc.LastMessage);
+                            await _chatChannelRepository.UpdateAsync(channel);
+                            privateChannelUpdated++;
+                        }
+                    }
+                }
+
+                // 分批提交以避免内存问题
+                if (batchNumber % 100 == 0)
+                {
+                    await CurrentUnitOfWork.SaveChangesAsync();
+                    Logger.Debug($"同步进度: 已处理 {processedUsers}/{activeUserIds.Count} 用户, 创建私聊频道 {privateChannelCreated}, 更新 {privateChannelUpdated}");
+                }
+            }
+
+            // 最终保存
+            await CurrentUnitOfWork.SaveChangesAsync();
+
+            result.PrivateChannelsCreated = privateChannelCreated;
+            result.PrivateChannelsUpdated = privateChannelUpdated;
+            result.EndTime = DateTime.Now;
+            result.IsSuccess = true;
+
+            Logger.Debug($"频道同步完成: 系统频道创建 {systemChannelCreated}, 更新 {systemChannelUpdated}; 私聊频道创建 {privateChannelCreated}, 更新 {privateChannelUpdated}");
+        }
+        catch (Exception ex)
+        {
+            result.EndTime = DateTime.Now;
+            result.IsSuccess = false;
+            result.ErrorMessage = ex.Message;
+            Logger.Error("同步频道数据失败: " + ex.Message);
+        }
+
+        return result;
     }
+
+    /// <summary>
+    /// 同步单个用户的私聊频道
+    /// 根据该用户的私聊消息创建或更新 ChatChannel 记录
+    /// </summary>
+    /// <param name="userId">用户ID</param>
+    /// <returns>同步结果</returns>
+    public async Task<UserChannelSyncResult> SyncUserChannelsAsync(long userId)
+    {
+        var result = new UserChannelSyncResult
+        {
+            UserId = userId,
+            StartTime = DateTime.Now
+        };
+
+        try
+        {
+            // 获取该用户的所有私聊对话
+            var privateChats = await _messageRepository.GetAll()
+                .AsNoTracking()
+                .Where(x => x.Chan == null && (x.From == userId || x.To == userId) && x.To != null)
+                .GroupBy(x => new
+                {
+                    User1 = x.From < x.To ? x.From : x.To.Value,
+                    User2 = x.From > x.To ? x.From : x.To.Value
+                })
+                .Select(g => new
+                {
+                    g.Key.User1,
+                    g.Key.User2,
+                    LastMessage = g.OrderByDescending(m => m.Time).FirstOrDefault(),
+                    MessageCount = g.Count()
+                })
+                .ToListAsync();
+
+            result.TotalChannels = privateChats.Count;
+
+            foreach (var pc in privateChats)
+            {
+                var channel = await GetOrCreatePrivateChannelAsync(pc.User1, pc.User2);
+
+                if (pc.LastMessage != null)
+                {
+                    bool isNew = channel.LastMessageId == null;
+                    bool needUpdate = !isNew && pc.LastMessage.Time > channel.LastMessageTime;
+
+                    if (isNew)
+                    {
+                        channel.UpdateLastMessage(pc.LastMessage);
+                        await _chatChannelRepository.UpdateAsync(channel);
+                        result.CreatedChannels++;
+                    }
+                    else if (needUpdate)
+                    {
+                        channel.UpdateLastMessage(pc.LastMessage);
+                        await _chatChannelRepository.UpdateAsync(channel);
+                        result.UpdatedChannels++;
+                    }
+                }
+            }
+
+            result.EndTime = DateTime.Now;
+            result.IsSuccess = true;
+        }
+        catch (Exception ex)
+        {
+            result.EndTime = DateTime.Now;
+            result.IsSuccess = false;
+            result.ErrorMessage = ex.Message;
+            Logger.Error("同步用户 " + userId + " 的频道数据失败: " + ex.Message);
+        }
+
+        return result;
+    }
+}
+
+/// <summary>
+/// 频道同步结果
+/// </summary>
+public class ChannelSyncResult
+{
+    public DateTime StartTime { get; set; }
+    public DateTime EndTime { get; set; }
+    public bool IsSuccess { get; set; }
+    public string? ErrorMessage { get; set; }
+    public int TotalActiveUsers { get; set; }
+    public int SystemChannelsCreated { get; set; }
+    public int SystemChannelsUpdated { get; set; }
+    public int PrivateChannelsCreated { get; set; }
+    public int PrivateChannelsUpdated { get; set; }
+    public TimeSpan Duration => EndTime - StartTime;
+}
+
+/// <summary>
+/// 用户频道同步结果
+/// </summary>
+public class UserChannelSyncResult
+{
+    public long UserId { get; set; }
+    public DateTime StartTime { get; set; }
+    public DateTime EndTime { get; set; }
+    public bool IsSuccess { get; set; }
+    public string? ErrorMessage { get; set; }
+    public int TotalChannels { get; set; }
+    public int CreatedChannels { get; set; }
+    public int UpdatedChannels { get; set; }
+    public TimeSpan Duration => EndTime - StartTime;
+}
