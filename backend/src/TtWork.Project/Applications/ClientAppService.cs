@@ -336,7 +336,7 @@ public class ClientAppService(
     /// <summary>
     /// 获取聊天列表（版本二实现 - 已废弃，统一使用最新版本）
     /// </summary>
-    [Obsolete("此方法已废弃，请使用 GetChatList 或 GetChatListV3")]
+    [Obsolete("此方法已废弃，请使用 GetChatList")]
     private async Task<List<ChatListItem>> GetChatListV2Impl()
     {
         var result = new List<ChatListItem>();
@@ -547,18 +547,6 @@ public class ClientAppService(
         return null;
     }
 
-    /// <summary>
-    /// 获取聊天列表（最新优化版本）
-    /// 使用用户状态字段 + Redis 缓存，性能最优
-    /// </summary>
-    /// <returns>聊天列表</returns>
-    [HttpGet]
-    public async Task<List<ChatListItem>> GetChatListV3()
-    {
-        return await GetChatListOptimized();
-    }
-
-  
     /// <summary>
     /// 将系统频道ID转换为前端需要的数字ID
     /// </summary>
