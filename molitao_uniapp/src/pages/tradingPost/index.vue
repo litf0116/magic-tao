@@ -60,6 +60,18 @@
                 />
                 <image src="../../static/搜索.png" class="search-icon" mode="aspectFit" @tap="handleSearch"></image>
             </view>
+            <!-- 热词区域 -->
+            <view class="hotWords">
+                <view
+                    v-for="(item, index) in hotWordsList"
+                    :key="index"
+                    class="hotWords-item"
+                    :class="{ active: hotWordsActiveKey === item.id }"
+                    @tap="switchHotWords(item)"
+                >
+                    {{ item.title }}
+                </view>
+            </view>
             <!-- 此处是置顶帖子的位置 -->
             <view class="section top-posts">
                 <!-- 添加区域镖旗 -->
@@ -74,7 +86,7 @@
                         @tap="toDetail(item.postId)"
                     >
                         <view class="post-left">
-                            <view class="post-title">{{ item.title }}</view>
+                            <view class="post-title" :class="{ 'is-top': item.isTop }">{{ item.title }}</view>
                             <view class="post-meta">
                                 <view class="meta-left">
                                     <text
@@ -98,18 +110,6 @@
                 <view v-else class="empty-state">
                     <image class="empty-image" src="../../static/nodata.png" mode="aspectFit"></image>
                     <text class="empty-text">暂无置顶帖子</text>
-                </view>
-            </view>
-            <!-- 热词区域 -->
-            <view class="hotWords">
-                <view
-                    v-for="(item, index) in hotWordsList"
-                    :key="index"
-                    class="hotWords-item"
-                    :class="{ active: hotWordsActiveKey === item.id }"
-                    @tap="switchHotWords(item)"
-                >
-                    {{ item.title }}
                 </view>
             </view>
             <!-- 发帖按钮 -->
@@ -594,6 +594,10 @@ uni-modal .uni-modal__bd {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: normal;
+}
+
+.post-title.is-top {
+    color: #ff4d00;
 }
 
 .post-meta {

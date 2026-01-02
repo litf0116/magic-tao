@@ -770,8 +770,26 @@ namespace TtWork.Project.Web.Controllers
                 // 获取客户端IP地址
                 var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
 
+                // 检查是否为本地IP
+                bool isLocalIp = false;
+                if (!string.IsNullOrEmpty(clientIp))
+                {
+                    // 检查IPv4本地地址
+                    if (clientIp == "127.0.0.1" || clientIp.StartsWith("192.168.") ||
+                        clientIp.StartsWith("10.") || clientIp.StartsWith("172."))
+                    {
+                        isLocalIp = true;
+                    }
+                    // 检查IPv6本地地址
+                    else if (clientIp == "::1" || clientIp.StartsWith("::ffff:127.0.0.1") ||
+                             clientIp.StartsWith("fe80::"))
+                    {
+                        isLocalIp = true;
+                    }
+                }
+
                 // 限制只能从本地访问
-                if (clientIp != "127.0.0.1" && clientIp != "::1")
+                if (!isLocalIp)
                 {
                     Logger.Warn($"非法IP尝试访问GenerateTokenForUser接口: {clientIp}");
                     throw new UserFriendlyException("此接口仅允许本地访问");

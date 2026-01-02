@@ -392,7 +392,6 @@ namespace TtWork.Project.Services.Cache
 
         private async Task<ListResultDto<AuctionItemDto>> GetAuctionListFromDatabaseAsync(AppResultRequestDto input)
         {
-            // 如果没有传递 MaxResultCount，设置默认值 100
             if (input.MaxResultCount <= 0)
             {
                 input.MaxResultCount = 100;
@@ -405,7 +404,7 @@ namespace TtWork.Project.Services.Cache
 
             if (!input.Status.HasValue)
             {
-                query = query.OrderBy(x => x.Order).ThenBy(x => x.Id);
+                query = query.OrderBy(x => x.Order).ThenBy(x => x.Id).Take(input.MaxResultCount);
             }
             else if (input.Status == (int)AuctionStatusEnum.已成交)
             {
@@ -413,11 +412,12 @@ namespace TtWork.Project.Services.Cache
             }
             else
             {
-                query = query.OrderByDescending(x => x.Id);
+                query = query.OrderByDescending(x => x.Id).Take(input.MaxResultCount);
             }
 
             var items = await query.ToListAsync();
-            return new ListResultDto<AuctionItemDto>(_objectMapper.Map<List<AuctionItemDto>>(items));
+            var dtoItems = _objectMapper.Map<List<AuctionItemDto>>(items);
+            return new ListResultDto<AuctionItemDto>(dtoItems);
         }
 
         private async Task<AuctionItemDto> GetAuctionDetailFromDatabaseAsync(long auctionItemId)

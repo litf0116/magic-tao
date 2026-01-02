@@ -75,6 +75,7 @@ const form = reactive({
     password: '',
     rememberClient: false,
 })
+
 let interVal: number | undefined = undefined
 
 let expiredTimer: number | undefined = undefined
@@ -152,6 +153,7 @@ async function login() {
         }
     )
 }
+
 
 onUnmounted(() => {
     clearInterval(interVal)

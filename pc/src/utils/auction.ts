@@ -9,7 +9,7 @@
  * @returns 最低报价
  */
 export const calculateMinBidPrice = (currentPrice = 0, isKasec = false): number => {
-    let minPrice = 0
+    let minPrice = 5 // 最低起价为5R
 
     if (currentPrice) {
         if (currentPrice < 100) {

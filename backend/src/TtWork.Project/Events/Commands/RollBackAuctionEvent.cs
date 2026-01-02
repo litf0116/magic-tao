@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Abp.Domain.Repositories;
@@ -7,6 +7,7 @@ using Abp.UI;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TtWork.Project.Domains;
+using TtWork.Project.Services.Cache;
 
 namespace TtWork.Project.Events.Commands;
 
@@ -15,7 +16,8 @@ public class RollBackAuctionEvent(AuctionItemDto payload) : MediatR.INotificatio
 
     public class RollBackAuctionEventHandler(
         IRepository<AuctionItem, long> repository,
-        IRepository<BidHistory, long> bitHistoryRepository)
+        IRepository<BidHistory, long> bitHistoryRepository,
+        IAuctionItemCacheService cacheService)
         : INotificationHandler<RollBackAuctionEvent> {
         [UnitOfWork]
         public virtual async Task Handle(RollBackAuctionEvent notification, CancellationToken cancellationToken) {
@@ -29,11 +31,9 @@ public class RollBackAuctionEvent(AuctionItemDto payload) : MediatR.INotificatio
                     .OrderByDescending(x => x.BidPrice).ToListAsync(cancellationToken: cancellationToken);
 
                 BidHistory previousBid = null;
-                //从高价到低价搜索
                 for (var index = 0; index < bidHistorys.Count; index++) {
                     var t = bidHistorys[index];
                     if (t.BidPrice == notification.Payload.CurrentPrice) {
-                        //找到当前价格的出价记录
                         t.IsRollBack = true;
                         if (index + 1 < bidHistorys.Count)
                             previousBid = bidHistorys[index + 1];
@@ -43,15 +43,17 @@ public class RollBackAuctionEvent(AuctionItemDto payload) : MediatR.INotificatio
                 }
 
                 if (auctionItem.CurrentPrice == notification.Payload.CurrentPrice) {
-                    //如果当前价格和传入的价格一致,则回滚到上一次的价格
                     auctionItem.RollBack(previousBid);
 
-                    // 简单修复：如果previousBid为null，使用起拍价
                     if (previousBid == null) {
                         auctionItem.CurrentPrice = auctionItem.StartingPrice;
                         auctionItem.CurrentPriceUserId = null;
                         auctionItem.CurrentPriceUserName = null;
                     }
+
+                    await cacheService.ClearAuctionDetailCacheAsync(auctionItem.Id);
+                    await cacheService.ClearAuctionListCacheAsync(AuctionStatusEnum.拍卖中);
+                    await cacheService.ClearCurrentAuctionCacheAsync();
                 }
             }
         }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic.Core;
@@ -30,9 +30,13 @@ public class MessageAppService(IRepository<Message, Guid> repository, ISqlSugarC
     [DisableAuditing]
     public async Task<ListResultDto<ChatMessage>> GetChanHistory(string chan, long lastTime, int size = 20)
     {
-        // 使用时间戳查询和排序
-        var result = await repository.GetAll().AsNoTracking()
-            .Where(x => x.Chan == chan && x.Time < lastTime)
+        var query = repository.GetAll().AsNoTracking()
+            .Where(x => x.Chan == chan);
+
+        if (lastTime > 0)
+            query = query.Where(x => x.Time < lastTime);
+
+        var result = await query
             .OrderByDescending(x => x.Time)
             .Take(size)
             .ToListAsync();
@@ -116,9 +120,13 @@ public class MessageAppService(IRepository<Message, Guid> repository, ISqlSugarC
     public async Task<ListResultDto<ChatMessage>> GetPrivateHistory(long id, long lastTime, int size = 20)
     {
         var myId = AbpSession.UserId!.Value;
-        var result = await repository.GetAll().AsNoTracking()
-            .Where(x =>
-                ((x.From == id && x.To == myId) || (x.From == myId && x.To == id)) && x.Time < lastTime)
+        var query = repository.GetAll().AsNoTracking()
+            .Where(x => (x.From == id && x.To == myId) || (x.From == myId && x.To == id));
+
+        if (lastTime > 0)
+            query = query.Where(x => x.Time < lastTime);
+
+        var result = await query
             .OrderByDescending(x => x.Time)
             .Take(size)
             .ToListAsync();

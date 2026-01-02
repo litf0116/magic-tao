@@ -1087,13 +1087,33 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     }
 
     /// <summary>
-    /// 获取待拍卖商品跟已拍卖商品
+    /// 获取待拍卖商品跟已拍卖商品（需要登录）
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>
     [AbpAuthorize]
     [DisableAuditing]
     public async Task<ListResultDto<AuctionItemDto>> GetPublicList(AppResultRequestDto input)
+    {
+        // 如果没有传递 MaxResultCount，设置默认值 100
+        if (input.MaxResultCount <= 0)
+        {
+            input.MaxResultCount = 100;
+        }
+
+        // 使用新的缓存服务
+        return await _cacheService.GetAuctionListAsync(input);
+    }
+
+    /// <summary>
+    /// 获取待拍卖商品跟已拍卖商品（无需登录的公开接口）
+    /// </summary>
+    /// <param name="input"></param>
+    /// <returns></returns>
+    [AllowAnonymous]
+    [DisableAuditing]
+    [HttpGet("api/AuctionItem/GetPublicListAnonymous")]
+    public async Task<ListResultDto<AuctionItemDto>> GetPublicListAnonymous(AppResultRequestDto input)
     {
         // 如果没有传递 MaxResultCount，设置默认值 100
         if (input.MaxResultCount <= 0)

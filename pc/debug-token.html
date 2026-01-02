@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token调试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Token调试工具</h1>
+
+    <div>
+        <button onclick="testTokenGeneration()">测试用户14 Token生成</button>
+        <button onclick="clearConsole()">清空控制台</button>
+    </div>
+
+    <div id="result" class="result">
+        <p>点击按钮开始调试...</p>
+    </div>
+
+    <script>
+        async function testTokenGeneration() {
+            try {
+                const response = await fetch('http://127.0.0.1:12580/api/TokenAuth/GenerateTokenForUser', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ userId: 14 })
+                });
+
+                const data = await response.json();
+
+                document.getElementById('result').innerHTML = `
+                    <h3>API响应结果：</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    <h3>Token信息：</h3>
+                    <p><strong>Success:</strong> ${data.success}</p>
+                    <p><strong>User ID:</strong> ${data.result?.userId}</p>
+                    <p><strong>Username:</strong> ${data.result?.userName}</p>
+                    <p><strong>AccessToken存在:</strong> ${!!data.result?.accessToken}</p>
+                    <p><strong>AccessToken长度:</strong> ${data.result?.accessToken?.length || 0}</p>
+                    <p><strong>AccessToken前50字符:</strong> ${data.result?.accessToken?.substring(0, 50) || 'N/A'}...</p>
+                `;
+
+                // 测试存储
+                if (data.success && data.result?.accessToken) {
+                    console.log('🧪 开始测试token存储...');
+                    localStorage.setItem('token', data.result.accessToken);
+                    const storedToken = localStorage.getItem('token');
+
+                    console.log('📦 存储测试结果:');
+                    console.log('- 原始token长度:', data.result.accessToken.length);
+                    console.log('- 存储后token长度:', storedToken?.length || 0);
+                    console.log('- 存储的token前50字符:', storedToken?.substring(0, 50));
+                    console.log('- Token是否为空:', storedToken === '');
+                }
+
+            } catch (error) {
+                document.getElementById('result').innerHTML = `
+                    <h3>错误：</h3>
+                    <p>${error.message}</p>
+                `;
+                console.error('测试失败:', error);
+            }
+        }
+
+        function clearConsole() {
+            console.clear();
+            document.getElementById('result').innerHTML = '<p>控制台已清空</p>';
+        }
+    </script>
+</body>
+</html>

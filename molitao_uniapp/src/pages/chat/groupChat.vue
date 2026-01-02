@@ -46,7 +46,7 @@ async function loadHistoryMessage(force = false) {
 
     chatRef.value!.history.loading = true
     const name = chan.value
-    let lastTime = new Date().getTime()
+    let lastTime = 0
     if (!force)
         if (historyMsgs.value && historyMsgs.value.length) {
             lastTime = historyMsgs.value[0].time!

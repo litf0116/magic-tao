@@ -35,6 +35,25 @@
                 </div>
             </div>
 
+            <!-- 搜索发现 -->
+            <div class="search-div">
+                <div class="search-input">
+                    <div class="hotWords">
+                        <div class="title" style="width: 120px">搜索发现：</div>
+                        <div style="display: flex; flex-wrap: wrap">
+                            <div
+                                v-for="(item, index) in hotWordsList"
+                                class="item"
+                                :class="{ active: hotWordsActiveKey === item.id }"
+                                @click="onHotWordActive(item)"
+                            >
+                                {{ item.title }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- 在这个位置插入置顶帖的列表 -->
             <div class="top-posts">
                 <div class="title">置顶帖子</div>
@@ -62,7 +81,7 @@
 
                     <!-- 标题 -->
                     <div class="post-title">
-                        <span class="title-text">{{ post.title }}</span>
+                        <span class="title-text" :class="{ 'is-top': post.isTop != 0 }">{{ post.title }}</span>
                     </div>
 
                     <!-- 右侧信息 -->
@@ -75,19 +94,6 @@
 
             <div class="search-div">
                 <div class="search-input">
-                    <div class="hotWords">
-                        <div class="title" style="width: 120px">搜索发现：</div>
-                        <div style="display: flex; flex-wrap: wrap">
-                            <div
-                                v-for="(item, index) in hotWordsList"
-                                class="item"
-                                :class="{ active: hotWordsActiveKey === item.id }"
-                                @click="onHotWordActive(item)"
-                            >
-                                {{ item.title }}
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -580,6 +586,10 @@ const goToDetail = (id) => {
     text-overflow: ellipsis;
     white-space: nowrap;
     display: block;
+}
+
+.title-text.is-top {
+    color: #ff4d00;
 }
 
 .post-side {

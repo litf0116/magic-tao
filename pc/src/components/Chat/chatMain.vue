@@ -68,12 +68,14 @@
                                     <div
                                         v-else-if="message.userChatLevel && isPrivateChat === false"
                                         class="tag_AuctionManager"
-                                        :style="{
-                                            background: `linear-gradient(90deg,${message.userChatLevel.borderColor},${message.userChatLevel.rightBorderColor})`,
+                                        :class="{
+                                            'level-7-premium': message.userChatLevel.level === 7,
+                                            'level-8-ultimate': message.userChatLevel.level === 8
                                         }"
-                                        style="margin-right: 5px; color: #fff"
+                                        :style="getLevelStyle(message.userChatLevel)"
+                                        style="margin-right: 5px;"
                                     >
-                                        {{ message.userChatLevel.name }}
+                                        <span>{{ message.userChatLevel.name }}</span>
                                     </div>
                                     {{ message.fromName }}
                                     <!-- {{ dayjs(message.time).format('MM-DD HH:mm') }} -->
@@ -245,7 +247,7 @@
         <div class="action-popup-main" style="width: 280px; padding: 10px">
             <div>群等级制度，根据成交价金额自动累计</div>
             <div v-for="(x, index) in groupChatLevel" :key="index">
-                {{ x.level }}级:消费满{{ x.amountRequired }} {{ x.name }}
+                {{ x.level }}级:成交额满{{ x.amountRequired }} {{ x.name }}
             </div>
             <!-- <div> 1级:消费满100 实习生熊男 </div>
             <div> 2级:消费满1000 试用期露比 </div>
@@ -706,6 +708,33 @@ function onAuctionEndAction({ message, payload }) {
 
 function onAuctionDealAction({ message, payload }) {
     showDetails({ message, payload })
+}
+
+// 等级样式处理函数
+function getLevelStyle(userChatLevel) {
+    if (!userChatLevel) return {}
+
+    // 第7级：黑底金字
+    if (userChatLevel.level === 7) {
+        return {
+            background: '#000000',
+            color: '#FFD700',
+        }
+    }
+
+    // 第8级：炫彩渐变动画背景 + 金色文字
+    if (userChatLevel.level === 8) {
+        return {
+            color: '#FFD700',
+            textShadow: '0 0 8px rgba(255, 215, 0, 0.8), 1px 1px 2px rgba(0, 0, 0, 0.5)'
+        }
+    }
+
+    // 其他等级：保持原有的渐变效果
+    return {
+        background: `linear-gradient(90deg,${userChatLevel.borderColor},${userChatLevel.rightBorderColor})`,
+        color: '#fff'
+    }
 }
 </script>
 
@@ -1224,5 +1253,50 @@ function onAuctionDealAction({ message, payload }) {
     font-size: 12px;
     color: #666666;
     flex: 1;
+}
+
+/* 高级等级样式 */
+.level-7-premium {
+    border-radius: 4px;
+    font-weight: bold;
+    padding: 2px 6px;
+    background: #000000;
+    color: #FFD700;
+    border: 2px solid #FFD700;
+    box-shadow: 0 0 6px rgba(255, 215, 0, 0.6);
+    font-family: "Microsoft YaHei", "微软雅黑", sans-serif;
+}
+
+.level-8-ultimate {
+    border-radius: 4px;
+    font-weight: bold;
+    padding: 2px 6px;
+    background: linear-gradient(
+        45deg,
+        #ff0000,
+        #ff7300,
+        #fffb00,
+        #48ff00,
+        #00ffd5,
+        #002bff,
+        #7a00ff,
+        #ff00c8,
+        #ff0000
+    );
+    background-size: 400%;
+    animation: rainbow-bg 6s linear infinite;
+    font-family: "Microsoft YaHei", "微软雅黑", sans-serif;
+}
+
+@keyframes rainbow-bg {
+    0% {
+        background-position: 0 0;
+    }
+    50% {
+        background-position: 400% 0;
+    }
+    100% {
+        background-position: 0 0;
+    }
 }
 </style>

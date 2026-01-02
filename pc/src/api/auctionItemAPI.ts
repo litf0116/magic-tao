@@ -13,6 +13,29 @@ export function GetDetail(id) {
 }
 
 /**
+ * 获取公开拍卖品列表（匿名访问）
+ * @param params 查询参数
+ * @returns
+ */
+export function GetPublicListAnonymous(params: {
+    maxResultCount?: number
+    skipCount?: number
+    keyword?: string
+    sorting?: string
+} = {}) {
+    return axios({
+        url: '/api/AuctionItem/GetPublicListAnonymous',
+        method: 'get',
+        params: {
+            MaxResultCount: params.maxResultCount,
+            SkipCount: params.skipCount,
+            Keyword: params.keyword,
+            Sorting: params.sorting
+        }
+    })
+}
+
+/**
  * 设置卡秒状态
  */
 export function setKasecStatus(auctionItemId, isKasec) {

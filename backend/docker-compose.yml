@@ -10,6 +10,7 @@ services:
     volumes:
       - /www/certs:/app/certs
       - /www/wwwroot/www.molitao.top/wwwroot:/app/wwwroot
+      - /data2/logs:/app/logs
     environment:
       - TZ=Asia/Shanghai
       - ASPNETCORE_ENVIRONMENT=Production

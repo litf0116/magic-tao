@@ -73,6 +73,7 @@ export const useUserStore = defineStore('user', () => {
         })
     }
 
+  
     function SET_USER(payload: UserLoginInfoDto) {
         user.value = payload
         localStorage.setItem('user', JSON.stringify(payload))
