@@ -13,7 +13,7 @@ export const calculateMinBidPrice = (currentPrice: number = 0, isKasec: boolean 
 
     if (currentPrice) {
         if (currentPrice < 100) {
-            minPrice = currentPrice + 1
+            minPrice = currentPrice + 5
         } else if (currentPrice < 1000) {
             minPrice = currentPrice + 5
         } else if (currentPrice < 2000) {

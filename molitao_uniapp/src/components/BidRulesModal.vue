@@ -64,7 +64,7 @@ export default {
     computed: {
         priceRules() {
             return [
-                '100以内，1R一加',
+                '100以内，5R一加',
                 '100~1000，5R一加',
                 '1000~2000，10R一加',
                 '2000~5000，20R一加',

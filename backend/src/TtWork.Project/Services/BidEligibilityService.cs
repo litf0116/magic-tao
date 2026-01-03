@@ -338,6 +338,11 @@ public class BidEligibilityService : IBidEligibilityService
             var basePrice = find.CurrentPrice ?? find?.StartingPrice ?? 5;
             var minPrice = 0;
 
+            // 6. 检查卡秒状态
+            var kasecVal = await _redisClient.Database.StringGetAsync($"Auction:Kasec:{input.AuctionItemId}");
+            bool isKasec = kasecVal.HasValue && kasecVal == "true";
+            result.IsKasec = isKasec;
+
             if (find.CurrentPrice.HasValue)
             {
                 // 最低加价规则
@@ -365,20 +370,17 @@ public class BidEligibilityService : IBidEligibilityService
                 {
                     minPrice = find.CurrentPrice.Value + 100;
                 }
+
+                // 卡秒模式下三倍加价
+                if (isKasec)
+                {
+                    minPrice = basePrice + ((minPrice - basePrice) * 3);
+                }
             }
             else
             {
-                minPrice = basePrice;
-            }
-
-            // 6. 检查卡秒状态
-            var kasecVal = await _redisClient.Database.StringGetAsync($"Auction:Kasec:{input.AuctionItemId}");
-            bool isKasec = kasecVal.HasValue && kasecVal == "true";
-            result.IsKasec = isKasec;
-
-            if (isKasec)
-            {
-                minPrice = basePrice + ((minPrice - basePrice) * 3);
+                // 首次出价
+                minPrice = isKasec ? basePrice * 3 : basePrice;
             }
 
             result.MinBidPrice = minPrice;
@@ -388,7 +390,7 @@ public class BidEligibilityService : IBidEligibilityService
             {
                 var priceRules = new[]
                 {
-                    "100以内，1R一加",
+                    "100以内，5R一加",
                     "100~1000，5R一加",
                     "1000~2000，10R一加",
                     "2000~5000，20R一加",
