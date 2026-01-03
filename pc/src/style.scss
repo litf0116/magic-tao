@@ -76,3 +76,9 @@ a {
     height: 178px;
     text-align: center;
 }
+
+// 修复弹窗打开时页面闪动问题
+body.el-popup-parent--hidden {
+    padding-right: 0 !important;
+    overflow: auto !important;
+}

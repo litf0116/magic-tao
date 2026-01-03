@@ -7,13 +7,13 @@
                     :src="'https://image.molitao.top/molitao/2025-03-30/upload_4kascmjk9aaz06s7j0frqdjfq8m3zmxc.png'"
                 />
             </div>
-            <public-nav />
+            <public-nav/>
             <div class="content px-4">
                 <router-view v-slot="{ Component, route }">
-                    <component :is="Component" :key="route.fullPath" />
+                    <component :is="Component" :key="route.fullPath"/>
                 </router-view>
             </div>
-            <Footer />
+            <Footer/>
         </div>
     </main>
 </template>
@@ -48,7 +48,7 @@ main {
     }
 
     .content {
-        @apply w-full min-h-400px relative mt-24px lg:mt-53px w-[90vw] xl:w-[1232px];
+        @apply w-full min-h-400px relative mt-24px lg:mt-13px w-[90vw] xl:w-[1232px];
         background: url('https://image.molitao.top/molitao/2025-03-30/upload_qxgt8fo3iymdi0heth3rnqipc83rzawn.png') repeat-y center center / 100% 100%;
     }
 
