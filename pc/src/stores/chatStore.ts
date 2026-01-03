@@ -443,9 +443,15 @@ export const useChatStore = defineStore('chat', () => {
         // 特殊处理：监听拍卖结束消息，为中拍用户创建聊天频道
         if (msg.type === 'AuctionEnd' && msg.payload) {
             console.log('检测到拍卖结束消息，为中拍用户创建聊天频道', msg.payload)
-            // 如果当前用户是消息发送者（拍卖师），为中拍者创建聊天会话
             const userStore = useUserStore()
+            
+            // 发送者（拍卖师）：为中拍用户创建聊天会话
             if (msg.from === userStore.user.id) {
+                addAuctionDealUser(msg.payload, 'AuctionEnd')
+            }
+            
+            // 接收者（中拍用户）：为自己创建聊天会话
+            if (msg.to === userStore.user.id) {
                 addAuctionDealUser(msg.payload, 'AuctionEnd')
             }
         }
