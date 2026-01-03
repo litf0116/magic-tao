@@ -390,12 +390,11 @@ public class BidEligibilityService : IBidEligibilityService
             {
                 var priceRules = new[]
                 {
-                    "100以内，5R一加",
-                    "100~1000，5R一加",
+                    "1000以内（含），5R一加",
                     "1000~2000，10R一加",
                     "2000~5000，20R一加",
-                    "5000~1W，50一加",
-                    "1W以上，100一加"
+                    "5000~1W，50R一加",
+                    "1W以上，100R一加"
                 };
 
                 var formattedMessage = "出价必须大于最低加价：\n\n" +
