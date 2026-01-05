@@ -238,7 +238,6 @@ public class ClientAppService(
     }
 
 
-    public const string LOBBY = "0_lobby";
     public const string AUCTION = "-1_auction";
 
 

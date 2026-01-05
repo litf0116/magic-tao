@@ -9,7 +9,7 @@ export default {
         {
             path: 'index',
             name: 'chatIndex',
-            redirect: '/chat/index/lobby',
+            redirect: '/chat/index/auction',
             meta: { title: '聊天室' },
             component: () => import('@/views/chat/index.vue'),
             children: [

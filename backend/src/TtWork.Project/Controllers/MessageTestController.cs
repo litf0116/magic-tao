@@ -123,7 +123,6 @@ namespace TtWork.Project.Controllers
                         id = c.ChannelId switch
                         {
                             "-1_auction" => -1,
-                            "0_lobby" => 0,
                             _ => c.ChannelId.GetHashCode()
                         },
                         name = c.ChannelName ?? c.ChannelId,
@@ -189,8 +188,6 @@ namespace TtWork.Project.Controllers
                     result.EndTime,
                     result.Duration,
                     result.TotalActiveUsers,
-                    result.SystemChannelsCreated,
-                    result.SystemChannelsUpdated,
                     result.PrivateChannelsCreated,
                     result.PrivateChannelsUpdated,
                     result.IsSuccess,

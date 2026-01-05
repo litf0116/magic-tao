@@ -31,15 +31,6 @@ export type ChatListItem = {
 type ChannelType = { chan: string; online: number }
 type InputChannelMsgType = { type: string; content: string }
 
-const LobbyChat: ChatListItem = {
-    id: 0,
-    name: 'lobby',
-    type: ChatListItemType.group,
-    time: new Date().getTime(),
-    lastMsg: '',
-    unread: 0,
-    order: 100,
-}
 const AuctionChat: ChatListItem = {
     id: -1,
     name: 'auction',
@@ -64,11 +55,11 @@ export const useChatStore = defineStore('chat', () => {
     const friends = ref<UserDtoBase[]>([])
     const friends0 = ref<UserDtoBase[]>([])
     const groups = ref<ChatGroupDto[]>([])
-    const currentChat = ref(LobbyChat)
+    const currentChat = ref(AuctionChat)
     const inputChannelMsg = ref<InputChannelMsgType>({type: 'text', content: ''})
 
     //聊天对象表
-    const chatList: Ref<ChatListItem[]> = useLocalStorage('chatList', [LobbyChat, AuctionChat])
+    const chatList: Ref<ChatListItem[]> = useLocalStorage('chatList', [AuctionChat])
     const chatMap = ref<Map<string, ChatMessage[]>>(new Map())
 
     //state
@@ -279,7 +270,7 @@ export const useChatStore = defineStore('chat', () => {
                 chatMap.value.delete(`${_id}`)
                 if (currentChat.value.id === _id) {
                     Tips.info('房间已解散')
-                    router.push({path: '/chat/index/lobby', replace: true})
+                    router.push({path: '/chat/index/auction', replace: true})
                 }
             } else {
                 //踢出某人
@@ -291,7 +282,7 @@ export const useChatStore = defineStore('chat', () => {
                     chatList.value = chatList.value.filter((item) => item.id !== _id)
                     chatMap.value.delete(`${_id}`)
                     Tips.noCancelConfirm('你已被房主踢出房间')
-                    router.push({path: '/chat/index/lobby', replace: true})
+                    router.push({path: '/chat/index/auction', replace: true})
                 }
             }
         } else if (msg.chan) {
@@ -316,7 +307,7 @@ export const useChatStore = defineStore('chat', () => {
                     lastMsg: msg.msg,
                     avatar: msg.avatar,
                     unread: old ? old.unread + 1 : 0,
-                    order: _id === 0 ? 100 : _id === -1 ? 99 : 0,
+                    order: _id === -1 ? 99 : 0,
                     msg: msg,
                 },
                 ...chatList.value.filter((item) => item.id !== _id),
@@ -527,7 +518,7 @@ export const useChatStore = defineStore('chat', () => {
             // joinedChannel.value = joinedChannel.value.filter((item) => item !== chan)
             chatList.value = chatList.value.filter((item) => item.id !== parseInt(chan.split('_')[0]))
             chatMap.value.delete(`${parseInt(chan.split('_')[0])}`)
-            router.push({path: '/chat/index/lobby', replace: true})
+            router.push({path: '/chat/index/auction', replace: true})
         })
     }
 
@@ -558,7 +549,6 @@ export const useChatStore = defineStore('chat', () => {
     // }
 
     const hasGroup = (chan: string) => {
-        if (chan === '0_lobby') return true
         if (chan === '-1_auction') return true
         return groups.value.find((item) => item.chan === chan)
     }
@@ -571,7 +561,6 @@ export const useChatStore = defineStore('chat', () => {
                 const chan = `-${websocketId.value}_${name}`
                 joinChannel(chan)
                     .then(async () => {
-                        await sendChannelMsg(CREATEGROUPEVENT, '0_lobby', ChatMessageType.Welcome)
                         return resolve('ok')
                     })
                     .catch((e) => {
@@ -683,7 +672,7 @@ export const useChatStore = defineStore('chat', () => {
         })
     }
     const getCurrentName = () => {
-        return currentChat.value.name === 'lobby' ? '勇者招募所' : currentChat.value.name
+        return currentChat.value.name
     }
 
     const addChatList = (id: number, name: string, avatar: string) => {
@@ -697,7 +686,7 @@ export const useChatStore = defineStore('chat', () => {
                 lastMsg: '',
                 avatar: avatar,
                 unread: 0,
-                order: id === 0 ? 100 : id === -1 ? 99 : 0,
+                order: id === -1 ? 99 : 0,
             },
             ...chatList.value.filter((item) => item.id !== id),
         ]
@@ -715,7 +704,7 @@ export const useChatStore = defineStore('chat', () => {
     }
 
     const clear = () => {
-        chatList.value = [LobbyChat, AuctionChat]
+        chatList.value = [AuctionChat]
         chatMap.value = new Map()
         // joinedChannel.value = []
     }

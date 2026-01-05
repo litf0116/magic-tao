@@ -14,15 +14,6 @@ import { useAuctionStore } from './auctionStore'
 import { convertImageUrl } from '@/utils/imageUrlConverter'
 type ChannelType = { chan: string; online: number }
 
-const LobbyChat: ChatListItem = {
-    id: 0,
-    name: 'lobby',
-    type: ChatListItemType.group,
-    time: new Date().getTime(),
-    lastMsg: '',
-    unread: 0,
-    order: 100,
-}
 const AuctionChat: ChatListItem = {
     id: -1,
     name: 'auction',
@@ -46,7 +37,7 @@ export const useChatStore = defineStore('chatStore', () => {
     const friends = ref<UserDtoBase[]>([])
     const friends0 = ref<UserDtoBase[]>([])
     const groups = ref<ChannelType[]>([])
-    const currentChat = ref(LobbyChat)
+    const currentChat = ref(AuctionChat)
 
     //聊天对象表
     const chatList: Ref<ChatListItem[]> = useStorageRef<ChatListItem[]>('chatList', [AuctionChat])

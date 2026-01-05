@@ -114,57 +114,23 @@ public class ChatChannelService : DomainService
     }
 
     /// <summary>
-    /// 获取或创建系统频道
-    /// </summary>
-    /// <param name="channelId">频道ID</param>
-    /// <param name="channelName">频道名称</param>
-    /// <returns>聊天频道</returns>
-    public async Task<ChatChannel> GetOrCreateSystemChannelAsync(string channelId, string channelName)
-    {
-        var existingChannel = await _chatChannelRepository.FirstOrDefaultAsync(x => x.ChannelId == channelId);
-        if (existingChannel != null)
-        {
-            return existingChannel;
-        }
-
-        var newChannel = new ChatChannel(channelId, channelName);
-        return await _chatChannelRepository.InsertAsync(newChannel);
-    }
-
-    /// <summary>
     /// 更新频道的最后消息信息
     /// 如果频道被用户隐藏，会自动恢复显示
     /// </summary>
     /// <param name="message">消息实体</param>
     public async Task UpdateChannelLastMessageAsync(Message message)
     {
-        ChatChannel channel = null;
-
-        if (!string.IsNullOrEmpty(message.Chan))
+        // 私聊频道：发送者和接收者都不为空
+        if (message.To.HasValue)
         {
-            // 系统频道消息
-            channel = await _chatChannelRepository.FirstOrDefaultAsync(x => x.ChannelId == message.Chan);
-            if (channel == null)
-            {
-                // 如果频道不存在，创建系统频道
-                var channelName = GetSystemChannelName(message.Chan);
-                channel = await GetOrCreateSystemChannelAsync(message.Chan, channelName);
-            }
-        }
-        else if (message.To.HasValue)
-        {
-            // 私聊消息
-            channel = await GetOrCreatePrivateChannelAsync(message.From, message.To.Value);
+            var channel = await GetOrCreatePrivateChannelAsync(message.From, message.To.Value);
+            channel.UpdateLastMessage(message);
+            await _chatChannelRepository.UpdateAsync(channel);
 
             // 自动恢复被隐藏的私聊频道
             await AutoRestoreHiddenPrivateChannel(message.From, message.To.Value);
         }
-
-        if (channel != null)
-        {
-            channel.UpdateLastMessage(message);
-            await _chatChannelRepository.UpdateAsync(channel);
-        }
+        // 系统频道不再自动创建 ChatChannel 记录
     }
 
     /// <summary>
@@ -357,52 +323,14 @@ public class ChatChannelService : DomainService
     }
 
     /// <summary>
-    /// 获取系统频道名称
-    /// </summary>
-    /// <param name="channelId">频道ID</param>
-    /// <returns>频道名称</returns>
-    private static string GetSystemChannelName(string channelId)
-    {
-        return channelId switch
-        {
-            "-1_auction" => "拍卖频道",
-            "0_lobby" => "大厅",
-            _ => channelId
-        };
-    }
-
-    /// <summary>
     /// 迁移现有消息数据到频道表
-    /// 这是一个一次性的数据迁移方法，用于将现有的消息数据迁移到新的频道表结构
+    /// 这是一个一次性的数据迁移方法，用于将现有的私聊消息数据迁移到新的频道表结构
     /// </summary>
     public async Task MigrateExistingMessagesToChannelsAsync()
     {
-        // 1. 迁移系统频道消息
-        var systemChannels = await _messageRepository.GetAll()
-            .Where(x => !string.IsNullOrEmpty(x.Chan))
-            .GroupBy(x => x.Chan)
-            .Select(g => new
-            {
-                ChannelId = g.Key,
-                LastMessage = g.OrderByDescending(m => m.Time).FirstOrDefault()
-            })
-            .ToListAsync();
-
-        foreach (var systemChannel in systemChannels)
-        {
-            var channelName = GetSystemChannelName(systemChannel.ChannelId);
-            var channel = await GetOrCreateSystemChannelAsync(systemChannel.ChannelId, channelName);
-
-            if (systemChannel.LastMessage != null)
-            {
-                channel.UpdateLastMessage(systemChannel.LastMessage);
-                await _chatChannelRepository.UpdateAsync(channel);
-            }
-        }
-
-        // 2. 迁移私聊消息
+        // 迁移私聊消息
         var privateChats = await _messageRepository.GetAll()
-            .Where(x => string.IsNullOrEmpty(x.Chan) && x.To != null)
+            .Where(x => x.To != null)
             .GroupBy(x => new
             {
                 User1 = x.From < x.To ? x.From : x.To.Value,
@@ -430,8 +358,8 @@ public class ChatChannelService : DomainService
 
     /// <summary>
     /// 同步聊天频道数据
-    /// 根据 Message 表数据创建或更新 ChatChannel 表记录
-    /// 用于 V1 版本数据迁移到 V2/V3 版本
+    /// 根据 Message 表数据创建或更新私聊频道 ChatChannel 表记录
+    /// 用于数据迁移
     /// </summary>
     /// <param name="maxBatchCount">最大处理用户数（分批处理避免内存溢出）</param>
     /// <returns>同步结果统计</returns>
@@ -444,49 +372,7 @@ public class ChatChannelService : DomainService
 
         try
         {
-            // 1. 同步系统频道
-            var systemChannels = await _messageRepository.GetAll()
-                .AsNoTracking()
-                .Where(x => !string.IsNullOrEmpty(x.Chan))
-                .GroupBy(x => x.Chan)
-                .Select(g => new
-                {
-                    ChannelId = g.Key,
-                    ChannelName = GetSystemChannelName(g.Key),
-                    LastMessage = g.OrderByDescending(m => m.Time).FirstOrDefault(),
-                    MessageCount = g.Count()
-                })
-                .ToListAsync();
-
-            int systemChannelCreated = 0;
-            int systemChannelUpdated = 0;
-
-            foreach (var sc in systemChannels)
-            {
-                var channel = await GetOrCreateSystemChannelAsync(sc.ChannelId, sc.ChannelName);
-
-                if (channel.LastMessageId == null && sc.LastMessage != null)
-                {
-                    channel.UpdateLastMessage(sc.LastMessage);
-                    await _chatChannelRepository.UpdateAsync(channel);
-                    systemChannelUpdated++;
-                }
-                else if (sc.LastMessage != null && channel.LastMessageTime < sc.LastMessage.Time)
-                {
-                    channel.UpdateLastMessage(sc.LastMessage);
-                    await _chatChannelRepository.UpdateAsync(channel);
-                    systemChannelUpdated++;
-                }
-                else if (channel.Id == 0)
-                {
-                    systemChannelCreated++;
-                }
-            }
-
-            result.SystemChannelsCreated = systemChannelCreated;
-            result.SystemChannelsUpdated = systemChannelUpdated;
-
-            // 2. 获取所有活跃用户（有聊天记录的用户）
+            // 获取所有活跃用户（有聊天记录的用户）
             var activeUserIds = await _messageRepository.GetAll()
                 .AsNoTracking()
                 .Where(x => x.To != null)
@@ -496,7 +382,7 @@ public class ChatChannelService : DomainService
 
             result.TotalActiveUsers = activeUserIds.Count;
 
-            // 3. 分批处理私聊频道
+            // 分批处理私聊频道
             int privateChannelCreated = 0;
             int privateChannelUpdated = 0;
             int processedUsers = 0;
@@ -510,7 +396,7 @@ public class ChatChannelService : DomainService
                 // 获取该用户的所有私聊对话
                 var privateChats = await _messageRepository.GetAll()
                     .AsNoTracking()
-                    .Where(x => x.Chan == null && (x.From == userId || x.To == userId) && x.To != null)
+                    .Where(x => x.To != null && (x.From == userId || x.To == userId))
                     .GroupBy(x => new
                     {
                         User1 = x.From < x.To ? x.From : x.To.Value,
@@ -559,7 +445,7 @@ public class ChatChannelService : DomainService
             result.EndTime = DateTime.Now;
             result.IsSuccess = true;
 
-            Logger.Debug($"频道同步完成: 系统频道创建 {systemChannelCreated}, 更新 {systemChannelUpdated}; 私聊频道创建 {privateChannelCreated}, 更新 {privateChannelUpdated}");
+            Logger.Debug($"私聊频道同步完成: 创建 {privateChannelCreated}, 更新 {privateChannelUpdated}");
         }
         catch (Exception ex)
         {
@@ -591,7 +477,7 @@ public class ChatChannelService : DomainService
             // 获取该用户的所有私聊对话
             var privateChats = await _messageRepository.GetAll()
                 .AsNoTracking()
-                .Where(x => x.Chan == null && (x.From == userId || x.To == userId) && x.To != null)
+                .Where(x => x.To != null && (x.From == userId || x.To == userId))
                 .GroupBy(x => new
                 {
                     User1 = x.From < x.To ? x.From : x.To.Value,
@@ -701,8 +587,6 @@ public class ChannelSyncResult
     public bool IsSuccess { get; set; }
     public string? ErrorMessage { get; set; }
     public int TotalActiveUsers { get; set; }
-    public int SystemChannelsCreated { get; set; }
-    public int SystemChannelsUpdated { get; set; }
     public int PrivateChannelsCreated { get; set; }
     public int PrivateChannelsUpdated { get; set; }
     public TimeSpan Duration => EndTime - StartTime;
