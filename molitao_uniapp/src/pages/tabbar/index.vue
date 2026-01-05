@@ -219,6 +219,14 @@ const getUserFriendCount = () => {
 const updateModal = (data) => {
     Object.assign(modalConfig, data)
 }
+// 取消按钮处理
+const onCancel = () => {
+    modalConfig.show = false
+}
+// 确认按钮处理
+const onConfirm = () => {
+    modalConfig.show = false
+}
 </script>
 
 <style lang="scss">
