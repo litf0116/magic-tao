@@ -88,7 +88,7 @@ const getLatestPosts = async () => {
             Type: -1,                // 获取所有分类
             Keyword: '',             // 不搜索关键词
             SkipCount: 1,            // 修正：从第一条开始（1-based indexing）
-            MaxResultCount: 10,      // 获取10条
+            MaxResultCount: 15,      // 获取15条
             isTop: false,           // 不包含置顶帖
         })
 
