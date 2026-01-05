@@ -152,7 +152,13 @@ const dialogVisible = ref(false)
 const show = (e: boolean, data) => {
     dialogVisible.value = e
     if (data != null) {
-        form.value = data
+        // 只提取需要的字段，避免提交不必要的数据
+        form.value = {
+            postId: data.postId,
+            categoryId: data.categoryId || '',
+            title: data.title || '',
+            content: data.content || '',
+        }
         activeKey.value = form.value.categoryId.split(',').map(Number)
     }
 }

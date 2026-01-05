@@ -260,8 +260,9 @@ namespace TtWork.Project.PostBar
                     throw new UserFriendlyException($"已删除的帖子无法修改");
                 }
 
+                // 只更新允许编辑的字段，避免覆盖其他字段
                 await _sqlSugarClient.Updateable(input)
-                    .IgnoreColumns(it => new { it.createdAt, it.updatedAt })
+                    .UpdateColumns(it => new { it.categoryId, it.title, it.content })
                     .Where(w => w.postId == input.postId).ExecuteCommandAsync();
             }
             catch (Exception ex)
