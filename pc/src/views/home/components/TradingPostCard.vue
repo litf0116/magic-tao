@@ -9,12 +9,10 @@
                 <!-- 左侧容器：标题和描述 -->
                 <div class="title-container">
                     <!-- 标题图片 -->
-                    <img class="title-image" src="@/assets/images/title_trade.png" alt="交易站"/>
+                    <img class="title-image" src="@/assets/images/title_trade.png" alt="交易站" />
 
                     <!-- 描述文字 -->
-                    <div class="description">
-                        商品多多任你挑选
-                    </div>
+                    <div class="description">商品多多任你挑选</div>
                 </div>
 
                 <!-- 右侧操作按钮 -->
@@ -33,13 +31,8 @@
                     </div>
 
                     <!-- 列表内容 -->
-                    <div class="news-list" v-loading="loading">
-                        <div
-                            v-for="item in newsList"
-                            :key="item.id"
-                            class="news-item"
-                            @click="goToPostDetail(item.id)"
-                        >
+                    <div v-loading="loading" class="news-list">
+                        <div v-for="item in newsList" :key="item.id" class="news-item" @click="goToPostDetail(item.id)">
                             <div class="news-content">
                                 <div class="diamond"></div>
                                 <span class="news-text">{{ item.text }}</span>
@@ -48,9 +41,7 @@
                         </div>
 
                         <!-- 空状态处理 -->
-                        <div v-if="newsList.length === 0 && !loading" class="empty-state">
-                            暂无最新帖子
-                        </div>
+                        <div v-if="newsList.length === 0 && !loading" class="empty-state">暂无最新帖子</div>
                     </div>
                 </div>
             </div>
@@ -85,19 +76,19 @@ const getLatestPosts = async () => {
     loading.value = true
     try {
         const response = await GetList({
-            Type: -1,                // 获取所有分类
-            Keyword: '',             // 不搜索关键词
-            SkipCount: 1,            // 修正：从第一条开始（1-based indexing）
-            MaxResultCount: 10,      // 获取10条
-            isTop: false,           // 不包含置顶帖
+            Type: -1, // 获取所有分类
+            Keyword: '', // 不搜索关键词
+            SkipCount: 1, // 修正：从第一条开始（1-based indexing）
+            MaxResultCount: 15, // 获取15条
+            isTop: false, // 不包含置顶帖
         })
 
         if (response.data && response.data.items) {
             // 处理返回的数据
-            newsList.value = response.data.items.map(post => ({
+            newsList.value = response.data.items.map((post) => ({
                 id: post.postId,
                 text: post.title,
-                date: formatDate(post.createdAt)
+                date: formatDate(post.createdAt),
             }))
         }
     } catch (error) {
@@ -145,7 +136,7 @@ onMounted(() => {
         border: 100px solid transparent;
         border-left: none;
         border-right: none;
-        border-image: url("@/assets/images/panel_background.png") 100 0 100 0  fill stretch;
+        border-image: url('@/assets/images/panel_background.png') 100 0 100 0 fill stretch;
         pointer-events: none; // 不阻挡用户交互
         z-index: 0;
     }
@@ -202,7 +193,7 @@ onMounted(() => {
                     font-weight: 400;
                     font-size: 16px;
                     line-height: 100%;
-                    color: #5B3B2D;
+                    color: #5b3b2d;
 
                     flex: none;
                     order: 1;
@@ -221,7 +212,7 @@ onMounted(() => {
                 width: 80px;
                 height: 30px;
 
-                background: #62331E;
+                background: #62331e;
                 border: none;
                 border-radius: 60px;
                 cursor: pointer;
@@ -239,7 +230,7 @@ onMounted(() => {
                     font-weight: 500;
                     font-size: 14px;
                     line-height: 100%;
-                    color: #E6AC7A;
+                    color: #e6ac7a;
 
                     flex: none;
                     order: 0;
@@ -247,7 +238,7 @@ onMounted(() => {
                 }
 
                 &:hover {
-                    background: #7A4326;
+                    background: #7a4326;
                     transform: scale(1.05);
                 }
             }
@@ -259,7 +250,6 @@ onMounted(() => {
             flex-direction: column;
             align-items: flex-start;
             margin-top: 30px;
-
 
             .news-container {
                 display: flex;
@@ -274,7 +264,7 @@ onMounted(() => {
                 .news-header {
                     width: 116px;
                     height: 35px;
-                    background: linear-gradient(90deg, #74422C 0%, #D89476 82.76%);
+                    background: linear-gradient(90deg, #74422c 0%, #d89476 82.76%);
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -286,7 +276,7 @@ onMounted(() => {
                         font-weight: 700;
                         font-size: 18px;
                         line-height: 100%;
-                        color: #5B3B2D;
+                        color: #5b3b2d;
                     }
                 }
 
@@ -325,7 +315,7 @@ onMounted(() => {
                             .diamond {
                                 width: 5.66px;
                                 height: 5.66px;
-                                background: #E6AC7A;
+                                background: #e6ac7a;
                                 transform: rotate(45deg);
                                 flex-shrink: 0;
                             }
@@ -337,7 +327,7 @@ onMounted(() => {
                                 font-weight: 400;
                                 font-size: 16px;
                                 line-height: 100%;
-                                color: #CCA396;
+                                color: #cca396;
                                 overflow: hidden;
                                 text-overflow: ellipsis;
                                 white-space: nowrap;
@@ -353,7 +343,7 @@ onMounted(() => {
                             font-weight: 400;
                             font-size: 16px;
                             line-height: 100%;
-                            color: #BD8775;
+                            color: #bd8775;
                             flex-shrink: 0; /* 防止时间文字被压缩 */
                             flex-basis: 80px; /* 确保足够宽度显示完整日期 */
                             min-width: 80px; /* 最小宽度保证时间显示 */
@@ -373,7 +363,7 @@ onMounted(() => {
                         font-style: normal;
                         font-weight: 400;
                         font-size: 14px;
-                        color: #BD8775;
+                        color: #bd8775;
                     }
                 }
             }

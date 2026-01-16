@@ -2,15 +2,15 @@
     <main class="min-h-screen">
         <div class="wrap">
             <div class="header">
-                <img class="logo2" :src="'https://image.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png'"/>
+                <img class="logo2" :src="'https://image.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png'" />
             </div>
-            <public-nav/>
+            <public-nav />
             <div class="content px-4" :class="route.path === '/index' ? '' : 'with-decoration'">
                 <router-view v-slot="{ Component }">
-                    <component :is="Component" :key="route.fullPath"/>
+                    <component :is="Component" :key="route.fullPath" />
                 </router-view>
             </div>
-            <Footer/>
+            <Footer />
         </div>
     </main>
 </template>
@@ -51,18 +51,21 @@ main {
     // 只在非首页显示的装饰样式
     .content.with-decoration {
         margin-top: 15px;
-        background: url('https://image.molitao.top/molitao/2025-03-30/upload_qxgt8fo3iymdi0heth3rnqipc83rzawn.png') repeat-y center center / 100% 100%;
+        background: url('https://image.molitao.top/molitao/2025-03-30/upload_qxgt8fo3iymdi0heth3rnqipc83rzawn.png')
+            repeat-y center center / 100% 100%;
 
         &::before {
             content: '';
             @apply block absolute w-full h-18px -top-18px lg:-top-53px lg:h-53px left-0 right-0;
-            background: url('https://image.molitao.top/molitao/2025-03-30/upload_iw2aq9rsovog4lr3v036irwm90nyos20.png') no-repeat center center / 100% 100%;
+            background: url('https://image.molitao.top/molitao/2025-03-30/upload_iw2aq9rsovog4lr3v036irwm90nyos20.png')
+                no-repeat center center / 100% 100%;
         }
 
         &::after {
             content: '';
             @apply block absolute w-full h-18px -bottom-18px lg:h-45px lg:-bottom-45px left-0 right-0;
-            background: url('https://image.molitao.top/molitao/2025-03-30/upload_to45oxex09l2uu1ltntj09n6z1x4y0df.png') no-repeat center center / 100% 100%;
+            background: url('https://image.molitao.top/molitao/2025-03-30/upload_to45oxex09l2uu1ltntj09n6z1x4y0df.png')
+                no-repeat center center / 100% 100%;
         }
     }
 }

@@ -70,10 +70,10 @@
                                         class="tag_AuctionManager"
                                         :class="{
                                             'level-7-premium': message.userChatLevel.level === 7,
-                                            'level-8-ultimate': message.userChatLevel.level === 8
+                                            'level-8-ultimate': message.userChatLevel.level === 8,
                                         }"
                                         :style="getLevelStyle(message.userChatLevel)"
-                                        style="margin-right: 5px;"
+                                        style="margin-right: 5px"
                                     >
                                         <span>{{ message.userChatLevel.name }}</span>
                                     </div>
@@ -726,14 +726,14 @@ function getLevelStyle(userChatLevel) {
     if (userChatLevel.level === 8) {
         return {
             color: '#FFD700',
-            textShadow: '0 0 8px rgba(255, 215, 0, 0.8), 1px 1px 2px rgba(0, 0, 0, 0.5)'
+            textShadow: '0 0 8px rgba(255, 215, 0, 0.8), 1px 1px 2px rgba(0, 0, 0, 0.5)',
         }
     }
 
     // 其他等级：保持原有的渐变效果
     return {
         background: `linear-gradient(90deg,${userChatLevel.borderColor},${userChatLevel.rightBorderColor})`,
-        color: '#fff'
+        color: '#fff',
     }
 }
 </script>
@@ -1261,31 +1261,20 @@ function getLevelStyle(userChatLevel) {
     font-weight: bold;
     padding: 2px 6px;
     background: #000000;
-    color: #FFD700;
-    border: 2px solid #FFD700;
+    color: #ffd700;
+    border: 2px solid #ffd700;
     box-shadow: 0 0 6px rgba(255, 215, 0, 0.6);
-    font-family: "Microsoft YaHei", "微软雅黑", sans-serif;
+    font-family: 'Microsoft YaHei', '微软雅黑', sans-serif;
 }
 
 .level-8-ultimate {
     border-radius: 4px;
     font-weight: bold;
     padding: 2px 6px;
-    background: linear-gradient(
-        45deg,
-        #ff0000,
-        #ff7300,
-        #fffb00,
-        #48ff00,
-        #00ffd5,
-        #002bff,
-        #7a00ff,
-        #ff00c8,
-        #ff0000
-    );
+    background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
     background-size: 400%;
     animation: rainbow-bg 6s linear infinite;
-    font-family: "Microsoft YaHei", "微软雅黑", sans-serif;
+    font-family: 'Microsoft YaHei', '微软雅黑', sans-serif;
 }
 
 @keyframes rainbow-bg {

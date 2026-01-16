@@ -27,7 +27,7 @@ export const useUserStore = defineStore('user', () => {
         if (!user.value || !user.value.headImgUrl) return user.value
         return {
             ...user.value,
-            headImgUrl: convertImageUrl(user.value.headImgUrl)
+            headImgUrl: convertImageUrl(user.value.headImgUrl),
         }
     })
     const token = ref(getToken() || '')
@@ -73,7 +73,6 @@ export const useUserStore = defineStore('user', () => {
         })
     }
 
-  
     function SET_USER(payload: UserLoginInfoDto) {
         user.value = payload
         localStorage.setItem('user', JSON.stringify(payload))

@@ -10,7 +10,7 @@
                 >
                     <!-- 处理占位符图片 -->
                     <div v-if="!item.imageUrl" class="ad-placeholder"></div>
-                    <img v-else :src="item.imageUrl" :alt="item.title" class="ad-image" @error="handleImageError"/>
+                    <img v-else :src="item.imageUrl" :alt="item.title" class="ad-image" @error="handleImageError" />
                     <!-- 只有有图片时才显示标题 -->
                     <div v-if="item.imageUrl" class="ad-title">{{ item.title }}</div>
                 </div>
@@ -20,8 +20,8 @@
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted} from 'vue'
-import {GetTypeList} from '@/api/advertisingSpaceAPI'
+import { ref, onMounted } from 'vue'
+import { GetTypeList } from '@/api/advertisingSpaceAPI'
 
 interface AdvertisementItem {
     id?: number
@@ -36,7 +36,7 @@ const createPlaceholderAds = (): AdvertisementItem[] => {
         id: index,
         title: '', // 空广告位不需要标题
         imageUrl: '',
-        url: ''
+        url: '',
     }))
 }
 
@@ -67,7 +67,7 @@ const fetchAdvertisements = async () => {
                         id: i,
                         title: '', // 空广告位不需要标题
                         imageUrl: '',
-                        url: ''
+                        url: '',
                     })
                 }
             }
@@ -106,8 +106,8 @@ const handleImageError = (event: Event) => {
     box-sizing: border-box;
     width: 1300px;
     height: 204px;
-    background: #FFF2E8;
-    border: 14px solid #AE6F4D;
+    background: #fff2e8;
+    border: 14px solid #ae6f4d;
     border-radius: 20px;
 
     /* 响应式调整 */
@@ -171,7 +171,7 @@ const handleImageError = (event: Event) => {
         /* 应用提供的Rectangle 32样式 */
         width: 193.33px;
         height: 114px;
-        background: #F3D9B3;
+        background: #f3d9b3;
         border-radius: 10px;
         overflow: hidden;
 
@@ -201,7 +201,7 @@ const handleImageError = (event: Event) => {
         &:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-            background: #E5C299;
+            background: #e5c299;
         }
     }
 
@@ -215,7 +215,7 @@ const handleImageError = (event: Event) => {
     .ad-placeholder {
         width: 100%;
         height: 100%;
-        background: #F3D9B3;
+        background: #f3d9b3;
         border-radius: 6px;
         display: none; /* 默认隐藏，图片加载失败时显示 */
     }

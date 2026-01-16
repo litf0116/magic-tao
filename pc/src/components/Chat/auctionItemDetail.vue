@@ -28,7 +28,11 @@
             <!-- {{ onAuctionItem }} -->
             <div>
                 <div
-                    v-if="processedDescription && processedDescription.trim() !== '<br>' && processedDescription.trim() !== ''"
+                    v-if="
+                        processedDescription &&
+                        processedDescription.trim() !== '<br>' &&
+                        processedDescription.trim() !== ''
+                    "
                     id="auctionDesc"
                     v-html="processedDescription"
                 ></div>
@@ -231,7 +235,7 @@ const show = (e: boolean, id: number) => {
 
             // 同步卡秒状态，确保使用最新的状态
             if (res.data.status === '拍卖中') {
-                auctionStore.syncKasecStatus(id).catch(error => {
+                auctionStore.syncKasecStatus(id).catch((error) => {
                     console.error('同步卡秒状态失败:', error)
                 })
             }

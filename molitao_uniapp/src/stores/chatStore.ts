@@ -372,18 +372,27 @@ export const useChatStore = defineStore('chatStore', () => {
         }
 
         // 特殊处理：监听拍卖结束消息，为中拍用户创建聊天频道
-        if (msg.type === 'AuctionEnd' && msg.payload) {
+        // 需要在解码后处理，因为 AuctionDeal 消息被编码为 AuctionEnd 传输，解码后类型变回 AuctionDeal
+        if ((msg.type === 'AuctionEnd' || msg.type === ChatMessageType.AuctionDeal) && msg.payload) {
             // console.log('检测到拍卖结束消息，为中拍用户创建聊天频道', msg.payload)
             const userStore = useUserStore()
-            
-            // 发送者（拍卖师）：为中拍用户创建聊天会话
-            if (msg.from === userStore.user.id) {
-                addAuctionDealUser(msg.payload, 'AuctionEnd')
-            }
-            
-            // 接收者（中拍用户）：为自己创建聊天会话
-            if (msg.to === userStore.user.id) {
-                addAuctionDealUser(msg.payload, 'AuctionEnd')
+
+            // 检查 payload 中是否有成交用户信息
+            const dealUserId = msg.payload.dealUserId || msg.payload.DealUserId
+
+            if (dealUserId) {
+                // 优先使用拍卖成交时间，而不是消息接收时间
+                const dealTime = msg.payload.dealTime || msg.payload.DealTime || msg.time || new Date().getTime()
+
+                // 发送者（拍卖师）：为中拍用户创建聊天会话
+                if (msg.from === userStore.user.id) {
+                    addAuctionDealUser(msg.payload, 'AuctionDeal', dealTime)
+                }
+
+                // 接收者（中拍用户）：为自己创建聊天会话
+                if (msg.to === userStore.user.id) {
+                    addAuctionDealUser(msg.payload, 'AuctionDeal', dealTime)
+                }
             }
         }
     }
@@ -686,7 +695,11 @@ export const useChatStore = defineStore('chatStore', () => {
     }
 
     // 新增：为中拍用户创建聊天频道
-    const addAuctionDealUser = (auctionResult: any, messageType: 'AuctionEnd' | 'AuctionDeal' = 'AuctionEnd') => {
+    const addAuctionDealUser = (
+        auctionResult: any,
+        messageType: 'AuctionEnd' | 'AuctionDeal' = 'AuctionEnd',
+        msgTime?: number
+    ) => {
         // 兼容不同的属性名格式
         const dealUserId = auctionResult.dealUserId || auctionResult.DealUserId
         const dealUserName = auctionResult.dealUserName || auctionResult.DealUserName
@@ -703,7 +716,7 @@ export const useChatStore = defineStore('chatStore', () => {
         if (existingChat) {
             // 如果已存在，更新最后消息
             existingChat.lastMsg = `恭喜您拍得了${itemName}`
-            existingChat.time = new Date().getTime()
+            existingChat.time = msgTime || auctionResult.time || new Date().getTime()
             // 将聊天项移到顶部
             chatList.value = [existingChat, ...chatList.value.filter((item) => item.id !== dealUserId)]
             return
@@ -722,7 +735,7 @@ export const useChatStore = defineStore('chatStore', () => {
             id: dealUserId,
             name: dealUserName,
             type: ChatListItemType.user,
-            time: new Date().getTime(),
+            time: msgTime || auctionResult.time || new Date().getTime(),
             lastMsg: lastMsg,
             avatar: convertImageUrl(dealUserAvatar || 'https://cdn.molitao.top/avater.png'),
             unread: 0,
@@ -733,7 +746,7 @@ export const useChatStore = defineStore('chatStore', () => {
                 fromName: dealUserName,
                 avatar: dealUserAvatar,
                 msg: lastMsg,
-                time: new Date().getTime(),
+                time: msgTime || auctionResult.time || new Date().getTime(),
                 payload: auctionResult,
             },
         }

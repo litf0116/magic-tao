@@ -13,12 +13,7 @@
             </div>
             <template v-if="activeName === '1'">
                 <div class="grid grid-cols-1 gap-2">
-                    <list-auction-item
-                        v-for="x in waitList"
-                        :key="x.id"
-                        :item="x"
-                        @showDetail="showDetail"
-                    />
+                    <list-auction-item v-for="x in waitList" :key="x.id" :item="x" @showDetail="showDetail" />
                     <div class="h-4"></div>
                 </div>
             </template>
@@ -35,12 +30,7 @@
             </template> -->
             <template v-else-if="activeName === '3'">
                 <div class="grid grid-cols-1 gap-2">
-                    <list-auction-item
-                        v-for="x in auctionStore.list4"
-                        :key="x.id"
-                        :item="x"
-                        @showDetail="showDetail"
-                    />
+                    <list-auction-item v-for="x in auctionStore.list4" :key="x.id" :item="x" @showDetail="showDetail" />
                     <div class="h-4"></div>
                 </div>
             </template>

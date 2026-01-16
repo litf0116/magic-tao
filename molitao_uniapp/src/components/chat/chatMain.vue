@@ -1521,10 +1521,10 @@ function getLevelStyle(userChatLevel) {
     font-weight: bold;
     padding: 4rpx 8rpx;
     background: #000000;
-    color: #FFD700;
-    border: 2rpx solid #FFD700;
+    color: #ffd700;
+    border: 2rpx solid #ffd700;
     box-shadow: 0 0 6rpx rgba(255, 215, 0, 0.6);
-    font-family: "Microsoft YaHei", "微软雅黑", sans-serif;
+    font-family: 'Microsoft YaHei', '微软雅黑', sans-serif;
 }
 
 .level-8-ultimate {
@@ -1532,21 +1532,10 @@ function getLevelStyle(userChatLevel) {
     border-radius: 8rpx;
     font-weight: bold;
     padding: 4rpx 10rpx;
-    background: linear-gradient(
-        45deg,
-        #ff0000,
-        #ff7300,
-        #fffb00,
-        #48ff00,
-        #00ffd5,
-        #002bff,
-        #7a00ff,
-        #ff00c8,
-        #ff0000
-    );
+    background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
     background-size: 400%;
     animation: rainbow-bg 6s linear infinite;
-    font-family: "Microsoft YaHei", "微软雅黑", sans-serif;
+    font-family: 'Microsoft YaHei', '微软雅黑', sans-serif;
 }
 
 @keyframes rainbow-bg {

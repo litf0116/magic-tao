@@ -10,7 +10,7 @@
 
             <!-- 卡秒模式警告 -->
             <view v-if="isKasec" class="kasec-warning">
-                您已卡秒出价，需加够三倍加价才有效 <br>（最低出价：{{ minPrice }}）
+                您已卡秒出价，需加够三倍加价才有效 <br />（最低出价：{{ minPrice }}）
             </view>
 
             <!-- 提示文本 - 只在非卡秒模式显示 -->
@@ -20,22 +20,13 @@
 
             <!-- 输入区域 -->
             <view class="input-section">
-                <input
-                    v-model="inputValue"
-                    class="modal-input"
-                    type="digit"
-                    @confirm="handleConfirm"
-                />
+                <input v-model="inputValue" class="modal-input" type="digit" @confirm="handleConfirm" />
             </view>
 
             <!-- 按钮区域 -->
             <view class="modal-buttons">
                 <button class="modal-btn cancel" @click="handleCancel">取消</button>
-                <button
-                    class="modal-btn confirm"
-                    :class="{ 'kasec-confirm': isKasec }"
-                    @click="handleConfirm"
-                >
+                <button class="modal-btn confirm" :class="{ 'kasec-confirm': isKasec }" @click="handleConfirm">
                     确定
                 </button>
             </view>

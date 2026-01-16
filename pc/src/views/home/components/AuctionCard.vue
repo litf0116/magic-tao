@@ -10,12 +10,10 @@
                 <!-- 左侧容器：标题和描述 -->
                 <div class="title-container">
                     <!-- 标题图片 -->
-                    <img class="title-image" src="@/assets/images/title_auction.png" alt="拍卖行"/>
+                    <img class="title-image" src="@/assets/images/title_auction.png" alt="拍卖行" />
 
                     <!-- 描述文字 -->
-                    <div class="description">
-                        每晚7：30-12：30
-                    </div>
+                    <div class="description">每晚7：30-12：30</div>
                 </div>
 
                 <!-- 右侧操作按钮 -->
@@ -34,12 +32,8 @@
                     </div>
 
                     <!-- 列表内容 -->
-                    <div class="auction-list" v-loading="loading">
-                        <div
-                            v-for="item in formatAuctionItems"
-                            :key="item.id"
-                            class="auction-item"
-                        >
+                    <div v-loading="loading" class="auction-list">
+                        <div v-for="item in formatAuctionItems" :key="item.id" class="auction-item">
                             <div class="auction-content">
                                 <div class="diamond"></div>
                                 <span class="auction-text">{{ item.name }}</span>
@@ -47,9 +41,7 @@
                         </div>
 
                         <!-- 空状态处理 -->
-                        <div v-if="formatAuctionItems.length === 0 && !loading" class="empty-state">
-                            暂无待拍商品
-                        </div>
+                        <div v-if="formatAuctionItems.length === 0 && !loading" class="empty-state">暂无待拍商品</div>
                     </div>
                 </div>
             </div>
@@ -82,7 +74,7 @@ const getLatestAuctionItems = async () => {
         const res = await GetPublicListAnonymous({
             maxResultCount: 20,
             skipCount: 1,
-            sorting: 'creationTime desc' // 按创建时间倒序
+            sorting: 'creationTime desc', // 按创建时间倒序
         })
 
         console.log('=== AuctionCard 匿名拍品列表 API响应 ===')
@@ -111,7 +103,7 @@ const getLatestAuctionItems = async () => {
         const itemsWithImages = convertObjectImageUrlsArray(items || [], ['imageUrl'])
         publicList.value = itemsWithImages.map((item, index) => ({
             ...item,
-            displayIndex: item.name?.includes('空降') ? '' : (index + 1).toString()
+            displayIndex: item.name?.includes('空降') ? '' : (index + 1).toString(),
         }))
 
         console.log('拍卖卡片数据刷新，实际数据条数:', publicList.value.length)
@@ -126,9 +118,9 @@ const getLatestAuctionItems = async () => {
 
 // 格式化商品数据
 const formatAuctionItems = computed(() => {
-    return publicList.value.map(item => ({
+    return publicList.value.map((item) => ({
         id: item.id,
-        name: item.name || '未知商品'
+        name: item.name || '未知商品',
     }))
 })
 
@@ -160,7 +152,7 @@ onMounted(() => {
         border: 100px solid transparent;
         border-left: none;
         border-right: none;
-        border-image: url("@/assets/images/panel_background.png") 100 0 100 0 fill stretch;
+        border-image: url('@/assets/images/panel_background.png') 100 0 100 0 fill stretch;
         pointer-events: none; // 不阻挡用户交互
         z-index: 0;
     }
@@ -217,7 +209,7 @@ onMounted(() => {
                     font-weight: 400;
                     font-size: 16px;
                     line-height: 100%;
-                    color: #5B3B2D;
+                    color: #5b3b2d;
 
                     flex: none;
                     order: 1;
@@ -236,7 +228,7 @@ onMounted(() => {
                 width: 80px;
                 height: 30px;
 
-                background: #62331E;
+                background: #62331e;
                 border: none;
                 border-radius: 60px;
                 cursor: pointer;
@@ -254,7 +246,7 @@ onMounted(() => {
                     font-weight: 500;
                     font-size: 14px;
                     line-height: 100%;
-                    color: #E6AC7A;
+                    color: #e6ac7a;
 
                     flex: none;
                     order: 0;
@@ -262,7 +254,7 @@ onMounted(() => {
                 }
 
                 &:hover {
-                    background: #7A4326;
+                    background: #7a4326;
                     transform: scale(1.05);
                 }
             }
@@ -288,7 +280,7 @@ onMounted(() => {
                 .auction-header {
                     width: 116px;
                     height: 35px;
-                    background: linear-gradient(90deg, #74422C 0%, #D89476 82.76%);
+                    background: linear-gradient(90deg, #74422c 0%, #d89476 82.76%);
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -300,7 +292,7 @@ onMounted(() => {
                         font-weight: 700;
                         font-size: 18px;
                         line-height: 100%;
-                        color: #5B3B2D;
+                        color: #5b3b2d;
                     }
                 }
 
@@ -333,7 +325,7 @@ onMounted(() => {
                             .diamond {
                                 width: 5.66px;
                                 height: 5.66px;
-                                background: #E6AC7A;
+                                background: #e6ac7a;
                                 transform: rotate(45deg);
                                 flex-shrink: 0;
                                 margin-top: 5px; /* 调整菱形位置，与第一行文本对齐 */
@@ -346,7 +338,7 @@ onMounted(() => {
                                 font-weight: 400;
                                 font-size: 16px;
                                 line-height: 1.4; /* 设置合适的行高 */
-                                color: #CCA396;
+                                color: #cca396;
                                 word-wrap: break-word; /* 允许长单词换行 */
                                 word-break: break-all; /* 允许任意位置换行 */
                                 flex: 1; /* 占据剩余空间 */
@@ -367,7 +359,7 @@ onMounted(() => {
                         font-style: normal;
                         font-weight: 400;
                         font-size: 14px;
-                        color: #BD8775;
+                        color: #bd8775;
                     }
                 }
             }
