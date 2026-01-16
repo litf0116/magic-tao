@@ -1,12 +1,12 @@
 <template>
     <div class="home-container">
         <!-- 广告展示区域 -->
-        <AdvertisementBanner/>
+        <AdvertisementBanner />
 
         <!-- 双模块容器 -->
         <div class="modules-container">
-            <TradingPostCard/>
-            <AuctionCard/>
+            <TradingPostCard />
+            <AuctionCard />
         </div>
     </div>
 </template>

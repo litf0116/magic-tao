@@ -17,12 +17,14 @@ export function GetDetail(id) {
  * @param params 查询参数
  * @returns
  */
-export function GetPublicListAnonymous(params: {
-    maxResultCount?: number
-    skipCount?: number
-    keyword?: string
-    sorting?: string
-} = {}) {
+export function GetPublicListAnonymous(
+    params: {
+        maxResultCount?: number
+        skipCount?: number
+        keyword?: string
+        sorting?: string
+    } = {}
+) {
     return axios({
         url: '/api/AuctionItem/GetPublicListAnonymous',
         method: 'get',
@@ -30,8 +32,8 @@ export function GetPublicListAnonymous(params: {
             MaxResultCount: params.maxResultCount,
             SkipCount: params.skipCount,
             Keyword: params.keyword,
-            Sorting: params.sorting
-        }
+            Sorting: params.sorting,
+        },
     })
 }
 

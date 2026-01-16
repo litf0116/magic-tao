@@ -1,7 +1,7 @@
-import type {AuctionItemDto} from '@/composables/types'
+import type { AuctionItemDto } from '@/composables/types'
 import api from '@/utils/api'
-import {defineStore} from 'pinia'
-import {ref} from 'vue'
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
 
 export const useAuctionStore = defineStore('auction', () => {
     const chatStore = useChatStore()
@@ -34,7 +34,7 @@ export const useAuctionStore = defineStore('auction', () => {
     }
 
     function end(auctionItemId: number) {
-        api.auctionItem.endAuction({id: auctionItemId}).then((res) => {
+        api.auctionItem.endAuction({ id: auctionItemId }).then((res) => {
             chatStore.sendChannelMsg('', '-1_auction', ChatMessageType.AuctionEnd, res)
         })
     }
@@ -57,13 +57,13 @@ export const useAuctionStore = defineStore('auction', () => {
     function getList(status: number | undefined = undefined) {
         return new Promise<void>((resolve) => {
             if (!status) {
-                api.auctionItem.getPublicList({MaxResultCount: 100}).then((res) => {
+                api.auctionItem.getPublicList({ MaxResultCount: 100 }).then((res) => {
                     list.value = res.items!
                     // Tips.success('拍卖列表已刷新')
                     return resolve()
                 })
             } else if (status === 4) {
-                api.auctionItem.getPublicList({status, MaxResultCount: 100}).then((res) => {
+                api.auctionItem.getPublicList({ status, MaxResultCount: 100 }).then((res) => {
                     list4.value = res.items!
                     // Tips.success('拍卖列表已刷新')
                     return resolve()
@@ -75,7 +75,7 @@ export const useAuctionStore = defineStore('auction', () => {
     }
 
     function startAuction(id: number) {
-        api.auctionItem.startAuction({id: id}).then((res) => {
+        api.auctionItem.startAuction({ id: id }).then((res) => {
             // TODO:通知拍卖房间的人刷新拍品列表
             chatStore.sendChannelMsg('', '-1_auction', ChatMessageType.AuctionStart, res)
         })
@@ -83,7 +83,7 @@ export const useAuctionStore = defineStore('auction', () => {
 
     function startNotify(id: number) {
         return new Promise<void>((resolve) => {
-            api.auctionItem.subStartNotify({auctionItemId: id, openid: userStore.openid}).then(() => {
+            api.auctionItem.subStartNotify({ auctionItemId: id, openid: userStore.openid }).then(() => {
                 return resolve()
             })
         })

@@ -93,8 +93,7 @@
             </div>
 
             <div class="search-div">
-                <div class="search-input">
-                </div>
+                <div class="search-input"></div>
             </div>
 
             <div class="post-content">

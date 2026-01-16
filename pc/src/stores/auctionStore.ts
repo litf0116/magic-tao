@@ -22,7 +22,7 @@ export const useAuctionStore = defineStore('auction', () => {
     // 辅助函数：为拍卖品列表计算显示序号
     function calculateDisplayIndices(items: AuctionItemDto[]): AuctionItemDto[] {
         let currentIndex = 1
-        return items.map(item => {
+        return items.map((item) => {
             // 空降商品不显示序号
             if (item.name?.includes('空降')) {
                 return { ...item, displayIndex: '' }
@@ -67,7 +67,7 @@ export const useAuctionStore = defineStore('auction', () => {
             return {
                 ...item,
                 ...updatedData,
-                displayIndex: item.displayIndex // 确保不覆盖原有的 displayIndex
+                displayIndex: item.displayIndex, // 确保不覆盖原有的 displayIndex
             }
         }
 
@@ -272,7 +272,7 @@ export const useAuctionStore = defineStore('auction', () => {
             })
     }
 
-    function getList(status: number | undefined = undefined, maxResultCount: number = 100) {
+    function getList(status: number | undefined = undefined, maxResultCount = 100) {
         return new Promise<void>((resolve) => {
             //待拍卖
             if (!status) {

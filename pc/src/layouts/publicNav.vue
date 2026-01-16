@@ -34,7 +34,7 @@ function go(x: { name: string; path: string; url?: string | undefined }) {
 
     .nav-item {
         @apply w-163px flex flex-center text-center md:font-bold text-10px md:text-14px lg:text-18px cursor-pointer hover:scale-105 transition-all duration-300;
-        color: #833A00;
+        color: #833a00;
         background: url('@/assets/images/menu_normal.png') no-repeat center 3px / 100% 100%;
     }
 

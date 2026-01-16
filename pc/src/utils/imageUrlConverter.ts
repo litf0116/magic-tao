@@ -9,10 +9,10 @@
  * @returns 转换后的URL
  */
 export function convertImageUrl(url: string): string {
-    if (!url) return url;
+    if (!url) return url
 
     // 将 cdn.molitao.top 替换为 image.molitao.top
-    return url.replace(/https?:\/\/cdn\.molitao\.top/g, 'https://image.molitao.top');
+    return url.replace(/https?:\/\/cdn\.molitao\.top/g, 'https://image.molitao.top')
 }
 
 /**
@@ -21,9 +21,9 @@ export function convertImageUrl(url: string): string {
  * @returns 转换后的URL数组
  */
 export function convertImageUrls(urls: string[]): string[] {
-    if (!Array.isArray(urls)) return urls;
+    if (!Array.isArray(urls)) return urls
 
-    return urls.map(url => convertImageUrl(url));
+    return urls.map((url) => convertImageUrl(url))
 }
 
 /**
@@ -36,17 +36,17 @@ export function convertObjectImageUrls<T extends Record<string, any>>(
     obj: T,
     urlKeys: string[] = ['avatar', 'url', 'imageUrl', 'image', 'src']
 ): T {
-    if (!obj || typeof obj !== 'object') return obj;
+    if (!obj || typeof obj !== 'object') return obj
 
-    const result = {...obj} as any;
+    const result = { ...obj } as any
 
     for (const key of urlKeys) {
         if (result[key] && typeof result[key] === 'string') {
-            result[key] = convertImageUrl(result[key]);
+            result[key] = convertImageUrl(result[key])
         }
     }
 
-    return result;
+    return result
 }
 
 /**
@@ -59,9 +59,9 @@ export function convertObjectImageUrlsArray<T extends Record<string, any>>(
     objects: T[],
     urlKeys: string[] = ['avatar', 'url', 'imageUrl', 'image', 'src']
 ): T[] {
-    if (!Array.isArray(objects)) return objects;
+    if (!Array.isArray(objects)) return objects
 
-    return objects.map(obj => convertObjectImageUrls(obj, urlKeys));
+    return objects.map((obj) => convertObjectImageUrls(obj, urlKeys))
 }
 
 /**
@@ -70,7 +70,7 @@ export function convertObjectImageUrlsArray<T extends Record<string, any>>(
  * @returns 转换后的URL
  */
 export function convertEnvImageUrl(url: string): string {
-    return convertImageUrl(url);
+    return convertImageUrl(url)
 }
 
 export default {
@@ -78,5 +78,5 @@ export default {
     convertImageUrls,
     convertObjectImageUrls,
     convertObjectImageUrlsArray,
-    convertEnvImageUrl
-};
+    convertEnvImageUrl,
+}
