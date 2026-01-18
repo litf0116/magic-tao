@@ -12,6 +12,7 @@
     <ProjectReference Include="..\..\src\TtWork.Project.Core\TtWork.Project.Core.csproj" />
     <ProjectReference Include="..\..\Modules\TtWork.Abp.Core\TtWork.Abp.Core.csproj" />
     <ProjectReference Include="..\..\Modules\TtWork.Abp.AppManagement\TtWork.Abp.AppManagement.csproj" />
+    <ProjectReference Include="..\..\Modules\TtWork.Abp.Entity\TtWork.Abp.Entity.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />

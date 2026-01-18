@@ -1,6 +1,7 @@
-﻿using Abp.Authorization;
+using Abp.Authorization;
 using Abp.UI;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using SqlSugar;
 using System;
 using System.Collections.Generic;
@@ -11,6 +12,7 @@ using TtWork.Abp;
 using TtWork.Abp.Entity;
 using TtWork.Project.Applications.GroupChatLevelSettings.Dto;
 using TtWork.Project.Applications.MsgConfiguration;
+using TtWork.Project.Caches;
 
 namespace TtWork.Project.Web.Controllers;
 
@@ -21,9 +23,14 @@ namespace TtWork.Project.Web.Controllers;
 public class GroupChatLevelSettingsService : AbpAppServiceBase
 {
     private readonly ISqlSugarClient _sqlSugarClient;
-    public GroupChatLevelSettingsService(ISqlSugarClient sqlSugar)
+    private readonly GroupChatLevelCacheService _levelCacheService;
+
+    public GroupChatLevelSettingsService(
+        ISqlSugarClient sqlSugar,
+        GroupChatLevelCacheService levelCacheService)
     {
         _sqlSugarClient = sqlSugar;
+        _levelCacheService = levelCacheService;
     }
     /// <summary>
     /// 获取数据
@@ -75,17 +82,13 @@ public class GroupChatLevelSettingsService : AbpAppServiceBase
     {
         try
         {
-            //查询群等级信息
-            var groupChatLevelSettings = await _sqlSugarClient.Queryable<GroupChatLevelSettingsEntity>()
-             .Where(w => w.AmountRequired <= input.CumulativeAmount)   // 找到小于等于当前累计金额的等级配置
-             .OrderByDescending(o => o.AmountRequired)                       // 按金额要求降序排序，找到最接近的等级
-             .FirstAsync();
+            var groupChatLevelSettings = _levelCacheService.GetCorrectLevel(input.CumulativeAmount);
             if (groupChatLevelSettings == null)
             {
                 throw new UserFriendlyException($"没有匹配的群聊等级信息！");
             }
-            //查询用户等级信息
-            var info = await _sqlSugarClient.Queryable<UserGroupLevelEntity>().FirstAsync(f=>f.UserId==input.UserId);
+
+            var info = await _sqlSugarClient.Queryable<UserGroupLevelEntity>().FirstAsync(f => f.UserId == input.UserId);
             if (info != null)
             {
                 info.CumulativeAmount = input.CumulativeAmount;
@@ -127,6 +130,8 @@ public class GroupChatLevelSettingsService : AbpAppServiceBase
                 BorderColor = input.BorderColor,
                 RightBorderColor = input.RightBorderColor,
             }).ExecuteCommandAsync();
+
+            _levelCacheService.InvalidateCache();
         }
         catch (Exception ex)
         {
@@ -157,6 +162,8 @@ public class GroupChatLevelSettingsService : AbpAppServiceBase
                 BorderColor = input.BorderColor,
                 RightBorderColor = input.RightBorderColor
             }).Where(w=>w.Id==input.Id).ExecuteCommandAsync();
+
+            _levelCacheService.InvalidateCache();
         }
         catch (Exception ex)
         {
@@ -180,6 +187,8 @@ public class GroupChatLevelSettingsService : AbpAppServiceBase
                 throw new UserFriendlyException($"当前数据不存在");
             }
             await _sqlSugarClient.Deleteable<GroupChatLevelSettingsEntity>().Where(w => w.Id == id).ExecuteCommandAsync();
+
+            _levelCacheService.InvalidateCache();
         }
         catch (Exception ex)
         {
@@ -201,18 +210,13 @@ public class GroupChatLevelSettingsService : AbpAppServiceBase
     {
         try
         {
-            // 查询用户等级信息
             var userLevel = await _sqlSugarClient.Queryable<UserGroupLevelEntity>()
                 .Where(w => w.UserId == id)
                 .FirstAsync();
 
-            // 如果用户没有等级信息，返回默认等级0的信息
             if (userLevel == null)
             {
-                var defaultLevel = await _sqlSugarClient.Queryable<GroupChatLevelSettingsEntity>()
-                    .Where(w => w.Level == 0)
-                    .FirstAsync();
-
+                var defaultLevel = _levelCacheService.GetCorrectLevel(0);
                 return new UserLevelInfoDto
                 {
                     UserLevel = new UserGroupLevelEntity
@@ -232,30 +236,20 @@ public class GroupChatLevelSettingsService : AbpAppServiceBase
                 };
             }
 
-            // 查询对应的等级配置信息
-            var levelSettings = await _sqlSugarClient.Queryable<GroupChatLevelSettingsEntity>()
-                .Where(w => w.Id == userLevel.GroupChatId)
-                .FirstAsync();
+            var correctSettings = _levelCacheService.GetCorrectLevel(userLevel.CumulativeAmount);
 
-            // 如果找不到对应的等级配置，返回默认等级0的配置
-            if (levelSettings == null)
+            if (correctSettings != null && userLevel.GroupChatId != correctSettings.Id)
             {
-                levelSettings = await _sqlSugarClient.Queryable<GroupChatLevelSettingsEntity>()
-                    .Where(w => w.Level == 0)
-                    .FirstAsync() ?? new GroupChatLevelSettingsEntity
-                    {
-                        Level = 0,
-                        Name = "普通用户",
-                        AmountRequired = 0,
-                        BorderColor = "#000000",
-                        RightBorderColor = "#000000"
-                    };
+                Logger.Warn($"[GetUserLevelInfo] 用户等级自动修正: UserId={id}, Old={userLevel.GroupChatId}, New={correctSettings.Id}, Amount={userLevel.CumulativeAmount}");
+
+                userLevel.GroupChatId = correctSettings.Id;
+                await _sqlSugarClient.Updateable(userLevel).ExecuteCommandAsync();
             }
 
             return new UserLevelInfoDto
             {
                 UserLevel = userLevel,
-                LevelSettings = levelSettings
+                LevelSettings = correctSettings ?? new GroupChatLevelSettingsEntity { Level = 0, Name = "普通用户" }
             };
         }
         catch (Exception ex)
