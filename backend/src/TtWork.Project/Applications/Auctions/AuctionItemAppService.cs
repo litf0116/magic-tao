@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -18,6 +18,7 @@ using FreeIM;
 using FreeScheduler;
 using Hangfire;
 using MediatR;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -84,9 +85,12 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     private readonly IAuctionItemCacheService _cacheService;
     private readonly IMessageSendingService _messageSendingService;
     private readonly IBidEligibilityService _bidEligibilityService;
+    private readonly IMemoryCache _memoryCache;
+    private const string KASEC_CACHE_PREFIX = "Kasec:";
 
     public AuctionItemAppService(
         IRedisClient redisClient,
+        IMemoryCache memoryCache,
         UserCache userCache,
         IMediator mediator,
         IRepository<AuctionItem, long> repository,
@@ -129,6 +133,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         _cacheService = cacheService;
         _messageSendingService = messageSendingService;
         _bidEligibilityService = bidEligibilityService;
+        _memoryCache = memoryCache;
         // base.GetAllPermissionName = AppPermissions.Pages.ChatManager;
     }
 
@@ -1245,6 +1250,10 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
 
             _logger.LogInformation("Redis卡秒状态设置成功");
 
+            var cacheKey = $"{KASEC_CACHE_PREFIX}{input.AuctionItemId}";
+            _memoryCache.Set(cacheKey, input.IsKasec, TimeSpan.FromSeconds(5));
+            _logger.LogInformation("内存缓存已更新: Key={CacheKey}, Value={Value}", cacheKey, input.IsKasec);
+
             // 获取当前用户信息（拍卖师）
             // var currentUser = await _userCache.GetAsync(AbpSession.UserId.Value);
             // var (isAdmin, adminTag, tagClass) = await CheckIsChatAdmin();
@@ -1304,8 +1313,19 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     [HttpGet]
     public async Task<bool> GetKasecStatus(long auctionItemId)
     {
+        var cacheKey = $"{KASEC_CACHE_PREFIX}{auctionItemId}";
+
+        if (_memoryCache.TryGetValue(cacheKey, out bool cachedValue))
+        {
+            return cachedValue;
+        }
+
         var val = await _redisClient.Database.StringGetAsync($"Auction:Kasec:{auctionItemId}");
-        return val.HasValue && val == "true";
+        bool result = val.HasValue && val == "true";
+
+        _memoryCache.Set(cacheKey, result, TimeSpan.FromSeconds(5));
+
+        return result;
     }
 
     /// <summary>

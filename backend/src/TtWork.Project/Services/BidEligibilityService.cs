@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Abp.Domain.Repositories;
 using Abp.Extensions;
 using Abp.UI;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using SqlSugar;
 using TtWork.Abp;
@@ -200,9 +201,12 @@ public class BidEligibilityService : IBidEligibilityService
     private readonly IRepository<User, long> _userRepository;
     private readonly ILogger<BidEligibilityService> _logger;
     private readonly ISqlSugarClient _sqlSugarClient;
+    private readonly IMemoryCache _memoryCache;
+    private const string KASEC_CACHE_PREFIX = "Kasec:";
 
     public BidEligibilityService(
         IRedisClient redisClient,
+        IMemoryCache memoryCache,
         UserCache userCache,
         IRepository<AuctionItem, long> auctionItemRepository,
         IRepository<BanedUser, long> banedUserRepository,
@@ -217,6 +221,7 @@ public class BidEligibilityService : IBidEligibilityService
         _userRepository = userRepository;
         _logger = logger;
         _sqlSugarClient = sqlSugarClient;
+        _memoryCache = memoryCache;
     }
 
     /// <summary>
@@ -339,8 +344,20 @@ public class BidEligibilityService : IBidEligibilityService
             var minPrice = 0;
 
             // 6. 检查卡秒状态
-            var kasecVal = await _redisClient.Database.StringGetAsync($"Auction:Kasec:{input.AuctionItemId}");
-            bool isKasec = kasecVal.HasValue && kasecVal == "true";
+            var kasecCacheKey = $"{KASEC_CACHE_PREFIX}{input.AuctionItemId}";
+            bool isKasec;
+
+            if (_memoryCache.TryGetValue(kasecCacheKey, out bool cachedKasecValue))
+            {
+                isKasec = cachedKasecValue;
+            }
+            else
+            {
+                var kasecVal = await _redisClient.Database.StringGetAsync($"Auction:Kasec:{input.AuctionItemId}");
+                isKasec = kasecVal.HasValue && kasecVal == "true";
+                _memoryCache.Set(kasecCacheKey, isKasec, TimeSpan.FromSeconds(5));
+            }
+
             result.IsKasec = isKasec;
 
             if (find.CurrentPrice.HasValue)
