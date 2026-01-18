@@ -44,6 +44,11 @@ namespace TtWork.Project.Services.Cache
         public const string STATS_PREFIX = PREFIX + ":stats";
 
         /// <summary>
+        /// 本地内存缓存键前缀
+        /// </summary>
+        public const string LOCAL_CACHE_PREFIX = "local:";
+
+        /// <summary>
         /// 生成拍卖品列表缓存键
         /// </summary>
         /// <param name="input">查询参数</param>
@@ -56,6 +61,16 @@ namespace TtWork.Project.Services.Cache
             string skipCountKey = input.SkipCount > 0 ? $":skip_{input.SkipCount}" : "";
 
             return $"{LIST_PREFIX}:{statusKey}:{input.MaxResultCount}{skipCountKey}{sortingKey}{keywordKey}";
+        }
+
+        /// <summary>
+        /// 生成本地内存缓存键
+        /// </summary>
+        /// <param name="redisCacheKey">Redis缓存键</param>
+        /// <returns>本地缓存键</returns>
+        public static string GenerateLocalCacheKey(string redisCacheKey)
+        {
+            return $"{LOCAL_CACHE_PREFIX}{redisCacheKey}";
         }
 
         /// <summary>

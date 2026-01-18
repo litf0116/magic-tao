@@ -155,5 +155,18 @@ namespace TtWork.Project.Services.Cache
         {
             return 50; // 批量操作每批50条
         }
+
+        /// <summary>
+        /// 获取带随机偏移的列表缓存过期时间（防止缓存雪崩）
+        /// </summary>
+        /// <param name="status">查询状态</param>
+        /// <returns>带随机偏移的过期时间</returns>
+        public static TimeSpan GetListCacheExpireWithJitter(int? status)
+        {
+            var baseExpire = GetListCacheExpire(status);
+            // 添加 0-5 秒的随机偏移，防止大量缓存同时失效
+            var jitterSeconds = Random.Shared.Next(0, 5);
+            return baseExpire.Add(TimeSpan.FromSeconds(jitterSeconds));
+        }
     }
 }

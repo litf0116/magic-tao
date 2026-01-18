@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Abp.Application.Services.Dto;
 using Abp.Dependency;
@@ -8,6 +10,7 @@ using Abp.Domain.Repositories;
 using Abp.Linq.Extensions;
 using Abp.ObjectMapping;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using TtWork.Abp.Applications.Dtos;
@@ -18,6 +21,7 @@ namespace TtWork.Project.Services.Cache
 {
     /// <summary>
     /// 拍卖品缓存管理服务
+    /// 支持两层缓存架构：L1 本地内存缓存 + L2 Redis 分布式缓存
     /// </summary>
     public class AuctionItemCacheManager : IAuctionItemCacheService
     {
@@ -26,19 +30,28 @@ namespace TtWork.Project.Services.Cache
         private readonly IRepository<BidHistory, long> _bidHistoryRepository;
         private readonly IObjectMapper _objectMapper;
         private readonly ILogger<AuctionItemCacheManager> _logger;
+        private readonly IMemoryCache _memoryCache;
+
+        // 本地缓存TTL（秒）- 设为L2缓存TTL的约1/6，避免脏数据
+        private const int LOCAL_CACHE_TTL_SECONDS = 10;
+
+        // 缓存锁字典，防止缓存击穿
+        private static readonly ConcurrentDictionary<string, SemaphoreSlim> _cacheLocks = new();
 
         public AuctionItemCacheManager(
             IRedisClient redisClient,
             IRepository<AuctionItem, long> auctionItemRepository,
             IRepository<BidHistory, long> bidHistoryRepository,
             IObjectMapper objectMapper,
-            ILogger<AuctionItemCacheManager> logger)
+            ILogger<AuctionItemCacheManager> logger,
+            IMemoryCache memoryCache)
         {
             _redisClient = redisClient;
             _auctionItemRepository = auctionItemRepository;
             _bidHistoryRepository = bidHistoryRepository;
             _objectMapper = objectMapper;
             _logger = logger;
+            _memoryCache = memoryCache;
         }
 
         public async Task<ListResultDto<AuctionItemDto>> GetAuctionListAsync(AppResultRequestDto input)
@@ -52,24 +65,52 @@ namespace TtWork.Project.Services.Cache
             {
                 // 生成缓存键
                 string cacheKey = AuctionItemCacheKeys.GenerateListCacheKey(input);
+                string localCacheKey = AuctionItemCacheKeys.GenerateLocalCacheKey(cacheKey);
 
-                // 尝试从缓存获取数据
-                var cachedValue = await _redisClient.Database.StringGetAsync(cacheKey);
-                if (cachedValue.HasValue)
+                // 1. 尝试从 L1 本地缓存获取数据（最快，~1ms）
+                if (_memoryCache.TryGetValue(localCacheKey, out ListResultDto<AuctionItemDto> localCached))
                 {
-                    var cachedResult = JsonConvert.DeserializeObject<ListResultDto<AuctionItemDto>>(cachedValue);
-                    _logger.LogDebug("拍卖品列表缓存命中: {CacheKey}", cacheKey);
-                    return cachedResult;
+                    _logger.LogDebug("拍卖品列表 L1 缓存命中: {CacheKey}", localCacheKey);
+                    return localCached;
                 }
 
-                // 缓存未命中，从数据库获取
-                var result = await GetAuctionListFromDatabaseAsync(input);
+                // 获取缓存锁，防止缓存击穿
+                var semaphore = _cacheLocks.GetOrAdd(cacheKey, _ => new SemaphoreSlim(1, 1));
+                await semaphore.WaitAsync();
+                try
+                {
+                    // 2. 双重检查：再次检查 L1 缓存（可能在等待锁时已被其他请求填充）
+                    if (_memoryCache.TryGetValue(localCacheKey, out localCached))
+                    {
+                        return localCached;
+                    }
 
-                // 设置缓存
-                await SetAuctionListCacheAsync(input, result);
+                    // 3. 尝试从 L2 Redis 缓存获取数据（较快，~20ms）
+                    var redisValue = await _redisClient.Database.StringGetAsync(cacheKey);
+                    if (redisValue.HasValue)
+                    {
+                        var result = JsonConvert.DeserializeObject<ListResultDto<AuctionItemDto>>(redisValue);
+                        // 写入 L1 缓存
+                        _memoryCache.Set(localCacheKey, result, TimeSpan.FromSeconds(LOCAL_CACHE_TTL_SECONDS));
+                        _logger.LogDebug("拍卖品列表 L2 缓存命中，已写入 L1: {CacheKey}, Count: {Count}", cacheKey, result.Items?.Count ?? 0);
+                        return result;
+                    }
 
-                _logger.LogDebug("拍卖品列表数据已缓存: {CacheKey}, Count: {Count}", cacheKey, result.Items?.Count ?? 0);
-                return result;
+                    // 4. 缓存未命中，从数据库获取（较慢，~50ms 索引优化后 ~5ms）
+                    var dbResult = await GetAuctionListFromDatabaseAsync(input);
+
+                    // 设置缓存（带随机 TTL 防止雪崩）
+                    await SetAuctionListCacheAsync(input, dbResult);
+                    // 写入 L1 缓存
+                    _memoryCache.Set(localCacheKey, dbResult, TimeSpan.FromSeconds(LOCAL_CACHE_TTL_SECONDS));
+
+                    _logger.LogDebug("拍卖品列表数据已缓存: {CacheKey}, Count: {Count}", cacheKey, dbResult.Items?.Count ?? 0);
+                    return dbResult;
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
             }
             catch (Exception ex)
             {
@@ -226,11 +267,12 @@ namespace TtWork.Project.Services.Cache
             try
             {
                 string cacheKey = AuctionItemCacheKeys.GenerateListCacheKey(input);
-                var expireTime = AuctionItemCachePolicy.GetListCacheExpire(input.Status);
+                // 使用带随机偏移的 TTL，防止缓存雪崩
+                var expireTime = AuctionItemCachePolicy.GetListCacheExpireWithJitter(input.Status);
                 string serializedData = JsonConvert.SerializeObject(result);
 
                 await _redisClient.Database.StringSetAsync(cacheKey, serializedData, expireTime);
-                _logger.LogDebug("拍卖品列表缓存已设置: {CacheKey}, Count: {Count}, 过期时间: {ExpireTime}", 
+                _logger.LogDebug("拍卖品列表缓存已设置: {CacheKey}, Count: {Count}, 过期时间: {ExpireTime}",
                     cacheKey, result.Items?.Count ?? 0, expireTime);
             }
             catch (Exception ex)
