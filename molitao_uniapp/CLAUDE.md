@@ -43,6 +43,71 @@
 - 使用 uView UI 组件库保持风格统一
 - 自定义样式注意小程序平台限制
 
+## iOS 兼容性规范 ⚠️
+
+### 文本标签规范
+**必须使用 `<text>` 标签包裹文本内容**：
+```vue
+<!-- ✅ 正确 -->
+<view class="text-sm"><text>待拍卖</text></view>
+
+<!-- ❌ 错误 - 可能导致 iOS 上文本不显示 -->
+<view class="text-sm">待拍卖</view>
+```
+
+### 字体样式规范
+**必须显式定义字体大小和粗细**：
+```vue
+<!-- ✅ 正确 - iOS 兼容 -->
+<view class="text-sm font-500">已成交</view>
+
+<!-- ❌ 错误 - iOS 上可能渲染为 0 或不可见 -->
+<view class="">已成交</view>
+```
+
+### 高度规范
+**Tab 区域高度至少 40px (h-10)**：
+```vue
+<!-- ✅ 正确 -->
+<view class="h-10">...</view>
+
+<!-- ❌ 错误 - iOS 上可能被裁剪 -->
+<view class="h-8">...</view>
+```
+
+### 颜色对比度规范
+**确保文本颜色有足够的对比度**：
+```vue
+<!-- ✅ 正确 - 颜色对比度足够 -->
+<view class="text-white bg-[#f4835a]">Tab</view>
+
+<!-- ❌ 错误 - 浅色文字在浅色背景上 -->
+<view class="text-gray-300 bg-gray-100">Tab</view>
+```
+
+### 常见问题修复模式
+```vue
+<!-- Tab 组件标准模板 -->
+<template>
+    <view class="flex sticky top-0 left-0 right-0 p-2 h-10">
+        <view
+            class="flex-1 flex flex-center py-2 rounded text-sm font-500"
+            :class="[active === '1' ? 'bg-[#f4835a] text-white' : 'bg-white text-gray-600']"
+            @click="active = '1'"
+        >
+            <text>待拍卖</text>
+        </view>
+        <view
+            class="flex-1 flex flex-center py-2 rounded text-sm font-500"
+            :class="[active === '2' ? 'bg-[#f4835a] text-white' : 'bg-white text-gray-600']"
+            @click="active = '2'"
+        >
+            <text>已成交</text>
+        </view>
+    </view>
+</template>
+```
+
 ## 项目结构
 ```
 src/
