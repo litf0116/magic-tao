@@ -7,6 +7,7 @@ using System.Transactions;
 using Abp;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -75,6 +76,9 @@ namespace TtWork.Project.Web.Host.Startup
                 cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
             services.Configure<RedisOptions>(_appConfiguration.GetSection("Redis"));
+
+            // 注册 IDistributedCache 实现（基于现有的 IRedisClient）
+            services.AddSingleton<IDistributedCache, RedisDistributedCache>();
 
             // HybridCache 服务注册（本地内存 + Redis 分布式缓存）
             services.AddHybridCache(options =>

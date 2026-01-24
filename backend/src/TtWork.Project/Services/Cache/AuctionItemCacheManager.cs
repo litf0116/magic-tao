@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -37,9 +36,6 @@ namespace TtWork.Project.Services.Cache
         private const string TAG_LIST = "auction:list";
         private const string TAG_MID_LIST = "auction:mid";
         private const string TAG_CURRENT = "auction:current";
-
-        // 缓存锁字典，防止缓存击穿
-        private static readonly ConcurrentDictionary<string, SemaphoreSlim> _cacheLocks = new();
 
         public AuctionItemCacheManager(
             IRedisClient redisClient,
@@ -198,50 +194,28 @@ namespace TtWork.Project.Services.Cache
                 return await GetAuctionMidListFromDatabaseAsync(input);
             }
         }
+        /// <summary>
+        /// 设置拍卖品详情缓存
+        /// 注意：HybridCache 自动处理缓存，此方法保留兼容但不再手动写入
+        /// </summary>
         public async Task SetAuctionDetailCacheAsync(AuctionItemDto auctionItem)
         {
-            if (!AuctionItemCachePolicy.IsCacheEnabled() || auctionItem == null)
-            {
-                return;
-            }
-
-            try
-            {
-                string cacheKey = AuctionItemCacheKeys.GenerateDetailCacheKey(auctionItem.Id);
-                var expireTime = AuctionItemCachePolicy.GetDetailCacheExpire(auctionItem.Status);
-                string serializedData = JsonConvert.SerializeObject(auctionItem);
-
-                await _redisClient.Database.StringSetAsync(cacheKey, serializedData, expireTime);
-                _logger.LogDebug("拍卖品详情缓存已设置: {CacheKey}, 过期时间: {ExpireTime}", cacheKey, expireTime);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "设置拍卖品详情缓存失败，ID: {AuctionItemId}", auctionItem.Id);
-            }
+            // HybridCache 的 GetOrCreateAsync 会自动处理缓存填充
+            // 手动写入会绕过标签系统，导致缓存失效不一致
+            // 此方法保留为空操作以保持接口兼容
+            await Task.CompletedTask;
         }
 
+        /// <summary>
+        /// 设置拍卖品列表缓存
+        /// 注意：HybridCache 自动处理缓存，此方法保留兼容但不再手动写入
+        /// </summary>
         public async Task SetAuctionListCacheAsync(AppResultRequestDto input, ListResultDto<AuctionItemDto> result)
         {
-            if (!AuctionItemCachePolicy.IsCacheEnabled() || result == null)
-            {
-                return;
-            }
-
-            try
-            {
-                string cacheKey = AuctionItemCacheKeys.GenerateListCacheKey(input);
-                // 使用带随机偏移的 TTL，防止缓存雪崩
-                var expireTime = AuctionItemCachePolicy.GetListCacheExpireWithJitter(input.Status);
-                string serializedData = JsonConvert.SerializeObject(result);
-
-                await _redisClient.Database.StringSetAsync(cacheKey, serializedData, expireTime);
-                _logger.LogDebug("拍卖品列表缓存已设置: {CacheKey}, Count: {Count}, 过期时间: {ExpireTime}",
-                    cacheKey, result.Items?.Count ?? 0, expireTime);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "设置拍卖品列表缓存失败");
-            }
+            // HybridCache 的 GetOrCreateAsync 会自动处理缓存填充
+            // 手动写入会绕过标签系统，导致缓存失效不一致
+            // 此方法保留为空操作以保持接口兼容
+            await Task.CompletedTask;
         }
 
         public async Task ClearAuctionCacheAsync(long? auctionItemId = null)
@@ -551,49 +525,6 @@ namespace TtWork.Project.Services.Cache
             }
 
             return result;
-        }
-
-        private async Task SetCurrentAuctionCacheAsync(AuctionItemDto currentAuction)
-        {
-            try
-            {
-                var expireTime = AuctionItemCachePolicy.GetCurrentAuctionCacheExpire();
-                
-                if (currentAuction == null)
-                {
-                    // 缓存空结果，避免缓存穿透
-                    await _redisClient.Database.StringSetAsync(AuctionItemCacheKeys.CURRENT_AUCTION, "null", 
-                        AuctionItemCachePolicy.GetNullResultCacheExpire());
-                }
-                else
-                {
-                    string serializedData = JsonConvert.SerializeObject(currentAuction);
-                    await _redisClient.Database.StringSetAsync(AuctionItemCacheKeys.CURRENT_AUCTION, serializedData, expireTime);
-                }
-
-                _logger.LogDebug("当前拍卖商品缓存已设置，过期时间: {ExpireTime}", expireTime);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "设置当前拍卖商品缓存失败");
-            }
-        }
-
-        private async Task SetAuctionMidListCacheAsync(AppResultRequestDto input, ListResultDto<AuctionItemDto> result)
-        {
-            try
-            {
-                string cacheKey = AuctionItemCacheKeys.GenerateMidListCacheKey(input);
-                var expireTime = AuctionItemCachePolicy.GetMidListCacheExpire();
-                string serializedData = JsonConvert.SerializeObject(result);
-
-                await _redisClient.Database.StringSetAsync(cacheKey, serializedData, expireTime);
-                _logger.LogDebug("拍卖中商品列表缓存已设置: {CacheKey}, 过期时间: {ExpireTime}", cacheKey, expireTime);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "设置拍卖中商品列表缓存失败");
-            }
         }
 
         #endregion
