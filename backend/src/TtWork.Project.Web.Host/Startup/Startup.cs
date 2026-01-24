@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -7,6 +7,7 @@ using System.Transactions;
 using Abp;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Castle.Facilities.Logging;
@@ -74,6 +75,18 @@ namespace TtWork.Project.Web.Host.Startup
                 cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
             services.Configure<RedisOptions>(_appConfiguration.GetSection("Redis"));
+
+            // HybridCache 服务注册（本地内存 + Redis 分布式缓存）
+            services.AddHybridCache(options =>
+            {
+                options.DefaultEntryOptions = new HybridCacheEntryOptions
+                {
+                    Expiration = TimeSpan.FromMinutes(5),       // 默认分布式缓存过期时间
+                    LocalCacheExpiration = TimeSpan.FromSeconds(10) // 本地缓存过期时间
+                };
+                options.MaximumPayloadBytes = 1024 * 1024; // 1MB
+                options.MaximumKeyLength = 1024;
+            });
 
             // Redis 服务注册
             services.AddSingleton<IRedisClient, RedisClient>();

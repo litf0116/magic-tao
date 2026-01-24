@@ -10,7 +10,7 @@ using Abp.Domain.Repositories;
 using Abp.Linq.Extensions;
 using Abp.ObjectMapping;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using TtWork.Abp.Applications.Dtos;
@@ -21,7 +21,7 @@ namespace TtWork.Project.Services.Cache
 {
     /// <summary>
     /// 拍卖品缓存管理服务
-    /// 支持两层缓存架构：L1 本地内存缓存 + L2 Redis 分布式缓存
+    /// 使用 HybridCache：本地内存缓存 + Redis 分布式缓存 + Tag 失效机制
     /// </summary>
     public class AuctionItemCacheManager : IAuctionItemCacheService
     {
@@ -30,10 +30,13 @@ namespace TtWork.Project.Services.Cache
         private readonly IRepository<BidHistory, long> _bidHistoryRepository;
         private readonly IObjectMapper _objectMapper;
         private readonly ILogger<AuctionItemCacheManager> _logger;
-        private readonly IMemoryCache _memoryCache;
+        private readonly HybridCache _cache;
 
-        // 本地缓存TTL（秒）- 设为L2缓存TTL的约1/6，避免脏数据
-        private const int LOCAL_CACHE_TTL_SECONDS = 10;
+        // 缓存标签常量
+        private const string TAG_DETAIL = "auction:detail";
+        private const string TAG_LIST = "auction:list";
+        private const string TAG_MID_LIST = "auction:mid";
+        private const string TAG_CURRENT = "auction:current";
 
         // 缓存锁字典，防止缓存击穿
         private static readonly ConcurrentDictionary<string, SemaphoreSlim> _cacheLocks = new();
@@ -44,14 +47,14 @@ namespace TtWork.Project.Services.Cache
             IRepository<BidHistory, long> bidHistoryRepository,
             IObjectMapper objectMapper,
             ILogger<AuctionItemCacheManager> logger,
-            IMemoryCache memoryCache)
+            HybridCache cache)
         {
             _redisClient = redisClient;
             _auctionItemRepository = auctionItemRepository;
             _bidHistoryRepository = bidHistoryRepository;
             _objectMapper = objectMapper;
             _logger = logger;
-            _memoryCache = memoryCache;
+            _cache = cache;
         }
 
         public async Task<ListResultDto<AuctionItemDto>> GetAuctionListAsync(AppResultRequestDto input)
@@ -65,52 +68,27 @@ namespace TtWork.Project.Services.Cache
             {
                 // 生成缓存键
                 string cacheKey = AuctionItemCacheKeys.GenerateListCacheKey(input);
-                string localCacheKey = AuctionItemCacheKeys.GenerateLocalCacheKey(cacheKey);
 
-                // 1. 尝试从 L1 本地缓存获取数据（最快，~1ms）
-                if (_memoryCache.TryGetValue(localCacheKey, out ListResultDto<AuctionItemDto> localCached))
+                // 使用 HybridCache 自动处理 L1/L2 缓存，支持 Tag 失效
+                var cacheOptions = new HybridCacheEntryOptions
                 {
-                    _logger.LogDebug("拍卖品列表 L1 缓存命中: {CacheKey}", localCacheKey);
-                    return localCached;
+                    Expiration = TimeSpan.FromSeconds(AuctionItemCachePolicy.GetListCacheExpire(input.Status).TotalSeconds),
+                    LocalCacheExpiration = TimeSpan.FromSeconds(10)
+                };
+
+                var tags = new List<string> { TAG_LIST };
+                if (input.Status.HasValue)
+                {
+                    tags.Add($"{TAG_LIST}:status:{input.Status.Value}");
                 }
 
-                // 获取缓存锁，防止缓存击穿
-                var semaphore = _cacheLocks.GetOrAdd(cacheKey, _ => new SemaphoreSlim(1, 1));
-                await semaphore.WaitAsync();
-                try
-                {
-                    // 2. 双重检查：再次检查 L1 缓存（可能在等待锁时已被其他请求填充）
-                    if (_memoryCache.TryGetValue(localCacheKey, out localCached))
-                    {
-                        return localCached;
-                    }
-
-                    // 3. 尝试从 L2 Redis 缓存获取数据（较快，~20ms）
-                    var redisValue = await _redisClient.Database.StringGetAsync(cacheKey);
-                    if (redisValue.HasValue)
-                    {
-                        var result = JsonConvert.DeserializeObject<ListResultDto<AuctionItemDto>>(redisValue);
-                        // 写入 L1 缓存
-                        _memoryCache.Set(localCacheKey, result, TimeSpan.FromSeconds(LOCAL_CACHE_TTL_SECONDS));
-                        _logger.LogDebug("拍卖品列表 L2 缓存命中，已写入 L1: {CacheKey}, Count: {Count}", cacheKey, result.Items?.Count ?? 0);
-                        return result;
-                    }
-
-                    // 4. 缓存未命中，从数据库获取（较慢，~50ms 索引优化后 ~5ms）
-                    var dbResult = await GetAuctionListFromDatabaseAsync(input);
-
-                    // 设置缓存（带随机 TTL 防止雪崩）
-                    await SetAuctionListCacheAsync(input, dbResult);
-                    // 写入 L1 缓存
-                    _memoryCache.Set(localCacheKey, dbResult, TimeSpan.FromSeconds(LOCAL_CACHE_TTL_SECONDS));
-
-                    _logger.LogDebug("拍卖品列表数据已缓存: {CacheKey}, Count: {Count}", cacheKey, dbResult.Items?.Count ?? 0);
-                    return dbResult;
-                }
-                finally
-                {
-                    semaphore.Release();
-                }
+                return await _cache.GetOrCreateAsync(
+                    cacheKey,
+                    async cancel => await GetAuctionListFromDatabaseAsync(input),
+                    cacheOptions,
+                    tags,
+                    CancellationToken.None
+                );
             }
             catch (Exception ex)
             {
@@ -131,26 +109,20 @@ namespace TtWork.Project.Services.Cache
                 // 生成缓存键
                 string cacheKey = AuctionItemCacheKeys.GenerateDetailCacheKey(auctionItemId);
 
-                // 尝试从缓存获取数据
-                var cachedValue = await _redisClient.Database.StringGetAsync(cacheKey);
-                if (cachedValue.HasValue)
+                // 使用 HybridCache 自动处理 L1/L2 缓存，支持 Tag 失效
+                var cacheOptions = new HybridCacheEntryOptions
                 {
-                    var cachedResult = JsonConvert.DeserializeObject<AuctionItemDto>(cachedValue);
-                    _logger.LogDebug("拍卖品详情缓存命中: {CacheKey}", cacheKey);
-                    return cachedResult;
-                }
+                    Expiration = TimeSpan.FromSeconds(60),
+                    LocalCacheExpiration = TimeSpan.FromSeconds(10)
+                };
 
-                // 缓存未命中，从数据库获取
-                var result = await GetAuctionDetailFromDatabaseAsync(auctionItemId);
-
-                // 设置缓存
-                if (result != null)
-                {
-                    await SetAuctionDetailCacheAsync(result);
-                }
-
-                _logger.LogDebug("拍卖品详情数据已缓存: {CacheKey}", cacheKey);
-                return result;
+                return await _cache.GetOrCreateAsync(
+                    cacheKey,
+                    async cancel => await GetAuctionDetailFromDatabaseAsync(auctionItemId),
+                    cacheOptions,
+                    new[] { TAG_DETAIL, $"{TAG_DETAIL}:{auctionItemId}" },
+                    CancellationToken.None
+                );
             }
             catch (Exception ex)
             {
@@ -168,28 +140,23 @@ namespace TtWork.Project.Services.Cache
 
             try
             {
-                // 尝试从缓存获取数据
-                var cachedValue = await _redisClient.Database.StringGetAsync(AuctionItemCacheKeys.CURRENT_AUCTION);
-                if (cachedValue.HasValue)
+                // 生成缓存键
+                string cacheKey = AuctionItemCacheKeys.CURRENT_AUCTION;
+
+                // 使用 HybridCache 自动处理 L1/L2 缓存，支持 Tag 失效
+                var cacheOptions = new HybridCacheEntryOptions
                 {
-                    if (cachedValue == "null")
-                    {
-                        return null;
-                    }
+                    Expiration = TimeSpan.FromSeconds(30),
+                    LocalCacheExpiration = TimeSpan.FromSeconds(10)
+                };
 
-                    var cachedResult = JsonConvert.DeserializeObject<AuctionItemDto>(cachedValue);
-                    _logger.LogDebug("当前拍卖商品缓存命中");
-                    return cachedResult;
-                }
-
-                // 缓存未命中，从数据库获取
-                var result = await GetCurrentAuctionItemFromDatabaseAsync();
-
-                // 设置缓存
-                await SetCurrentAuctionCacheAsync(result);
-
-                _logger.LogDebug("当前拍卖商品数据已缓存");
-                return result;
+                return await _cache.GetOrCreateAsync(
+                    cacheKey,
+                    async cancel => await GetCurrentAuctionItemFromDatabaseAsync(),
+                    cacheOptions,
+                    new[] { TAG_CURRENT },
+                    CancellationToken.None
+                );
             }
             catch (Exception ex)
             {
@@ -210,23 +177,20 @@ namespace TtWork.Project.Services.Cache
                 // 生成缓存键
                 string cacheKey = AuctionItemCacheKeys.GenerateMidListCacheKey(input);
 
-                // 尝试从缓存获取数据
-                var cachedValue = await _redisClient.Database.StringGetAsync(cacheKey);
-                if (cachedValue.HasValue)
+                // 使用 HybridCache 自动处理 L1/L2 缓存，支持 Tag 失效
+                var cacheOptions = new HybridCacheEntryOptions
                 {
-                    var cachedResult = JsonConvert.DeserializeObject<ListResultDto<AuctionItemDto>>(cachedValue);
-                    _logger.LogDebug("拍卖中商品列表缓存命中: {CacheKey}", cacheKey);
-                    return cachedResult;
-                }
+                    Expiration = TimeSpan.FromSeconds(30),
+                    LocalCacheExpiration = TimeSpan.FromSeconds(10)
+                };
 
-                // 缓存未命中，从数据库获取
-                var result = await GetAuctionMidListFromDatabaseAsync(input);
-
-                // 设置缓存
-                await SetAuctionMidListCacheAsync(input, result);
-
-                _logger.LogDebug("拍卖中商品列表数据已缓存: {CacheKey}", cacheKey);
-                return result;
+                return await _cache.GetOrCreateAsync(
+                    cacheKey,
+                    async cancel => await GetAuctionMidListFromDatabaseAsync(input),
+                    cacheOptions,
+                    new[] { TAG_MID_LIST },
+                    CancellationToken.None
+                );
             }
             catch (Exception ex)
             {
@@ -234,7 +198,6 @@ namespace TtWork.Project.Services.Cache
                 return await GetAuctionMidListFromDatabaseAsync(input);
             }
         }
-
         public async Task SetAuctionDetailCacheAsync(AuctionItemDto auctionItem)
         {
             if (!AuctionItemCachePolicy.IsCacheEnabled() || auctionItem == null)
@@ -312,18 +275,11 @@ namespace TtWork.Project.Services.Cache
         {
             try
             {
-                var patterns = AuctionItemCacheKeys.GetListCachePatterns(status);
-                foreach (var pattern in patterns)
-                {
-                    _redisClient.DeleteKeysWithPartten(pattern);
-                }
+                // 使用 HybridCache 的 Tag 失效机制清除所有列表缓存
+                await _cache.RemoveByTagAsync(TAG_LIST);
 
-                // 同时清除拍卖中商品列表缓存
-                var midPatterns = AuctionItemCacheKeys.GetMidListCachePatterns();
-                foreach (var pattern in midPatterns)
-                {
-                    _redisClient.DeleteKeysWithPartten(pattern);
-                }
+                // 清除拍卖中商品列表缓存
+                await _cache.RemoveByTagAsync(TAG_MID_LIST);
 
                 _logger.LogDebug("拍卖品列表缓存已清除，状态过滤: {Status}", status?.ToString() ?? "ALL");
             }
@@ -337,10 +293,10 @@ namespace TtWork.Project.Services.Cache
         {
             try
             {
-                string cacheKey = AuctionItemCacheKeys.GenerateDetailCacheKey(auctionItemId);
-                await _redisClient.Database.KeyDeleteAsync(cacheKey);
-                
-                _logger.LogDebug("拍卖品详情缓存已清除: {CacheKey}", cacheKey);
+                // 使用 Tag 失效机制清除详情缓存
+                await _cache.RemoveByTagAsync($"{TAG_DETAIL}:{auctionItemId}");
+
+                _logger.LogDebug("拍卖品详情缓存已清除，ID: {AuctionItemId}", auctionItemId);
             }
             catch (Exception ex)
             {
@@ -352,12 +308,32 @@ namespace TtWork.Project.Services.Cache
         {
             try
             {
-                await _redisClient.Database.KeyDeleteAsync(AuctionItemCacheKeys.CURRENT_AUCTION);
+                // 使用 Tag 失效机制清除当前拍卖缓存
+                await _cache.RemoveByTagAsync(TAG_CURRENT);
+
                 _logger.LogDebug("当前拍卖商品缓存已清除");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "清除当前拍卖商品缓存失败");
+            }
+        }
+
+        public async Task ClearAllAuctionCacheAsync()
+        {
+            try
+            {
+                // 清除所有拍卖品相关缓存
+                await _cache.RemoveByTagAsync(TAG_LIST);
+                await _cache.RemoveByTagAsync(TAG_MID_LIST);
+                await _cache.RemoveByTagAsync(TAG_DETAIL);
+                await _cache.RemoveByTagAsync(TAG_CURRENT);
+
+                _logger.LogDebug("所有拍卖品缓存已清除");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "清除所有拍卖品缓存失败");
             }
         }
 
@@ -617,24 +593,6 @@ namespace TtWork.Project.Services.Cache
             catch (Exception ex)
             {
                 _logger.LogError(ex, "设置拍卖中商品列表缓存失败");
-            }
-        }
-
-        private async Task ClearAllAuctionCacheAsync()
-        {
-            try
-            {
-                var patterns = AuctionItemCacheKeys.GetAllCachePatterns();
-                foreach (var pattern in patterns)
-                {
-                    _redisClient.DeleteKeysWithPartten(pattern);
-                }
-
-                _logger.LogDebug("所有拍卖品缓存已清除");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "清除所有拍卖品缓存失败");
             }
         }
 
