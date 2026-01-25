@@ -9,13 +9,14 @@ import type {
     UserDtoBaseListResultDto,
 } from '@/composables/types'
 import utils from './utils'
-let host = import.meta.env.VITE_APP_BASE_API
+let host: string
 
 if (import.meta.env.VITE_APP_ENV === 'development') {
-    // host = 'http://192.168.128.1:12580'
-    // host = 'http://localhost:12580'
+    host = 'http://localhost:12580'
+} else {
+    host = 'https://www.molitao.top'
 }
-host = 'https://www.molitao.top'
+
 
 const getRequest = utils.httpsPromisify(uni.request)
 
