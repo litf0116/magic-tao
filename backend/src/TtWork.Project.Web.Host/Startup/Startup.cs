@@ -3,12 +3,15 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Transactions;
 using Abp;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.Extensions.Caching.Hybrid.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Castle.Facilities.Logging;
@@ -81,16 +84,9 @@ namespace TtWork.Project.Web.Host.Startup
             services.AddSingleton<IDistributedCache, RedisDistributedCache>();
 
             // HybridCache 服务注册（本地内存 + Redis 分布式缓存）
-            services.AddHybridCache(options =>
-            {
-                options.DefaultEntryOptions = new HybridCacheEntryOptions
-                {
-                    Expiration = TimeSpan.FromMinutes(5),       // 默认分布式缓存过期时间
-                    LocalCacheExpiration = TimeSpan.FromSeconds(10) // 本地缓存过期时间
-                };
-                options.MaximumPayloadBytes = 1024 * 1024; // 1MB
-                options.MaximumKeyLength = 1024;
-            });
+            // 临时禁用 HybridCache，使用传统 Redis 缓存
+            // HybridCache 与 ABP/Windsor 容器存在 keyed services 兼容性问题
+            // services.AddHybridCache();
 
             // Redis 服务注册
             services.AddSingleton<IRedisClient, RedisClient>();
