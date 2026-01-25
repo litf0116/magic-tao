@@ -38,6 +38,9 @@ namespace TtWork.Project.Services.Cache
         // 缓存锁字典，防止缓存击穿
         private static readonly ConcurrentDictionary<string, SemaphoreSlim> _cacheLocks = new();
 
+        // L1 本地缓存键追踪器，用于主动清除
+        private static readonly ConcurrentDictionary<string, byte> _l1CacheKeys = new();
+
         public AuctionItemCacheManager(
             IRedisClient redisClient,
             IRepository<AuctionItem, long> auctionItemRepository,
@@ -92,6 +95,8 @@ namespace TtWork.Project.Services.Cache
                         var result = JsonConvert.DeserializeObject<ListResultDto<AuctionItemDto>>(redisValue);
                         // 写入 L1 缓存
                         _memoryCache.Set(localCacheKey, result, TimeSpan.FromSeconds(LOCAL_CACHE_TTL_SECONDS));
+                        // 追踪 L1 缓存键
+                        _l1CacheKeys.TryAdd(localCacheKey, 0);
                         _logger.LogDebug("拍卖品列表 L2 缓存命中，已写入 L1: {CacheKey}, Count: {Count}", cacheKey, result.Items?.Count ?? 0);
                         return result;
                     }
@@ -103,6 +108,8 @@ namespace TtWork.Project.Services.Cache
                     await SetAuctionListCacheAsync(input, dbResult);
                     // 写入 L1 缓存
                     _memoryCache.Set(localCacheKey, dbResult, TimeSpan.FromSeconds(LOCAL_CACHE_TTL_SECONDS));
+                    // 追踪 L1 缓存键
+                    _l1CacheKeys.TryAdd(localCacheKey, 0);
 
                     _logger.LogDebug("拍卖品列表数据已缓存: {CacheKey}, Count: {Count}", cacheKey, dbResult.Items?.Count ?? 0);
                     return dbResult;
@@ -157,6 +164,8 @@ namespace TtWork.Project.Services.Cache
                         var cachedResult = JsonConvert.DeserializeObject<AuctionItemDto>(cachedValue);
                         // 写入 L1 缓存
                         _memoryCache.Set(localCacheKey, cachedResult, TimeSpan.FromSeconds(LOCAL_CACHE_TTL_SECONDS));
+                        // 追踪 L1 缓存键
+                        _l1CacheKeys.TryAdd(localCacheKey, 0);
                         _logger.LogDebug("拍卖品详情 L2 缓存命中，已写入 L1: {CacheKey}", cacheKey);
                         return cachedResult;
                     }
@@ -170,6 +179,8 @@ namespace TtWork.Project.Services.Cache
                         await SetAuctionDetailCacheAsync(result);
                         // 写入 L1 缓存
                         _memoryCache.Set(localCacheKey, result, TimeSpan.FromSeconds(LOCAL_CACHE_TTL_SECONDS));
+                        // 追踪 L1 缓存键
+                        _l1CacheKeys.TryAdd(localCacheKey, 0);
                     }
 
                     _logger.LogDebug("拍卖品详情数据已缓存: {CacheKey}", cacheKey);
@@ -235,6 +246,7 @@ namespace TtWork.Project.Services.Cache
                         {
                             // 缓存空结果，避免缓存穿透
                             _memoryCache.Set<AuctionItemDto>(localCacheKey, null, TimeSpan.FromSeconds(LOCAL_CACHE_TTL_SECONDS));
+                            _l1CacheKeys.TryAdd(localCacheKey, 0);
                             _logger.LogDebug("当前拍卖商品 L2 缓存命中，空结果: {CacheKey}", cacheKey);
                             return null;
                         }
@@ -242,6 +254,8 @@ namespace TtWork.Project.Services.Cache
                         var cachedResult = JsonConvert.DeserializeObject<AuctionItemDto>(cachedValue);
                         // 写入 L1 缓存
                         _memoryCache.Set(localCacheKey, cachedResult, TimeSpan.FromSeconds(LOCAL_CACHE_TTL_SECONDS));
+                        // 追踪 L1 缓存键
+                        _l1CacheKeys.TryAdd(localCacheKey, 0);
                         _logger.LogDebug("当前拍卖商品 L2 缓存命中，已写入 L1: {CacheKey}", cacheKey);
                         return cachedResult;
                     }
@@ -253,8 +267,9 @@ namespace TtWork.Project.Services.Cache
                     await SetCurrentAuctionCacheAsync(result);
                     // 写入 L1 缓存
                     _memoryCache.Set(localCacheKey, result, TimeSpan.FromSeconds(LOCAL_CACHE_TTL_SECONDS));
+                    // 追踪 L1 缓存键
+                    _l1CacheKeys.TryAdd(localCacheKey, 0);
 
-                    _logger.LogDebug("当前拍卖商品数据已缓存: {CacheKey}", cacheKey);
                     return result;
                 }
                 finally
@@ -307,6 +322,8 @@ namespace TtWork.Project.Services.Cache
                         var cachedResult = JsonConvert.DeserializeObject<ListResultDto<AuctionItemDto>>(cachedValue);
                         // 写入 L1 缓存
                         _memoryCache.Set(localCacheKey, cachedResult, TimeSpan.FromSeconds(LOCAL_CACHE_TTL_SECONDS));
+                        // 追踪 L1 缓存键
+                        _l1CacheKeys.TryAdd(localCacheKey, 0);
                         _logger.LogDebug("拍卖中商品列表 L2 缓存命中，已写入 L1: {CacheKey}, Count: {Count}", cacheKey, cachedResult.Items?.Count ?? 0);
                         return cachedResult;
                     }
@@ -318,8 +335,9 @@ namespace TtWork.Project.Services.Cache
                     await SetAuctionMidListCacheAsync(input, result);
                     // 写入 L1 缓存
                     _memoryCache.Set(localCacheKey, result, TimeSpan.FromSeconds(LOCAL_CACHE_TTL_SECONDS));
+                    // 追踪 L1 缓存键
+                    _l1CacheKeys.TryAdd(localCacheKey, 0);
 
-                    _logger.LogDebug("拍卖中商品列表数据已缓存: {CacheKey}, Count: {Count}", cacheKey, result.Items?.Count ?? 0);
                     return result;
                 }
                 finally
@@ -411,6 +429,7 @@ namespace TtWork.Project.Services.Cache
         {
             try
             {
+                // 清除 L2 Redis 缓存
                 var patterns = AuctionItemCacheKeys.GetListCachePatterns(status);
                 foreach (var pattern in patterns)
                 {
@@ -422,6 +441,25 @@ namespace TtWork.Project.Services.Cache
                 foreach (var pattern in midPatterns)
                 {
                     _redisClient.DeleteKeysWithPartten(pattern);
+                }
+
+                // 主动清除 L1 本地缓存
+                foreach (var key in _l1CacheKeys.Keys)
+                {
+                    if (key.StartsWith("local:auction:list:", StringComparison.OrdinalIgnoreCase) ||
+                        key.StartsWith("local:auction:mid:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        _memoryCache.Remove(key);
+                    }
+                }
+                // 清除 L1 键追踪器中列表相关缓存键
+                var keysToRemove = _l1CacheKeys.Keys
+                    .Where(k => k.StartsWith("local:auction:list:", StringComparison.OrdinalIgnoreCase) ||
+                                k.StartsWith("local:auction:mid:", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+                foreach (var key in keysToRemove)
+                {
+                    _l1CacheKeys.TryRemove(key, out _);
                 }
 
                 _logger.LogDebug("拍卖品列表缓存已清除，状态过滤: {Status}", status?.ToString() ?? "ALL");
@@ -445,6 +483,9 @@ namespace TtWork.Project.Services.Cache
                 // 清除 L1 本地缓存
                 _memoryCache.Remove(localCacheKey);
                 
+                // 从 L1 键追踪器中移除
+                _l1CacheKeys.TryRemove(localCacheKey, out _);
+                
                 _logger.LogDebug("拍卖品详情缓存已清除: {CacheKey}", cacheKey);
             }
             catch (Exception ex)
@@ -465,6 +506,9 @@ namespace TtWork.Project.Services.Cache
                 
                 // 清除 L1 本地缓存
                 _memoryCache.Remove(localCacheKey);
+                
+                // 从 L1 键追踪器中移除
+                _l1CacheKeys.TryRemove(localCacheKey, out _);
                 
                 _logger.LogDebug("当前拍卖商品缓存已清除");
             }
