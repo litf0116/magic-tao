@@ -444,12 +444,14 @@ namespace TtWork.Project.Services.Cache
                 }
 
                 // 主动清除 L1 本地缓存
+                int l1Cleared = 0;
                 foreach (var key in _l1CacheKeys.Keys)
                 {
                     if (key.StartsWith("local:auction:list:", StringComparison.OrdinalIgnoreCase) ||
                         key.StartsWith("local:auction:mid:", StringComparison.OrdinalIgnoreCase))
                     {
                         _memoryCache.Remove(key);
+                        l1Cleared++;
                     }
                 }
                 // 清除 L1 键追踪器中列表相关缓存键
@@ -462,7 +464,7 @@ namespace TtWork.Project.Services.Cache
                     _l1CacheKeys.TryRemove(key, out _);
                 }
 
-                _logger.LogDebug("拍卖品列表缓存已清除，状态过滤: {Status}", status?.ToString() ?? "ALL");
+                _logger.LogInformation("拍卖品列表缓存已清除，L1清除数量: {L1Count}, 状态过滤: {Status}", l1Cleared, status?.ToString() ?? "ALL");
             }
             catch (Exception ex)
             {

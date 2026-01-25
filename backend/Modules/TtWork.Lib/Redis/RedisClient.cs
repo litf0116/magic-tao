@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -31,9 +31,11 @@ namespace TtWork.Lib.Redis
                 {
                     var server = ConnectionMultiplexer.GetServer(ep);
                     var keys = server.Keys(database: _optionsAccessor.Value.DatabaseId, pattern: pattern).ToArray();
+                    _logger.LogInformation("DeleteKeysWithPartten: 模式 {Pattern}, 找到 {Count} 个键", pattern, keys.Length);
                     if (keys.Length > 0)
                     {
-                        Database.KeyDeleteAsync(keys);
+                        // 使用同步删除，确保立即生效
+                        Database.KeyDelete(keys);
                         _logger.LogDebug("删除了 {Count} 个匹配模式 {Pattern} 的键", keys.Length, pattern);
                     }
                 }
