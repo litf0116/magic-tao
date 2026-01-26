@@ -93,6 +93,7 @@ namespace TtWork.Project.Services.Cache
                     if (redisValue.HasValue)
                     {
                         var result = JsonConvert.DeserializeObject<ListResultDto<AuctionItemDto>>(redisValue);
+                        
                         // 写入 L1 缓存
                         _memoryCache.Set(localCacheKey, result, TimeSpan.FromSeconds(LOCAL_CACHE_TTL_SECONDS));
                         // 追踪 L1 缓存键
@@ -605,7 +606,9 @@ namespace TtWork.Project.Services.Cache
 
             if (!input.Status.HasValue)
             {
-                query = query.OrderByDescending(x => x.Id).Take(input.MaxResultCount);
+                var allItems = await query.OrderBy(x => x.Order).ThenBy(x => x.Id).ToListAsync();
+                var resultItems = _objectMapper.Map<List<AuctionItemDto>>(allItems.Take(input.MaxResultCount).ToList());
+                return new ListResultDto<AuctionItemDto>(resultItems);
             }
             else if (input.Status == (int)AuctionStatusEnum.已成交)
             {
@@ -617,8 +620,8 @@ namespace TtWork.Project.Services.Cache
             }
 
             var items = await query.ToListAsync();
-            var dtoItems = _objectMapper.Map<List<AuctionItemDto>>(items);
-            return new ListResultDto<AuctionItemDto>(dtoItems);
+            var resultDtos = _objectMapper.Map<List<AuctionItemDto>>(items);
+            return new ListResultDto<AuctionItemDto>(resultDtos);
         }
 
         private async Task<AuctionItemDto> GetAuctionDetailFromDatabaseAsync(long auctionItemId)
