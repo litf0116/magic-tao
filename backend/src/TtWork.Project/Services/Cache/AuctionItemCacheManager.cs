@@ -605,7 +605,7 @@ namespace TtWork.Project.Services.Cache
 
             if (!input.Status.HasValue)
             {
-                query = query.OrderBy(x => x.Order).ThenBy(x => x.Id).Take(input.MaxResultCount);
+                query = query.OrderByDescending(x => x.Id).Take(input.MaxResultCount);
             }
             else if (input.Status == (int)AuctionStatusEnum.已成交)
             {
