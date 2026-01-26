@@ -1,9 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Linq.Dynamic.Core;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Abp.Application.Services.Dto;
 using Abp.Authorization;
@@ -21,6 +23,7 @@ using Abp.UI;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using TtWork.Abp;
 using TtWork.Abp.Applications.Dtos;
 using TtWork.Abp.Authorization;
@@ -29,6 +32,7 @@ using TtWork.Abp.Authorization.Users;
 using TtWork.Abp.Caches;
 using TtWork.Abp.Core.Authorization.Users;
 using TtWork.Abp.Definitions;
+using TtWork.HttpClient.Weixin;
 using TtWork.Lib;
 using TtWork.Lib.Redis;
 using TtWork.Project.Applications.Core.Users.Dto;
@@ -44,6 +48,12 @@ namespace TtWork.Project.Applications.Core.Users
     public class UserAppService :
         AbpAsyncCrudAppService<User, UserDto, long, AppResultRequestDto, CreateUserDto, UserEditDto>
     {
+        /// <summary>
+        /// 微信小程序静态配置 (开发测试用)
+        /// </summary>
+        private static readonly string WechatAppId = "wx8178f2258942133d";
+        private static readonly string WechatAppSecret = "ec39ddccf124f18474738f15cb57a38e";
+        
         private readonly IRedisClient _redisClient;
         private readonly UserManager _userManager;
         private readonly RoleManager _roleManager;
@@ -53,6 +63,9 @@ namespace TtWork.Project.Applications.Core.Users
         private readonly LogInManager _logInManager;
         private readonly UserCache _userCache;
         private readonly ITenantCache _tenantCache;
+        private readonly IWeixinApi _weixinApi;
+        private readonly System.Net.Http.HttpClient _httpClient;
+        private readonly ILogger<UserAppService> _logger;
 
         public UserAppService(
             IRedisClient redisClient,
@@ -65,7 +78,10 @@ namespace TtWork.Project.Applications.Core.Users
             IAbpSession abpSession,
             LogInManager logInManager,
             UserCache userCache,
-            ITenantCache tenantCache
+            ITenantCache tenantCache,
+            IWeixinApi weixinApi,
+            System.Net.Http.HttpClient httpClient,
+            ILogger<UserAppService> logger
         )
             : base(repository, iocManager)
         {
@@ -78,6 +94,9 @@ namespace TtWork.Project.Applications.Core.Users
             _logInManager = logInManager;
             _userCache = userCache;
             _tenantCache = tenantCache;
+            _weixinApi = weixinApi;
+            _httpClient = httpClient;
+            _logger = logger;
 
             base.GetAllPermissionName = AppPermissions.Administration;
             base.DeletePermissionName = AppPermissions.Administration;
@@ -333,6 +352,71 @@ namespace TtWork.Project.Applications.Core.Users
                     .AnyAsync(x => x.UserName == input.UserName && x.Id != input.Id))
                 throw new UserFriendlyException(1, "登录用户名已存在!");
 
+            // 🔐 头像安全检查
+            if (!string.IsNullOrEmpty(input.HeadImgUrl) && 
+                input.HeadImgUrl != user.HeadImgUrl)
+            {
+                _logger.LogInformation("开始检查头像安全性: {HeadImgUrl}", input.HeadImgUrl);
+                
+                try
+                {
+                    // 1. 从CDN下载图片
+                    var imageBytes = await DownloadImageAsync(input.HeadImgUrl);
+                    if (imageBytes == null || imageBytes.Length == 0)
+                    {
+                        throw new UserFriendlyException("无法下载头像图片");
+                    }
+                    
+                    // 2. 验证文件大小 (微信限制: ≤1MB)
+                    if (imageBytes.Length > 1024 * 1024)
+                    {
+                        throw new UserFriendlyException("图片大小不能超过1MB");
+                    }
+                    
+                    // 3. 获取access_token
+                    var (appId, appSecret) = GetWeixinConfig();
+                    var tokenResult = await _weixinApi.GetToken(appId, appSecret);
+                    if (tokenResult.errcode != 0)
+                    {
+                        _logger.LogError("获取微信access_token失败: {Error}", tokenResult.errmsg);
+                        throw new UserFriendlyException("头像检查服务暂时不可用");
+                    }
+                    
+                    // 4. imgSecCheck 图片审核
+                    var checkResult = await _weixinApi.ImgSecCheck(tokenResult.access_token, imageBytes);
+                    
+                    _logger.LogInformation("头像审核结果: errcode={Errcode}, errmsg={Errmsg}", 
+                        checkResult.errcode, checkResult.errmsg);
+                    
+                    if (checkResult.errcode == 87014)
+                    {
+                        // 违规内容
+                        _logger.LogWarning("头像包含违规内容: UserId={UserId}, HeadImgUrl={HeadImgUrl}", 
+                            user.Id, input.HeadImgUrl);
+                        throw new UserFriendlyException(87014, "你所发布的内容含有违规信息，请修改后再试。");
+                    }
+                    
+                    if (checkResult.errcode != 0)
+                    {
+                        // 其他错误
+                        _logger.LogError("头像审核失败: errcode={Errcode}, errmsg={Errmsg}", 
+                            checkResult.errcode, checkResult.errmsg);
+                        throw new UserFriendlyException("头像检查失败，请稍后重试");
+                    }
+                    
+                    _logger.LogInformation("头像审核通过: UserId={UserId}", user.Id);
+                }
+                catch (UserFriendlyException)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "头像审核异常");
+                    throw new UserFriendlyException("头像检查服务暂时不可用，请稍后重试");
+                }
+            }
+
             user.HeadImgUrl = input.HeadImgUrl;
             user.Name = input.Name;
             // user.EmailAddress = input.EmailAddress;
@@ -349,6 +433,38 @@ namespace TtWork.Project.Applications.Core.Users
             CheckErrors(await _userManager.UpdateAsync(user));
 
             return ObjectMapper.Map<UserDto>(user);
+        }
+
+        /// <summary>
+        /// 从URL下载图片
+        /// </summary>
+        private async Task<byte[]> DownloadImageAsync(string imageUrl)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync(imageUrl);
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("下载图片失败: {Url}, StatusCode={StatusCode}", 
+                        imageUrl, response.StatusCode);
+                    return null;
+                }
+                
+                return await response.Content.ReadAsByteArrayAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "下载图片异常: {Url}", imageUrl);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 获取微信配置 (使用静态变量)
+        /// </summary>
+        private (string appId, string appSecret) GetWeixinConfig()
+        {
+            return (WechatAppId, WechatAppSecret);
         }
 
         [AbpAuthorize(AppPermissions.Administration)]

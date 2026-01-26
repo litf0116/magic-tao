@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -186,6 +187,67 @@ namespace TtWork.HttpClient.Weixin {
             var jsonReuslt = result.TryConvert<GetQrCodeResult>();
             return $"https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket={jsonReuslt.ticket}";
         }
+
+        public async Task<MediaCheckResult> MediaCheckAsync(string accessToken, string mediaUrl, int mediaType = 1) {
+            var postData = new JObject {
+                { "media_url", mediaUrl },
+                { "media_type", mediaType }
+            };
+
+            HttpContent hc = new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes(postData.ToString())));
+            hc.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+
+            var response = await client.PostAsync($"wxa/media_check_async?access_token={accessToken}", hc);
+            var result = await response.Content.ReadAsStringAsync();
+
+            logger.LogInformation("MediaCheck Result: {@result}", result);
+
+            return result.TryConvert<MediaCheckResult>();
+        }
+
+        public async Task<MsgSecCheckResult> MsgSecCheck(string accessToken, string content, int version = 1, int scene = 1, string openid = "", string title = "") {
+            var postData = new JObject {
+                { "content", content },
+                { "version", version },
+                { "scene", scene },
+                { "openid", openid },
+                { "title", title }
+            };
+
+            HttpContent hc = new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes(postData.ToString())));
+            hc.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+
+            var response = await client.PostAsync($"wxa/msg_sec_check?access_token={accessToken}", hc);
+            var result = await response.Content.ReadAsStringAsync();
+
+            logger.LogInformation("MsgSecCheck Result: {@result}", result);
+
+            return result.TryConvert<MsgSecCheckResult>();
+        }
+
+        /// <summary>
+        ///     图片安全检测
+        ///     <see cref="https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/safety/safety风险的图片检测接口.html" />
+        /// </summary>
+        /// <param name="accessToken">接口调用凭证</param>
+        /// <param name="imageBuffer">图片二进制数据</param>
+        /// <returns></returns>
+        public async Task<BaseWeChatReulst> ImgSecCheck(string accessToken, byte[] imageBuffer) {
+            using var content = new MultipartFormDataContent();
+            using var imageContent = new ByteArrayContent(imageBuffer);
+            imageContent.Headers.ContentType = MediaTypeHeaderValue.Parse("image/jpeg");
+            imageContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data") {
+                Name = "\"media\""
+            };
+            content.Add(imageContent);
+
+            var response = await client.PostAsync($"wxa/img_sec_check?access_token={accessToken}", content);
+            var result = await response.Content.ReadAsStringAsync();
+
+            logger.LogInformation("ImgSecCheck Result: {@result}", result);
+
+            return result.TryConvert<BaseWeChatReulst>();
+        }
     }
 
     public class GetQrCodeResult {
@@ -210,5 +272,38 @@ namespace TtWork.HttpClient.Weixin {
         public string openid { get; set; }
 
         public string scope { get; set; }
+    }
+
+    public class MediaCheckResult : BaseWeChatReulst {
+        public MediaTraceResult trace_id { get; set; }
+        public int errcode { get; set; }
+        public string errmsg { get; set; }
+    }
+
+    public class MediaTraceResult {
+        public string trace_id { get; set; }
+        public MediaDetailResult detail { get; set; }
+    }
+
+    public class MediaDetailResult {
+        public MediaCheckTraceInfo[] trace { get; set; }
+    }
+
+    public class MediaCheckTraceInfo {
+        public string media_id { get; set; }
+        public string media_type { get; set; }
+        public string suggest { get; set; }
+        public string label { get; set; }
+        public int probability { get; set; }
+    }
+
+    public class MsgSecCheckResult : BaseWeChatReulst {
+        public Detail[] detail { get; set; }
+    }
+
+    public class Detail {
+        public string strategy { get; set; }
+        public int errcode { get; set; }
+        public string suggest { get; set; }
     }
 }

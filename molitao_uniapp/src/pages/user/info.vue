@@ -188,6 +188,23 @@ const afterRead = async (event: any) => {
     for (let i = 0; i < lists.length; i++) {
         try {
             const uploadResult = await uploadImage(lists[i].url)
+
+            // 图片上传成功后，调用审核接口
+            try {
+                const auditResult = await api.imageAudit.check({ url: uploadResult })
+
+                // 审核不通过，删除图片并提示
+                if (!auditResult.pass) {
+                    fileList1.value.splice(fileListLen, 1)
+                    Tips.error(auditResult.message || '图片内容不合规，请更换头像')
+                    fileListLen++
+                    continue
+                }
+            } catch (auditErr: any) {
+                // 审核接口调用失败时，跳过审核直接使用图片（兼容旧逻辑）
+                console.warn('审核接口调用失败，使用原图片:', auditErr)
+            }
+
             let item = fileList1.value[fileListLen]
             fileList1.value.splice(
                 fileListLen,
