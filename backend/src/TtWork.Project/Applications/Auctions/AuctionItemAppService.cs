@@ -309,6 +309,9 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         {
             try
             {
+                _logger.LogInformation("========== 开始定时结束拍卖 ========== AuctionItemId={AuctionItemId}, Operation=Scheduled",
+                    auctionItem.Id);
+
                 // 查询最新的商品信息
                 var find = await Repository.FirstOrDefaultAsync(x => x.Id == auctionItem.Id);
                 if (find == null)
@@ -400,8 +403,13 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                     }
 
                     // 设置商品为已成交状态
+                    _logger.LogInformation("准备设置成交状态: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, FinalPrice={FinalPrice}",
+                        find.Id, find.CurrentPriceUserId, find.CurrentPrice);
+
                     find.SetDeal();
                     await CurrentUnitOfWork.SaveChangesAsync();
+
+                    _logger.LogInformation("成交状态已保存到数据库: AuctionItemId={AuctionItemId}", find.Id);
 
                     // 构建返回结果
                     result = ObjectMapper.Map<AuctionItemDto>(find);
@@ -538,7 +546,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "定时任务回调处理失败，商品ID: {AuctionItemId}", auctionItem.Id);
+                _logger.LogError(ex, "定时任务回调处理失败，商品ID: {AuctionItemId}, Error: {Error}", auctionItem.Id, ex.Message);
+                throw;
             }
         }
     }
@@ -812,6 +821,9 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     {
         try
         {
+            _logger.LogInformation("========== 开始结束拍卖 ========== AuctionItemId={AuctionItemId}, UserId={UserId}, Operation=Manual",
+                input.Id, AbpSession.UserId);
+
             // 检查用户登录状态
             if (!AbpSession.UserId.HasValue)
             {
@@ -900,8 +912,13 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 }
 
                 // 设置商品为已成交状态
+                _logger.LogInformation("准备设置成交状态: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, FinalPrice={FinalPrice}",
+                    find.Id, find.CurrentPriceUserId, find.CurrentPrice);
+
                 find.SetDeal();
                 await CurrentUnitOfWork.SaveChangesAsync();
+
+                _logger.LogInformation("成交状态已保存到数据库: AuctionItemId={AuctionItemId}", find.Id);
 
                 // 构建返回结果
                 result = ObjectMapper.Map<AuctionItemDto>(find);
@@ -1025,12 +1042,16 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             // 发布拍卖结束事件
             await _mediator.Publish(new AuctionEndedEvent(result, hasBids));
 
+            _logger.LogInformation("========== 结束拍卖成功 ========== AuctionItemId={AuctionItemId}, DealUserName={DealUserName}",
+                input.Id, result.DealUserName);
+
             return result;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "手动结束竞拍失败: {Message}", ex.Message);
-            throw new UserFriendlyException(1, ex.Message);
+            _logger.LogError(ex, "========== 结束拍卖失败 ========== AuctionItemId={AuctionItemId}, Error={Error}, StackTrace={StackTrace}",
+                input.Id, ex.Message, ex.StackTrace);
+            throw new UserFriendlyException(1, $"系统内部错误，请稍后重试。错误ID: {Guid.NewGuid()}");
         }
     }
 
@@ -1120,6 +1141,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     [HttpGet("api/AuctionItem/GetPublicListAnonymous")]
     public async Task<ListResultDto<AuctionItemDto>> GetPublicListAnonymous(AppResultRequestDto input)
     {
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        
         // 如果没有传递 MaxResultCount，设置默认值 100
         if (input.MaxResultCount <= 0)
         {
@@ -1127,7 +1150,11 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         }
 
         // 使用新的缓存服务
-        return await _cacheService.GetAuctionListAsync(input);
+        var result = await _cacheService.GetAuctionListAsync(input);
+        
+        sw.Stop();
+        _logger.LogInformation("[PERF-API] GetPublicListAnonymous 总耗时: {ElapsedMs}ms", sw.ElapsedMilliseconds);
+        return result;
     }
 
 
@@ -1352,9 +1379,12 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         // 调试：检查创建后的description字段
         _logger.LogInformation("创建拍品后description字段: {Description}", result.Description);
 
-        // 清除缓存和发布事件
+        // 同步清除所有相关缓存，确保数据一致性
         await _cacheService.ClearAuctionListCacheAsync();
-        await _cacheService.ClearAuctionDetailCacheAsync(result.Id);
+        await _cacheService.ClearCurrentAuctionCacheAsync();
+        
+        // 预热新创建的拍卖品详情缓存
+        await _cacheService.SetAuctionDetailCacheAsync(result);
 
         // 发布拍卖品创建事件
         await _mediator.Publish(new AuctionItemCreatedEvent(result));
@@ -1372,11 +1402,18 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         // 调试：检查更新后的description字段
         _logger.LogInformation("更新拍品后description字段: {Description}", result.Description);
 
-        // 清除缓存和发布事件
+        // 同步清除所有相关缓存，确保数据一致性
+        // 先清除所有列表缓存，避免并发请求写入脏数据
         await _cacheService.ClearAuctionListCacheAsync();
+        
+        // 清除当前拍卖缓存（如果当前拍卖是这个商品）
+        await _cacheService.ClearCurrentAuctionCacheAsync();
+        
+        // 清除详情缓存并重新预热
         await _cacheService.ClearAuctionDetailCacheAsync(result.Id);
+        await _cacheService.SetAuctionDetailCacheAsync(result);
 
-        // 发布拍卖品更新事件
+        // 发布拍卖品更新事件（用于其他异步处理）
         await _mediator.Publish(new AuctionItemUpdatedEvent(result));
 
         return result;
@@ -1384,13 +1421,18 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
 
     public override async Task DeleteAsync(EntityDto<long> input)
     {
+        // 先获取商品信息（用于事件发布）
+        var auctionItem = await Repository.FirstOrDefaultAsync(input.Id);
+        var status = auctionItem?.Status;
+        
         await base.DeleteAsync(input);
 
-        // 清除缓存和发布事件
+        // 同步清除所有相关缓存，确保数据一致性
         await _cacheService.ClearAuctionListCacheAsync();
+        await _cacheService.ClearCurrentAuctionCacheAsync();
         await _cacheService.ClearAuctionDetailCacheAsync(input.Id);
 
         // 发布拍卖品删除事件
-        await _mediator.Publish(new AuctionItemDeletedEvent(input.Id));
+        await _mediator.Publish(new AuctionItemDeletedEvent(input.Id, status));
     }
 }
