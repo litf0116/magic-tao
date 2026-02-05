@@ -337,6 +337,25 @@ namespace TtWork.Project.Web.Host.Startup
                     batchPostingLimit: 1000,             // 批量处理限制
                     period: TimeSpan.FromSeconds(2),      // 批量刷新间隔
                     queueSizeLimit: 10000))               // 队列大小限制
+                // 文件日志 - 使用Async批量写入，减少磁盘IO对系统性能的影响
+                .WriteTo.Async(c => c.File(
+                    path: "/app/logs/api-.log",
+                    rollingInterval: RollingInterval.Day,
+                    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
+                    retainedFileCountLimit: 7,
+                    fileSizeLimitBytes: 50_000_000,
+                    rollOnFileSizeLimit: true),
+                    bufferSize: 1000,
+                    blockWhenFull: false)
+                // Error级别文件日志 - 使用Async批量写入，但配置更频繁的刷新
+                .WriteTo.Async(c => c.File(
+                    path: "/app/logs/errors-.log",
+                    restrictedToMinimumLevel: LogEventLevel.Error,
+                    rollingInterval: RollingInterval.Day,
+                    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
+                    retainedFileCountLimit: 30),
+                    bufferSize: 100,
+                    blockWhenFull: true)
                 .CreateLogger();
 
             return options =>
