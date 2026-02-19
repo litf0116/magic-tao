@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -66,7 +67,6 @@ public class SubStartNotifyRequest
 public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, AuctionItemDto, long, AppResultRequestDto,
     AuctionItemCreateOrUpdateDto, AuctionItemCreateOrUpdateDto>
 {
-    private readonly IRedisClient _redisClient;
     private readonly UserCache _userCache;
     private new readonly IMediator _mediator;
     private readonly IRepository<AuctionItem, long> _repository;
@@ -86,10 +86,13 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     private readonly IMessageSendingService _messageSendingService;
     private readonly IBidEligibilityService _bidEligibilityService;
     private readonly IMemoryCache _memoryCache;
+
+    // 内存锁字典（替代 Redis 分布式锁）
+    private static readonly ConcurrentDictionary<long, SemaphoreSlim> _auctionLocks = new();
+
     private const string KASEC_CACHE_PREFIX = "Kasec:";
 
     public AuctionItemAppService(
-        IRedisClient redisClient,
         IMemoryCache memoryCache,
         UserCache userCache,
         IMediator mediator,
@@ -111,7 +114,6 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         IBidEligibilityService bidEligibilityService) : base(repository, iocManager)
     {
         _sqlSugarClient = sqlSugarClient;
-        _redisClient = redisClient;
         _userCache = userCache;
         _mediator = mediator;
         _repository = repository;
@@ -134,7 +136,6 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         _messageSendingService = messageSendingService;
         _bidEligibilityService = bidEligibilityService;
         _memoryCache = memoryCache;
-        // base.GetAllPermissionName = AppPermissions.Pages.ChatManager;
     }
 
 
@@ -213,19 +214,17 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             throw new UserFriendlyException(bidEligibilityCheck.Reason);
         }
 
-        //锁,只让一个人出价
-        var lockKey = $"Lock:AuctionItem:{input.AuctionItemId}";
-        const int lockSeconds = 10;
+        // 内存锁，只让一个人出价（替代 Redis 分布式锁）
+        var semaphore = _auctionLocks.GetOrAdd(input.AuctionItemId, _ => new SemaphoreSlim(1, 1));
+        const int lockTimeoutMs = 10000;
+
+        if (!await semaphore.WaitAsync(lockTimeoutMs))
+        {
+            throw new UserFriendlyException(1, "后台正在处理上一人出价,请稍后再试");
+        }
+
         try
         {
-            var lockTaken =
-                await _redisClient.Database.LockTakeAsync(lockKey, input.AuctionItemId,
-                    TimeSpan.FromSeconds(lockSeconds));
-            if (!lockTaken)
-            {
-                throw new UserFriendlyException(1, "后台正在处理上一人出价,请稍后再试");
-            }
-
             //查询商品信息
             var find = await Repository.FirstOrDefaultAsync(x => x.Id == input.AuctionItemId);
             if (find == null)
@@ -238,9 +237,6 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             {
                 throw new UserFriendlyException(1, "商品不在拍卖中");
             }
-
-            // 由于 BidEligibilityService 已经计算并检查了最低出价，这里可以简化
-            // if (find.CurrentPrice >= input.BidPrice) throw new UserFriendlyException(1, "出价必须大于当前价格");
 
             var addInfo = ObjectMapper.Map<BidHistory>(input);
 
@@ -278,7 +274,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         }
         finally
         {
-            await _redisClient.Database.LockReleaseAsync(lockKey, input.AuctionItemId);
+            semaphore.Release();
         }
     }
 
@@ -343,12 +339,12 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                     })
                     .FirstAsync();
 
-                // 获取并处理卡秒状态
-                var kasecVal = await _redisClient.Database.StringGetAsync($"Auction:Kasec:{auctionItem.Id}");
-                bool wasInKasecMode = kasecVal.HasValue && kasecVal == "true";
+                // 获取并处理卡秒状态（使用内存缓存）
+                var kasecKey = $"Kasec:{auctionItem.Id}";
+                bool wasInKasecMode = _memoryCache.TryGetValue(kasecKey, out string kasecVal) && kasecVal == "true";
 
                 // 定时结束拍卖时将卡秒状态设置为false
-                await _redisClient.Database.StringSetAsync($"Auction:Kasec:{auctionItem.Id}", "false");
+                _memoryCache.Set(kasecKey, "false", TimeSpan.FromMinutes(30));
 
                 bool hasBids = find.CurrentPrice != null;
                 AuctionItemDto result;
@@ -852,12 +848,12 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 throw new UserFriendlyException(1, "获取用户信息失败");
             }
 
-            // 获取并处理卡秒状态
-            var kasecVal = await _redisClient.Database.StringGetAsync($"Auction:Kasec:{input.Id}");
-            bool wasInKasecMode = kasecVal.HasValue && kasecVal == "true";
+            // 获取并处理卡秒状态（使用内存缓存）
+            var kasecKey = $"Kasec:{input.Id}";
+            bool wasInKasecMode = _memoryCache.TryGetValue(kasecKey, out string kasecVal) && kasecVal == "true";
 
             // 手动结束拍卖时将卡秒状态设置为false
-            await _redisClient.Database.StringSetAsync($"Auction:Kasec:{input.Id}", "false");
+            _memoryCache.Set(kasecKey, "false", TimeSpan.FromMinutes(30));
 
             AuctionItemDto result;
             bool hasBids = find.CurrentPrice != null;
@@ -1267,19 +1263,12 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
 
         try
         {
-            // 将布尔值转换为小写字符串存储到Redis
-            var kasecKey = $"Auction:Kasec:{input.AuctionItemId}";
+            // 设置卡秒状态到内存缓存
+            var kasecKey = $"Kasec:{input.AuctionItemId}";
             var kasecValue = input.IsKasec.ToString().ToLower();
 
-            _logger.LogInformation("设置Redis卡秒状态: Key={KasecKey}, Value={KasecValue}", kasecKey, kasecValue);
-
-            await _redisClient.Database.StringSetAsync(kasecKey, kasecValue);
-
-            _logger.LogInformation("Redis卡秒状态设置成功");
-
-            var cacheKey = $"{KASEC_CACHE_PREFIX}{input.AuctionItemId}";
-            _memoryCache.Set(cacheKey, input.IsKasec, TimeSpan.FromSeconds(5));
-            _logger.LogInformation("内存缓存已更新: Key={CacheKey}, Value={Value}", cacheKey, input.IsKasec);
+            _memoryCache.Set(kasecKey, kasecValue, TimeSpan.FromMinutes(30));
+            _logger.LogInformation("[PERF-Cache] 卡秒状态已设置: Key={KasecKey}, Value={KasecValue}", kasecKey, kasecValue);
 
             // 获取当前用户信息（拍卖师）
             // var currentUser = await _userCache.GetAsync(AbpSession.UserId.Value);
@@ -1338,21 +1327,13 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
 
     // 2. 获取卡秒状态（所有用户）
     [HttpGet]
-    public async Task<bool> GetKasecStatus(long auctionItemId)
+    public Task<bool> GetKasecStatus(long auctionItemId)
     {
-        var cacheKey = $"{KASEC_CACHE_PREFIX}{auctionItemId}";
+        var kasecKey = $"Kasec:{auctionItemId}";
 
-        if (_memoryCache.TryGetValue(cacheKey, out bool cachedValue))
-        {
-            return cachedValue;
-        }
+        bool result = _memoryCache.TryGetValue(kasecKey, out string kasecVal) && kasecVal == "true";
 
-        var val = await _redisClient.Database.StringGetAsync($"Auction:Kasec:{auctionItemId}");
-        bool result = val.HasValue && val == "true";
-
-        _memoryCache.Set(cacheKey, result, TimeSpan.FromSeconds(5));
-
-        return result;
+        return Task.FromResult(result);
     }
 
     /// <summary>

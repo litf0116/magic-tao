@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Abp.Domain.Repositories;
 using Abp.Extensions;
@@ -14,7 +16,6 @@ using TtWork.Abp.Authorization.Users;
 using TtWork.Abp.Caches;
 using TtWork.Abp.Entity;
 using TtWork.Abp.Extensions;
-using TtWork.Lib.Redis;
 using TtWork.Project.Domains;
 
 namespace TtWork.Project.Services;
@@ -194,7 +195,6 @@ public interface IBidEligibilityService
 /// </summary>
 public class BidEligibilityService : IBidEligibilityService
 {
-    private readonly IRedisClient _redisClient;
     private readonly UserCache _userCache;
     private readonly IRepository<AuctionItem, long> _auctionItemRepository;
     private readonly IRepository<BanedUser, long> _banedUserRepository;
@@ -202,10 +202,13 @@ public class BidEligibilityService : IBidEligibilityService
     private readonly ILogger<BidEligibilityService> _logger;
     private readonly ISqlSugarClient _sqlSugarClient;
     private readonly IMemoryCache _memoryCache;
+
+    // 内存锁字典（替代 Redis 分布式锁）
+    private static readonly ConcurrentDictionary<long, SemaphoreSlim> _auctionLocks = new();
+
     private const string KASEC_CACHE_PREFIX = "Kasec:";
 
     public BidEligibilityService(
-        IRedisClient redisClient,
         IMemoryCache memoryCache,
         UserCache userCache,
         IRepository<AuctionItem, long> auctionItemRepository,
@@ -214,7 +217,6 @@ public class BidEligibilityService : IBidEligibilityService
         ILogger<BidEligibilityService> logger,
         ISqlSugarClient sqlSugarClient)
     {
-        _redisClient = redisClient;
         _userCache = userCache;
         _auctionItemRepository = auctionItemRepository;
         _banedUserRepository = banedUserRepository;
@@ -343,21 +345,9 @@ public class BidEligibilityService : IBidEligibilityService
             var basePrice = find.CurrentPrice ?? find?.StartingPrice ?? 5;
             var minPrice = 0;
 
-            // 6. 检查卡秒状态
+            // 6. 检查卡秒状态（从内存缓存获取）
             var kasecCacheKey = $"{KASEC_CACHE_PREFIX}{input.AuctionItemId}";
-            bool isKasec;
-
-            if (_memoryCache.TryGetValue(kasecCacheKey, out bool cachedKasecValue))
-            {
-                isKasec = cachedKasecValue;
-            }
-            else
-            {
-                var kasecVal = await _redisClient.Database.StringGetAsync($"Auction:Kasec:{input.AuctionItemId}");
-                isKasec = kasecVal.HasValue && kasecVal == "true";
-                _memoryCache.Set(kasecCacheKey, isKasec, TimeSpan.FromSeconds(5));
-            }
-
+            bool isKasec = _memoryCache.TryGetValue(kasecCacheKey, out bool cachedKasecValue) && cachedKasecValue;
             result.IsKasec = isKasec;
 
             if (find.CurrentPrice.HasValue)
@@ -423,10 +413,8 @@ public class BidEligibilityService : IBidEligibilityService
                 return result;
             }
 
-            // 8. 检查Redis锁状态（通过检查键是否存在来判断）
-            var lockKey = $"Lock:AuctionItem:{input.AuctionItemId}";
-            var lockExists = await _redisClient.Database.KeyExistsAsync(lockKey);
-            if (lockExists)
+            // 8. 检查内存锁状态（替代 Redis 锁）
+            if (_auctionLocks.TryGetValue(input.AuctionItemId, out var semaphore) && semaphore.CurrentCount == 0)
             {
                 result.CanBid = false;
                 result.Reason = "后台正在处理上一人出价,请稍后再试";
