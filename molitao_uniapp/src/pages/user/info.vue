@@ -41,7 +41,14 @@
                     <uv-input v-model="form[x.prop]" placeholder="请输入"></uv-input>
                 </uv-form-item>
             </template>
-            <uv-button type="primary" text="提交" customStyle="margin-top: 10px" @click="submit"></uv-button>
+            <!-- 提交按钮：上传中或正在保存时禁用 -->
+            <uv-button 
+                type="primary" 
+                text="提交" 
+                customStyle="margin-top: 10px" 
+                :disabled="isSaving || isUploading"
+                @click="submit"
+            ></uv-button>
         </uv-form>
     </view>
 </template>
@@ -98,17 +105,36 @@ const form = ref({ id: 0, headImgUrl: '', name: '', qq: '', wx: '' })
 const isSaving = ref(false)
 const fileList1 = ref([] as any[])
 
+// 判断是否有文件正在上传
+const isUploading = computed(() => {
+    return fileList1.value.some((file: any) => file.status === 'uploading')
+})
+
+
 function submit() {
     // 智能头像处理：新用户需要上传头像，老用户可以保留或更换头像
     if (!form.value.headImgUrl && !fileList1.value.length) {
         return Tips.info('请上传头像')
     }
 
-    // 如果上传了新头像，使用新头像地址
-    if (fileList1.value.length > 0 && fileList1.value[0].url) {
-        form.value.headImgUrl = fileList1.value[0].url
+    // 如果上传了新头像，验证上传状态和URL格式
+    if (fileList1.value.length > 0) {
+        const fileItem = fileList1.value[0]
+        
+        // 检查上传状态
+        if (fileItem.status !== 'success') {
+            Tips.info('图片正在上传中，请稍候...')
+            return
+        }
+        
+        // 检查URL格式，必须是CDN地址
+        if (!fileItem.url || !fileItem.url.startsWith('https://cdn.molitao.top')) {
+            Tips.info('头像上传未完成，请重新上传')
+            return
+        }
+        
+        form.value.headImgUrl = fileItem.url
     }
-
     formRef.value
         .validate()
         .then(() => {

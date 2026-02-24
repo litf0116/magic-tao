@@ -352,6 +352,30 @@ namespace TtWork.Project.Applications.Core.Users
                     .AnyAsync(x => x.UserName == input.UserName && x.Id != input.Id))
                 throw new UserFriendlyException(1, "登录用户名已存在!");
 
+
+            // 🔒 URL格式验证 - 阻止本地临时文件路径
+            if (!string.IsNullOrEmpty(input.HeadImgUrl) && 
+                input.HeadImgUrl != user.HeadImgUrl)
+            {
+                // 检查是否为本地临时文件路径
+                if (input.HeadImgUrl.StartsWith("wxfile://", StringComparison.OrdinalIgnoreCase) ||
+                    input.HeadImgUrl.StartsWith("http://tmp_", StringComparison.OrdinalIgnoreCase) ||
+                    input.HeadImgUrl.StartsWith("file://", StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.LogWarning("检测到非法头像URL: UserId={UserId}, HeadImgUrl={HeadImgUrl}", 
+                        user.Id, input.HeadImgUrl);
+                    throw new UserFriendlyException("头像地址格式错误，请重新上传头像");
+                }
+                
+                // 检查是否为CDN地址（允许的格式）
+                if (!input.HeadImgUrl.StartsWith("https://cdn.molitao.top", StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.LogWarning("头像URL不是CDN地址: UserId={UserId}, HeadImgUrl={HeadImgUrl}", 
+                        user.Id, input.HeadImgUrl);
+                    throw new UserFriendlyException("头像地址不正确，请使用CDN地址");
+                }
+            }
+
             // 🔐 头像安全检查
             if (!string.IsNullOrEmpty(input.HeadImgUrl) && 
                 input.HeadImgUrl != user.HeadImgUrl)
