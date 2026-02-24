@@ -1,4 +1,8 @@
 const errorPrompt = (err: any) => {
+    if (!err) {
+        console.warn('Error prompt received undefined error')
+        return
+    }
     if (err.validationErrors && err.validationErrors.length) {
         const info = err.validationErrors.reduce((c: any, o: any) => (c += `${o.message}\n`), '')
         uni.showModal({
@@ -47,8 +51,10 @@ const httpsPromisify = <T>(fn: (opt: any) => void) => {
                         })
                         return
                     }
-                    errorPrompt(data.error)
-                    reject(data.error.details || data.error.message)
+                    // 处理 HTTP 404 等错误，data.error 可能不存在
+                    const err = data.error
+                    errorPrompt(err)
+                    reject(err?.details || err?.message || '请求失败')
                     return
                 }
             }

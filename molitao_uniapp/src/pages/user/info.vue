@@ -128,7 +128,7 @@ function submit() {
         }
         
         // 检查URL格式，必须是CDN地址
-        if (!fileItem.url || !fileItem.url.startsWith('https://cdn.molitao.top')) {
+        if (!fileItem.url || !fileItem.url.startsWith('http://image.molitao.top')) {
             Tips.info('头像上传未完成，请重新上传')
             return
         }
@@ -196,12 +196,13 @@ const afterRead = async (event: any) => {
 
     isSaving.value = true
     let lists: any = [].concat(event.file)
-    let fileListLen = fileList1.value.length
 
     // 如果用户已有头像，先清空再添加新头像
     if (fileList1.value.length > 0) {
         fileList1.value = []
     }
+    // 重置索引，确保从 0 开始
+    let fileListLen = 0
 
     lists.map((item: any) => {
         fileList1.value.push({
@@ -209,6 +210,7 @@ const afterRead = async (event: any) => {
             status: 'uploading',
             message: '上传中',
         })
+
     })
 
     for (let i = 0; i < lists.length; i++) {
@@ -227,11 +229,19 @@ const afterRead = async (event: any) => {
                     continue
                 }
             } catch (auditErr: any) {
-                // 审核接口调用失败时，跳过审核直接使用图片（兼容旧逻辑）
-                console.warn('审核接口调用失败，使用原图片:', auditErr)
+                // 审核接口调用失败时，跳过审核直接使用图片
+                console.warn('审核接口调用失败，跳过审核:', auditErr)
+                // 不 return，继续执行
             }
 
+            console.log('设置上传状态为 success, fileListLen:', fileListLen, 'uploadResult:', uploadResult)
             let item = fileList1.value[fileListLen]
+            // 确保索引有效
+            if (!item) {
+                console.error('item is undefined, fileListLen:', fileListLen, 'length:', fileList1.value.length)
+                Tips.error('头像上传失败，请重试')
+                continue
+            }
             fileList1.value.splice(
                 fileListLen,
                 1,
