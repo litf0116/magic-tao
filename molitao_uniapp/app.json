@@ -1,0 +1,18 @@
+{
+    "pages": [
+        {
+            "path": "pages/tabbar/index",
+            "style": {
+                "navigationBarTitleText": "魔力淘",
+                "navigationBarBackgroundColor": "#f4835a",
+                "navigationBarTextStyle": "white"
+            }
+        }
+    ],
+    "globalStyle": {
+        "navigationBarTextStyle": "white",
+        "navigationBarTitleText": "魔力淘",
+        "navigationBarBackgroundColor": "#f4835a"
+    },
+    "uniIdRouter": {}
+}
