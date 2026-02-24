@@ -4,9 +4,8 @@
         <view class="component-page" style="height: 100%">
             <home v-if="current == 0" @refreshCurrentVal="toIndex"></home>
             <chat v-if="current == 1" ref="chatRef" @refreshCurrentVal="getUserFriendCount"></chat>
-            <tradingPost v-if="current == 2" ref="tradingPostRef" @updateModalConfig="updateModal"></tradingPost>
-            <contacts v-if="current == 3" ref="contactsRef" @refreshCurrentVal="getUserFriendCount"></contacts>
-            <my v-if="current == 4" @refreshCurrentVal="toIndex"></my>
+            <contacts v-if="current == 2" ref="contactsRef" @refreshCurrentVal="getUserFriendCount"></contacts>
+            <my v-if="current == 3" @refreshCurrentVal="toIndex"></my>
         </view>
 
         <!-- tabbar -->
@@ -16,15 +15,12 @@
                     <view class="icon-wrapper">
                         <image :src="current === index ? item.selectedIconPath : item.iconPath"></image>
                         <!-- 添加角标 -->
-                        <view v-if="index == 3 && badgeCount > 0" class="badge">{{ badgeCount }}</view>
+                        <view v-if="index == 2 && badgeCount > 0" class="badge">{{ badgeCount }}</view>
                     </view>
                     <text :class="['font-title', current === index ? 'font-title-active' : '']">{{ item.text }}</text>
                 </view>
             </template>
-            <view class="mid-btn-arc" :style="elementStyle"></view>
-            <view class="mid-btn" @click="toIndex(2)">
-                <image class="mid-img" src="../../static/images/add.png"></image>
-            </view>
+
         </view>
 
         <custom-modal
@@ -61,7 +57,6 @@ const modalConfig = reactive({
     confirmText: '确定',
 })
 
-const tradingPostRef = ref(null)
 const contactsRef = ref(null)
 
 const timer = ref(null)
@@ -79,12 +74,6 @@ const tabbarList = reactive([
         iconPath: '../../static/images/tab2_b.png',
         selectedIconPath: '../../static/images/tab2.png',
         text: '会话列表',
-    },
-    {
-        pagePath: 'pages/tradingPost/index',
-        iconPath: '../../static/images/tab3_b.png',
-        selectedIconPath: '../../static/images/tab3.png',
-        text: '交易站',
     },
     {
         pagePath: 'pages/chat/contacts',
@@ -176,22 +165,17 @@ const toIndex = (index) => {
             break
         case 2:
             uni.setNavigationBarTitle({
-                title: '交易站',
-            })
-            break
-        case 3:
-            uni.setNavigationBarTitle({
                 title: '联系人',
             })
             break
-        case 4:
+        case 3:
             uni.setNavigationBarTitle({
                 title: '个人中心',
             })
             break
     }
 
-    if (current.value === 4) {
+    if (current.value === 3) {
         //动态修改状态栏的文字颜色
         uni.setNavigationBarColor({
             frontColor: '#000000',
