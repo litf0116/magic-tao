@@ -36,7 +36,7 @@ namespace TtWork.Project.Applications.Core.Users
         /// <summary>
         /// 回退用户头像到上一个状态（仅管理员）
         /// </summary>
-        [AbpAuthorize(AppPermissions.Administration)]
+        [AbpAuthorize]
         public async Task<string> RollbackAvatar(long userId)
         {
             var user = await _userManager.GetUserByIdAsync(userId);
