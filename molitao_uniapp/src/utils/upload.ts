@@ -1,6 +1,7 @@
 import Upyun from './upyun-wxapp-sdk.js'
 const upyun = new Upyun.Upyun({
     bucket: 'molitao',
+    operator: 'molitao',
     domainHost: 'http://image.molitao.top',
     getSignatureUrl: import.meta.env.VITE_APP_BASE_API + '/api/services/app/Upload/GetSignature',
 })
@@ -21,9 +22,14 @@ export function uploadImage(file) {
         }
 
         const imageSrc = file
-        // const fileExt = imageSrc.replace(/.+\./, '')
-        // const fileName = dayjs(new Date()).format('YYYYMMHHmmss') + '.' + fileExt
-        const path = `wxapp/${uni.getStorageSync('unionid') || uni.getStorageSync('openid') || 'unknow'}/`
+        // 使用时间戳+随机字符串作为路径，避免unionid/openid为空导致undefined
+        const timestamp = Date.now()
+        const unionid = uni.getStorageSync('unionid')
+        const openid = uni.getStorageSync('openid')
+        const userId = (unionid && unionid !== 'undefined' && unionid !== '') 
+            ? unionid 
+            : ((openid && openid !== 'undefined' && openid !== '') ? openid : `guest${timestamp}`)
+        const path = `wxapp/${userId}/`
         upyun.upload({
             localPath: imageSrc,
             remotePath: path,

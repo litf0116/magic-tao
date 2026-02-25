@@ -368,7 +368,8 @@ namespace TtWork.Project.Applications.Core.Users
                 }
                 
                 // 检查是否为CDN地址（允许的格式）
-                if (!input.HeadImgUrl.StartsWith("https://cdn.molitao.top", StringComparison.OrdinalIgnoreCase))
+                if (!input.HeadImgUrl.StartsWith("http://image.molitao.top", StringComparison.OrdinalIgnoreCase) &&
+                    !input.HeadImgUrl.StartsWith("https://image.molitao.top", StringComparison.OrdinalIgnoreCase))
                 {
                     _logger.LogWarning("头像URL不是CDN地址: UserId={UserId}, HeadImgUrl={HeadImgUrl}", 
                         user.Id, input.HeadImgUrl);
@@ -377,58 +378,61 @@ namespace TtWork.Project.Applications.Core.Users
             }
 
             // 🔐 头像安全检查
-            if (!string.IsNullOrEmpty(input.HeadImgUrl) && 
-                input.HeadImgUrl != user.HeadImgUrl)
+            if (!string.IsNullOrEmpty(input.HeadImgUrl) && input.HeadImgUrl != user.HeadImgUrl)
             {
-                _logger.LogInformation("开始检查头像安全性: {HeadImgUrl}", input.HeadImgUrl);
-                
                 try
                 {
+                    _logger.LogInformation("开始检查头像安全性: {HeadImgUrl}", input.HeadImgUrl);
+                    
                     // 1. 从CDN下载图片
                     var imageBytes = await DownloadImageAsync(input.HeadImgUrl);
                     if (imageBytes == null || imageBytes.Length == 0)
                     {
-                        throw new UserFriendlyException("无法下载头像图片");
+                        _logger.LogWarning("无法下载头像图片，跳过审核");
                     }
-                    
-                    // 2. 验证文件大小 (微信限制: ≤1MB)
-                    if (imageBytes.Length > 1024 * 1024)
+                    else
                     {
-                        throw new UserFriendlyException("图片大小不能超过1MB");
+                        // 2. 验证文件大小 (微信限制: ≤1MB)
+                        if (imageBytes.Length > 1024 * 1024)
+                        {
+                            _logger.LogWarning("图片大小超过1MB，跳过审核");
+                        }
+                        else
+                        {
+                            // 3. 获取access_token
+                            var (appId, appSecret) = GetWeixinConfig();
+                            var tokenResult = await _weixinApi.GetToken(appId, appSecret);
+                            if (tokenResult.errcode != 0)
+                            {
+                                _logger.LogError("获取微信access_token失败: {Error}", tokenResult.errmsg);
+                            }
+                            else
+                            {
+                                // 4. imgSecCheck 图片审核
+                                var checkResult = await _weixinApi.ImgSecCheck(tokenResult.access_token, imageBytes);
+                                _logger.LogInformation("头像审核结果: errcode={Errcode}, errmsg={Errmsg}", 
+                                    checkResult.errcode, checkResult.errmsg);
+                                
+                                if (checkResult.errcode == 87014)
+                                {
+                                    // 违规内容仍需阻止
+                                    _logger.LogWarning("头像包含违规内容: UserId={UserId}", user.Id);
+                                    throw new UserFriendlyException(87014, "你所发布的内容含有违规信息，请修改后再试。");
+                                }
+                                
+                                // 其他错误只记录日志，不阻止保存
+                                if (checkResult.errcode != 0)
+                                {
+                                    _logger.LogWarning("头像审核失败: errcode={Errcode}, errmsg={Errmsg}，允许保存", 
+                                        checkResult.errcode, checkResult.errmsg);
+                                }
+                                else
+                                {
+                                    _logger.LogInformation("头像审核通过: UserId={UserId}", user.Id);
+                                }
+                            }
+                        }
                     }
-                    
-                    // 3. 获取access_token
-                    var (appId, appSecret) = GetWeixinConfig();
-                    var tokenResult = await _weixinApi.GetToken(appId, appSecret);
-                    if (tokenResult.errcode != 0)
-                    {
-                        _logger.LogError("获取微信access_token失败: {Error}", tokenResult.errmsg);
-                        throw new UserFriendlyException("头像检查服务暂时不可用");
-                    }
-                    
-                    // 4. imgSecCheck 图片审核
-                    var checkResult = await _weixinApi.ImgSecCheck(tokenResult.access_token, imageBytes);
-                    
-                    _logger.LogInformation("头像审核结果: errcode={Errcode}, errmsg={Errmsg}", 
-                        checkResult.errcode, checkResult.errmsg);
-                    
-                    if (checkResult.errcode == 87014)
-                    {
-                        // 违规内容
-                        _logger.LogWarning("头像包含违规内容: UserId={UserId}, HeadImgUrl={HeadImgUrl}", 
-                            user.Id, input.HeadImgUrl);
-                        throw new UserFriendlyException(87014, "你所发布的内容含有违规信息，请修改后再试。");
-                    }
-                    
-                    if (checkResult.errcode != 0)
-                    {
-                        // 其他错误
-                        _logger.LogError("头像审核失败: errcode={Errcode}, errmsg={Errmsg}", 
-                            checkResult.errcode, checkResult.errmsg);
-                        throw new UserFriendlyException("头像检查失败，请稍后重试");
-                    }
-                    
-                    _logger.LogInformation("头像审核通过: UserId={UserId}", user.Id);
                 }
                 catch (UserFriendlyException)
                 {
@@ -436,8 +440,8 @@ namespace TtWork.Project.Applications.Core.Users
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "头像审核异常");
-                    throw new UserFriendlyException("头像检查服务暂时不可用，请稍后重试");
+                    // 审核异常不影响保存，记录日志继续
+                    _logger.LogError(ex, "头像审核异常，允许保存");
                 }
             }
 
