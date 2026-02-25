@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using TtWork.HttpClient.Weixin.WeixiinResult;
 
 namespace TtWork.HttpClient.Weixin {
@@ -21,5 +21,11 @@ namespace TtWork.HttpClient.Weixin {
 
         Task<string> GetQrCode(string accessToken, string sceneStr, QrCodeType type = QrCodeType.QR_STR_SCENE,
             int expireSeconds = 604800);
+
+        Task<MediaCheckResult> MediaCheckAsync(string accessToken, string mediaUrl, int mediaType = 1);
+
+        Task<MsgSecCheckResult> MsgSecCheck(string accessToken, string content, int version = 1, int scene = 1, string openid = "", string title = "");
+
+        Task<BaseWeChatReulst> ImgSecCheck(string accessToken, byte[] imageBuffer);
     }
 }
