@@ -42,6 +42,7 @@ namespace TtWork.Project.EntityFrameworkCore {
 
         public DbSet<UserDepositLog> UserDepositLog { get; set; }
         public DbSet<UserBalanceLog> UserBalanceLog { get; set; }
+        public DbSet<UserAvatarHistory> UserAvatarHistories { get; set; }
 
         public DbSet<PayOrder> PayOrder { get; set; }
         public DbSet<WechatPaymentNotification> WechatPaymentNotification { get; set; }
