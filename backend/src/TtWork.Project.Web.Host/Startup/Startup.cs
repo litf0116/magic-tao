@@ -303,6 +303,9 @@ namespace TtWork.Project.Web.Host.Startup
             //又拍云上传
             services.AddHttpClient<IUpyunApi, UpyunApi>(cfg => { cfg.BaseAddress = new Uri("https://v0.api.upyun.com/"); })
                 .ConfigurePrimaryHttpMessageHandler(_ => new HttpClientHandler { Proxy = null, UseProxy = false });
+
+            // 通用HttpClient (用于图片下载等功能)
+            services.AddHttpClient();
         }
 
 

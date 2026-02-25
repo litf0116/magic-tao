@@ -46,7 +46,7 @@ export const useChatStore = defineStore('chatStore', () => {
     const friends = ref<UserDtoBase[]>([])
     const friends0 = ref<UserDtoBase[]>([])
     const groups = ref<ChannelType[]>([])
-    const currentChat = ref(LobbyChat)
+    const currentChat = ref(AuctionChat)
 
     //聊天对象表
     const chatList: Ref<ChatListItem[]> = useStorageRef<ChatListItem[]>('chatList', [AuctionChat])
