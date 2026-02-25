@@ -1,4 +1,4 @@
-﻿\u feffusing System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -50,7 +50,8 @@ namespace TtWork.Project.Applications.Core.Users
     public class UserAppService :
         AbpAsyncCrudAppService<User, UserDto, long, AppResultRequestDto, CreateUserDto, UserEditDto>
     {
-        private readonly IRedisClient _redisClient;
+        private static readonly string WechatAppId = "wx8178f2258942133d";
+        private static readonly string WechatAppSecret = "ec39ddccf124f18474738f15cb57a38e";
         private readonly UserManager _userManager;
         private readonly RoleManager _roleManager;
         private readonly IRepository<Role> _roleRepository;
@@ -59,7 +60,11 @@ namespace TtWork.Project.Applications.Core.Users
         private readonly LogInManager _logInManager;
         private readonly UserCache _userCache;
         private readonly ITenantCache _tenantCache;
+        private readonly IRedisClient _redisClient;
+        private readonly IWeixinApi _weixinApi;
+        private readonly System.Net.Http.HttpClient _httpClient;
         private readonly ILogger<UserAppService> _logger;
+        private readonly IocManager _iocManager;
 
         public UserAppService(
             IRedisClient redisClient,
@@ -72,10 +77,13 @@ namespace TtWork.Project.Applications.Core.Users
             IAbpSession abpSession,
             LogInManager logInManager,
             UserCache userCache,
-            ITenantCache tenantCache
+            ITenantCache tenantCache,
+            IWeixinApi weixinApi,
+            System.Net.Http.HttpClient httpClient
         )
             : base(repository, iocManager)
         {
+            _iocManager = iocManager;
             _redisClient = redisClient;
             _userManager = userManager;
             _roleManager = roleManager;
@@ -85,6 +93,8 @@ namespace TtWork.Project.Applications.Core.Users
             _logInManager = logInManager;
             _userCache = userCache;
             _tenantCache = tenantCache;
+            _weixinApi = weixinApi;
+            _httpClient = httpClient;
 
             base.GetAllPermissionName = AppPermissions.Administration;
             base.DeletePermissionName = AppPermissions.Administration;
@@ -452,7 +462,7 @@ namespace TtWork.Project.Applications.Core.Users
             {
                 try
                 {
-                    var historyHelper = IocManager.Resolve<UserAvatarHistoryHelper>();
+                    var historyHelper = _iocManager.Resolve<UserAvatarHistoryHelper>();
                     await historyHelper.RecordAvatarHistoryAsync(user.Id, oldAvatarUrl, "User");
                 }
                 catch (Exception ex)
@@ -629,6 +639,32 @@ namespace TtWork.Project.Applications.Core.Users
                     .WhereIf(input.Status is 0, x => x.IsActive == false)
                     .WhereIf(input.Pid.HasValue, x => x.Roles.Any(y => y.RoleId == input.Pid))
                 ;
+        }
+
+        private async Task<byte[]> DownloadImageAsync(string imageUrl)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync(imageUrl);
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("下载图片失败: {Url}, StatusCode={StatusCode}", 
+                        imageUrl, response.StatusCode);
+                    return null;
+                }
+                
+                return await response.Content.ReadAsByteArrayAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "下载图片异常: {Url}", imageUrl);
+                return null;
+            }
+        }
+
+        private (string appId, string appSecret) GetWeixinConfig()
+        {
+            return (WechatAppId, WechatAppSecret);
         }
     }
 }

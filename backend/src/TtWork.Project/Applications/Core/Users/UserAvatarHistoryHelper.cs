@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Abp.Domain.Repositories;
 using Microsoft.Extensions.Logging;
 using TtWork.Abp.Authorization.Users;
+using Microsoft.EntityFrameworkCore;
 using TtWork.Project.Domains.Pays;
 
 namespace TtWork.Project.Applications.Core.Users
@@ -53,7 +54,10 @@ namespace TtWork.Project.Applications.Core.Users
 
             if (oldHistories.Any())
             {
-                await _historyRepository.HardDeleteManyAsync(oldHistories);
+                foreach (var oldHistory in oldHistories)
+                {
+                    await _historyRepository.DeleteAsync(oldHistory);
+                }
             }
 
             _logger.LogInformation("记录用户头像历史: UserId={UserId}, OldAvatar={OldAvatar}, Source={Source}",
