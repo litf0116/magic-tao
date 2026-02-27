@@ -4,7 +4,6 @@ const errorPrompt = (err: any) => {
         return
     }
     if (err.validationErrors && err.validationErrors.length) {
-    if (err.validationErrors && err.validationErrors.length) {
         const info = err.validationErrors.reduce((c: any, o: any) => (c += `${o.message}\n`), '')
         uni.showModal({
             title: err.message,
@@ -56,7 +55,6 @@ const httpsPromisify = <T>(fn: (opt: any) => void) => {
                     const err = data.error
                     errorPrompt(err)
                     reject(err?.details || err?.message || '请求失败')
-                    reject(data.error.details || data.error.message)
                     return
                 }
             }

@@ -9,8 +9,6 @@
             </view>
             <view class="content px-4">
                 <view class="flex flex-col">
-                    <image class="w-full h-270rpx" src="../../static/jyz.png" @tap="gotoTradingPost" />
-
                     <image class="mt-1 w-full h-270rpx" src="../../static/pmh.png" @tap="Goto.auction()" />
                 </view>
                 <view class="mt-2 w-full">
@@ -121,10 +119,6 @@ const onTapPostDetail = (url: any) => {
             url: '/pages/tradingPost/postDetail?id=' + id,
         })
     }
-}
-//跳转到交易站
-const gotoTradingPost = () => {
-    emit('refreshCurrentVal', 2)
 }
 const color = ref('red')
 const font = ref({ size: '2em' })

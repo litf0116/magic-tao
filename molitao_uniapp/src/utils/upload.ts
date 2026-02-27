@@ -2,7 +2,7 @@ import Upyun from './upyun-wxapp-sdk.js'
 const upyun = new Upyun.Upyun({
     bucket: 'molitao',
     operator: 'molitao',
-    domainHost: 'https://cdn.molitao.top',
+    domainHost: 'http://image.molitao.top',
     getSignatureUrl: import.meta.env.VITE_APP_BASE_API + '/api/services/app/Upload/GetSignature',
 })
 
@@ -21,6 +21,7 @@ export function uploadImage(file) {
             return reject('只支持 JPG、PNG、GIF、WEBP 格式的图片!')
         }
 
+        const imageSrc = file
         // 使用时间戳+随机字符串作为路径，避免unionid/openid为空导致undefined
         const timestamp = Date.now()
         const unionid = uni.getStorageSync('unionid')

@@ -1,22 +1,22 @@
 <template>
     <view>
-        <view class="flex sticky top-0 left-0 right-0 p-2 h-8">
+        <view class="flex sticky top-0 left-0 right-0 p-2 h-10">
             <!-- <el-radio-group v-model="activeName" fill="#f4835a" text="#fff">
                 <el-radio-button value="1">待拍卖</el-radio-button>
                 <el-radio-button value="2">已成交</el-radio-button>
             </el-radio-group> -->
 
             <view
-                class="flex-1 flex flex-center py-2 rounded"
+                class="flex-1 flex flex-center py-2 rounded text-sm font-500"
                 :class="[activeName === '1' ? 'bg-[#f4835a] text-white' : 'bg-white text-gray-600']"
                 @click="activeName = '1'"
-                >待拍卖</view
+                ><text>待拍卖</text></view
             >
             <view
-                class="flex-1 flex flex-center py-2 rounded"
+                class="flex-1 flex flex-center py-2 rounded text-sm font-500"
                 :class="[activeName === '2' ? 'bg-[#f4835a] text-white' : 'bg-white text-gray-600']"
                 @click="activeName = '2'"
-                >已成交</view
+                ><text>已成交</text></view
             >
         </view>
         <view class="p-2 overflow-y-scroll" style="height: calc(100vh - 64rpx)">
