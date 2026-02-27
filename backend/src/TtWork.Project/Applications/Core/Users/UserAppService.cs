@@ -79,7 +79,8 @@ namespace TtWork.Project.Applications.Core.Users
             UserCache userCache,
             ITenantCache tenantCache,
             IWeixinApi weixinApi,
-            System.Net.Http.HttpClient httpClient
+            System.Net.Http.HttpClient httpClient,
+            ILogger<UserAppService> logger
         )
             : base(repository, iocManager)
         {
@@ -95,6 +96,7 @@ namespace TtWork.Project.Applications.Core.Users
             _tenantCache = tenantCache;
             _weixinApi = weixinApi;
             _httpClient = httpClient;
+            _logger = logger;
 
             base.GetAllPermissionName = AppPermissions.Administration;
             base.DeletePermissionName = AppPermissions.Administration;

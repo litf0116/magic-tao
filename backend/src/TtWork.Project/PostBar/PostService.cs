@@ -227,6 +227,17 @@ namespace TtWork.Project.PostBar
         {
             try
             {
+                // 严格验证用户认证状态
+                if (!_abpSession.UserId.HasValue)
+                {
+                    throw new UserFriendlyException("用户未登录或登录已过期，请重新登录");
+                }
+                
+                if (_abpSession.UserId.Value <= 0)
+                {
+                    throw new UserFriendlyException("用户身份验证异常，请重新登录");
+                }
+                
                 input.userId = _abpSession.UserId.Value;
                 await _sqlSugarClient.Insertable(input)
                     .IgnoreColumns(it => new { it.createdAt, it.updatedAt }).ExecuteCommandAsync();

@@ -360,6 +360,11 @@ public class ClientAppService(
         if (c.ChannelType == ChatChannelType.Private && userId > 0)
         {
             var otherId = c.GetOtherUserId(userId);
+            // 排除自己与自己的私聊
+            if (otherId == userId)
+            {
+                return null;
+            }
             if (otherId.HasValue && userInfos.TryGetValue(otherId.Value, out var info))
             {
                 return new()

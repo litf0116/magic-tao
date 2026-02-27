@@ -21,10 +21,14 @@ export function uploadImage(file) {
             return reject('只支持 JPG、PNG、GIF、WEBP 格式的图片!')
         }
 
-        const imageSrc = file
-        // const fileExt = imageSrc.replace(/.+\./, '')
-        // const fileName = dayjs(new Date()).format('YYYYMMHHmmss') + '.' + fileExt
-        const path = `wxapp/${uni.getStorageSync('unionid') || uni.getStorageSync('openid') || 'unknow'}/`
+        // 使用时间戳+随机字符串作为路径，避免unionid/openid为空导致undefined
+        const timestamp = Date.now()
+        const unionid = uni.getStorageSync('unionid')
+        const openid = uni.getStorageSync('openid')
+        const userId = (unionid && unionid !== 'undefined' && unionid !== '') 
+            ? unionid 
+            : ((openid && openid !== 'undefined' && openid !== '') ? openid : `guest${timestamp}`)
+        const path = `wxapp/${userId}/`
         upyun.upload({
             localPath: imageSrc,
             remotePath: path,

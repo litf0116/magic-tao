@@ -232,4 +232,15 @@ export default {
         getUserGroupLevel: (id: number): Promise<any> =>
             request('GET', `/api/GroupChatLevelSettings/GetUserGroupLevel/${id}`),
     },
+
+    /** 图片内容安全审核 */
+    imageAudit: {
+        /**
+         * 检查图片内容是否安全
+         * @param data { url: 图片URL }
+         * @returns Promise<{ pass: boolean, message: string }>
+         */
+        check: (data: { url: string }) =>
+            request('POST', `/api/ContentSecurity/CheckMedia`, data),
+    },
 }
