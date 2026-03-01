@@ -1,5 +1,10 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using StackExchange.Redis;
+using System.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
@@ -12,6 +17,7 @@ namespace TtWork.Lib.Redis
         ConnectionMultiplexer ConnectionMultiplexer { get; }
 
         void DeleteKeysWithPartten(string pattern);
+        Task DeleteKeysWithParttenAsync(string pattern);
     }
 
     public class RedisClient : IRedisClient, IDisposable
@@ -34,6 +40,27 @@ namespace TtWork.Lib.Redis
                     if (keys.Length > 0)
                     {
                         Database.KeyDeleteAsync(keys);
+                        _logger.LogDebug("删除了 {Count} 个匹配模式 {Pattern} 的键", keys.Length, pattern);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "删除模式匹配的键失败: {Pattern}", pattern);
+            }
+        }
+
+        public async Task DeleteKeysWithParttenAsync(string pattern)
+        {
+            try
+            {
+                foreach (var ep in ConnectionMultiplexer.GetEndPoints())
+                {
+                    var server = ConnectionMultiplexer.GetServer(ep);
+                    var keys = server.Keys(database: _optionsAccessor.Value.DatabaseId, pattern: pattern).ToArray();
+                    if (keys.Length > 0)
+                    {
+                        await Database.KeyDeleteAsync(keys);
                         _logger.LogDebug("删除了 {Count} 个匹配模式 {Pattern} 的键", keys.Length, pattern);
                     }
                 }

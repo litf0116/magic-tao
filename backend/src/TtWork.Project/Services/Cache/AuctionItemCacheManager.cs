@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Abp.Application.Services.Dto;
 using Abp.Dependency;
@@ -26,6 +27,10 @@ namespace TtWork.Project.Services.Cache
         private readonly IRepository<BidHistory, long> _bidHistoryRepository;
         private readonly IObjectMapper _objectMapper;
         private readonly ILogger<AuctionItemCacheManager> _logger;
+
+        // 单实例部署的内存锁，防止缓存击穿
+        private static readonly Dictionary<string, SemaphoreSlim> _cacheLocks = new();
+        private static readonly object _lockDictLock = new();
 
         public AuctionItemCacheManager(
             IRedisClient redisClient,
@@ -62,14 +67,33 @@ namespace TtWork.Project.Services.Cache
                     return cachedResult;
                 }
 
-                // 缓存未命中，从数据库获取
-                var result = await GetAuctionListFromDatabaseAsync(input);
+                // 获取或创建内存锁防止缓存击穿
+                var cacheLock = GetOrCreateCacheLock(cacheKey);
+                await cacheLock.WaitAsync();
+                try
+                {
+                    // 双重检查锁定：获取锁后再次检查缓存
+                    cachedValue = await _redisClient.Database.StringGetAsync(cacheKey);
+                    if (cachedValue.HasValue)
+                    {
+                        var cachedResult = JsonConvert.DeserializeObject<ListResultDto<AuctionItemDto>>(cachedValue);
+                        _logger.LogDebug("拍卖品列表缓存命中（二次检查）: {CacheKey}", cacheKey);
+                        return cachedResult;
+                    }
 
-                // 设置缓存
-                await SetAuctionListCacheAsync(input, result);
+                    // 缓存未命中，从数据库获取
+                    var result = await GetAuctionListFromDatabaseAsync(input);
 
-                _logger.LogDebug("拍卖品列表数据已缓存: {CacheKey}, Count: {Count}", cacheKey, result.Items?.Count ?? 0);
-                return result;
+                    // 设置缓存
+                    await SetAuctionListCacheAsync(input, result);
+
+                    _logger.LogDebug("拍卖品列表数据已缓存: {CacheKey}, Count: {Count}", cacheKey, result.Items?.Count ?? 0);
+                    return result;
+                }
+                finally
+                {
+                    cacheLock.Release();
+                }
             }
             catch (Exception ex)
             {
@@ -99,17 +123,36 @@ namespace TtWork.Project.Services.Cache
                     return cachedResult;
                 }
 
-                // 缓存未命中，从数据库获取
-                var result = await GetAuctionDetailFromDatabaseAsync(auctionItemId);
-
-                // 设置缓存
-                if (result != null)
+                // 获取或创建内存锁防止缓存击穿
+                var cacheLock = GetOrCreateCacheLock(cacheKey);
+                await cacheLock.WaitAsync();
+                try
                 {
-                    await SetAuctionDetailCacheAsync(result);
-                }
+                    // 双重检查锁定：获取锁后再次检查缓存
+                    cachedValue = await _redisClient.Database.StringGetAsync(cacheKey);
+                    if (cachedValue.HasValue)
+                    {
+                        var cachedResult = JsonConvert.DeserializeObject<AuctionItemDto>(cachedValue);
+                        _logger.LogDebug("拍卖品详情缓存命中（二次检查）: {CacheKey}", cacheKey);
+                        return cachedResult;
+                    }
 
-                _logger.LogDebug("拍卖品详情数据已缓存: {CacheKey}", cacheKey);
-                return result;
+                    // 缓存未命中，从数据库获取
+                    var result = await GetAuctionDetailFromDatabaseAsync(auctionItemId);
+
+                    // 设置缓存
+                    if (result != null)
+                    {
+                        await SetAuctionDetailCacheAsync(result);
+                    }
+
+                    _logger.LogDebug("拍卖品详情数据已缓存: {CacheKey}", cacheKey);
+                    return result;
+                }
+                finally
+                {
+                    cacheLock.Release();
+                }
             }
             catch (Exception ex)
             {
@@ -178,14 +221,33 @@ namespace TtWork.Project.Services.Cache
                     return cachedResult;
                 }
 
-                // 缓存未命中，从数据库获取
-                var result = await GetAuctionMidListFromDatabaseAsync(input);
+                // 获取或创建内存锁防止缓存击穿
+                var cacheLock = GetOrCreateCacheLock(cacheKey);
+                await cacheLock.WaitAsync();
+                try
+                {
+                    // 双重检查锁定：获取锁后再次检查缓存
+                    cachedValue = await _redisClient.Database.StringGetAsync(cacheKey);
+                    if (cachedValue.HasValue)
+                    {
+                        var cachedResult = JsonConvert.DeserializeObject<ListResultDto<AuctionItemDto>>(cachedValue);
+                        _logger.LogDebug("拍卖中商品列表缓存命中（二次检查）: {CacheKey}", cacheKey);
+                        return cachedResult;
+                    }
 
-                // 设置缓存
-                await SetAuctionMidListCacheAsync(input, result);
+                    // 缓存未命中，从数据库获取
+                    var result = await GetAuctionMidListFromDatabaseAsync(input);
 
-                _logger.LogDebug("拍卖中商品列表数据已缓存: {CacheKey}", cacheKey);
-                return result;
+                    // 设置缓存
+                    await SetAuctionMidListCacheAsync(input, result);
+
+                    _logger.LogDebug("拍卖中商品列表数据已缓存: {CacheKey}, Count: {Count}", cacheKey, result.Items?.Count ?? 0);
+                    return result;
+                }
+                finally
+                {
+                    cacheLock.Release();
+                }
             }
             catch (Exception ex)
             {
@@ -273,14 +335,14 @@ namespace TtWork.Project.Services.Cache
                 var patterns = AuctionItemCacheKeys.GetListCachePatterns(status);
                 foreach (var pattern in patterns)
                 {
-                    _redisClient.DeleteKeysWithPartten(pattern);
+                    await _redisClient.DeleteKeysWithParttenAsync(pattern);
                 }
 
                 // 同时清除拍卖中商品列表缓存
                 var midPatterns = AuctionItemCacheKeys.GetMidListCachePatterns();
                 foreach (var pattern in midPatterns)
                 {
-                    _redisClient.DeleteKeysWithPartten(pattern);
+                    await _redisClient.DeleteKeysWithParttenAsync(pattern);
                 }
 
                 _logger.LogDebug("拍卖品列表缓存已清除，状态过滤: {Status}", status?.ToString() ?? "ALL");
@@ -389,6 +451,18 @@ namespace TtWork.Project.Services.Cache
         }
 
         #region 私有方法
+
+        private SemaphoreSlim GetOrCreateCacheLock(string cacheKey)
+        {
+            lock (_lockDictLock)
+            {
+                if (!_cacheLocks.ContainsKey(cacheKey))
+                {
+                    _cacheLocks[cacheKey] = new SemaphoreSlim(1, 1);
+                }
+                return _cacheLocks[cacheKey];
+            }
+        }
 
         private async Task<ListResultDto<AuctionItemDto>> GetAuctionListFromDatabaseAsync(AppResultRequestDto input)
         {
@@ -585,7 +659,7 @@ namespace TtWork.Project.Services.Cache
                 var patterns = AuctionItemCacheKeys.GetAllCachePatterns();
                 foreach (var pattern in patterns)
                 {
-                    _redisClient.DeleteKeysWithPartten(pattern);
+                    await _redisClient.DeleteKeysWithParttenAsync(pattern);
                 }
 
                 _logger.LogDebug("所有拍卖品缓存已清除");
@@ -598,4 +672,4 @@ namespace TtWork.Project.Services.Cache
 
         #endregion
     }
-} 
+}
