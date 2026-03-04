@@ -57,14 +57,6 @@ namespace TtWork.Project.Services.Cache
 
             return $"{LIST_PREFIX}:{statusKey}:{input.MaxResultCount}{skipCountKey}{sortingKey}{keywordKey}";
         }
-        {
-            string statusKey = input.Status?.ToString() ?? "default";
-            string sortingKey = !string.IsNullOrEmpty(input.Sorting) ? $":sort_{input.Sorting.Replace(" ", "_")}" : "";
-            string keywordKey = !string.IsNullOrEmpty(input.Keyword) ? $":kw_{input.Keyword.GetHashCode()}" : "";
-            string skipCountKey = input.SkipCount > 0 ? $":skip_{input.SkipCount}" : "";
-
-            return $"{LIST_PREFIX}:{statusKey}:{input.MaxResultCount}{skipCountKey}{sortingKey}{keywordKey}";
-        }
 
         /// <summary>
         /// 生成拍卖品详情缓存键
