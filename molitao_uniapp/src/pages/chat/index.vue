@@ -20,7 +20,7 @@
                             v-else-if="x.id === -1"
                             class="head-icon bg-green-600 text-white font-bold w-full h-full flex flex-center"
                         >
-                            拍卖
+                            秒杀
                         </div>
                         <div
                             v-else
@@ -43,7 +43,7 @@
                                     ? 'text-green-600 !font-bold'
                                     : 'text-gray-700',
                             ]"
-                            >{{ x.name === 'lobby' ? '勇者招募所' : x.name === 'auction' ? '拍卖行' : x.name }}
+                            >{{ x.name === 'lobby' ? '勇者招募所' : x.name === 'auction' ? '秒杀场' : x.name }}
                         </text>
                         <view class="item-info-top_time"> {{ dayjs(x.time).format('MM-DD HH:mm') }}</view>
                     </view>

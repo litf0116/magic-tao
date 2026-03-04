@@ -34,7 +34,7 @@
             "path": "pages/chat/auction",
             "type": "page",
             "style": {
-                "navigationBarTitleText": "拍卖行"
+                navigationBarTitleText: "秒杀场"
             }
         },
         {

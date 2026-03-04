@@ -29,7 +29,7 @@
                 >拍品详情
             </view>
             <view class="py-4 px-3 bg-red-500 rounded-lg text-center opacity-80" @click.stop="bid">
-                <view class="text-sm text-white mb-2">拍卖中</view>
+                <view class="text-sm text-white mb-2">秒杀中</view>
                 <view class="text-32rpx text-white font-700 underline">出价</view>
             </view>
         </view>
@@ -152,7 +152,7 @@ onLoad(() => {
     uni.$on('showBidRulesModal', (data: { message: string; needPriceInfo?: boolean }) => {
         bidRulesMessage.value = data.message
 
-        // 如果需要价格信息，从当前拍卖商品获取
+        // 如果需要价格信息，从当前秒杀商品获取
         if (data.needPriceInfo && onAuctionItem.value) {
             bidRulesCurrentPrice.value = onAuctionItem.value.currentPrice || onAuctionItem.value.startingPrice || 0
             // 计算最低出价
@@ -204,7 +204,7 @@ const announceContent = computed(() => {
 })
 
 const onAuctionItem = computed(() => {
-    return auctionStore.list.find((item) => item.status === '拍卖中') || null
+    return auctionStore.list.find((item) => item.status === '秒杀中') || null
 })
 
 const init = async (name: string) => {
@@ -264,7 +264,7 @@ async function loadHistoryMessage(force = false) {
     })
 }
 
-//LINK[epic=消息发送] - 拍卖消息发送逻辑
+//LINK[epic=消息发送] - 秒杀消息发送逻辑
 function send(e: { type: ChatMessageType; data: string | object }) {
     if (e.type === ChatMessageType.Image) {
         chatStore.sendChannelMsg('[图片]', '', ChatMessageType.Image, e.data).then(() => {})
@@ -357,23 +357,23 @@ async function bid() {
     // console.log('开始出价流程 - 用户ID:', userId)
 
     try {
-        // 首先获取当前拍卖商品ID
+        // 首先获取当前秒杀商品ID
         if (!onAuctionItem.value || !onAuctionItem.value.id) {
-            // console.log('没有正在拍卖的商品')
-            Tips.error('没有正在拍卖的商品')
+            // console.log('没有正在秒杀的商品')
+            Tips.error('没有正在秒杀的商品')
             return
         }
 
         const auctionItemId = onAuctionItem.value.id
-        // console.log('当前拍卖商品ID:', auctionItemId)
+        // console.log('当前秒杀商品ID:', auctionItemId)
 
-        // 获取实时的拍卖商品信息
+        // 获取实时的秒杀商品信息
         const auctionItemDetail = await api.auctionItem.getDetail(auctionItemId)
 
         // 验证商品状态
-        if (auctionItemDetail.status !== '拍卖中') {
-            // console.log('商品不在拍卖中，状态:', auctionItemDetail.status)
-            Tips.error('商品不在拍卖中')
+        if (auctionItemDetail.status !== '秒杀中') {
+            // console.log('商品不在秒杀中，状态:', auctionItemDetail.status)
+            Tips.error('商品不在秒杀中')
             return
         }
 
@@ -413,7 +413,7 @@ async function bid() {
                     uni.showModal({
                         title: '出价须知',
                         content:
-                            '新用户参与拍卖，需要缴纳51元（50元保证金+1元提现手续费）\n老用户回归参与拍卖，需向拍卖师-老淡，提供以往QQ群成交聊天记录截图',
+                            '新用户参与秒杀，需要缴纳51元（50元保证金+1元提现手续费）\n老用户回归参与秒杀，需向秒杀主持-老淡，提供以往QQ群成交聊天记录截图',
                         showCancel: true,
                         confirmText: '去缴纳',
                         cancelText: '提供记录',
@@ -738,7 +738,7 @@ const navigateToAdminChat = (status: 'pending' | 'record_provided') => {
 <route lang="json">
 {
     "style": {
-        "navigationBarTitleText": "拍卖行"
+        navigationBarTitleText: "秒杀场"
     }
 }
 </route>

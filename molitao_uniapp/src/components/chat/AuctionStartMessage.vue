@@ -1,6 +1,6 @@
 <template>
     <div class="auction-start-message border-red-500 border-2 border-solid py-2 px-4 rounded-lg relative">
-        <div class="absolute top-0 right-0 bg-red-500 text-white rounded-lb-lg px-2 font-bold text-xs">开始拍卖</div>
+        <div class="absolute top-0 right-0 bg-red-500 text-white rounded-lb-lg px-2 font-bold text-xs">开始秒杀</div>
         <div class="max-w-350px min-w-200px" @tap="handleAction">
             <div>商品名称: {{ payloadData.name }}</div>
             <rich-text :nodes="payloadData.description"></rich-text>

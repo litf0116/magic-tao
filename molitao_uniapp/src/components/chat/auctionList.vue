@@ -2,7 +2,7 @@
     <view>
         <view class="flex sticky top-0 left-0 right-0 p-2 h-10">
             <!-- <el-radio-group v-model="activeName" fill="#f4835a" text="#fff">
-                <el-radio-button value="1">待拍卖</el-radio-button>
+                <el-radio-button value="1">待秒杀</el-radio-button>
                 <el-radio-button value="2">已成交</el-radio-button>
             </el-radio-group> -->
 
@@ -10,7 +10,7 @@
                 class="flex-1 flex flex-center py-2 rounded text-sm font-500"
                 :class="[activeName === '1' ? 'bg-[#f4835a] text-white' : 'bg-white text-gray-600']"
                 @click="activeName = '1'"
-                ><text>待拍卖</text></view
+                ><text>待秒杀</text></view
             >
             <view
                 class="flex-1 flex flex-center py-2 rounded text-sm font-500"
@@ -81,7 +81,7 @@ const waitList = computed(() => {
 })
 
 const onAuctionItem = computed(() => {
-    return auctionStore.list.find((item) => item.status === '拍卖中') || null
+    return auctionStore.list.find((item) => item.status === '秒杀中') || null
 })
 
 let normalIndex = 0

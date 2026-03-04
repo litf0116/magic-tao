@@ -9,7 +9,7 @@ export const useAuctionStore = defineStore('auction', () => {
     const list = ref<AuctionItemDto[]>([])
     const list4 = ref<AuctionItemDto[]>([])
     const auctionMidList = ref<AuctionItemDto[]>([])
-    // 当前拍卖品ID
+    // 当前秒杀品ID
     const currentAuctionId = ref<number | null>(null)
     // 卡秒状态
     const isKasec = ref(false)
@@ -59,13 +59,13 @@ export const useAuctionStore = defineStore('auction', () => {
             if (!status) {
                 api.auctionItem.getPublicList({ MaxResultCount: 100 }).then((res) => {
                     list.value = res.items!
-                    // Tips.success('拍卖列表已刷新')
+                    // Tips.success('秒杀列表已刷新')
                     return resolve()
                 })
             } else if (status === 4) {
                 api.auctionItem.getPublicList({ status, MaxResultCount: 100 }).then((res) => {
                     list4.value = res.items!
-                    // Tips.success('拍卖列表已刷新')
+                    // Tips.success('秒杀列表已刷新')
                     return resolve()
                 })
             }
@@ -76,7 +76,7 @@ export const useAuctionStore = defineStore('auction', () => {
 
     function startAuction(id: number) {
         api.auctionItem.startAuction({ id: id }).then((res) => {
-            // TODO:通知拍卖房间的人刷新拍品列表
+            // TODO:通知秒杀房间的人刷新秒品列表
             chatStore.sendChannelMsg('', '-1_auction', ChatMessageType.AuctionStart, res)
         })
     }

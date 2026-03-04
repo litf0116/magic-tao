@@ -49,10 +49,10 @@
 **必须使用 `<text>` 标签包裹文本内容**：
 ```vue
 <!-- ✅ 正确 -->
-<view class="text-sm"><text>待拍卖</text></view>
+<view class="text-sm"><text>待秒杀</text></view>
 
 <!-- ❌ 错误 - 可能导致 iOS 上文本不显示 -->
-<view class="text-sm">待拍卖</view>
+<view class="text-sm">待秒杀</view>
 ```
 
 ### 字体样式规范
@@ -95,7 +95,7 @@
             :class="[active === '1' ? 'bg-[#f4835a] text-white' : 'bg-white text-gray-600']"
             @click="active = '1'"
         >
-            <text>待拍卖</text>
+            <text>待秒杀</text>
         </view>
         <view
             class="flex-1 flex flex-center py-2 rounded text-sm font-500"

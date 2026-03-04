@@ -273,13 +273,13 @@ export const useChatStore = defineStore('chatStore', () => {
         // 处理卡秒状态变更系统消息
         if (msg.type === ChatMessageType.KasecStatusChanged && msg.payload) {
             const { auctionItemId, isKasec } = msg.payload
-            // 只处理当前拍卖频道
+            // 只处理当前秒杀频道
             if (currentChat.value.id === -1) {
                 if (typeof auctionStore.syncKasecStatus === 'function') {
                     auctionStore.syncKasecStatus(auctionItemId)
                 }
                 // 保持原始的KasecStatusChanged类型，设置消息内容
-                msg.msg = isKasec ? '拍卖师已开启卡秒，需三倍加价！' : '卡秒已关闭，恢复正常加价'
+                msg.msg = isKasec ? '秒杀主持已开启卡秒，需三倍加价！' : '卡秒已关闭，恢复正常加价'
                 msg.time = Date.now()
                 // 直接添加到聊天记录中，不转换类型
                 if (chatMap.value.has('-1')) {
@@ -309,13 +309,13 @@ export const useChatStore = defineStore('chatStore', () => {
                 // 处理卡秒状态变更
                 const { auctionItemId, isKasec } = msg.payload
                 if (auctionItemId && typeof isKasec === 'boolean') {
-                    // 只处理当前拍卖频道
+                    // 只处理当前秒杀频道
                     if (currentChat.value.id === -1) {
                         if (typeof auctionStore.syncKasecStatus === 'function') {
                             auctionStore.syncKasecStatus(auctionItemId)
                         }
                         // 设置消息内容（移除闪电符号，因为组件中已有图标）
-                        msg.msg = isKasec ? '拍卖师已开启卡秒模式，需三倍加价！' : '卡秒已关闭，恢复正常加价规则'
+                        msg.msg = isKasec ? '秒杀主持已开启卡秒模式，需三倍加价！' : '卡秒已关闭，恢复正常加价规则'
                         msg.time = Date.now()
                         // 直接添加到聊天记录中
                         if (chatMap.value.has('-1')) {
@@ -362,20 +362,20 @@ export const useChatStore = defineStore('chatStore', () => {
             }
         }
 
-        // 特殊处理：监听拍卖结束消息，为中拍用户创建聊天频道
+        // 特殊处理：监听秒杀结束消息，为秒中用户创建聊天频道
         // 需要在解码后处理，因为 AuctionDeal 消息被编码为 AuctionEnd 传输，解码后类型变回 AuctionDeal
         if ((msg.type === 'AuctionEnd' || msg.type === ChatMessageType.AuctionDeal) && msg.payload) {
-            // console.log('检测到拍卖结束消息，为中拍用户创建聊天频道', msg.payload)
+            // console.log('检测到秒杀结束消息，为秒中用户创建聊天频道', msg.payload)
             const userStore = useUserStore()
 
             // 检查 payload 中是否有成交用户信息
             const dealUserId = msg.payload.dealUserId || msg.payload.DealUserId
 
             if (dealUserId) {
-                // 优先使用拍卖成交时间，而不是消息接收时间
+                // 优先使用秒杀成交时间，而不是消息接收时间
                 const dealTime = msg.payload.dealTime || msg.payload.DealTime || msg.time || new Date().getTime()
 
-                // 发送者（拍卖师）：为中拍用户创建聊天会话
+                // 发送者（秒杀主持）：为秒中用户创建聊天会话
                 if (msg.from === userStore.user.id) {
                     addAuctionDealUser(msg.payload, 'AuctionDeal', dealTime)
                 }
@@ -698,7 +698,7 @@ export const useChatStore = defineStore('chatStore', () => {
         const itemName = auctionResult.name || auctionResult.Name
 
         if (!dealUserId || !dealUserName) {
-            // console.warn('拍卖结果中缺少中拍用户信息', auctionResult)
+            // console.warn('秒杀结果中缺少秒中用户信息', auctionResult)
             return
         }
 

@@ -89,7 +89,7 @@
                                     :showActionPopup="showActionPopup"
                                 />
 
-                                <!-- 开始拍卖 -->
+                                <!-- 开始秒杀 -->
                                 <AuctionStartMessage
                                     v-else-if="message.type === ChatMessageType.AuctionStart && message.payload"
                                     :message="message"
@@ -395,7 +395,7 @@ const unsubscribe = bus.on((msg: any) => {
     }
 
     if (msg.type === 'Backout' && msg.chan === '-1_auction') {
-        // console.log('拍卖行撤回')
+        // console.log('秒杀场撤回')
         auctionStore.getList()
     }
 

@@ -2,7 +2,7 @@
     <view>
         <view class="flex sticky top-0 left-0 right-0 p-2 h-10" style="border-bottom: 1px solid #908e8e">
             <view class="flex-1 flex flex-center py-2 rounded text-sm font-500" @click="activeName = '1'"
-                ><text>拍卖中</text></view
+                ><text>秒杀中</text></view
             >
         </view>
         <view class="p-2 overflow-y-scroll" style="height: calc(100vh - 64rpx)">

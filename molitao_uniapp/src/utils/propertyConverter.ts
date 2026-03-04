@@ -34,25 +34,25 @@ export function convertPascalToCamel(obj: any): any {
 }
 
 /**
- * 拍卖状态枚举映射
+ * 秒杀状态枚举映射
  * 将数字状态值转换为字符串状态值
  *
  * 测试用例：
  * - normalizeAuctionStatus(0) => '草稿'
  * - normalizeAuctionStatus(1) => '上架'
- * - normalizeAuctionStatus(2) => '拍卖中'
+ * - normalizeAuctionStatus(2) => '秒杀中'
  * - normalizeAuctionStatus(4) => '已成交'
  * - normalizeAuctionStatus(8) => '交易成功'
  * - normalizeAuctionStatus(16) => '卖家失约'
  * - normalizeAuctionStatus(32) => '买家失约'
  * - normalizeAuctionStatus(128) => '交易关闭'
  * - normalizeAuctionStatus('已成交') => '已成交'
- * - normalizeAuctionStatus('拍卖中') => '拍卖中'
+ * - normalizeAuctionStatus('秒杀中') => '秒杀中'
  */
 const AUCTION_STATUS_MAP: { [key: number]: string } = {
     0: '草稿',
     1: '上架',
-    2: '拍卖中',
+    2: '秒杀中',
     4: '已成交',
     8: '交易成功',
     16: '卖家失约',
@@ -61,7 +61,7 @@ const AUCTION_STATUS_MAP: { [key: number]: string } = {
 }
 
 /**
- * 统一处理拍卖状态值
+ * 统一处理秒杀状态值
  * @param status 状态值（可能是数字或字符串）
  * @returns 统一后的字符串状态值
  */
@@ -85,7 +85,7 @@ function normalizeAuctionStatus(status: any): string {
 }
 
 /**
- * 拍卖消息payload的专用转换函数
+ * 秒杀消息payload的专用转换函数
  * 处理AuctionItemDto相关的属性转换
  */
 export function convertAuctionPayload(payload: any): any {

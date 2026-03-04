@@ -24,7 +24,7 @@
             </div>
             <div class="text-sm" style="margin-left: 12px">{{ formattedDealTime }}</div>
             <div class="mt-2 text-sm text-gray-600">
-                请联系拍卖师确认交易详情<br />
+                请联系秒杀主持确认交易详情<br />
                 认准星标，小心冒充<br />
                 感谢您的参与！
             </div>
