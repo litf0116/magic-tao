@@ -232,7 +232,7 @@ export interface AnnounceDto {
 export enum AuctionStatusEnum {
     '草稿' = '草稿',
     '上架' = '上架',
-    '秒杀中' = '秒杀中',
+    '拍卖中' = '秒杀中',
     '已成交' = '已成交',
 }
 
