@@ -272,8 +272,15 @@ namespace TtWork.Project.PostBar
                 }
 
                 // 只更新允许编辑的字段，避免覆盖其他字段
-                await _sqlSugarClient.Updateable(input)
-                    .UpdateColumns(it => new { it.categoryId, it.title, it.content })
+                // 使用 SetColumns 明确指定要更新的字段，防止 userId 等字段被错误覆盖
+                await _sqlSugarClient.Updateable<tb_post>()
+                    .SetColumns(it => new tb_post 
+                    { 
+                        categoryId = input.categoryId, 
+                        title = input.title, 
+                        content = input.content,
+                        updatedAt = DateTime.Now
+                    })
                     .Where(w => w.postId == input.postId).ExecuteCommandAsync();
             }
             catch (Exception ex)
