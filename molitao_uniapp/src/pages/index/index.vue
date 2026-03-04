@@ -27,7 +27,7 @@
                         v-for="(item, index) in advertisingSpaceList"
                         :key="index"
                         class="advertisingSpace-item"
-                        @tap="onTapPostDetail(item.url)"
+
                     >
                         <image class="logo2" :src="convertImageUrl(item.imageUrl, false)" />
                         <div
@@ -111,16 +111,7 @@ onShareTimeline(() => {
         title: '魔力淘',
     }
 })
-//点击跳转到详情
-const onTapPostDetail = (url: any) => {
-    let id = url.split('/').pop()
-    if (/^-?\d+(\.\d+)?$/.test(id)) {
-        uni.navigateTo({
-            url: '/pages/tradingPost/postDetail?id=' + id,
-        })
-    }
-}
-const color = ref('red')
+
 const font = ref({ size: '2em' })
 </script>
 <style>

@@ -44,7 +44,7 @@ import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
 import api from '@/utils/api'
 import home from '../index/index.vue'
 import chat from '../chat/index.vue'
-import tradingPost from '../tradingPost/index.vue'
+
 import contacts from '../chat/contacts.vue'
 import my from '../index/my.vue'
 import CustomModal from '@/components/customModal.vue'

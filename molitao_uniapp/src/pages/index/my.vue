@@ -14,23 +14,13 @@
                 </view>
             </view>
             <view class="grid grid-cols-4 gap-4">
-                <view class="flex flex-col flex-center">
-                    <view class="text-lg">{{ myCount.auctionSuccess }}</view>
-                    <view>成交</view>
-                </view>
+
 
                 <view class="flex flex-col flex-center">
                     <view class="text-lg">{{ myCount.friend }}</view>
                     <view>好友</view>
                 </view>
-                <!-- <view class="flex flex-col flex-center" @click.stop="navTo.navTo('/pages/user/balanceLog')">
-                    <view class="text-lg">{{ myCount.balance }}</view>
-                    <view>余额</view>
-                </view> -->
-                <view class="flex flex-col flex-center" @click.stop="navTo.navTo('/pages/user/depositLog')">
-                    <view class="text-lg">{{ myCount.depositBalance }}</view>
-                    <view>保证金</view>
-                </view>
+
             </view>
             <view
                 v-if="userStore.user.id"
@@ -40,92 +30,15 @@
         </view>
 
         <view class="my-4 flex items-center">
-            <view class="h-3 w-4px mr-2 bg-[#ccc] rounded-full"> </view>
+            <view class="h-3 w-4px mr-2 bg-[#ccc] rounded-full"></view>
             <view>工作台</view>
         </view>
 
-        <view class="grid grid-cols-2 gap-2 mb-4 text-[#171717]">
-            <view class="myCard py-2 flex flex-center zoom-in" @click.stop="payDeposit">
-                <view class="mr-2 bg-[#f6f6f6] size-10 rounded-full flex flex-center">
-                    <view class="i-icon-park-outline:protect size-6"></view>
-                </view>
-                <view class="font-500">保证金充值</view>
-            </view>
-            <view class="myCard py-2 flex flex-center zoom-in" @click.stop="cashOut">
-                <view class="mr-2 bg-[#f6f6f6] size-10 rounded-full flex flex-center">
-                    <view class="i-icon-park-outline:protect size-6"></view>
-                </view>
-                <view class="font-500">保证金提现</view>
-            </view>
-            <!--   <view class="myCard py-2 flex flex-center zoom-in" @click.stop="topUp">
-                <view class="mr-2 bg-[#f6f6f6] size-10 rounded-full flex flex-center">
-                    <view class="size-6 i-icon-park-outline:wechat"></view>
-                </view>
-                <view class="font-500">余额充值</view>
-            </view> -->
-
-            <!-- <view v-if="userStore.isAdmin" class="myCard py-2 flex flex-center">
-                <view class="mr-2 bg-[#f6f6f6] size-10 rounded-full flex flex-center">
-                    <view class="size-6 i-icon-park-outline:audit"></view>
-                </view>
-                <view class="font-500">摄影师审核</view>
-            </view> -->
+        <view class="myCard py-4 px-4 mb-4 text-[#171717] flex flex-center">
+            <view class="text-center">联系老淡开通权限</view>
         </view>
 
-        <view class="my-4 flex items-center">
-            <view class="h-3 w-4px mr-2 bg-[#ccc] rounded-full"> </view>
-            <view>买家</view>
-        </view>
-        <view class="myCard py-2 grid grid-cols-4 mb-4 text-[#171717]">
-            <view class="flex flex-col flex-center zoom-in" @click.stop="wait">
-                <view class="bg-[#f6f6f6] size-10 rounded-full flex flex-center">
-                    <view class="size-6 i-icon-park-outline:payment-method"></view>
-                </view>
-                <view class="pt-1 text-sm font-500">出价中拍卖</view>
-            </view>
-            <view class="flex flex-col flex-center zoom-in" @click.stop="wait">
-                <view class="bg-[#f6f6f6] size-10 rounded-full flex flex-center">
-                    <view class="size-6 i-mdi:deal-outline"></view>
-                </view>
-                <view class="pt-1 text-sm font-500">待收货</view>
-            </view>
-            <view class="flex flex-col flex-center zoom-in" @click.stop="wait">
-                <view class="bg-[#f6f6f6] size-10 rounded-full flex flex-center">
-                    <view class="size-6 i-icon-park-outline:order"></view>
-                </view>
-                <view class="pt-1 text-sm font-500">已成交</view>
-            </view>
-        </view>
-        <view class="my-4 flex items-center">
-            <view class="h-3 w-4px mr-2 bg-[#ccc] rounded-full"> </view>
-            <view>卖家</view>
-        </view>
-        <view class="myCard py-2 grid grid-cols-4 mb-4 text-[#171717]">
-            <view class="flex flex-col flex-center zoom-in" @click.stop="wait">
-                <view class="bg-[#f6f6f6] size-10 rounded-full flex flex-center">
-                    <view class="size-6 i-icon-park-outline:ad-product"></view>
-                </view>
-                <view class="pt-1 text-sm font-500">我要卖</view>
-            </view>
-            <view class="flex flex-col flex-center zoom-in" @click.stop="wait">
-                <view class="bg-[#f6f6f6] size-10 rounded-full flex flex-center">
-                    <view class="size-6 i-mdi:deal-outline"></view>
-                </view>
-                <view class="pt-1 text-sm font-500">待发货</view>
-            </view>
-            <view class="flex flex-col flex-center zoom-in" @click.stop="wait">
-                <view class="bg-[#f6f6f6] size-10 rounded-full flex flex-center">
-                    <view class="size-6 i-icon-park-outline:order"></view>
-                </view>
-                <view class="pt-1 text-sm font-500">订单</view>
-            </view>
-            <!-- <view class="flex flex-col flex-center zoom-in" @click.stop="payWithdrawal">
-                <view class="bg-[#f6f6f6] size-10 rounded-full flex flex-center">
-                    <view class="size-6 i-icon-park-outline:payment-method"></view>
-                </view>
-                <view class="pt-1 text-sm font-500">提现</view>
-            </view> -->
-        </view>
+
 
         <view v-if="userStore.user.phoneNumber" class="my-4">
             <uv-button @tap="logout">退出登录</uv-button>

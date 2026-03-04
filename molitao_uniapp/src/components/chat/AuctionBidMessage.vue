@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, computed } from 'vue'
+
 import { convertAuctionPayload } from '@/utils/propertyConverter'
 
 const props = defineProps<{

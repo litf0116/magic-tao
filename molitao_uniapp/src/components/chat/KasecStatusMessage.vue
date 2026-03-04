@@ -9,7 +9,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { defineProps, defineEmits } from 'vue'
+
 import { useChatEmojiStore } from '@/stores/chatEmojiStore'
 import EmojiDecoder from '@/composables/emojiDecoder'
 import type { ChatMessage } from '@/composables/types'

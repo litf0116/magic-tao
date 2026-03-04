@@ -296,7 +296,7 @@ import { ChatListItemType, ChatMessageType, type ChatEmojiDto, type ChatMessage 
 import type { AuctionItemDto } from '@/composables/types'
 import { getImgUrl as getImgUrl2, Tips } from '@/composables'
 import type { ChatOptions } from './types'
-import { computed, defineEmits, defineProps, reactive, ref, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { Goto } from '@/composables/goto'
 import { convertAuctionPayload } from '@/utils/propertyConverter'
 import { convertImageUrl } from '@/utils/imageUrlConverter'

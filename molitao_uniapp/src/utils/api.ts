@@ -189,26 +189,7 @@ export default {
     AdvertisingSpace: {
         GetAdvertisingSpaceAll: (type: any) => request('GET', `/api/AdvertisingSpace/GetTypeList/` + type),
     },
-    /**帖子处理 */
-    post: {
-        //获取帖子列表
-        GetPostAll: (data: any) => request('GET', `/api/Post/GetList`, data),
-        //获取帖子公告
-        GetLatestBulletin: () => request('GET', `/api/PostBulletin/GetLatestBulletin`),
-        //获取分类列表
-        GetCategoryList: () => request('GET', `/api/PostCategory/GetCategoryList`),
-        //获取帖子详情
-        GetPostDetail: (id: any) => request('GET', `/api/Post/PostDetail/` + id),
-        //删除帖子
-        Delete: (id: any) => request('GET', `/api/Post/Delete/` + id),
-        //添加数据
-        Add: (data: any) => request('POST', `/api/Post/Add`, data),
-        //编辑数据
-        Edit: (data: any) => request('POST', `/api/Post/Edit`, data),
-        //热词
-        GetHotWordsList: () => request('GET', `/api/HotWords/GetList?MaxResultCount=999`),
-    },
-    /**又拍云上传 */
+
     upload: {
         getSignature: `/api/services/app/Upload/GetSignature`,
     },
