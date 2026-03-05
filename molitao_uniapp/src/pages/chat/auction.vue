@@ -26,7 +26,7 @@
             <view
                 class="flex text-sm justify-center underline text-white bg-[#ff7144] py-2 mb-2 rounded-lg opacity-80"
                 @click.stop="showonAuctionDetail"
-                >拍品详情
+            >拍品详情
             </view>
             <view class="py-4 px-3 bg-red-500 rounded-lg text-center opacity-80" @click.stop="bid">
                 <view class="text-sm text-white mb-2">秒杀中</view>
@@ -45,7 +45,7 @@
 
     <uv-popup ref="popupRef" mode="right">
         <view class="w-65vw h-100vh">
-            <auctionList @showDetail="showDetail" />
+            <auctionList @showDetail="showDetail"/>
         </view>
     </uv-popup>
 
@@ -73,7 +73,7 @@
     <uv-popup ref="popupShowRef" type="message">
         <view v-if="item" class="popup-content">
             <text class="popup-title">公告</text>
-            <img v-if="item.imageUrl" :src="convertImageUrl(item.imageUrl)" mode="aspectFit" class="popup-image" />
+            <img v-if="item.imageUrl" :src="convertImageUrl(item.imageUrl)" mode="aspectFit" class="popup-image"/>
             <text class="popup-text">{{ item.content }}</text>
             <view class="popup-view">
                 <button class="popup-button" @tap="onConfirm">确定</button>
@@ -92,27 +92,28 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import chatMain from '@/components/chat/chatMain.vue'
-import { getImgUrl, Tips } from '@/composables'
-import { convertImageUrl } from '@/utils/imageUrlConverter'
-import type { AnnounceDto, AuctionItemDto } from '@/composables/types'
+import {getImgUrl, Tips} from '@/composables'
+import {convertImageUrl} from '@/utils/imageUrlConverter'
+import type {AnnounceDto, AuctionItemDto} from '@/composables/types'
 import auctionList from '@/components/chat/auctionList.vue'
 import BidRulesModal from '@/components/BidRulesModal.vue'
 import api from '@/utils/api'
-import { calculateMinBidPrice } from '@/utils/auction'
-import { onLoad, onShow, onReady } from '@dcloudio/uni-app'
-import { ChatMessageType } from '@/composables/types'
-import { nextTick, onUnmounted } from 'vue'
+import {calculateMinBidPrice} from '@/utils/auction'
+import {onLoad, onShow, onReady} from '@dcloudio/uni-app'
+import {ChatMessageType} from '@/composables/types'
+import {nextTick, onUnmounted} from 'vue'
 
 // import AuctionList from '@/components/chat/AuctionList.vue'
 const chatStore = useChatStore()
 const userStore = useUserStore()
 const auctionStore = useAuctionStore()
 const chatRef = ref<InstanceType<typeof chatMain> | null>(null)
-const popupRef = ref(null as any)
+const popupRef = ref(null)
 //公告信息跟弹窗
 const item = ref<AnnounceDto | null>(null)
-const popupShowRef = ref(null as any)
+const popupShowRef = ref(null)
 
 // 出价规则弹窗相关
 const bidRulesModalVisible = ref(false)
@@ -124,7 +125,7 @@ const bidRulesMinPrice = ref(0)
 const unread = ref('')
 const showUnread = ref(false)
 
-onLoad(() => {
+onMounted(() => {
     chatStore.connectServer().then(async () => {
         //todo
         init('-1_auction')
@@ -177,7 +178,7 @@ function onBidRulesConfirm() {
 //关闭公告弹窗
 const onConfirm = () => {
     uni.setStorageSync('auctionNotice', item.value)
-    popupShowRef.value.close()
+    popupShowRef.value?.close()
 }
 //获取用户信息
 const userId = computed(() => {
@@ -267,7 +268,8 @@ async function loadHistoryMessage(force = false) {
 //LINK[epic=消息发送] - 秒杀消息发送逻辑
 function send(e: { type: ChatMessageType; data: string | object }) {
     if (e.type === ChatMessageType.Image) {
-        chatStore.sendChannelMsg('[图片]', '', ChatMessageType.Image, e.data).then(() => {})
+        chatStore.sendChannelMsg('[图片]', '', ChatMessageType.Image, e.data).then(() => {
+        })
     } else if (e.type === ChatMessageType.Text) {
         chatStore.sendChannelMsg(e.data as string, '', ChatMessageType.Text).then(() => {
             //
@@ -284,7 +286,7 @@ function doPayment(
     callback: { success: () => void; fail: () => void }
 ) {
     api.client
-        .payDeposit({ openid: userStore.openid, amount: params.amount })
+        .payDeposit({openid: userStore.openid, amount: params.amount})
         .then((res: any) => {
             wx.requestPayment({
                 provider: 'wxpay',
@@ -382,7 +384,7 @@ async function bid() {
         // console.log('卡秒状态:', isKasecMode)
 
         // 获取实时用户信息
-        const currentUser = await api.user.get({ id: userId })
+        const currentUser = await api.user.get({id: userId})
         const deposit = currentUser?.depositBalance || 0
         // console.log('用户信息获取成功:', {
         //         userId: currentUser?.id,
@@ -538,7 +540,21 @@ function showDetail(e: AuctionItemDto) {
         e.imageUrl = convertImageUrl(e.imageUrl)
     }
     showItem.value = convertFields(e)
-    popup.value.open('bottom')
+
+    // 添加防御性检查，确保 popup 已初始化
+    if (popup.value) {
+        popup.value.open('bottom')
+    } else {
+        console.warn('popup ref 未初始化，稍后重试')
+        // 延迟重试，确保组件已挂载
+        setTimeout(() => {
+            if (popup.value) {
+                popup.value.open('bottom')
+            } else {
+                console.error('popup ref 初始化失败')
+            }
+        }, 100)
+    }
 }
 
 //检测首字母是否大写
@@ -737,8 +753,8 @@ const navigateToAdminChat = (status: 'pending' | 'record_provided') => {
 </style>
 <route lang="json">
 {
-    "style": {
-        navigationBarTitleText: "秒杀场"
-    }
+"style": {
+navigationBarTitleText: "秒杀场"
+}
 }
 </route>
