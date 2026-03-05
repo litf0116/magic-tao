@@ -10,13 +10,13 @@
                 class="flex-1 flex flex-center py-2 rounded text-sm font-500"
                 :class="[activeName === '1' ? 'bg-[#f4835a] text-white' : 'bg-white text-gray-600']"
                 @click="activeName = '1'"
-                ><text>待秒杀</text></view
+                ><text>今日榜单</text></view
             >
             <view
                 class="flex-1 flex flex-center py-2 rounded text-sm font-500"
                 :class="[activeName === '2' ? 'bg-[#f4835a] text-white' : 'bg-white text-gray-600']"
                 @click="activeName = '2'"
-                ><text>已成交</text></view
+                ><text>昨日榜单</text></view
             >
         </view>
         <view class="p-2 overflow-y-scroll" style="height: calc(100vh - 64rpx)">

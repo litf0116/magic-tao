@@ -310,13 +310,13 @@ function doPayment(
                     }
 
                     callback.success()
-                    Tips.success('支付成功，保证金已到账')
+                    Tips.success('支付成功，魔力值已到账')
 
                     // 支付成功后，询问用户是否立即出价
                     setTimeout(() => {
                         uni.showModal({
                             title: '支付成功',
-                            content: '保证金已到账，是否立即出价？',
+                            content: '魔力值已到账，是否立即出价？',
                             showCancel: true,
                             confirmText: '立即出价',
                             cancelText: '稍后出价',
@@ -399,28 +399,28 @@ async function bid() {
         const userLevel = levelInfo?.levelSettings?.level ?? 0
         const cumulativeAmount = levelInfo?.userLevel?.cumulativeAmount ?? 0
 
-        // 新用户且保证金不足的情况
+        // 新用户且魔力值不足的情况
         if (userLevel === 0 && deposit < 50) {
-            // console.log('新用户保证金不足:', { userLevel, deposit })
+            // console.log('新用户魔力值不足:', { userLevel, deposit })
             // 先显示一个提示
             uni.showToast({
-                title: '新用户需要缴纳保证金',
+                title: '新用户需要缴纳魔力值',
                 icon: 'none',
                 duration: 2000,
             })
 
-            // console.log('准备显示保证金弹窗...')
+            // console.log('准备显示魔力值弹窗...')
             try {
                 await new Promise((resolve, reject) => {
                     uni.showModal({
                         title: '出价须知',
                         content:
-                            '新用户参与秒杀，需要缴纳51元（50元保证金+1元提现手续费）\n老用户回归参与秒杀，需向秒杀主持-老淡，提供以往QQ群成交聊天记录截图',
+                            '新用户参与秒杀，需要魔力值51\n老用户回归参与秒杀，需向管理员-老淡，提供以往QQ群成交聊天记录截图',
                         showCancel: true,
                         confirmText: '去缴纳',
                         cancelText: '提供记录',
                         success: (res) => {
-                            // console.log('保证金弹窗结果:', res)
+                            // console.log('魔力值弹窗结果:', res)
                             if (res.confirm) {
                                 // 保存状态
                                 const depositStatus = {
@@ -431,7 +431,7 @@ async function bid() {
                                 }
                                 uni.setStorageSync('depositStatus', depositStatus)
 
-                                // 直接跳转到保证金支付页面
+                                // 直接跳转到魔力值支付页面
                                 doPayment(
                                     {
                                         amount: 51,
@@ -453,13 +453,13 @@ async function bid() {
                             resolve(res)
                         },
                         fail: (err: any) => {
-                            // console.error('保证金弹窗失败:', err)
+                            // console.error('魔力值弹窗失败:', err)
                             reject(err)
                         },
                     })
                 })
             } catch (error) {
-                // console.error('显示保证金弹窗出错:', error)
+                // console.error('显示魔力值弹窗出错:', error)
                 Tips.error('显示弹窗失败，请重试')
             }
             return

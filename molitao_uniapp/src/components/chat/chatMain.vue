@@ -252,7 +252,7 @@
             <view class="action-list" style="width: 275px; padding: 10px; color: #fff">
                 <div>群等级制度，根据成交价金额自动累计</div>
                 <div v-for="x in groupChatLevel" :key="x.level">
-                    {{ x.level }}级:成交额满{{ x.amountRequired }} {{ x.name }}
+                    {{ x.level }}级:魔力值满{{ x.amountRequired }} {{ x.name }}
                 </div>
                 <div class="action-item" @click="showGroupChatRules = false">取消</div>
             </view>

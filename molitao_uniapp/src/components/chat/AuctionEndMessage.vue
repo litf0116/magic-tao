@@ -6,7 +6,7 @@
             <div v-if="payloadData.status === '已成交'">
                 <div class="text-red-500">
                     <text>恭喜 {{ payloadData.dealUserName }} 最终以 </text>
-                    <text class="text-lg">￥{{ payloadData.finalPrice }}</text>
+                    <text class="text-lg">{{ payloadData.finalPrice }}魔力值</text>
                     <text> 秒得商品</text>
                 </div>
                 <div

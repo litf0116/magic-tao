@@ -106,7 +106,7 @@
             "path": "pages/user/depositLog",
             "type": "page",
             "style": {
-                "navigationBarTitleText": "保证金明细",
+                "navigationBarTitleText": "魔力值明细",
                 "enablePullDownRefresh": true
             }
         },

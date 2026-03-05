@@ -53,7 +53,7 @@
             @confirm="handleConfirm"
         >
             <view
-                >平台提现功能尚未完善，保证金退款，请加管理员老淡QQ：383875411，微信：18845639111，私信扫码退款。</view
+                >平台提现功能尚未完善，魔力值退还，请加管理员老淡QQ：383875411，微信：18845639111，私信扫码退款。</view
             >
         </custom-modal>
     </view>
@@ -85,7 +85,7 @@ function getMyCount() {
         myCount.value = res
     })
 }
-//保证金充值
+//魔力值充值
 function payDeposit() {
     api.client.payDeposit({ openid: userStore.openid, amount: 51 }).then((res: any) => {
         wx.requestPayment({
@@ -104,7 +104,7 @@ function payDeposit() {
                     getMyCount() // 即使更新失败也要更新统计数据
                 }
 
-                Tips.success('支付成功，保证金已到账')
+                Tips.success('支付成功，魔力值已到账')
             },
             fail: (err) => {
                 Tips.info('用户取消支付')
