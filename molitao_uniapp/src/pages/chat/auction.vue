@@ -18,7 +18,7 @@
 
         <view class="fixed right-0 top-290rpx z-100" @click.stop="showGoods">
             <view class="text-30rpx w-48rpx py-2 bg-[#ff7144] text-white font-700 rounded-l-lg text-center">
-                待拍品
+                秒杀榜
             </view>
         </view>
 
