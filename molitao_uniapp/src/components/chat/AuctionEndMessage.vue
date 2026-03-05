@@ -25,7 +25,7 @@
                 </div>
                 <div class="text-sm" style="margin-left: 12px">{{ formattedDealTime }}</div>
                 <div class="mt-2 text-sm text-gray-600">
-                    买卖双方私聊秒杀主持确认交易!<br />
+                    双方私聊秒杀主持确认交易!<br />
                     认准星标小心冒充<br />
                     有请下一件拍品
                 </div>
