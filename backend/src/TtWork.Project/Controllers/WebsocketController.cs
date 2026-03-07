@@ -164,7 +164,7 @@ namespace TtWork.Project.Controllers
                 throw new UserFriendlyException(1, AppConsts.UserBanText);
             }
 
-            if (input.Channel != "0_lobby" && input.Channel != "-1_auction")
+            if (input.Channel != "-1_auction")
                 //组队场不修改不给发布招募信息
                 if (Regex.IsMatch(user.Name, @"^玩家\d{5}"))
                 {
@@ -301,7 +301,7 @@ namespace TtWork.Project.Controllers
             if (input.Message is { type: ChatMessageType.Welcome })
             {
                 // if (Regex.IsMatch(input.Message.fromName, @"^玩家\d{5}"))
-                if (input.Chan is "0_lobby" or "-1_auction")
+                if (input.Chan is "-1_auction")
                     return;
             }
 

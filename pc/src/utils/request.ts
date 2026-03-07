@@ -17,6 +17,7 @@ service.interceptors.request.use(
         request.headers['Content-Type'] = 'application/json'
         // request.headers['.Aspnetcore-Culture'] = 'c=zh-Hans|uic=zh-CN'
         request.headers['Appname'] = import.meta.env.VITE_APP_AppName
+        request.headers['AppVersion'] = import.meta.env.VITE_APP_VERSION || '20260224@1.0.0'
         return request
     },
     (error: any) => {

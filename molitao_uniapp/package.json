@@ -4,7 +4,7 @@
     "scripts": {
         "postinstall": "patch-package",
         "dev": "uni -p mp-weixin",
-        "build": "node ./src/utils/addVersion.js && uni build -p mp-weixin",
+        "build": "uni build -p mp-weixin",
         "dev:h5": "uni",
         "dev:app": "uni -p app",
         "dev:app-android": "uni -p app-android",

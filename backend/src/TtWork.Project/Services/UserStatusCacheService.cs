@@ -1,20 +1,18 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Abp.Dependency;
 using Abp.Domain.Repositories;
-using Abp.Json;
 using Abp.Logging;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using SqlSugar;
-using StackExchange.Redis;
 using TtWork.Abp.Applications.Dtos;
 using TtWork.Abp.Authorization.Users;
 using TtWork.Abp.Caches;
 using TtWork.Abp.Entity;
-using TtWork.Lib.Redis;
 using TtWork.Project.Domains;
 
 namespace TtWork.Project.Services
@@ -56,34 +54,37 @@ namespace TtWork.Project.Services
     }
 
     /// <summary>
-    /// 用户状态缓存服务实现
+    /// 用户状态缓存服务实现（纯内存缓存，替代 Redis）
     /// </summary>
     public class UserStatusCacheService : IUserStatusCacheService
     {
-        private readonly IRedisClient _redisClient;
+        private readonly IMemoryCache _memoryCache;
         private readonly UserCache _userCache;
         private readonly ISqlSugarClient _sqlSugarClient;
         private readonly IRepository<BanedUser, long> _banedUserRepository;
         private readonly ILogger<UserStatusCacheService> _logger;
 
+        // 缓存键追踪器（用于批量清除）
+        private static readonly ConcurrentDictionary<string, DateTime> _cacheKeys = new();
+
         // Cache keys
         private const string USER_GROUP_LEVEL_KEY = "UserStatus:GroupLevel:{0}";
         private const string USER_BAN_STATUS_KEY = "UserStatus:BanStatus:{0}:{1}";
         private const string USER_ADMIN_INFO_KEY = "UserStatus:AdminInfo:{0}";
-        
+
         // Cache expiration times
         private static readonly TimeSpan GroupLevelCacheExpiration = TimeSpan.FromMinutes(30);
         private static readonly TimeSpan BanStatusCacheExpiration = TimeSpan.FromMinutes(5);
         private static readonly TimeSpan AdminInfoCacheExpiration = TimeSpan.FromHours(1);
 
         public UserStatusCacheService(
-            IRedisClient redisClient,
+            IMemoryCache memoryCache,
             UserCache userCache,
             ISqlSugarClient sqlSugarClient,
             IRepository<BanedUser, long> banedUserRepository,
             ILogger<UserStatusCacheService> logger)
         {
-            _redisClient = redisClient;
+            _memoryCache = memoryCache;
             _userCache = userCache;
             _sqlSugarClient = sqlSugarClient;
             _banedUserRepository = banedUserRepository;
@@ -98,45 +99,29 @@ namespace TtWork.Project.Services
             try
             {
                 var cacheKey = string.Format(USER_GROUP_LEVEL_KEY, userId);
-                var redisDb = _redisClient.Database;
-                
-                // Try to get from cache first
-                var cachedValue = await redisDb.StringGetAsync(cacheKey);
-                if (cachedValue.HasValue)
+
+                // Try to get from memory cache first
+                if (_memoryCache.TryGetValue(cacheKey, out UserGroupLevelInfo cachedInfo))
                 {
-                    var cachedInfo = JsonConvert.DeserializeObject<UserGroupLevelInfo>(cachedValue);
-                    
-                    // 用户14特殊处理，其他用户采样记录
                     if (userId == 14)
                     {
                         _logger.LogDebug("用户群聊等级缓存命中: UserId={UserId}, Level={Level}", userId, cachedInfo?.Level);
-                    }
-                    else if (new Random().NextDouble() < 0.05) // 5%采样率
-                    {
-                        _logger.LogDebug("用户群聊等级缓存命中采样: UserId={UserId}, Level={Level}", userId, cachedInfo?.Level);
                     }
                     return cachedInfo;
                 }
 
                 // Cache miss - query database
                 var groupLevelInfo = await GetUserGroupLevelFromDatabaseAsync(userId);
-                
+
                 // Cache the result
                 if (groupLevelInfo != null)
                 {
-                    await redisDb.StringSetAsync(
-                        cacheKey, 
-                        JsonConvert.SerializeObject(groupLevelInfo), 
-                        GroupLevelCacheExpiration);
-                    
-                    // 用户14特殊处理，其他用户采样记录
+                    _memoryCache.Set(cacheKey, groupLevelInfo, GroupLevelCacheExpiration);
+                    _cacheKeys.TryAdd(cacheKey, DateTime.UtcNow);
+
                     if (userId == 14)
                     {
                         _logger.LogDebug("用户群聊等级数据已缓存: UserId={UserId}, Level={Level}", userId, groupLevelInfo.Level);
-                    }
-                    else if (new Random().NextDouble() < 0.05) // 5%采样率
-                    {
-                        _logger.LogDebug("用户群聊等级数据已缓存采样: UserId={UserId}, Level={Level}", userId, groupLevelInfo.Level);
                     }
                 }
 
@@ -157,58 +142,44 @@ namespace TtWork.Project.Services
             try
             {
                 var cacheKey = string.Format(USER_BAN_STATUS_KEY, userId, channel ?? "global");
-                var redisDb = _redisClient.Database;
-                
-                // Try to get from cache first (short expiration for time-sensitive data)
-                var cachedValue = await redisDb.StringGetAsync(cacheKey);
-                if (cachedValue.HasValue)
+
+                // Try to get from memory cache first
+                if (_memoryCache.TryGetValue(cacheKey, out BanStatusInfo cachedInfo))
                 {
-                    var cachedInfo = JsonConvert.DeserializeObject<BanStatusInfo>(cachedValue);
-                    
                     // Validate cached ban hasn't expired
                     if (cachedInfo?.IsBanned == true && cachedInfo.BanEndTime <= DateTime.Now)
                     {
                         // Cache entry is stale, clear it and return fresh data
-                        await redisDb.KeyDeleteAsync(cacheKey);
+                        _memoryCache.Remove(cacheKey);
+                        _cacheKeys.TryRemove(cacheKey, out _);
                         return await CheckBanStatusFromDatabaseAsync(userId, channel);
                     }
-                    
-                    // 用户14特殊处理，其他用户采样记录
+
                     if (userId == 14)
                     {
                         _logger.LogDebug("用户禁言状态缓存命中: UserId={UserId}, IsBanned={IsBanned}", userId, cachedInfo?.IsBanned);
-                    }
-                    else if (new Random().NextDouble() < 0.05) // 5%采样率
-                    {
-                        _logger.LogDebug("用户禁言状态缓存命中采样: UserId={UserId}, IsBanned={IsBanned}", userId, cachedInfo?.IsBanned);
                     }
                     return cachedInfo;
                 }
 
                 // Cache miss - query database
                 var banStatus = await CheckBanStatusFromDatabaseAsync(userId, channel);
-                
-                // Cache the result (only if banned, with appropriate expiration)
-                if (banStatus.IsBanned)
+
+                // Cache the result
+                if (banStatus.IsBanned && banStatus.BanEndTime.HasValue)
                 {
-                    var expiration = banStatus.BanEndTime - DateTime.Now;
+                    var expiration = banStatus.BanEndTime.Value - DateTime.Now;
                     if (expiration > TimeSpan.Zero)
                     {
-                        await redisDb.StringSetAsync(
-                            cacheKey, 
-                            JsonConvert.SerializeObject(banStatus), 
-                            expiration);
-                        
+                        _memoryCache.Set(cacheKey, banStatus, expiration);
+                        _cacheKeys.TryAdd(cacheKey, DateTime.UtcNow);
                         _logger.LogDebug("用户禁言状态已缓存: UserId={UserId}, Expiration={Expiration}", userId, expiration);
                     }
                 }
                 else
                 {
-                    // Cache "not banned" status for short period
-                    await redisDb.StringSetAsync(
-                        cacheKey, 
-                        JsonConvert.SerializeObject(banStatus), 
-                        BanStatusCacheExpiration);
+                    _memoryCache.Set(cacheKey, banStatus, BanStatusCacheExpiration);
+                    _cacheKeys.TryAdd(cacheKey, DateTime.UtcNow);
                 }
 
                 return banStatus;
@@ -228,48 +199,31 @@ namespace TtWork.Project.Services
             try
             {
                 var cacheKey = string.Format(USER_ADMIN_INFO_KEY, userId);
-                var redisDb = _redisClient.Database;
-                
-                // Try to get from cache first
-                var cachedValue = await redisDb.StringGetAsync(cacheKey);
-                if (cachedValue.HasValue)
+
+                // Try to get from memory cache first
+                if (_memoryCache.TryGetValue(cacheKey, out AdminInfo cachedInfo))
                 {
-                    var cachedInfo = JsonConvert.DeserializeObject<AdminInfo>(cachedValue);
-                    
-                    // 增加用户14的详细日志
                     if (userId == 14)
                     {
-                        _logger.LogInformation("=== 用户14管理员信息缓存命中 === UserId={UserId}, IsAdmin={IsAdmin}, AdminTag={AdminTag}, TagClass={TagClass}", 
+                        _logger.LogInformation("=== 用户14管理员信息缓存命中 === UserId={UserId}, IsAdmin={IsAdmin}, AdminTag={AdminTag}, TagClass={TagClass}",
                             userId, cachedInfo?.IsAdmin, cachedInfo?.AdminTag, cachedInfo?.TagClass);
                     }
-                    else if (new Random().NextDouble() < 0.05) // 5%采样率
-                    {
-                        _logger.LogDebug("用户管理员信息缓存命中采样: UserId={UserId}, IsAdmin={IsAdmin}", userId, cachedInfo?.IsAdmin);
-                    }
-                    
                     return cachedInfo;
                 }
 
                 // Cache miss - get from user cache and process
                 var adminInfo = await GetAdminInfoFromUserCacheAsync(userId);
-                
+
                 // Cache the result
                 if (adminInfo != null)
                 {
-                    await redisDb.StringSetAsync(
-                        cacheKey, 
-                        JsonConvert.SerializeObject(adminInfo), 
-                        AdminInfoCacheExpiration);
-                    
-                    // 增加用户14的详细日志
+                    _memoryCache.Set(cacheKey, adminInfo, AdminInfoCacheExpiration);
+                    _cacheKeys.TryAdd(cacheKey, DateTime.UtcNow);
+
                     if (userId == 14)
                     {
-                        _logger.LogInformation("=== 用户14管理员信息已缓存 === UserId={UserId}, IsAdmin={IsAdmin}, AdminTag={AdminTag}, TagClass={TagClass}", 
+                        _logger.LogInformation("=== 用户14管理员信息已缓存 === UserId={UserId}, IsAdmin={IsAdmin}, AdminTag={AdminTag}, TagClass={TagClass}",
                             userId, adminInfo.IsAdmin, adminInfo.AdminTag, adminInfo.TagClass);
-                    }
-                    else
-                    {
-                        _logger.LogDebug("用户管理员信息已缓存: UserId={UserId}, IsAdmin={IsAdmin}", userId, adminInfo.IsAdmin);
                     }
                 }
 
@@ -385,33 +339,41 @@ namespace TtWork.Project.Services
         /// <summary>
         /// 清除用户缓存
         /// </summary>
-        public async Task ClearUserCacheAsync(long userId, bool clearAll = false)
+        public Task ClearUserCacheAsync(long userId, bool clearAll = false)
         {
             try
             {
-                var redisDb = _redisClient.Database;
-                var tasks = new List<Task>();
-                
-                // Always clear group level cache
-                tasks.Add(redisDb.KeyDeleteAsync(string.Format(USER_GROUP_LEVEL_KEY, userId)));
-                
-                // Always clear admin info cache
-                tasks.Add(redisDb.KeyDeleteAsync(string.Format(USER_ADMIN_INFO_KEY, userId)));
-                
+                var groupLevelKey = string.Format(USER_GROUP_LEVEL_KEY, userId);
+                var adminInfoKey = string.Format(USER_ADMIN_INFO_KEY, userId);
+
+                _memoryCache.Remove(groupLevelKey);
+                _cacheKeys.TryRemove(groupLevelKey, out _);
+
+                _memoryCache.Remove(adminInfoKey);
+                _cacheKeys.TryRemove(adminInfoKey, out _);
+
                 if (clearAll)
                 {
-                    // Clear all ban status cache keys for this user
-                    var banKeysPattern = string.Format(USER_BAN_STATUS_KEY, userId, "*");
-                    _redisClient.DeleteKeysWithPartten(banKeysPattern);
+                    var banKeyPrefix = string.Format(USER_BAN_STATUS_KEY, userId, "").TrimEnd(':');
+                    var keysToRemove = _cacheKeys.Keys
+                        .Where(k => k.StartsWith(banKeyPrefix, StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+
+                    foreach (var key in keysToRemove)
+                    {
+                        _memoryCache.Remove(key);
+                        _cacheKeys.TryRemove(key, out _);
+                    }
                 }
-                
-                await Task.WhenAll(tasks);
+
                 _logger.LogInformation("用户缓存已清除: UserId={UserId}, ClearAll={ClearAll}", userId, clearAll);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "清除用户缓存失败: UserId={UserId}", userId);
             }
+
+            return Task.CompletedTask;
         }
 
         #region Private Methods

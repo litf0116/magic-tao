@@ -1,3 +1,4 @@
+<!-- 部署文档说明: 本文档包含开发调试笔记和生产环境部署命令。完整的 Docker 部署指南请参考 docs/Docker-README.md -->
 ```
 docker build -f ./FreeIM/ImServer/Dockerfile --network=host --build-arg HTTP_PROXY=http://192.168.3.50:10809 --build-arg HTTPS_PROXY=http://192.168.3.50:10809 -t gitlab.somall.top:8090/molitao/freeim:latest .;docker push  gitlab.somall.top:8090/molitao/freeim:latest
 

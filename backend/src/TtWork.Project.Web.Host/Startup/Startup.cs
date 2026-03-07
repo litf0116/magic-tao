@@ -1,12 +1,17 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Transactions;
 using Abp;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.Extensions.Caching.Hybrid.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Castle.Facilities.Logging;
@@ -74,6 +79,14 @@ namespace TtWork.Project.Web.Host.Startup
                 cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
             services.Configure<RedisOptions>(_appConfiguration.GetSection("Redis"));
+
+            // 注册 IDistributedCache 实现（基于现有的 IRedisClient）
+            services.AddSingleton<IDistributedCache, RedisDistributedCache>();
+
+            // HybridCache 服务注册（本地内存 + Redis 分布式缓存）
+            // 临时禁用 HybridCache，使用传统 Redis 缓存
+            // HybridCache 与 ABP/Windsor 容器存在 keyed services 兼容性问题
+            // services.AddHybridCache();
 
             // Redis 服务注册
             services.AddSingleton<IRedisClient, RedisClient>();

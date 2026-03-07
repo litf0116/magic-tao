@@ -1,4 +1,4 @@
-﻿using Abp.AspNetCore.Configuration;
+using Abp.AspNetCore.Configuration;
 using Abp.AspNetCore.SignalR;
 using Abp.AutoMapper;
 using Abp.Collections.Extensions;
@@ -51,6 +51,10 @@ namespace TtWork.Project {
 
             // 注册聊天列表缓存服务
             IocManager.Register<ChatListCacheService, ChatListCacheService>(
+                DependencyLifeStyle.Transient);
+
+            // 注册群聊等级配置缓存服务
+            IocManager.Register<GroupChatLevelCacheService, GroupChatLevelCacheService>(
                 DependencyLifeStyle.Transient);
 
             // 注册 HttpClient 服务（单例）

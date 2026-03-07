@@ -33,6 +33,13 @@ namespace TtWork.Project.EntityFrameworkCore.Seed.Host
 
             // Languages
             AddSettingIfNotExists(LocalizationSettingNames.DefaultLanguage, "zh-Hans", tenantId);
+
+            // Version Control
+            AddSettingIfNotExists(
+                TtWork.Project.Core.AppSettings.VersionControl.LatestStableVersion,
+                "20260224@1.1.21",
+                tenantId
+            );
         }
 
         private void AddSettingIfNotExists(string name, string value, int? tenantId = null)

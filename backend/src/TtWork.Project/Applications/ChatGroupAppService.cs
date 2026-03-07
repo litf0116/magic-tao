@@ -27,8 +27,6 @@ public class ChatGroupAppService : AbpAsyncCrudAppService<ChatGroup, ChatGroupDt
     private readonly IRepository<Message, Guid> _messageRepository;
     // private readonly ISqlConnectionFactory _sqlConnectionFactory;
 
-    public const string LOBBY = "0_lobby";
-
     public ChatGroupAppService(
         UserCache userCache,
         IRepository<ChatGroup, long> repository,
@@ -60,8 +58,6 @@ public class ChatGroupAppService : AbpAsyncCrudAppService<ChatGroup, ChatGroupDt
         await Repository.UpdateAsync(group);
         await CurrentUnitOfWork.SaveChangesAsync();
 
-        ImHelper.SendChanMessage(0, LOBBY,
-            new ChatMessage { type = ChatMessageType.Welcome, chan = LOBBY, msg = "CREATE_GROUP_EVENT" });
         return MapToEntityDto(group);
     }
 
@@ -88,8 +84,6 @@ public class ChatGroupAppService : AbpAsyncCrudAppService<ChatGroup, ChatGroupDt
     public override async Task<ChatGroupDto> CreateAsync(ChatGroupCreateOrUpdateDto input) {
         var result = await base.CreateAsync(input);
         ImHelper.JoinChan(AbpSession.UserId!.Value, result.Chan);
-        ImHelper.SendChanMessage(0, LOBBY,
-            new ChatMessage { type = ChatMessageType.Welcome, chan = LOBBY, msg = "CREATE_GROUP_EVENT" });
         return result;
     }
 
@@ -113,8 +107,6 @@ public class ChatGroupAppService : AbpAsyncCrudAppService<ChatGroup, ChatGroupDt
 
         await _messageRepository.GetAll().Where(x => x.Chan == group.Chan).ExecuteDeleteAsync();
         await base.DeleteAsync(input);
-
-        ImHelper.SendChanMessage(0, LOBBY, new ChatMessage { type = ChatMessageType.Welcome, chan = LOBBY, msg = "CREATE_GROUP_EVENT" });
     }
 
     /// <summary>
