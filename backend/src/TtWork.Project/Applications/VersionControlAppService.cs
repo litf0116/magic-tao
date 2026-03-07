@@ -3,6 +3,7 @@ using Abp.Application.Services;
 using Abp.Authorization;
 using Abp.Configuration;
 using Abp.UI;
+using Abp.Runtime.Caching;
 using TtWork.Project.Core;
 
 namespace TtWork.Project.Applications;
@@ -13,10 +14,14 @@ namespace TtWork.Project.Applications;
 public class VersionControlAppService : ApplicationService
 {
     private readonly ISettingManager _settingManager;
+    private readonly ICacheManager _cacheManager;
 
-    public VersionControlAppService(ISettingManager settingManager)
+    public VersionControlAppService(
+        ISettingManager settingManager,
+        ICacheManager cacheManager)
     {
         _settingManager = settingManager;
+        _cacheManager = cacheManager;
     }
 
     /// <summary>
@@ -45,6 +50,10 @@ public class VersionControlAppService : ApplicationService
             AppSettings.VersionControl.LatestStableVersion,
             version
         );
+
+        // 清除设置缓存以确保所有实例都能获取最新值
+        var settingCache = _cacheManager.GetCache("AbpZeroSettingCache");
+        await settingCache.ClearAsync();
     }
 
     /// <summary>

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Abp.Authorization;
 using Abp.Configuration;
+using Abp.Dependency;
 using Abp.Domain.Repositories;
 using Abp.Domain.Uow;
 using Abp.Extensions;
@@ -319,8 +320,8 @@ public class ClientAppService(
         var userId = AbpSession.UserId ?? 0;
         var channels = await chatChannelService.GetVisibleChannelsForUserAsync(userId);
 
-        Logger.Info($"[GetChatList] Step 1 - Total channels from DB: {channels.Count}");
-        Logger.Info(
+        logger.LogInformation($"[GetChatList] Step 1 - Total channels from DB: {channels.Count}");
+        logger.LogInformation(
             $"[GetChatList] Step 2 - Channels: {string.Join(", ", channels.Select(c => $"{c.ChannelId}(Type={c.ChannelType},Active={c.IsActive},HasMsg={c.LastMessageId != null})"))}");
 
         if (channels.Count == 0)
@@ -332,8 +333,16 @@ public class ClientAppService(
         var currentVersion = _abpSession.GetAppVersion();
         var stableVersion = await SettingManager.GetSettingValueAsync(AppSettings.VersionControl.LatestStableVersion);
         var shouldShowAuction = VersionComparer.ShouldShowAuction(currentVersion, stableVersion);
-        Logger.Info(
-            $"[GetChatList] Step 3 - currentVersion: {currentVersion}, stableVersion: {stableVersion}, shouldShowAuction: {shouldShowAuction}");
+
+        // 获取请求头中的原始值用于调试
+        var httpContextAccessor = IocManager.Instance.Resolve<IHttpContextAccessor>();
+        var requestHeaders = httpContextAccessor?.HttpContext?.Request.Headers;
+        var appVersionHeaderValue = requestHeaders?["AppVersion"].FirstOrDefault();
+
+        logger.LogInformation(
+            $"[GetChatList] Step 3 - currentVersion: [{currentVersion}], stableVersion: [{stableVersion}], shouldShowAuction: {shouldShowAuction}");
+        logger.LogInformation(
+            $"[GetChatList] Step 3b - RequestHeader AppVersion: [{appVersionHeaderValue}], Headers count: {requestHeaders?.Count}");
         // ===== 版本控制过滤逻辑结束 =====
 
         var privateUserIds = channels

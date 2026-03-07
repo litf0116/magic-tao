@@ -14,7 +14,7 @@ import {getAppVersion} from './version'
 let host: string = 'https://www.molitao.top';
 
 // if (import.meta.env.VITE_APP_ENV === 'development') {
-    host = 'http://localhost:12580'
+//     host = 'http://localhost:12580'
 // } else {
 //     host = 'https://www.molitao.top'
 // }
