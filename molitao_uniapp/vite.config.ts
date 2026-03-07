@@ -2,18 +2,18 @@ import { defineConfig } from 'vite'
 import uni from '@dcloudio/vite-plugin-uni'
 import AutoImport from 'unplugin-auto-import/vite'
 import UnoCSS from 'unocss/vite'
-// import UniPages from '@uni-helper/vite-plugin-uni-pages'
 import UniLayouts from '@uni-helper/vite-plugin-uni-layouts'
-// https://vitejs.dev/config/
+
 export default defineConfig({
+    define: {
+        __APP_VERSION__: '"20260307@1.1.22"',
+    },
     build: {
         sourcemap: false,
         watch: {
             exclude: ['node_modules/**', '/__uno.css'],
         },
-        rollupOptions: {
-            // external: ['@vueuse/shared'],
-        },
+        rollupOptions: {},
     },
     plugins: [
         // UniPages({

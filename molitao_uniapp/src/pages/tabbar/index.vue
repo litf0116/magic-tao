@@ -20,7 +20,6 @@
                     <text :class="['font-title', current === index ? 'font-title-active' : '']">{{ item.text }}</text>
                 </view>
             </template>
-
         </view>
 
         <custom-modal

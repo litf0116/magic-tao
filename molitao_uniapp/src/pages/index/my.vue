@@ -130,7 +130,7 @@
         <view v-if="userStore.user.phoneNumber" class="my-4">
             <uv-button @tap="logout">退出登录</uv-button>
         </view>
-        <view class="text-center w-full text-gray-300">{{ version.version }}</view>
+        <view class="text-center w-full text-gray-300">{{ appVersion }}</view>
 
         <custom-modal
             v-model:show="modalVisible"
@@ -149,13 +149,14 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
 import { getImgUrl } from '@/composables'
-import version from '@/static/version.json'
+import { getAppVersion } from '@/utils/version'
 import api from '@/utils/api'
 import CustomModal from '@/components/customModal.vue'
 
 const userStore = useUserStore()
 const navTo = useTo()
 const myCount = ref({ auctionSuccess: 0, friend: 0, balance: 0, depositBalance: 0 })
+const appVersion = getAppVersion()
 
 const modalVisible = ref(false)
 const emit = defineEmits(['refreshCurrentVal'])

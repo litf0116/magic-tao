@@ -9,13 +9,9 @@ import type {
     UserDtoBaseListResultDto,
 } from '@/composables/types'
 import utils from './utils'
-let host: string
+import { getAppVersion } from './version'
 
-if (import.meta.env.VITE_APP_ENV === 'development') {
-    host = 'http://127.0.0.1:12580'
-} else {
-    host = 'https://www.molitao.top'
-}
+const host = 'http://127.0.0.1:12580'
 
 const getRequest = utils.httpsPromisify(uni.request)
 
@@ -32,13 +28,7 @@ const request = (
 
     const _url = url.startsWith('http') ? url : host + url
 
-    let appVersion = ''
-    try {
-        const versionData = require('@/static/version.json')
-        appVersion = versionData.version || ''
-    } catch (e) {
-        console.error('读取版本号失败:', e)
-    }
+    let appVersion = getAppVersion()
 
     return getRequest({
         url: _url,

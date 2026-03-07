@@ -26,9 +26,12 @@ export function uploadImage(file) {
         const timestamp = Date.now()
         const unionid = uni.getStorageSync('unionid')
         const openid = uni.getStorageSync('openid')
-        const userId = (unionid && unionid !== 'undefined' && unionid !== '') 
-            ? unionid 
-            : ((openid && openid !== 'undefined' && openid !== '') ? openid : `guest${timestamp}`)
+        const userId =
+            unionid && unionid !== 'undefined' && unionid !== ''
+                ? unionid
+                : openid && openid !== 'undefined' && openid !== ''
+                ? openid
+                : `guest${timestamp}`
         const path = `wxapp/${userId}/`
         upyun.upload({
             localPath: imageSrc,
