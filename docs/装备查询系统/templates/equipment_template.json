@@ -1,0 +1,137 @@
+[
+  {
+    "id": "1",
+    "name": "威力短弓",
+    "type": "武器",
+    "subType": "弓类",
+    "level": 1,
+    "quality": "普通",
+    "attributes": {
+      "attack": 15,
+      "defense": 0,
+      "magicAttack": 0,
+      "magicDefense": 0,
+      "agility": 5,
+      "hitRate": 10,
+      "dodgeRate": 0
+    },
+    "specialEffect": "",
+    "description": "这是一把基础的短弓，适合新手使用。",
+    "imageUrl": "https://www.molibaike.com/Attachment/Download?path=201407/02/31c1e836-a28f-4078-b3f7-665206bfaf31",
+    "requirements": {
+      "level": 1,
+      "classes": ["弓箭手", "忍者"]
+    },
+    "synthesis": null,
+    "dropLocations": ["法兰城周边", "新手任务奖励"],
+    "source": "molibaike.com"
+  },
+  {
+    "id": "2",
+    "name": "新手法杖",
+    "type": "武器",
+    "subType": "杖类",
+    "level": 1,
+    "quality": "普通",
+    "attributes": {
+      "attack": 0,
+      "defense": 0,
+      "magicAttack": 10,
+      "magicDefense": 5,
+      "agility": 0,
+      "hitRate": 0,
+      "dodgeRate": 0
+    },
+    "specialEffect": "",
+    "description": "新手法师的基础法杖，提升少量魔法攻击力。",
+    "imageUrl": "",
+    "requirements": {
+      "level": 1,
+      "classes": ["魔术师", "传教士"]
+    },
+    "synthesis": null,
+    "dropLocations": ["法兰城周边"],
+    "source": "molibaike.com"
+  },
+  {
+    "id": "3",
+    "name": "新手铠甲",
+    "type": "防具",
+    "subType": "铠甲",
+    "level": 1,
+    "quality": "普通",
+    "attributes": {
+      "attack": 0,
+      "defense": 10,
+      "magicAttack": 0,
+      "magicDefense": 5,
+      "agility": 0,
+      "hitRate": 0,
+      "dodgeRate": 0
+    },
+    "specialEffect": "",
+    "description": "新战士的基础铠甲，提供基础物理防御。",
+    "imageUrl": "",
+    "requirements": {
+      "level": 1,
+      "classes": ["剑士", "骑士", "战斧斗士"]
+    },
+    "synthesis": null,
+    "dropLocations": ["法兰城周边", "新手任务奖励"],
+    "source": "molibaike.com"
+  },
+  {
+    "id": "4",
+    "name": "铜戒指",
+    "type": "首饰",
+    "subType": "戒指",
+    "level": 1,
+    "quality": "普通",
+    "attributes": {
+      "attack": 2,
+      "defense": 2,
+      "magicAttack": 0,
+      "magicDefense": 0,
+      "agility": 0,
+      "hitRate": 0,
+      "dodgeRate": 0
+    },
+    "specialEffect": "",
+    "description": "基础的铜戒指，提供少量属性加成。",
+    "imageUrl": "",
+    "requirements": {
+      "level": 1,
+      "classes": []
+    },
+    "synthesis": null,
+    "dropLocations": ["法兰城周边"],
+    "source": "molibaike.com"
+  },
+  {
+    "id": "5",
+    "name": "火风的水晶（6:4）",
+    "type": "属性水晶",
+    "subType": "元素",
+    "level": 1,
+    "quality": "普通",
+    "attributes": {
+      "attack": 0,
+      "defense": 0,
+      "magicAttack": 0,
+      "magicDefense": 0,
+      "agility": 0,
+      "hitRate": 0,
+      "dodgeRate": 0
+    },
+    "specialEffect": "火风双元素加成",
+    "description": "提供火风双元素属性加成的特殊水晶。",
+    "imageUrl": "https://www.molibaike.com/Attachment/Download?path=201411/21/6cbb81a9-44c4-48f9-925a-f63202d6b582",
+    "requirements": {
+      "level": 1,
+      "classes": []
+    },
+    "synthesis": null,
+    "dropLocations": [],
+    "source": "molibaike.com"
+  }
+]

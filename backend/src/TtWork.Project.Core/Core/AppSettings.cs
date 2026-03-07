@@ -22,7 +22,7 @@ public static class AppSettings
         public const long AuctionChannelId = -1;
         
         /// <summary>
-        /// 演示群聊ID（审核期间显示）
+        /// 常驻系统频道ID（所有用户可见）
         /// </summary>
         public static class DemoChannels
         {

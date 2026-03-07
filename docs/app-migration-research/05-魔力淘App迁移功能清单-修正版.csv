@@ -1,0 +1,60 @@
+模块,功能点,功能描述,页面,API接口,依赖,预估工时(小时),主要技术路线,复用程度,风险等级,优先级
+用户认证模块,微信登录,微信小程序授权登录,pages/index/login,weixinMiniAuthenticate,uni.login,16,集成微信 OpenSDK,处理授权流程,0%,🔴 高风险,P0
+用户认证模块,手机号登录,手机号授权登录,pages/index/login,phoneAuth,uni.login,8,集成平台授权 SDK,50%,🔴 高风险,P0
+用户认证模块,账号密码登录,传统账号密码登录,pages/index/login,authenticate,-,2,HTTP 接口,逻辑简单,100%,🟢 低风险,P0
+用户认证模块,登录状态管理,管理用户登录状态,pages/index/my,-,Pinia,0,Pinia 状态可复用,100%,🟢 低风险,P0
+用户认证模块,-,小计,-,-,-,26,-,-,-
+拍卖系统模块,拍卖品列表,显示待拍卖和已成交列表,pages/chat/auction,auctionItem.getPublicList,WebSocket,0,列表展示 + API 调用,100%,🟢 低风险,P1
+拍卖系统模块,拍卖品详情,显示拍卖品详细信息,pages/chat/auction,auctionItem.getDetail,-,0,详情展示,100%,🟢 低风险,P1
+拍卖系统模块,出价,用户参与拍卖出价,pages/chat/auction,auctionItem.bid,WebSocket,0,业务逻辑复杂,需校验出价规则,100%,🟡 中风险,P1
+拍卖系统模块,拍卖聊天室,拍卖期间的实时聊天,pages/chat/auction,ws.sendChannelMsg,WebSocket,2,UniApp WebSocket API,微调即可,95%,🟡 中风险,P1
+拍卖系统模块,拍卖订阅,订阅拍卖开始通知,pages/chat/auction,auctionItem.subStartNotify,uni.requestSubscribeMessage,8,订阅消息 → Push Notification,20%,🔴 高风险,P1
+拍卖系统模块,卡秒模式,拍卖师开启卡秒模式,pages/chat/auction,auctionItem.getKasecStatus,WebSocket,0,状态管理逻辑,100%,🟡 中风险,P1
+拍卖系统模块,拍卖历史,查看拍卖成功记录,pages/user/auctionSuccessList,auctionItem.getMySuccessList,-,0,列表展示,100%,🟢 低风险,P2
+拍卖系统模块,拍卖中间人,查看拍卖中间人列表,pages/chat/auction,auctionItem.getAuctionMidList,-,0,列表展示,100%,🟢 低风险,P2
+拍卖系统模块,-,小计,-,-,-,10,-,-,-
+聊天系统模块,WebSocket 连接,建立 WebSocket 连接,pages/chat/*,ws.preConnect,wx.connectSocket,2,UniApp WebSocket API,95%,🔴 高风险,P1
+聊天系统模块,私聊,一对一聊天,pages/chat/privateChat,ws.sendMsg,WebSocket,0,UI + 逻辑,100%,🟡 中风险,P1
+聊天系统模块,群聊,多人群组聊天,pages/chat/groupChat,ws.sendChannelMsg,WebSocket,0,频道管理逻辑复杂,100%,🟡 中风险,P1
+聊天系统模块,会话列表,显示所有会话,pages/chat/index,client.getChatList,WebSocket,0,列表展示 + 实时更新,100%,🟡 中风险,P1
+聊天系统模块,联系人,好友列表,pages/chat/contacts,userFriend.getUserFriends,-,0,列表展示,100%,🟢 低风险,P2
+聊天系统模块,消息历史,获取历史消息,pages/chat/*,message.getPrivateHistory / getChanHistory,-,0,分页加载,100%,🟡 中风险,P2
+聊天系统模块,消息撤回,撤回已发送消息,pages/chat/*,ws.backout,WebSocket,0,简单逻辑,100%,🟢 低风险,P2
+聊天系统模块,表情包,发送表情,pages/chat/*,chatEmoji.getAll,-,0,简单功能,100%,🟢 低风险,P2
+聊天系统模块,图片消息,发送图片,pages/chat/*,-,uni.chooseImage,0,图片选择 + 上传,100%,🟡 中风险,P2
+聊天系统模块,用户信息,查看用户资料,pages/chat/*,user.get,-,0,简单展示,100%,🟢 低风险,P2
+聊天系统模块,-,小计,-,-,-,2,-,-,-
+交易站模块,帖子列表,显示交易帖子列表,pages/tradingPost/index,post.GetPostAll,-,0,列表 + 筛选,100%,🟢 低风险,P2
+交易站模块,帖子搜索,搜索帖子,pages/tradingPost/index,post.GetPostAll,-,0,搜索功能,100%,🟢 低风险,P2
+交易站模块,帖子分类,按分类筛选,pages/tradingPost/index,post.GetCategoryList,-,0,筛选功能,100%,🟢 低风险,P2
+交易站模块,帖子详情,显示帖子详细信息,pages/tradingPost/postDetail,post.GetPostDetail,-,0,详情展示,100%,🟡 中风险,P2
+交易站模块,发帖,发布新帖子,pages/tradingPost/addPost,post.Add,uni.uploadFile,0,表单 + 图片上传,100%,🟡 中风险,P2
+交易站模块,编辑帖子,编辑已有帖子,pages/tradingPost/addPost,post.Edit,-,0,复用发帖逻辑,100%,🟡 中风险,P2
+交易站模块,删除帖子,删除帖子,pages/tradingPost/postDetail,post.Delete,-,0,简单接口,100%,🟢 低风险,P2
+交易站模块,置顶帖子,显示置顶帖子,pages/tradingPost/index,-,-,0,UI 样式,100%,🟢 低风险,P2
+交易站模块,热词,显示热门搜索词,pages/tradingPost/index,post.GetHotWordsList,-,0,简单展示,100%,🟢 低风险,P2
+交易站模块,-,小计,-,-,-,0,-,-,-
+用户管理模块,个人中心,显示用户信息,pages/index/my,user.get,-,0,简单展示,100%,🟢 低风险,P2
+用户管理模块,用户信息编辑,编辑用户资料,pages/user/info,user.update,-,0,表单验证,100%,🟡 中风险,P2
+用户管理模块,余额管理,查看余额明细,pages/user/balanceLog,UserBalanceLog.GetMyAll,-,0,列表展示,100%,🟢 低风险,P2
+用户管理模块,保证金管理,查看保证金明细,pages/user/depositLog,UserDepositLog.GetMyAll,-,0,列表展示,100%,🟢 低风险,P2
+用户管理模块,充值,账户充值,pages/index/my,client.TopUp,小程序支付,16,集成支付 SDK,0%,🔴 高风险,P1
+用户管理模块,提现,账户提现,pages/index/my,client.PayWithdrawal,-,0,业务逻辑,100%,🟡 中风险,P2
+用户管理模块,用户列表,查看用户列表,pages/user/list,user.getAll,-,0,列表展示,100%,🟢 低风险,P2
+用户管理模块,-,小计,-,-,-,16,-,-,-
+公告模块,公告列表,显示公告列表,pages/announce/list,announce.getAll,-,0,简单列表,100%,🟢 低风险,P3
+公告模块,公告详情,显示公告详情,pages/announce/list,announce.getLatest,uni.previewImage,0,简单展示,100%,🟢 低风险,P3
+公告模块,-,小计,-,-,-,0,-,-,-
+平台适配模块,App平台配置,配置UniApp App平台配置,manifest.json,-,-,2,配置App平台参数,条件编译,0%,🟡 中风险,P0
+平台适配模块,条件编译处理,处理平台差异,#ifdef #endif,-,4,条件编译处理平台差异,0%,🟡 中风险,P0
+平台适配模块,样式适配,rpx转px,postcss-rem-to-responsive-pixel,-,4,postcss自动转换rpx为px,90%,🟡 中风险,P0
+平台适配模块,路由适配,微调路由跳转,pages.json,-,2,路由参数调整,95%,🟢 低风险,P0
+平台适配模块,-,小计,-,-,-,12,-,-,-
+测试上线模块,功能测试,完整功能测试,所有页面,-,-,10,功能完整性测试,100%,🟢 低风险,P0
+测试上线模块,iOS兼容性测试,iOS设备兼容性测试,所有页面,-,-,6,iOS多版本测试,100%,🟡 中风险,P0
+测试上线模块,Android兼容性测试,Android设备兼容性测试,所有页面,-,-,4,Android多品牌测试,100%,🟡 中风险,P0
+测试上线模块,性能测试,启动速度、帧率、内存占用,所有页面,-,-,5,性能指标测试,90%,🟡 中风险,P0
+测试上线模块,打包,打包APK和IPA,所有页面,-,-,3,HBuilderX云打包,0%,🟢 低风险,P0
+测试上线模块,应用商店提交,提交App Store和Google Play,所有页面,-,-,5,准备审核材料,提交审核,0%,🟡 中风险,P0
+测试上线模块,-,小计,-,-,-,33,-,-,-
+总计,-,-,-,-,-,99,平均复用率 92%+,-,-

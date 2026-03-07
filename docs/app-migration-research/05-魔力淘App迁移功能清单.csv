@@ -1,0 +1,48 @@
+模块,功能点,功能描述,页面,API接口,依赖,预估工时(小时),主要技术路线,风险等级,优先级
+用户认证模块,微信登录,微信小程序授权登录,pages/index/login,weixinMiniAuthenticate,uni.login,16,集成微信 OpenSDK,处理授权流程,🔴 高风险,P0
+用户认证模块,手机号登录,手机号授权登录,pages/index/login,phoneAuth,uni.login,12,集成平台授权 SDK,🔴 高风险,P0
+用户认证模块,账号密码登录,传统账号密码登录,pages/index/login,authenticate,-,4,HTTP 接口,逻辑简单,🟢 低风险,P0
+用户认证模块,登录状态管理,管理用户登录状态,pages/index/my,-,Pinia,2,Pinia 状态可复用,🟢 低风险,P0
+用户认证模块,-,小计,-,-,-,34,-,-,-
+拍卖系统模块,拍卖品列表,显示待拍卖和已成交列表,pages/chat/auction,auctionItem.getPublicList,WebSocket,8,列表展示 + API 调用,🟡 中风险,P1
+拍卖系统模块,拍卖品详情,显示拍卖品详细信息,pages/chat/auction,auctionItem.getDetail,-,4,详情展示,🟢 低风险,P1
+拍卖系统模块,出价,用户参与拍卖出价,pages/chat/auction,auctionItem.bid,WebSocket,12,业务逻辑复杂,需校验出价规则,🟡 中风险,P1
+拍卖系统模块,拍卖聊天室,拍卖期间的实时聊天,pages/chat/auction,ws.sendChannelMsg,WebSocket,24,WebSocket 实时通信,消息处理复杂,🔴 高风险,P1
+拍卖系统模块,拍卖订阅,订阅拍卖开始通知,pages/chat/auction,auctionItem.subStartNotify,uni.requestSubscribeMessage,16,订阅消息 → Push Notification,🔴 高风险,P1
+拍卖系统模块,卡秒模式,拍卖师开启卡秒模式,pages/chat/auction,auctionItem.getKasecStatus,WebSocket,6,状态管理逻辑,🟡 中风险,P1
+拍卖系统模块,拍卖历史,查看拍卖成功记录,pages/user/auctionSuccessList,auctionItem.getMySuccessList,-,4,列表展示,🟢 低风险,P2
+拍卖系统模块,拍卖中间人,查看拍卖中间人列表,pages/chat/auction,auctionItem.getAuctionMidList,-,4,列表展示,🟢 低风险,P2
+拍卖系统模块,-,小计,-,-,-,78,-,-,-
+聊天系统模块,WebSocket 连接,建立 WebSocket 连接,pages/chat/*,ws.preConnect,wx.connectSocket,20,使用 RN WebSocket / Socket.IO,🔴 高风险,P1
+聊天系统模块,私聊,一对一聊天,pages/chat/privateChat,ws.sendMsg,WebSocket,16,UI + 逻辑,🟡 中风险,P1
+聊天系统模块,群聊,多人群组聊天,pages/chat/groupChat,ws.sendChannelMsg,WebSocket,20,频道管理逻辑复杂,🟡 中风险,P1
+聊天系统模块,会话列表,显示所有会话,pages/chat/index,client.getChatList,WebSocket,8,列表展示 + 实时更新,🟡 中风险,P1
+聊天系统模块,联系人,好友列表,pages/chat/contacts,userFriend.getUserFriends,-,4,列表展示,🟢 低风险,P2
+聊天系统模块,消息历史,获取历史消息,pages/chat/*,message.getPrivateHistory / getChanHistory,-,8,分页加载,🟡 中风险,P2
+聊天系统模块,消息撤回,撤回已发送消息,pages/chat/*,ws.backout,WebSocket,4,简单逻辑,🟢 低风险,P2
+聊天系统模块,表情包,发送表情,pages/chat/*,chatEmoji.getAll,-,4,简单功能,🟢 低风险,P2
+聊天系统模块,图片消息,发送图片,pages/chat/*,-,uni.chooseImage,8,图片选择 + 上传,🟡 中风险,P2
+聊天系统模块,用户信息,查看用户资料,pages/chat/*,user.get,-,2,简单展示,🟢 低风险,P2
+聊天系统模块,-,小计,-,-,-,90,-,-,-
+交易站模块,帖子列表,显示交易帖子列表,pages/tradingPost/index,post.GetPostAll,-,8,列表 + 筛选,🟡 中风险,P2
+交易站模块,帖子搜索,搜索帖子,pages/tradingPost/index,post.GetPostAll,-,2,搜索功能,🟢 低风险,P2
+交易站模块,帖子分类,按分类筛选,pages/tradingPost/index,post.GetCategoryList,-,2,筛选功能,🟢 低风险,P2
+交易站模块,帖子详情,显示帖子详细信息,pages/tradingPost/postDetail,post.GetPostDetail,-,6,详情展示,🟡 中风险,P2
+交易站模块,发帖,发布新帖子,pages/tradingPost/addPost,post.Add,uni.uploadFile,10,表单 + 图片上传,🟡 中风险,P2
+交易站模块,编辑帖子,编辑已有帖子,pages/tradingPost/addPost,post.Edit,-,6,复用发帖逻辑,🟡 中风险,P2
+交易站模块,删除帖子,删除帖子,pages/tradingPost/postDetail,post.Delete,-,2,简单接口,🟢 低风险,P2
+交易站模块,置顶帖子,显示置顶帖子,pages/tradingPost/index,-,-,2,UI 样式,🟢 低风险,P2
+交易站模块,热词,显示热门搜索词,pages/tradingPost/index,post.GetHotWordsList,-,2,简单展示,🟢 低风险,P2
+交易站模块,-,小计,-,-,-,38,-,-,-
+用户管理模块,个人中心,显示用户信息,pages/index/my,user.get,-,4,简单展示,🟢 低风险,P2
+用户管理模块,用户信息编辑,编辑用户资料,pages/user/info,user.update,-,6,表单验证,🟡 中风险,P2
+用户管理模块,余额管理,查看余额明细,pages/user/balanceLog,UserBalanceLog.GetMyAll,-,4,列表展示,🟢 低风险,P2
+用户管理模块,保证金管理,查看保证金明细,pages/user/depositLog,UserDepositLog.GetMyAll,-,4,列表展示,🟢 低风险,P2
+用户管理模块,充值,账户充值,pages/index/my,client.TopUp,小程序支付,16,集成支付 SDK,🔴 高风险,P1
+用户管理模块,提现,账户提现,pages/index/my,client.PayWithdrawal,-,8,业务逻辑,🟡 中风险,P2
+用户管理模块,用户列表,查看用户列表,pages/user/list,user.getAll,-,4,列表展示,🟢 低风险,P2
+用户管理模块,-,小计,-,-,-,46,-,-,-
+公告模块,公告列表,显示公告列表,pages/announce/list,announce.getAll,-,4,简单列表,🟢 低风险,P3
+公告模块,公告详情,显示公告详情,pages/announce/list,announce.getLatest,uni.previewImage,2,简单展示,🟢 低风险,P3
+公告模块,-,小计,-,-,-,6,-,-,-
+总计,-,-,-,-,-,292,-,-,-
