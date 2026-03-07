@@ -19,3 +19,4 @@ README2.md
 /backend/molitao-backend-latest.tar
 /backend/certs/apiclient_cert.p12
 .sisyphus
+.worktrees/

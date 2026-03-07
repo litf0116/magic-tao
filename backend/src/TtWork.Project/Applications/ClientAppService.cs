@@ -318,13 +318,22 @@ public class ClientAppService(
     {
         var userId = AbpSession.UserId ?? 0;
         var channels = await chatChannelService.GetVisibleChannelsForUserAsync(userId);
+
+        Logger.Info($"[GetChatList] Step 1 - Total channels from DB: {channels.Count}");
+        Logger.Info(
+            $"[GetChatList] Step 2 - Channels: {string.Join(", ", channels.Select(c => $"{c.ChannelId}(Type={c.ChannelType},Active={c.IsActive},HasMsg={c.LastMessageId != null})"))}");
+
         if (channels.Count == 0)
+        {
             return new List<ChatListItem>();
+        }
 
         // ===== 版本控制过滤逻辑 =====
         var currentVersion = _abpSession.GetAppVersion();
         var stableVersion = await SettingManager.GetSettingValueAsync(AppSettings.VersionControl.LatestStableVersion);
         var shouldShowAuction = VersionComparer.ShouldShowAuction(currentVersion, stableVersion);
+        Logger.Info(
+            $"[GetChatList] Step 3 - currentVersion: {currentVersion}, stableVersion: {stableVersion}, shouldShowAuction: {shouldShowAuction}");
         // ===== 版本控制过滤逻辑结束 =====
 
         var privateUserIds = channels
@@ -340,8 +349,15 @@ public class ClientAppService(
             .Select(c => ConvertToChatListItem(c, userId, userInfos))
             .Where(x => x != null)
             .Select(x => x!)
-            .Where(x => x.id != AppSettings.VersionControl.AuctionChannelId || shouldShowAuction)
             .ToList();
+
+        Logger.Info(
+            $"[GetChatList] Step 4 - After ConvertToChatListItem: {result.Count} items, IDs: {string.Join(", ", result.Select(x => x.id))}");
+
+        result = result.Where(x => x.id != AppSettings.VersionControl.AuctionChannelId || shouldShowAuction).ToList();
+
+        Logger.Info(
+            $"[GetChatList] Step 5 - After version filter: {result.Count} items, AuctionChannelId={AppSettings.VersionControl.AuctionChannelId}, hasAuction={result.Any(x => x.id == AppSettings.VersionControl.AuctionChannelId)}");
 
         return result
             .OrderByDescending(x => x.order)
@@ -378,6 +394,7 @@ public class ClientAppService(
             {
                 return null;
             }
+
             if (otherId.HasValue && userInfos.TryGetValue(otherId.Value, out var info))
             {
                 return new()
