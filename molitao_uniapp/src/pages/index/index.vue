@@ -23,12 +23,7 @@
                     ></uv-swiper>
                 </view>
                 <view class="advertisingSpace">
-                    <div
-                        v-for="(item, index) in advertisingSpaceList"
-                        :key="index"
-                        class="advertisingSpace-item"
-
-                    >
+                    <div v-for="(item, index) in advertisingSpaceList" :key="index" class="advertisingSpace-item">
                         <image class="logo2" :src="convertImageUrl(item.imageUrl, false)" />
                         <div
                             style="

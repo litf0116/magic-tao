@@ -12,7 +12,6 @@
 </template>
 
 <script setup lang="ts">
-
 import { convertAuctionPayload } from '@/utils/propertyConverter'
 
 const props = defineProps<{

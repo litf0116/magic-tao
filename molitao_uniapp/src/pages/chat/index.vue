@@ -10,18 +10,19 @@
                 <view class="item-head">
                     <image v-if="x.id && x.id > 0" :src="getImgUrl(x.avatar, true)" class="head-icon"></image>
                     <template v-else>
-                        <div
+                        <!-- 系统群组：优先使用后端返回的头像，否则使用默认图标 -->
+                        <image
                             v-if="x.id === -10"
-                            class="head-icon bg-purple-600 text-white font-bold w-full h-full flex flex-center"
-                        >
-                            📢
-                        </div>
-                        <div
+                            :src="x.avatar || '/static/images/system-announcement.png'"
+                            class="head-icon"
+                            mode="aspectFill"
+                        ></image>
+                        <image
                             v-else-if="x.id === -11"
-                            class="head-icon bg-blue-500 text-white font-bold w-full h-full flex flex-center"
-                        >
-                            💬
-                        </div>
+                            :src="x.avatar || '/static/images/newbie-mod-chat.png'"
+                            class="head-icon"
+                            mode="aspectFill"
+                        ></image>
                         <div
                             v-else-if="x.id === 0"
                             class="head-icon bg-blue-600 text-white font-bold w-full h-full flex flex-center"
@@ -34,6 +35,13 @@
                         >
                             秒杀
                         </div>
+                        <!-- 其他系统群组：如果有头像则显示，否则显示默认样式 -->
+                        <image
+                            v-else-if="x.avatar && x.avatar.startsWith('/static/')"
+                            :src="x.avatar"
+                            class="head-icon"
+                            mode="aspectFill"
+                        ></image>
                         <div
                             v-else
                             class="head-icon bg-black text-white font-bold w-full h-full flex flex-center"

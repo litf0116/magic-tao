@@ -16,7 +16,7 @@ export const Goto = {
         const params = getParams(options)
         const url = '/pages/chat/privateChat' + (params ? '?' + params : '')
         uni.navigateTo({ url })
-    }
+    },
 }
 
 function getParams(options: { [key: string]: string }) {

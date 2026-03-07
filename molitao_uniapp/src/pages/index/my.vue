@@ -14,13 +14,10 @@
                 </view>
             </view>
             <view class="grid grid-cols-4 gap-4">
-
-
                 <view class="flex flex-col flex-center">
                     <view class="text-lg">{{ myCount.friend }}</view>
                     <view>好友</view>
                 </view>
-
             </view>
             <view
                 v-if="userStore.user.id"
@@ -37,8 +34,6 @@
         <view class="myCard py-4 px-4 mb-4 text-[#171717] flex flex-center">
             <view class="text-center">联系老淡开通权限</view>
         </view>
-
-
 
         <view v-if="userStore.user.phoneNumber" class="my-4">
             <uv-button @tap="logout">退出登录</uv-button>

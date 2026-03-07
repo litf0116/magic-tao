@@ -9,9 +9,9 @@ import type {
     UserDtoBaseListResultDto,
 } from '@/composables/types'
 import utils from './utils'
-import {getAppVersion} from './version'
+import { getAppVersion } from './version'
 
-let host: string = 'https://www.molitao.top';
+const host: string = 'https://www.molitao.top'
 
 // if (import.meta.env.VITE_APP_ENV === 'development') {
 //     host = 'http://localhost:12580'
@@ -82,7 +82,7 @@ export default {
         },
 
         preConnect: () => request('POST', `/ws/pre-connect`),
-        offline: (data: { websocketId?: number }) => request('GET', `/ws/offline`, {websocketId: data.websocketId}),
+        offline: (data: { websocketId?: number }) => request('GET', `/ws/offline`, { websocketId: data.websocketId }),
         getChannels: () => request('POST', `/ws/get-channels`),
         backout: (data: ChatMessage) => request('POST', `/ws/backout`, data),
         leaveChannel: (data: { chan: string }) => request('GET', `/ws/leave-channel`, data),
@@ -225,7 +225,6 @@ export default {
          * @param data { url: 图片URL }
          * @returns Promise<{ pass: boolean, message: string }>
          */
-        check: (data: { url: string }) =>
-            request('POST', `/api/ContentSecurity/CheckMedia`, data),
+        check: (data: { url: string }) => request('POST', `/api/ContentSecurity/CheckMedia`, data),
     },
 }
