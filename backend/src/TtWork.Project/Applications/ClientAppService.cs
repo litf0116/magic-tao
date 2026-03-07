@@ -383,6 +383,8 @@ public class ClientAppService(
                 id = c.ChannelId switch
                 {
                     "-1_auction" => -1,
+                    "-10_announcement" => -10,
+                    "-11_newbie" => -11,
                     _ => c.ChannelId.GetHashCode()
                 },
                 lastMsg = c.LastMessageContent ?? "",
@@ -391,7 +393,12 @@ public class ClientAppService(
                 time = c.LastMessageTime,
                 type = 0,
                 unread = 0,
-                avatar = ""
+                avatar = c.ChannelId switch
+                {
+                    "-10_announcement" => "/static/images/system-announcement.png",
+                    "-11_newbie" => "/static/images/newbie-mod-chat.png",
+                    _ => ""
+                }
             };
         }
 
