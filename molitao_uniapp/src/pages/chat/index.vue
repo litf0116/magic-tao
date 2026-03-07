@@ -10,16 +10,17 @@
                 <view class="item-head">
                     <image v-if="x.id && x.id > 0" :src="getImgUrl(x.avatar, true)" class="head-icon"></image>
                     <template v-else>
-                        <!-- 系统群组：优先使用后端返回的头像，否则使用默认图标 -->
+                        <!-- 系统公告：支持 ID 或名称匹配 -->
                         <image
-                            v-if="x.id === -10"
-                            :src="x.avatar || '/static/images/system-announcement.png'"
+                            v-if="x.id === -10 || x.name === '系统公告'"
+                            src="/static/images/system-announcement.png"
                             class="head-icon"
                             mode="aspectFill"
                         ></image>
+                        <!-- 新手版主群聊：支持 ID 或名称匹配 -->
                         <image
-                            v-else-if="x.id === -11"
-                            :src="x.avatar || '/static/images/newbie-mod-chat.png'"
+                            v-else-if="x.id === -11 || x.name === '新手版主群聊'"
+                            src="/static/images/newbie-mod-chat.png"
                             class="head-icon"
                             mode="aspectFill"
                         ></image>
@@ -35,7 +36,7 @@
                         >
                             秒杀
                         </div>
-                        <!-- 其他系统群组：如果有头像则显示，否则显示默认样式 -->
+                        <!-- 其他系统群组：如果有本地静态图片头像则显示 -->
                         <image
                             v-else-if="x.avatar && x.avatar.startsWith('/static/')"
                             :src="x.avatar"
@@ -67,7 +68,7 @@
                                     ? 'text-green-600 !font-bold'
                                     : 'text-gray-700',
                             ]"
-                            >{{ getChannelDisplayName(x) }}
+                        >{{ getChannelDisplayName(x) }}
                         </text>
                         <view class="item-info-top_time"> {{ dayjs(x.time).format('MM-DD HH:mm') }}</view>
                     </view>
@@ -94,20 +95,21 @@
 </template>
 
 <script setup lang="ts">
-import { onLoad, onShow, onUnload } from '@dcloudio/uni-app'
-import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
-import { Goto } from '@/composables/goto'
-import { orderBy } from 'lodash'
-import { getImgUrl } from '@/composables'
+import {onLoad, onShow, onUnload} from '@dcloudio/uni-app'
+import {ref, reactive, onMounted, onBeforeUnmount} from 'vue'
+import {Goto} from '@/composables/goto'
+import {orderBy} from 'lodash'
+import {getImgUrl} from '@/composables'
 import dayjs from 'dayjs'
-import type { ChatListItem, ChatMessage } from '@/composables/types'
+import type {ChatListItem, ChatMessage} from '@/composables/types'
+
 const chatStore: any = useChatStore()
 const userStore = useUserStore()
 //初始化
 const init = () => {
     if (userStore.token == '') {
         const url = '/pages/index/login'
-        uni.navigateTo({ url })
+        uni.navigateTo({url})
         return
     }
     chatStore.getChatList()
@@ -131,15 +133,15 @@ async function chat(chat: ChatListItem) {
             avatar: chat.avatar || 'https://cdn.molitao.top/avater.png',
         })
     } else if (chat.id === -10) {
-        Goto.group({ id: '-10_announcement', name: '系统公告' })
+        Goto.group({id: '-10_announcement', name: '系统公告'})
     } else if (chat.id === -11) {
-        Goto.group({ id: '-11_newbie', name: '新手版主群聊' })
+        Goto.group({id: '-11_newbie', name: '新手版主群聊'})
     } else if (chat.id === 0) {
         Goto.lobby()
     } else if (chat.id === -1) {
         Goto.auction()
     } else {
-        Goto.group({ id: `${chat.id}_${chat.name}` })
+        Goto.group({id: `${chat.id}_${chat.name}`})
     }
 }
 
@@ -340,8 +342,8 @@ defineExpose({
 
 <route lang="json">
 {
-    "style": {
-        "navigationBarTitleText": "会话"
-    }
+"style": {
+"navigationBarTitleText": "会话"
+}
 }
 </route>
