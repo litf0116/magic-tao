@@ -18,7 +18,7 @@ public class BidHistory : CreationAuditedEntity<long> {
 
     [StringLength(64)] public string BidUserName { get; set; } // 出价人
     [StringLength(256)] public string BidUserAvatar { get; set; } // 出价人头像
-    [ForeignKey(nameof(AuctionItemId))] public AuctionItem AuctionItem { get; set; }
+    [ForeignKey(nameof(AuctionItemId))] public AuctionItem? AuctionItem { get; set; }
 }
 
 [AutoMapFrom(typeof(BidHistory))]

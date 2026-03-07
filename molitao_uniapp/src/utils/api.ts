@@ -9,15 +9,15 @@ import type {
     UserDtoBaseListResultDto,
 } from '@/composables/types'
 import utils from './utils'
-import { getAppVersion } from './version'
-let host: string
+import {getAppVersion} from './version'
 
-if (import.meta.env.VITE_APP_ENV === 'development') {
+let host: string = 'https://www.molitao.top';
+
+// if (import.meta.env.VITE_APP_ENV === 'development') {
     host = 'http://localhost:12580'
-} else {
-    host = 'https://www.molitao.top'
-}
-
+// } else {
+//     host = 'https://www.molitao.top'
+// }
 
 const getRequest = utils.httpsPromisify(uni.request)
 
@@ -82,7 +82,7 @@ export default {
         },
 
         preConnect: () => request('POST', `/ws/pre-connect`),
-        offline: (data: { websocketId?: number }) => request('GET', `/ws/offline`, { websocketId: data.websocketId }),
+        offline: (data: { websocketId?: number }) => request('GET', `/ws/offline`, {websocketId: data.websocketId}),
         getChannels: () => request('POST', `/ws/get-channels`),
         backout: (data: ChatMessage) => request('POST', `/ws/backout`, data),
         leaveChannel: (data: { chan: string }) => request('GET', `/ws/leave-channel`, data),
