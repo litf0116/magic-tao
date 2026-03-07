@@ -125,6 +125,28 @@ const unread = ref('')
 const showUnread = ref(false)
 
 onLoad(() => {
+    // 版本控制检查：验证用户是否有访问拍卖频道的权限
+    const hasAccess = chatStore.chatList.some((chat) => chat.id === -1)
+
+    if (!hasAccess) {
+        uni.showToast({
+            title: '拍卖功能暂未开放',
+            icon: 'none',
+            duration: 2000,
+        })
+
+        setTimeout(() => {
+            uni.navigateBack({
+                delta: 1,
+                fail: () => {
+                    uni.switchTab({ url: '/pages/tabbar/index' })
+                },
+            })
+        }, 500)
+
+        return
+    }
+
     chatStore.connectServer().then(async () => {
         //todo
         init('-1_auction')
@@ -161,6 +183,28 @@ onLoad(() => {
 
         bidRulesModalVisible.value = true
     })
+})
+
+// 每次显示页面时检查权限
+onShow(() => {
+    const hasAccess = chatStore.chatList.some((chat) => chat.id === -1)
+
+    if (!hasAccess) {
+        uni.showToast({
+            title: '拍卖功能暂未开放',
+            icon: 'none',
+            duration: 2000,
+        })
+
+        setTimeout(() => {
+            uni.navigateBack({
+                delta: 1,
+                fail: () => {
+                    uni.switchTab({ url: '/pages/tabbar/index' })
+                },
+            })
+        }, 500)
+    }
 })
 
 // 组件销毁时移除监听

@@ -44,6 +44,9 @@ using SKIT.FlurlHttpClient.Wechat.TenpayV3.Utilities;
 using TtWork.Project.Services;
 using TtWork.Project.Caches;
 using TtWork.Project.Caches;
+using TtWork.Project.Core;
+using TtWork.Project.Core.Session;
+using TtWork.Project.Core.Utils;
 
 namespace TtWork.Project.Applications;
 
@@ -53,6 +56,7 @@ public class ClientAppService(
     IRepository<UserFriend> userFriendRepository,
     IRepository<User, long> userRepository,
     IRepository<ChatListDelete, int> chatListDeleteRepository,
+    IRepository<ChatChannel, long> chatChannelRepository,
     ChatChannelService chatChannelService,
     ILogger<ClientAppService> logger,
     IHttpContextAccessor httpContextAccessor,
@@ -317,6 +321,12 @@ public class ClientAppService(
         if (channels.Count == 0)
             return new List<ChatListItem>();
 
+        // ===== 版本控制过滤逻辑 =====
+        var currentVersion = _abpSession.GetAppVersion();
+        var stableVersion = await SettingManager.GetSettingValueAsync(AppSettings.VersionControl.LatestStableVersion);
+        var shouldShowAuction = VersionComparer.ShouldShowAuction(currentVersion, stableVersion);
+        // ===== 版本控制过滤逻辑结束 =====
+
         var privateUserIds = channels
             .Where(c => c.ChannelType == ChatChannelType.Private)
             .Select(c => c.GetOtherUserId(userId) ?? 0)
@@ -326,10 +336,44 @@ public class ClientAppService(
 
         var userInfos = await chatUserCache.GetBatchUserBasicAsync(privateUserIds);
 
-        return channels
+        var result = channels
             .Select(c => ConvertToChatListItem(c, userId, userInfos))
             .Where(x => x != null)
             .Select(x => x!)
+            .Where(x => x.id != AppSettings.VersionControl.AuctionChannelId || shouldShowAuction)
+            .ToList();
+
+        // 审核期间：添加演示群聊（版本 > 稳定版本时）
+        if (!shouldShowAuction && !string.IsNullOrEmpty(currentVersion))
+        {
+            var demoChannelIds = new[] {
+                $"{AppSettings.VersionControl.DemoChannels.SystemAnnouncement}_announcement",
+                $"{AppSettings.VersionControl.DemoChannels.NewbieHelp}_newbie"
+            };
+
+            var demoChannels = await chatChannelRepository
+                .GetAll()
+                .Where(c => demoChannelIds.Contains(c.ChannelId))
+                .OrderByDescending(c => c.SortOrder)
+                .ToListAsync();
+
+            foreach (var channel in demoChannels)
+            {
+                result.Add(new ChatListItem
+                {
+                    id = long.Parse(channel.ChannelId.Split('_')[0]),
+                    name = channel.ChannelName,
+                    lastMsg = channel.LastMessageContent ?? "暂无消息",
+                    order = channel.SortOrder,
+                    time = channel.LastMessageTime,
+                    type = 0,
+                    unread = 0,
+                    avatar = channel.LastMessageFromAvatar ?? ""
+                });
+            }
+        }
+
+        return result
             .OrderByDescending(x => x.order)
             .ThenByDescending(x => x.time)
             .ToList();

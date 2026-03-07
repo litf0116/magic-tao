@@ -11,7 +11,19 @@
                     <image v-if="x.id && x.id > 0" :src="getImgUrl(x.avatar, true)" class="head-icon"></image>
                     <template v-else>
                         <div
-                            v-if="x.id === 0"
+                            v-if="x.id === -10"
+                            class="head-icon bg-purple-600 text-white font-bold w-full h-full flex flex-center"
+                        >
+                            📢
+                        </div>
+                        <div
+                            v-else-if="x.id === -11"
+                            class="head-icon bg-blue-500 text-white font-bold w-full h-full flex flex-center"
+                        >
+                            💬
+                        </div>
+                        <div
+                            v-else-if="x.id === 0"
                             class="head-icon bg-blue-600 text-white font-bold w-full h-full flex flex-center"
                         >
                             大厅
@@ -37,13 +49,17 @@
                         <text
                             class="item-info-top_name"
                             :class="[
-                                x.name === 'lobby'
+                                x.id === -10
+                                    ? 'text-purple-600 !font-bold'
+                                    : x.id === -11
+                                    ? 'text-blue-500 !font-bold'
+                                    : x.name === 'lobby'
                                     ? 'text-blue-600 !font-bold'
                                     : x.name === 'auction'
                                     ? 'text-green-600 !font-bold'
                                     : 'text-gray-700',
                             ]"
-                            >{{ x.name === 'lobby' ? '勇者招募所' : x.name === 'auction' ? '拍卖行' : x.name }}
+                            >{{ getChannelDisplayName(x) }}
                         </text>
                         <view class="item-info-top_time"> {{ dayjs(x.time).format('MM-DD HH:mm') }}</view>
                     </view>
@@ -106,6 +122,10 @@ async function chat(chat: ChatListItem) {
             name: chat.name,
             avatar: chat.avatar || 'https://cdn.molitao.top/avater.png',
         })
+    } else if (chat.id === -10) {
+        Goto.group({ id: '-10_announcement', name: '系统公告' })
+    } else if (chat.id === -11) {
+        Goto.group({ id: '-11_newbie', name: '新手版主群聊' })
     } else if (chat.id === 0) {
         Goto.lobby()
     } else if (chat.id === -1) {
@@ -113,6 +133,14 @@ async function chat(chat: ChatListItem) {
     } else {
         Goto.group({ id: `${chat.id}_${chat.name}` })
     }
+}
+
+function getChannelDisplayName(chat: ChatListItem) {
+    if (chat.id === -10) return '系统公告'
+    if (chat.id === -11) return '新手版主群聊'
+    if (chat.name === 'lobby') return '勇者招募所'
+    if (chat.name === 'auction') return '拍卖行'
+    return chat.name
 }
 
 function showAction(conversation: any) {

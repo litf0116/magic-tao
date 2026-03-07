@@ -61,11 +61,19 @@ export const useChatStore = defineStore('chatStore', () => {
 
     function getChatList() {
         return new Promise<void>((resolve, reject) => {
-            api.client.getChatList().then((res: any) => {
-                chatList.value = res
-                return resolve()
-            })
-            return resolve()
+            api.client
+                .getChatList()
+                .then((res: any) => {
+                    // 后端已根据版本控制过滤拍卖频道 (channel -1)
+                    // 如果后端未返回 channel -1，说明当前版本需要隐藏拍卖功能
+                    chatList.value = res || []
+                    return resolve()
+                })
+                .catch(() => {
+                    // 网络失败时保留默认值，但不应显示拍卖频道（避免审核风险）
+                    chatList.value = []
+                    return resolve()
+                })
         })
     }
 
@@ -667,7 +675,7 @@ export const useChatStore = defineStore('chatStore', () => {
     }
 
     const clear = () => {
-        chatList.value = [LobbyChat, AuctionChat]
+        chatList.value = [AuctionChat]
         chatMap.value = new Map()
     }
 

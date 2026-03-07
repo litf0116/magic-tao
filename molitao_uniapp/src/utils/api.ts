@@ -12,11 +12,10 @@ import utils from './utils'
 let host: string
 
 if (import.meta.env.VITE_APP_ENV === 'development') {
-    host = 'http://localhost:12580'
+    host = 'http://127.0.0.1:12580'
 } else {
     host = 'https://www.molitao.top'
 }
-
 
 const getRequest = utils.httpsPromisify(uni.request)
 
@@ -33,7 +32,14 @@ const request = (
 
     const _url = url.startsWith('http') ? url : host + url
 
-    // method为请求方法，url为接口路径，data为传参
+    let appVersion = ''
+    try {
+        const versionData = require('@/static/version.json')
+        appVersion = versionData.version || ''
+    } catch (e) {
+        console.error('读取版本号失败:', e)
+    }
+
     return getRequest({
         url: _url,
         data: data,
@@ -44,6 +50,7 @@ const request = (
             'content-type': 'application/json',
             Authorization: `Bearer ${uni.getStorageSync('token') || ''}`,
             AppName: 'uniapp',
+            AppVersion: appVersion,
         },
     })
 }
@@ -241,7 +248,6 @@ export default {
          * @param data { url: 图片URL }
          * @returns Promise<{ pass: boolean, message: string }>
          */
-        check: (data: { url: string }) =>
-            request('POST', `/api/ContentSecurity/CheckMedia`, data),
+        check: (data: { url: string }) => request('POST', `/api/ContentSecurity/CheckMedia`, data),
     },
 }
