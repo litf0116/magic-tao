@@ -9,6 +9,7 @@ import type {
     UserDtoBaseListResultDto,
 } from '@/composables/types'
 import utils from './utils'
+import { getAppVersion } from './version'
 let host: string
 
 if (import.meta.env.VITE_APP_ENV === 'development') {
@@ -33,7 +34,8 @@ const request = (
 
     const _url = url.startsWith('http') ? url : host + url
 
-    // method为请求方法，url为接口路径，data为传参
+    const appVersion = getAppVersion()
+
     return getRequest({
         url: _url,
         data: data,
@@ -44,6 +46,7 @@ const request = (
             'content-type': 'application/json',
             Authorization: `Bearer ${uni.getStorageSync('token') || ''}`,
             AppName: 'uniapp',
+            AppVersion: appVersion,
         },
     })
 }
