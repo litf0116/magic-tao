@@ -34,6 +34,7 @@ declare global {
   const isRef: typeof import('vue')['isRef']
   const isVideo: typeof import('./src/composables/index')['isVideo']
   const markRaw: typeof import('vue')['markRaw']
+  const mergeHistoryForChannel: typeof import('./src/stores/chatStore')['mergeHistoryForChannel']
   const nextTick: typeof import('vue')['nextTick']
   const onActivated: typeof import('vue')['onActivated']
   const onBeforeMount: typeof import('vue')['onBeforeMount']

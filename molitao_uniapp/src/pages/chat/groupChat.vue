@@ -1,19 +1,18 @@
 <template>
     <view>
-        <chatMain ref="chatRef" @onSend="send" @loadHistoryMessage="loadHistoryMessage"/>
+        <chatMain ref="chatRef" @onSend="send" @loadHistoryMessage="loadHistoryMessage" />
     </view>
 </template>
 <script setup lang="ts">
-import {onLoad, onShow} from '@dcloudio/uni-app'
+import { onLoad, onShow } from '@dcloudio/uni-app'
 import chatMain from '@/components/chat/chatMain.vue'
-import {ChatMessageType} from '@/composables/types'
+import { ChatMessageType } from '@/composables/types'
 
 const chatStore = useChatStore()
 const chan = ref('')
 const chatRef = ref<InstanceType<typeof chatMain> | null>(null)
 
-onShow(() => {
-})
+onShow(() => {})
 
 onLoad(async (pamams: any) => {
     if (pamams != null) {
@@ -26,7 +25,7 @@ onLoad(async (pamams: any) => {
                 })
             } else {
                 Tips.error('未找到该群聊')
-                uni.redirectTo({url: '/pages/chat/index'})
+                uni.redirectTo({ url: '/pages/chat/index' })
             }
         })
     }
@@ -53,7 +52,7 @@ async function loadHistoryMessage(force = false) {
             if (historyMsgs.value && historyMsgs.value.length) {
                 lastTime = historyMsgs.value[0].time!
             }
-        
+
         const res = await chatStore.getGroupHistory(name, lastTime, force)
         chatRef.value!.history.loading = false
         if (res.length < 20) {
@@ -82,8 +81,8 @@ function send(e: { type: ChatMessageType; data: string | object }) {
 
 <route lang="json">
 {
-"style": {
-"navigationBarTitleText": "群聊"
-}
+    "style": {
+        "navigationBarTitleText": "群聊"
+    }
 }
 </route>
