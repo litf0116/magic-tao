@@ -400,7 +400,7 @@ async function bid() {
         const auctionItemDetail = await api.auctionItem.getDetail(auctionItemId)
 
         // 验证商品状态
-        if (auctionItemDetail.status !== '秒杀中') {
+        if (auctionItemDetail.status !== '拍卖中') {
             // console.log('商品不在秒杀中，状态:', auctionItemDetail.status)
             Tips.error('商品不在秒杀中')
             return
