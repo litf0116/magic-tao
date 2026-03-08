@@ -227,7 +227,7 @@ const announceContent = computed(() => {
 })
 
 const onAuctionItem = computed(() => {
-    return auctionStore.list.find((item) => item.status === '秒杀中') || null
+    return auctionStore.list.find((item) => item.status === '拍卖中') || null
 })
 
 const init = async (name: string) => {
