@@ -11,13 +11,12 @@ import type {
 import utils from './utils'
 import { getAppVersion } from './version'
 
-const host: string = 'https://www.molitao.top'
+let host: string = 'https://www.molitao.top'
 
-// if (import.meta.env.VITE_APP_ENV === 'development') {
-//     host = 'http://localhost:12580'
-// } else {
-//     host = 'https://www.molitao.top'
-// }
+// 根据环境动态设置开发/生产服务器地址
+if ((import.meta as any).env?.VITE_APP_ENV === 'development') {
+  host = 'http://localhost:12580'
+}
 
 const getRequest = utils.httpsPromisify(uni.request)
 

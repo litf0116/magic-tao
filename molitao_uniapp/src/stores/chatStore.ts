@@ -331,8 +331,8 @@ export const useChatStore = defineStore('chatStore', () => {
             // 处理正常的出价消息
             // console.log('=== 处理正常出价消息 ===')
             // 使用新的增量更新方法，避免重新请求整个列表
-            if (typeof auctionStore.updateAuctionItemFromBidMessage === 'function') {
-                auctionStore.updateAuctionItemFromBidMessage(msg.payload)
+            if (typeof (auctionStore as any).updateAuctionItemFromBidMessage === 'function') {
+                ;(auctionStore as any).updateAuctionItemFromBidMessage(msg.payload)
             }
         }
 
@@ -430,27 +430,54 @@ export const useChatStore = defineStore('chatStore', () => {
 
     const getGroupHistory = (groupName = '', lastTime?: number, reload = false) => {
         lastTime = lastTime || new Date().getTime()
-        return new Promise<ChatMessage[]>((resolve) => {
+        return new Promise<ChatMessage[]>((resolve, reject) => {
             api.message.getChanHistory({ chan: groupName, lastTime: lastTime }).then((res) => {
                 if (res.items && res.items.length > 0) {
                     const _t = groupName.split('_')
                     let _id = parseInt(_t[0])
                     if (_id > 0) _id = -_id
                     const _name = _t[1]
-                    if (chatMap.value.has(`${_id}`) && !reload) {
-                        chatMap.value.set(
-                            `${_id}`,
-                            uniqBy(
-                                orderBy([...res.items, ...chatMap.value.get(`${_id}`)!], [(msg) => msg.time], ['asc']),
-                                'id'
+                    // 系统频道特殊处理：对系统频道也使用统一的合并策略，同时避免覆盖普通频道逻辑
+                    if (_id < 0) {
+                        const existing = chatMap.value.get(`${_id}`) || []
+                        if (chatMap.value.has(`${_id}`) && !reload) {
+                            chatMap.value.set(
+                                `${_id}`,
+                                uniqBy(
+                                    orderBy([...res.items, ...existing], [(msg) => msg.time], ['asc']),
+                                    'id'
+                                )
                             )
-                        )
+                        } else {
+                            chatMap.value.set(`${_id}`, res.items)
+                        }
                     } else {
-                        chatMap.value.set(`${_id}`, res.items)
+                        if (chatMap.value.has(`${_id}`) && !reload) {
+                            chatMap.value.set(
+                                `${_id}`,
+                                uniqBy(
+                                    orderBy([...res.items, ...chatMap.value.get(`${_id}`)!], [(msg) => msg.time], ['asc']),
+                                    'id'
+                                )
+                            )
+                        } else {
+                            chatMap.value.set(`${_id}`, res.items)
+                        }
+                    }
+                } else if (reload) {
+                    // 即使没有消息，也要初始化 chatMap，避免显示空白
+                    const _t = groupName.split('_')
+                    let _id = parseInt(_t[0])
+                    if (_id > 0) _id = -_id
+                    if (!chatMap.value.has(`${_id}`)) {
+                        chatMap.value.set(`${_id}`, [])
                     }
                 }
 
-                return resolve(res.items!)
+                return resolve(res.items || [])
+            }).catch((error) => {
+                console.error('[getGroupHistory] API 调用失败:', error)
+                return reject(error)
             })
         })
     }
@@ -513,6 +540,11 @@ export const useChatStore = defineStore('chatStore', () => {
     }
 
     const hasGroup = (chan: string) => {
+        const systemChannels = ['-10_announcement', '-11_newbie']
+        if (systemChannels.includes(chan)) {
+            return { chan, online: 0 }
+        }
+
         return groups.value.find((item) => item.chan === chan)
     }
 
@@ -667,7 +699,8 @@ export const useChatStore = defineStore('chatStore', () => {
     }
 
     const clear = () => {
-        chatList.value = [LobbyChat, AuctionChat]
+        const lobbyChat = (typeof (globalThis as any).LobbyChat !== 'undefined' ? (globalThis as any).LobbyChat : AuctionChat)
+        chatList.value = [lobbyChat, AuctionChat]
         chatMap.value = new Map()
     }
 

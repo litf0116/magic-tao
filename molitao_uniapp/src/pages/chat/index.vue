@@ -9,24 +9,24 @@
             >
                 <view class="item-head">
                     <image v-if="x.id && x.id > 0" :src="getImgUrl(x.avatar, true)" class="head-icon"></image>
-                    <template v-else>
+<template v-else>
                         <!-- 系统公告：支持 ID 或名称匹配 -->
-                        <image
+                        <div
                             v-if="x.id === -10 || x.name === '系统公告'"
-                            src="/static/images/system-announcement.png"
-                            class="head-icon"
-                            mode="aspectFill"
-                        ></image>
+                            class="head-icon bg-green-600 text-white font-bold w-full h-full flex flex-center"
+                            role="img" aria-label="系统公告"
+                        >系统
+                        </div>
                         <!-- 新手版主群聊：支持 ID 或名称匹配 -->
-                        <image
+                        <div
                             v-else-if="x.id === -11 || x.name === '新手版主群聊'"
-                            src="/static/images/newbie-mod-chat.png"
-                            class="head-icon"
-                            mode="aspectFill"
-                        ></image>
+                            class="head-icon bg-green-600 text-white font-bold w-full h-full flex flex-center"
+                            role="img" aria-label="新手群聊"
+                        >新手
+                        </div>
                         <div
                             v-else-if="x.id === 0"
-                            class="head-icon bg-blue-600 text-white font-bold w-full h-full flex flex-center"
+                            class="head-icon bg-green-600 text-white font-bold w-full h-full flex flex-center"
                         >
                             大厅
                         </div>
