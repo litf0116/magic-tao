@@ -2,16 +2,16 @@
 import { onLaunch, onShow, onHide, onUnload } from '@dcloudio/uni-app'
 import { useEventBus } from '@vueuse/core'
 import api from '@/utils/api'
-// console.log('pages', pages)
+import { pushService } from '@/utils/push'
 
 const getSystemInfoSync = uni.getSystemInfoSync()
-// console.log('getSystemInfoSync', getSystemInfoSync)
 
 onLaunch(() => {
-    // console.debug('App Launch')
-    // userStore.code2Session().then(() => {
     userStore.checkLogin()
-    // })
+
+    // 初始化推送服务
+    pushService.init()
+
     // #ifdef MP-WEIXIN
     try {
         const updateManager = uni.getUpdateManager()

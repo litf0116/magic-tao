@@ -117,12 +117,19 @@
                 "navigationBarTitleText": "用户信息编辑"
             }
         },
-        {
+{
             "path": "pages/user/list",
             "type": "page",
             "style": {
                 "navigationBarTitleText": "用户列表",
                 "enablePullDownRefresh": true
+            }
+        },
+        {
+            "path": "pages/push-demo/index",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "推送示例"
             }
         }
     ],

@@ -12,6 +12,8 @@
         "build:app": "uni build -p app",
         "build:app-android": "uni build -p app-android",
         "build:mp-weixin": "uni build -p mp-weixin",
+        "build:apk": "./scripts/build-android.sh release",
+        "build:apk:debug": "./scripts/build-android.sh debug",
         "type-check": "vue-tsc --noEmit",
         "lint:fix": "eslint --ext .ts,.vue src --fix"
     },
