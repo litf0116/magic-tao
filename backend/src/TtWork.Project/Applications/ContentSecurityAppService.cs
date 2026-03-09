@@ -10,6 +10,7 @@ using Abp.Runtime.Session;
 using Abp.UI;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using TtWork.Abp.DomianServices.Weixin;
 using TtWork.HttpClient.Weixin;
 using TtWork.HttpClient.Weixin.WeixiinResult;
 
@@ -26,28 +27,22 @@ public class ContentSecurityAppService : AbpController
     /// 微信小程序静态配置 (开发测试用)
     /// </summary>
     private static readonly string WechatAppId = "wx8178f2258942133d";
-    private static readonly string WechatAppSecret = "ec39ddccf124f18474738f15cb57a38e";
-    
-    private readonly IWeixinApi _weixinApi;
+
+    private readonly WeixinManger _weixinManger;
+    private readonly WeixinApi _weixinApi;
     private readonly ILogger<ContentSecurityAppService> _logger;
     private readonly System.Net.Http.HttpClient _httpClient;
 
     public ContentSecurityAppService(
-        IWeixinApi weixinApi,
+        WeixinManger weixinManger,
+        WeixinApi weixinApi,
         ILogger<ContentSecurityAppService> logger,
         System.Net.Http.HttpClient httpClient)
     {
+        _weixinManger = weixinManger;
         _weixinApi = weixinApi;
         _logger = logger;
         _httpClient = httpClient;
-    }
-
-    /// <summary>
-    /// 获取微信配置 (使用静态变量)
-    /// </summary>
-    private (string appId, string appSecret) GetWeixinConfig()
-    {
-        return (WechatAppId, WechatAppSecret);
     }
 
     /// <summary>
@@ -60,10 +55,11 @@ public class ContentSecurityAppService : AbpController
             var response = await _httpClient.GetAsync(imageUrl);
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("下载图片失败: {Url}, StatusCode={StatusCode}", 
+                _logger.LogWarning("下载图片失败: {Url}, StatusCode={StatusCode}",
                     imageUrl, response.StatusCode);
                 return null;
             }
+
             return await response.Content.ReadAsByteArrayAsync();
         }
         catch (System.Exception ex)
@@ -82,22 +78,15 @@ public class ContentSecurityAppService : AbpController
     {
         try
         {
-            var (appId, appSecret) = GetWeixinConfig();
-            
-            // 1. 获取access_token
-            var tokenResult = await _weixinApi.GetToken(appId, appSecret);
-            
+            var appId = WechatAppId;
+
+            var accessToken = await _weixinManger.GetAccessTokenAsync(appId);
+
             return Ok(new
             {
                 success = true,
                 appId = appId,
-                appSecretConfigured = !string.IsNullOrEmpty(appSecret),
-                tokenResult = new
-                {
-                    errcode = tokenResult.errcode,
-                    errmsg = tokenResult.errmsg,
-                    access_token = tokenResult.access_token
-                }
+                accessToken = accessToken.Substring(0, Math.Min(50, accessToken.Length)) + "..."
             });
         }
         catch (System.Exception ex)
@@ -141,24 +130,18 @@ public class ContentSecurityAppService : AbpController
     /// <param name="title">标题（可选）</param>
     /// <param name="openid">用户openid（可选，用于测试）</param>
     /// <returns></returns>
-    public async Task<ContentSecurityCheckResult> CheckContentAsync(string content, int scene = 3, string title = null, string openid = null)
+    public async Task<ContentSecurityCheckResult> CheckContentAsync(string content, int scene = 3, string title = null,
+        string openid = null)
     {
         try
         {
-            // 使用静态配置
-            var (appId, appSecret) = GetWeixinConfig();
-            
-            var tokenResult = await _weixinApi.GetToken(appId, appSecret);
-            if (tokenResult.errcode != 0)
-            {
-                _logger.LogError("获取微信access_token失败: {@result}", tokenResult);
-                throw new UserFriendlyException("获取访问令牌失败，请稍后重试");
-            }
+            var appId = WechatAppId;
+            var accessToken = await _weixinManger.GetAccessTokenAsync(appId);
 
             var userOpenid = openid ?? "";
 
             var result = await _weixinApi.MsgSecCheck(
-                tokenResult.access_token,
+                accessToken,
                 content,
                 version: 2,
                 scene: scene,
@@ -240,20 +223,9 @@ public class ContentSecurityAppService : AbpController
                 throw new UserFriendlyException("图片大小不能超过1MB，请先压缩图片");
             }
 
-            // 3. 使用静态配置
-            var (appId, appSecret) = GetWeixinConfig();
-
-            // 4. 获取access_token
-            var tokenResult = await _weixinApi.GetToken(appId, appSecret);
-            if (tokenResult.errcode != 0)
-            {
-                _logger.LogError("获取微信access_token失败: {@result}", tokenResult);
-                throw new UserFriendlyException("获取访问令牌失败，请稍后重试");
-            }
-
-            // 5. 调用 imgSecCheck 同步接口检查图片
-            var checkResult = await _weixinApi.ImgSecCheck(tokenResult.access_token, imageBytes);
-
+            var appId = WechatAppId;
+            var accessToken = await _weixinManger.GetAccessTokenAsync(appId);
+            var checkResult = await _weixinApi.ImgSecCheck(accessToken, imageBytes);
             _logger.LogInformation("图片安全检查结果: errcode={Errcode}, errmsg={Errmsg}",
                 checkResult.errcode, checkResult.errmsg);
 

@@ -1,11 +1,10 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using Microsoft.Extensions.Logging;
-
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
@@ -40,6 +39,7 @@ using TtWork.Project.Applications.Users.Dto;
 using TtWork.Project.Domains.Pays;
 using TtWork.Project.Roles.Dto;
 using TtWork.Project.Users.Dto;
+using TtWork.Abp.DomianServices.Weixin;
 using TtWork.HttpClient.Weixin;
 
 namespace TtWork.Project.Applications.Core.Users
@@ -52,6 +52,7 @@ namespace TtWork.Project.Applications.Core.Users
     {
         private static readonly string WechatAppId = "wx8178f2258942133d";
         private static readonly string WechatAppSecret = "ec39ddccf124f18474738f15cb57a38e";
+        private readonly WeixinManger _weixinManger;
         private readonly UserManager _userManager;
         private readonly RoleManager _roleManager;
         private readonly IRepository<Role> _roleRepository;
@@ -61,7 +62,6 @@ namespace TtWork.Project.Applications.Core.Users
         private readonly UserCache _userCache;
         private readonly ITenantCache _tenantCache;
         private readonly IRedisClient _redisClient;
-        private readonly IWeixinApi _weixinApi;
         private readonly System.Net.Http.HttpClient _httpClient;
         private readonly ILogger<UserAppService> _logger;
         private readonly IocManager _iocManager;
@@ -78,7 +78,7 @@ namespace TtWork.Project.Applications.Core.Users
             LogInManager logInManager,
             UserCache userCache,
             ITenantCache tenantCache,
-            IWeixinApi weixinApi,
+            WeixinManger weixinManger,
             System.Net.Http.HttpClient httpClient,
             ILogger<UserAppService> logger
         )
@@ -94,7 +94,7 @@ namespace TtWork.Project.Applications.Core.Users
             _logInManager = logInManager;
             _userCache = userCache;
             _tenantCache = tenantCache;
-            _weixinApi = weixinApi;
+            _weixinManger = weixinManger;
             _httpClient = httpClient;
             _logger = logger;
 
@@ -353,7 +353,7 @@ namespace TtWork.Project.Applications.Core.Users
                 throw new UserFriendlyException(1, "登录用户名已存在!");
 
             // 🔒 URL格式验证 - 阻止本地临时文件路径
-            if (!string.IsNullOrEmpty(input.HeadImgUrl) && 
+            if (!string.IsNullOrEmpty(input.HeadImgUrl) &&
                 input.HeadImgUrl != user.HeadImgUrl)
             {
                 // 检查是否为本地临时文件路径
@@ -364,7 +364,7 @@ namespace TtWork.Project.Applications.Core.Users
                     throw new UserFriendlyException("头像地址格式错误，请重新上传头像");
                     throw new UserFriendlyException("头像地址格式错误，请重新上传头像");
                 }
-                
+
                 // 检查是否为CDN地址（允许的格式）
                 if (!input.HeadImgUrl.StartsWith("https://cdn.molitao.top", StringComparison.OrdinalIgnoreCase) &&
                     !input.HeadImgUrl.StartsWith("http://image.molitao.top", StringComparison.OrdinalIgnoreCase))
@@ -373,13 +373,14 @@ namespace TtWork.Project.Applications.Core.Users
                     throw new UserFriendlyException("头像地址不正确，请使用CDN地址");
                 }
             }
+
             // 🔐 头像安全检查
             if (!string.IsNullOrEmpty(input.HeadImgUrl) && input.HeadImgUrl != user.HeadImgUrl)
             {
                 try
                 {
                     _logger.LogInformation("开始检查头像安全性: {HeadImgUrl}", input.HeadImgUrl);
-                    
+
                     // 1. 从CDN下载图片
                     var imageBytes = await DownloadImageAsync(input.HeadImgUrl);
                     if (imageBytes == null || imageBytes.Length == 0)
@@ -395,31 +396,26 @@ namespace TtWork.Project.Applications.Core.Users
                         }
                         else
                         {
-                            // 3. 获取access_token
-                            var (appId, appSecret) = GetWeixinConfig();
-                            var tokenResult = await _weixinApi.GetToken(appId, appSecret);
-                            if (tokenResult.errcode != 0)
-                            {
-                                _logger.LogError("获取微信access_token失败: {Error}", tokenResult.errmsg);
-                            }
-                            else
-                            {
-                                // 4. imgSecCheck 图片审核
-                                var checkResult = await _weixinApi.ImgSecCheck(tokenResult.access_token, imageBytes);
-                                _logger.LogInformation("头像审核结果: errcode={Errcode}, errmsg={Errmsg}", 
+                            // 3. 获取access_token (使用缓存)
+                            var appId = WechatAppId;
+                            var accessToken = await _weixinManger.GetAccessTokenAsync(appId);
+
+                            // 4. imgSecCheck 图片审核
+                            var checkResult = await _weixinApi.ImgSecCheck(accessToken, imageBytes);
+                                _logger.LogInformation("头像审核结果: errcode={Errcode}, errmsg={Errmsg}",
                                     checkResult.errcode, checkResult.errmsg);
-                                
+
                                 if (checkResult.errcode == 87014)
                                 {
                                     // 违规内容仍需阻止
                                     _logger.LogWarning("头像包含违规内容: UserId={UserId}", user.Id);
                                     throw new UserFriendlyException(87014, "你所发布的内容含有违规信息，请修改后再试。");
                                 }
-                                
+
                                 // 其他错误只记录日志，不阻止保存
                                 if (checkResult.errcode != 0)
                                 {
-                                    _logger.LogWarning("头像审核失败: errcode={Errcode}, errmsg={Errmsg}，允许保存", 
+                                    _logger.LogWarning("头像审核失败: errcode={Errcode}, errmsg={Errmsg}，允许保存",
                                         checkResult.errcode, checkResult.errmsg);
                                 }
                                 else
@@ -440,6 +436,7 @@ namespace TtWork.Project.Applications.Core.Users
                     _logger.LogError(ex, "头像审核异常，允许保存");
                 }
             }
+
             // 保存旧头像URL用于历史记录
             string oldAvatarUrl = user.HeadImgUrl;
             bool avatarChanged = !string.IsNullOrEmpty(input.HeadImgUrl) && input.HeadImgUrl != oldAvatarUrl;
@@ -650,11 +647,11 @@ namespace TtWork.Project.Applications.Core.Users
                 var response = await _httpClient.GetAsync(imageUrl);
                 if (!response.IsSuccessStatusCode)
                 {
-                    _logger.LogWarning("下载图片失败: {Url}, StatusCode={StatusCode}", 
+                    _logger.LogWarning("下载图片失败: {Url}, StatusCode={StatusCode}",
                         imageUrl, response.StatusCode);
                     return null;
                 }
-                
+
                 return await response.Content.ReadAsByteArrayAsync();
             }
             catch (Exception ex)
