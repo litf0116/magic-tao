@@ -53,6 +53,7 @@ namespace TtWork.Project.Applications.Core.Users
         private static readonly string WechatAppId = "wx8178f2258942133d";
         private static readonly string WechatAppSecret = "ec39ddccf124f18474738f15cb57a38e";
         private readonly WeixinManger _weixinManger;
+        private readonly WeixinApi _weixinApi;
         private readonly UserManager _userManager;
         private readonly RoleManager _roleManager;
         private readonly IRepository<Role> _roleRepository;
@@ -79,6 +80,7 @@ namespace TtWork.Project.Applications.Core.Users
             UserCache userCache,
             ITenantCache tenantCache,
             WeixinManger weixinManger,
+            WeixinApi weixinApi,
             System.Net.Http.HttpClient httpClient,
             ILogger<UserAppService> logger
         )
@@ -95,6 +97,7 @@ namespace TtWork.Project.Applications.Core.Users
             _userCache = userCache;
             _tenantCache = tenantCache;
             _weixinManger = weixinManger;
+            _weixinApi = weixinApi;
             _httpClient = httpClient;
             _logger = logger;
 
@@ -402,26 +405,25 @@ namespace TtWork.Project.Applications.Core.Users
 
                             // 4. imgSecCheck 图片审核
                             var checkResult = await _weixinApi.ImgSecCheck(accessToken, imageBytes);
-                                _logger.LogInformation("头像审核结果: errcode={Errcode}, errmsg={Errmsg}",
+                            _logger.LogInformation("头像审核结果: errcode={Errcode}, errmsg={Errmsg}",
+                                checkResult.errcode, checkResult.errmsg);
+
+                            if (checkResult.errcode == 87014)
+                            {
+                                // 违规内容仍需阻止
+                                _logger.LogWarning("头像包含违规内容: UserId={UserId}", user.Id);
+                                throw new UserFriendlyException(87014, "你所发布的内容含有违规信息，请修改后再试。");
+                            }
+
+                            // 其他错误只记录日志，不阻止保存
+                            if (checkResult.errcode != 0)
+                            {
+                                _logger.LogWarning("头像审核失败: errcode={Errcode}, errmsg={Errmsg}，允许保存",
                                     checkResult.errcode, checkResult.errmsg);
-
-                                if (checkResult.errcode == 87014)
-                                {
-                                    // 违规内容仍需阻止
-                                    _logger.LogWarning("头像包含违规内容: UserId={UserId}", user.Id);
-                                    throw new UserFriendlyException(87014, "你所发布的内容含有违规信息，请修改后再试。");
-                                }
-
-                                // 其他错误只记录日志，不阻止保存
-                                if (checkResult.errcode != 0)
-                                {
-                                    _logger.LogWarning("头像审核失败: errcode={Errcode}, errmsg={Errmsg}，允许保存",
-                                        checkResult.errcode, checkResult.errmsg);
-                                }
-                                else
-                                {
-                                    _logger.LogInformation("头像审核通过: UserId={UserId}", user.Id);
-                                }
+                            }
+                            else
+                            {
+                                _logger.LogInformation("头像审核通过: UserId={UserId}", user.Id);
                             }
                         }
                     }
