@@ -22,13 +22,21 @@ namespace TtWork.HttpClient.Weixin {
         /// <param name="appSecret"></param>
         /// <returns></returns>
         public async Task<WeixinTokenResult> GetToken(string appid, string appSecret) {
-            var response =
-                await client.GetAsync($"cgi-bin/token?grant_type=client_credential&appid={appid}&secret={appSecret}");
+            var requestData = new JObject
+            {
+                { "grant_type", "client_credential" },
+                { "appid", appid },
+                { "secret", appSecret }
+            };
+
+            var content = new StringContent(requestData.ToString(), Encoding.UTF8, "application/json");
+            var response = await client.PostAsync("cgi-bin/stable_token", content);
 
             var jsonResponse = await response.Content.ReadAsStringAsync();
 
             // ip error: {"errcode":40164,"errmsg":"invalid ip 114.220.209.25 ipv6 ::ffff:114.220.209.25, not in whitelist hint: [eS4JRA00075263]"}
             // secret error :{"errcode":40013,"errmsg":"invalid appid"}
+            // access_token invalid: {"errcode":40001,"errmsg":"invalid credential, access_token is invalid or not latest"}
             // success return {"access_token":"ACCESS_TOKEN","expires_in":7200}
 
             var result = JsonConvert.DeserializeObject<WeixinTokenResult>(jsonResponse);
