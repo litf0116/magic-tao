@@ -9,6 +9,7 @@ using System.Web;
 using Abp.Application.Services.Dto;
 using Abp.Auditing;
 using Abp.Authorization;
+using Abp.Authorization.Users;
 using Abp.Dependency;
 using Abp.Domain.Repositories;
 using Abp.Domain.Uow;
@@ -86,6 +87,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     private readonly IMessageSendingService _messageSendingService;
     private readonly IBidEligibilityService _bidEligibilityService;
     private readonly IMemoryCache _memoryCache;
+    private readonly IRepository<UserLogin, long> _userLoginRepository;
 
     // 内存锁字典（替代 Redis 分布式锁）
     private static readonly ConcurrentDictionary<long, SemaphoreSlim> _auctionLocks = new();
@@ -111,7 +113,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         IEventBus eventBus,
         IAuctionItemCacheService cacheService,
         IMessageSendingService messageSendingService,
-        IBidEligibilityService bidEligibilityService) : base(repository, iocManager)
+        IBidEligibilityService bidEligibilityService,
+        IRepository<UserLogin, long> userLoginRepository) : base(repository, iocManager)
     {
         _sqlSugarClient = sqlSugarClient;
         _userCache = userCache;
@@ -122,6 +125,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         _notifyRepository = notifyRepository;
         _logger = logger;
         _auctionStartNotifyRepository = auctionStartNotifyRepository;
+        _userLoginRepository = userLoginRepository;
         EnableGetEdit = true;
 
         base.CreatePermissionName = AppPermissions.Pages.ChatManager;
@@ -150,7 +154,26 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     {
         var openIds = await _notifyRepository.GetAll().AsNoTracking()
             .Where(x => x.AuctionItemId == id).Select(x => x.openid).ToListAsync();
+
+        _logger.LogInformation(
+            "========== 准备发送拍卖开拍订阅通知 ========== AuctionItemId={AuctionItemId}, Name={Name}, SubscriberCount={SubscriberCount}",
+            id, name, openIds.Count);
+
+        if (openIds.Count == 0)
+        {
+            _logger.LogWarning("没有订阅用户，跳过发送通知: AuctionItemId={AuctionItemId}", id);
+            return;
+        }
+
+        foreach (var openid in openIds)
+        {
+            _logger.LogInformation("订阅用户: OpenId={OpenId}, AuctionItemId={AuctionItemId}", openid, id);
+        }
+
         var title = name.Length > 16 ? name[..16] : name;
+        _logger.LogInformation("通知参数: Title={Title}, IsAuction={IsAuction}, TemplateId={TemplateId}",
+            title, isAuction, "ZuYTYzw2cM0LVhF5ybH5iATMaDl6lZ82OC6cczsglEA");
+
         await _mediator.Publish(new Events.Commands.MessageSendCommand(Events.Commands.MessageType.WechatTemplate,
             new SendWechatTemplateDetail(
                 "uniapp",
@@ -305,7 +328,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         {
             try
             {
-                _logger.LogInformation("========== 开始定时结束拍卖 ========== AuctionItemId={AuctionItemId}, Operation=Scheduled",
+                _logger.LogInformation(
+                    "========== 开始定时结束拍卖 ========== AuctionItemId={AuctionItemId}, Operation=Scheduled",
                     auctionItem.Id);
 
                 // 查询最新的商品信息
@@ -399,7 +423,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                     }
 
                     // 设置商品为已成交状态
-                    _logger.LogInformation("准备设置成交状态: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, FinalPrice={FinalPrice}",
+                    _logger.LogInformation(
+                        "准备设置成交状态: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, FinalPrice={FinalPrice}",
                         find.Id, find.CurrentPriceUserId, find.CurrentPrice);
 
                     find.SetDeal();
@@ -475,7 +500,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "定时任务流拍消息发送失败: AuctionItemId={AuctionItemId}, Error={Error}", auctionItem.Id, ex.Message);
+                        _logger.LogError(ex, "定时任务流拍消息发送失败: AuctionItemId={AuctionItemId}, Error={Error}",
+                            auctionItem.Id, ex.Message);
                     }
                 }
                 else
@@ -493,39 +519,43 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                     {
                         await _messageSendingService.SendAuctionMessageAsync(auctionManagerInfo.Id, null, "-1_auction",
                             successMessage, true);
-                        _logger.LogInformation("定时任务拍卖成功消息发送成功: AuctionItemId={AuctionItemId}, DealUserName={DealUserName}", 
+                        _logger.LogInformation(
+                            "定时任务拍卖成功消息发送成功: AuctionItemId={AuctionItemId}, DealUserName={DealUserName}",
                             auctionItem.Id, result.DealUserName);
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "定时任务拍卖成功消息发送失败: AuctionItemId={AuctionItemId}, Error={Error}", auctionItem.Id, ex.Message);
+                        _logger.LogError(ex, "定时任务拍卖成功消息发送失败: AuctionItemId={AuctionItemId}, Error={Error}",
+                            auctionItem.Id, ex.Message);
                     }
 
                     // 发送成交用户私信（使用编码机制，将AuctionDeal编码为AuctionEnd类型）
                     var dealMessage = new ChatMessage
                     {
-                        type = ChatMessageType.AuctionDeal,  // 原始类型，会被自动编码为AuctionEnd
+                        type = ChatMessageType.AuctionDeal, // 原始类型，会被自动编码为AuctionEnd
                         msg = result.ToUserMsg,
                         payload = result
                     };
 
                     if (result.DealUserId.HasValue)
                     {
-                        _logger.LogInformation("开始发送拍卖成交私信: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, ToUserMsg={ToUserMsg}",
+                        _logger.LogInformation(
+                            "开始发送拍卖成交私信: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, ToUserMsg={ToUserMsg}",
                             auctionItem.Id, result.DealUserId.Value, result.ToUserMsg);
-                        
+
                         try
                         {
                             // 使用SendPrivateMessageAsync，会自动将AuctionDeal编码为AuctionEnd类型
                             await _messageSendingService.SendPrivateMessageAsync(auctionManagerInfo.Id,
                                 result.DealUserId.Value, dealMessage, false, null);
-                            
+
                             _logger.LogInformation("拍卖成交私信发送成功: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}",
                                 auctionItem.Id, result.DealUserId.Value);
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogError(ex, "拍卖成交私信发送失败: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, Error={Error}",
+                            _logger.LogError(ex,
+                                "拍卖成交私信发送失败: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, Error={Error}",
                                 auctionItem.Id, result.DealUserId.Value, ex.Message);
                         }
                     }
@@ -817,7 +847,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     {
         try
         {
-            _logger.LogInformation("========== 开始结束拍卖 ========== AuctionItemId={AuctionItemId}, UserId={UserId}, Operation=Manual",
+            _logger.LogInformation(
+                "========== 开始结束拍卖 ========== AuctionItemId={AuctionItemId}, UserId={UserId}, Operation=Manual",
                 input.Id, AbpSession.UserId);
 
             // 检查用户登录状态
@@ -908,7 +939,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 }
 
                 // 设置商品为已成交状态
-                _logger.LogInformation("准备设置成交状态: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, FinalPrice={FinalPrice}",
+                _logger.LogInformation(
+                    "准备设置成交状态: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, FinalPrice={FinalPrice}",
                     find.Id, find.CurrentPriceUserId, find.CurrentPrice);
 
                 find.SetDeal();
@@ -975,7 +1007,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "流拍消息发送失败: AuctionItemId={AuctionItemId}, Error={Error}", input.Id, ex.Message);
+                    _logger.LogError(ex, "流拍消息发送失败: AuctionItemId={AuctionItemId}, Error={Error}", input.Id,
+                        ex.Message);
                 }
             }
             else
@@ -993,39 +1026,42 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 {
                     await _messageSendingService.SendAuctionMessageAsync(AbpSession.UserId.Value, null, "-1_auction",
                         successMessage, true);
-                    _logger.LogInformation("拍卖成功消息发送成功: AuctionItemId={AuctionItemId}, DealUserName={DealUserName}", 
+                    _logger.LogInformation("拍卖成功消息发送成功: AuctionItemId={AuctionItemId}, DealUserName={DealUserName}",
                         input.Id, result.DealUserName);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "拍卖成功消息发送失败: AuctionItemId={AuctionItemId}, Error={Error}", input.Id, ex.Message);
+                    _logger.LogError(ex, "拍卖成功消息发送失败: AuctionItemId={AuctionItemId}, Error={Error}", input.Id,
+                        ex.Message);
                 }
 
                 // 发送成交用户私信（使用编码机制，将AuctionDeal编码为AuctionEnd类型）
                 var dealMessage = new ChatMessage
                 {
-                    type = ChatMessageType.AuctionDeal,  // 原始类型，会被自动编码为AuctionEnd
+                    type = ChatMessageType.AuctionDeal, // 原始类型，会被自动编码为AuctionEnd
                     msg = result.ToUserMsg,
                     payload = result
                 };
 
                 if (result.DealUserId.HasValue)
                 {
-                    _logger.LogInformation("开始发送手动结束拍卖成交私信: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, ToUserMsg={ToUserMsg}",
+                    _logger.LogInformation(
+                        "开始发送手动结束拍卖成交私信: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, ToUserMsg={ToUserMsg}",
                         input.Id, result.DealUserId.Value, result.ToUserMsg);
-                    
+
                     try
                     {
                         // 使用SendPrivateMessageAsync，会自动将AuctionDeal编码为AuctionEnd类型
                         await _messageSendingService.SendPrivateMessageAsync(AbpSession.UserId.Value,
                             result.DealUserId.Value, dealMessage, false, null);
-                        
+
                         _logger.LogInformation("手动结束拍卖成交私信发送成功: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}",
                             input.Id, result.DealUserId.Value);
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "手动结束拍卖成交私信发送失败: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, Error={Error}",
+                        _logger.LogError(ex,
+                            "手动结束拍卖成交私信发送失败: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, Error={Error}",
                             input.Id, result.DealUserId.Value, ex.Message);
                     }
                 }
@@ -1038,14 +1074,16 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             // 发布拍卖结束事件
             await _mediator.Publish(new AuctionEndedEvent(result, hasBids));
 
-            _logger.LogInformation("========== 结束拍卖成功 ========== AuctionItemId={AuctionItemId}, DealUserName={DealUserName}",
+            _logger.LogInformation(
+                "========== 结束拍卖成功 ========== AuctionItemId={AuctionItemId}, DealUserName={DealUserName}",
                 input.Id, result.DealUserName);
 
             return result;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "========== 结束拍卖失败 ========== AuctionItemId={AuctionItemId}, Error={Error}, StackTrace={StackTrace}",
+            _logger.LogError(ex,
+                "========== 结束拍卖失败 ========== AuctionItemId={AuctionItemId}, Error={Error}, StackTrace={StackTrace}",
                 input.Id, ex.Message, ex.StackTrace);
             throw new UserFriendlyException(1, $"系统内部错误，请稍后重试。错误ID: {Guid.NewGuid()}");
         }
@@ -1102,7 +1140,10 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         }
         catch (Exception e)
         {
-            Logger.Error("发送拍卖开始通知失败 {@e}", e);
+            _logger.LogError(e,
+                "========== 发送拍卖开始通知失败 ========== AuctionItemId={AuctionItemId}, AuctionName={AuctionName}, Error={Error}, StackTrace={StackTrace}",
+                find.Id, find.Name, e.Message, e.StackTrace);
+            // 注意：这里不抛出异常，因为拍卖流程本身已经成功，只是通知失败了
         }
 
         return ObjectMapper.Map<AuctionItemDto>(find);
@@ -1138,7 +1179,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     public async Task<ListResultDto<AuctionItemDto>> GetPublicListAnonymous(AppResultRequestDto input)
     {
         var sw = System.Diagnostics.Stopwatch.StartNew();
-        
+
         // 如果没有传递 MaxResultCount，设置默认值 100
         if (input.MaxResultCount <= 0)
         {
@@ -1147,7 +1188,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
 
         // 使用新的缓存服务
         var result = await _cacheService.GetAuctionListAsync(input);
-        
+
         sw.Stop();
         _logger.LogInformation("[PERF-API] GetPublicListAnonymous 总耗时: {ElapsedMs}ms", sw.ElapsedMilliseconds);
         return result;
@@ -1354,7 +1395,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     {
         // 调试：检查description字段
         _logger.LogInformation("创建拍品时description字段: {Description}", input.Description);
-        
+
         var result = await base.CreateAsync(input);
 
         // 调试：检查创建后的description字段
@@ -1363,7 +1404,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         // 同步清除所有相关缓存，确保数据一致性
         await _cacheService.ClearAuctionListCacheAsync();
         await _cacheService.ClearCurrentAuctionCacheAsync();
-        
+
         // 预热新创建的拍卖品详情缓存
         await _cacheService.SetAuctionDetailCacheAsync(result);
 
@@ -1377,7 +1418,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     {
         // 调试：检查更新时description字段
         _logger.LogInformation("更新拍品时description字段: {Description}", input.Description);
-        
+
         var result = await base.UpdateAsync(input);
 
         // 调试：检查更新后的description字段
@@ -1386,10 +1427,10 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         // 同步清除所有相关缓存，确保数据一致性
         // 先清除所有列表缓存，避免并发请求写入脏数据
         await _cacheService.ClearAuctionListCacheAsync();
-        
+
         // 清除当前拍卖缓存（如果当前拍卖是这个商品）
         await _cacheService.ClearCurrentAuctionCacheAsync();
-        
+
         // 清除详情缓存并重新预热
         await _cacheService.ClearAuctionDetailCacheAsync(result.Id);
         await _cacheService.SetAuctionDetailCacheAsync(result);
@@ -1405,7 +1446,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         // 先获取商品信息（用于事件发布）
         var auctionItem = await Repository.FirstOrDefaultAsync(input.Id);
         var status = auctionItem?.Status;
-        
+
         await base.DeleteAsync(input);
 
         // 同步清除所有相关缓存，确保数据一致性
