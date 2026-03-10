@@ -10,12 +10,13 @@ using Abp.Timing;
 using Abp.Zero.Configuration;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using TtWork.Abp.AppManagement;
 using TtWork.Abp.Extensions;
 using TtWork.Project.Authentication.JwtBearer;
 using TtWork.Project.Core;
-using TtWork.Project; // 添加此行
+using TtWork.Project;
 
 namespace TtWork.Project.Web {
     [DependsOn(
@@ -70,10 +71,6 @@ namespace TtWork.Project.Web {
 
         public override void Initialize() {
             IocManager.RegisterAssemblyByConvention(typeof(ProjectWebCoreModule).GetAssembly());
-            // 移除冗余和未能解决问题的注册，依赖于 DependsOn 和 AbpApplicationModule 自身的注册
-            // IocManager.RegisterAssemblyByConvention(typeof(AbpApplicationModule).GetAssembly()); 
-            // IocManager.Register<TtWork.Project.Controllers.BidEligibilityController>(Castle.Core.LifestyleType.Transient); 
-
             IocManager.RegisterMediatRAssembly<ProjectWebCoreModule>();
         }
     }

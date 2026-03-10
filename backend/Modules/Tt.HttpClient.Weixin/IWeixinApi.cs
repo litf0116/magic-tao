@@ -4,6 +4,7 @@ using TtWork.HttpClient.Weixin.WeixiinResult;
 namespace TtWork.HttpClient.Weixin {
     public interface IWeixinApi {
         Task<WeixinTokenResult> GetToken(string appid, string appSecret);
+        Task<string> GetAccessTokenAsync(string appid = null, string appSecret = null);
         Task<WeixinUserInfoResult> GetUserInfo(string token, string openid);
         Task<MiniSessionResult> Mini_Code2Session(string code, string appid, string appSeret);
         Task<byte[]> WxacodeGet(string token, string path, int width = 430, bool is_hyaline = false);

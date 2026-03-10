@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -13,6 +14,7 @@ using TtWork.Lib;
 namespace TtWork.HttpClient.Weixin {
     public class WeixinApi(
         System.Net.Http.HttpClient client,
+        IDistributedCache cache,
         ILogger<WeixinApi> logger)
         : IWeixinApi {
         /// <summary>
@@ -41,6 +43,32 @@ namespace TtWork.HttpClient.Weixin {
 
             var result = JsonConvert.DeserializeObject<WeixinTokenResult>(jsonResponse);
             return result;
+        }
+
+        /// <summary>
+        /// 取得公众号AccessToken(带缓存)
+        /// 缓存时间15分钟，剩余时间少于5分钟时自动刷新
+        /// </summary>
+        public async Task<string> GetAccessTokenAsync(string appid = null, string appSecret = null) {
+            var key = $"accesstoken:{appid}";
+            var cacheValue = await cache.GetStringAsync(key);
+
+            if (!string.IsNullOrEmpty(cacheValue)) {
+                return cacheValue;
+            }
+
+            var token = await GetToken(appid, appSecret);
+            logger.LogInformation("请求appid: AccessToken:{@AccessTokenResult}", JsonConvert.SerializeObject(token));
+            if (token == null || token.errcode != 0) {
+                throw new Exception($"AccessToken获取失败 {token.errmsg}");
+            }
+
+            var options = new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(900)
+            };
+            await cache.SetStringAsync(key, token.access_token, options);
+            return token.access_token;
         }
 
         /// <summary>

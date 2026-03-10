@@ -1048,13 +1048,13 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                     _logger.LogInformation(
                         "开始发送手动结束拍卖成交私信: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, ToUserMsg={ToUserMsg}",
                         input.Id, result.DealUserId.Value, result.ToUserMsg);
-
+                    
                     try
                     {
                         // 使用SendPrivateMessageAsync，会自动将AuctionDeal编码为AuctionEnd类型
                         await _messageSendingService.SendPrivateMessageAsync(AbpSession.UserId.Value,
                             result.DealUserId.Value, dealMessage, false, null);
-
+                        
                         _logger.LogInformation("手动结束拍卖成交私信发送成功: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}",
                             input.Id, result.DealUserId.Value);
                     }
@@ -1179,7 +1179,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     public async Task<ListResultDto<AuctionItemDto>> GetPublicListAnonymous(AppResultRequestDto input)
     {
         var sw = System.Diagnostics.Stopwatch.StartNew();
-
+        
         // 如果没有传递 MaxResultCount，设置默认值 100
         if (input.MaxResultCount <= 0)
         {
@@ -1188,7 +1188,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
 
         // 使用新的缓存服务
         var result = await _cacheService.GetAuctionListAsync(input);
-
+        
         sw.Stop();
         _logger.LogInformation("[PERF-API] GetPublicListAnonymous 总耗时: {ElapsedMs}ms", sw.ElapsedMilliseconds);
         return result;
@@ -1395,7 +1395,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     {
         // 调试：检查description字段
         _logger.LogInformation("创建拍品时description字段: {Description}", input.Description);
-
+        
         var result = await base.CreateAsync(input);
 
         // 调试：检查创建后的description字段
@@ -1404,7 +1404,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         // 同步清除所有相关缓存，确保数据一致性
         await _cacheService.ClearAuctionListCacheAsync();
         await _cacheService.ClearCurrentAuctionCacheAsync();
-
+        
         // 预热新创建的拍卖品详情缓存
         await _cacheService.SetAuctionDetailCacheAsync(result);
 
@@ -1418,7 +1418,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     {
         // 调试：检查更新时description字段
         _logger.LogInformation("更新拍品时description字段: {Description}", input.Description);
-
+        
         var result = await base.UpdateAsync(input);
 
         // 调试：检查更新后的description字段
@@ -1427,10 +1427,10 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         // 同步清除所有相关缓存，确保数据一致性
         // 先清除所有列表缓存，避免并发请求写入脏数据
         await _cacheService.ClearAuctionListCacheAsync();
-
+        
         // 清除当前拍卖缓存（如果当前拍卖是这个商品）
         await _cacheService.ClearCurrentAuctionCacheAsync();
-
+        
         // 清除详情缓存并重新预热
         await _cacheService.ClearAuctionDetailCacheAsync(result.Id);
         await _cacheService.SetAuctionDetailCacheAsync(result);
@@ -1446,7 +1446,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         // 先获取商品信息（用于事件发布）
         var auctionItem = await Repository.FirstOrDefaultAsync(input.Id);
         var status = auctionItem?.Status;
-
+        
         await base.DeleteAsync(input);
 
         // 同步清除所有相关缓存，确保数据一致性
