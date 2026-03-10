@@ -36,7 +36,7 @@ else
 fi
 
 echo ""
-echo "步骤2: 导出Docker镜像��tar包..."
+echo "步骤2: 导出Docker镜像为tar包..."
 echo "导出文件: $TAR_FILE"
 
 # 如果tar文件已存在，先删除
