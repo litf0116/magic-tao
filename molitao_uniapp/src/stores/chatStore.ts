@@ -266,8 +266,8 @@ export const useChatStore = defineStore('chatStore', () => {
             } else {
                 chatMap.value.set(`${_id}`, [msg])
             }
-        } else if (msg.type === 'Text' || msg.type === 'Image' || msg.type === 'File' || msg.type === 'AuctionDeal') {
-            //处理私聊消息
+        } else if (msg.type === 'Text' || msg.type === 'Image' || msg.type === 'File') {
+            //处理私聊消息（不包括AuctionDeal，由下面的特殊处理逻辑处理）
             const old = chatList.value.find((item) => item.id === msg.from && item.id !== currentChat.value.id)
             if (msg.from === null) return
             chatList.value = [
@@ -401,9 +401,29 @@ export const useChatStore = defineStore('chatStore', () => {
                     addAuctionDealUser(msg.payload, 'AuctionDeal', dealTime)
                 }
 
-                // 接收者（中拍用户）：为自己创建聊天会话
+                // 接收者（中拍用户）：为拍卖师创建聊天会话
                 if (msg.to === userStore.user.id) {
-                    addAuctionDealUser(msg.payload, 'AuctionDeal', dealTime)
+                    // 中拍用户需要看到拍卖师（msg.from），而不是自己
+                    const existingChat = chatList.value.find((item) => item.id === msg.from)
+                    if (!existingChat) {
+                        chatList.value = [
+                            {
+                                id: msg.from,
+                                name: msg.fromName!,
+                                type: ChatListItemType.user,
+                                time: dealTime,
+                                lastMsg: msg.msg,
+                                avatar: msg.avatar,
+                                unread: 0,
+                                order: 0,
+                                msg: msg,
+                            },
+                            ...chatList.value.filter((item) => item.id !== msg.from),
+                        ]
+                        if (!chatMap.value.has(`${msg.from}`)) {
+                            chatMap.value.set(`${msg.from}`, [msg])
+                        }
+                    }
                 }
             }
         }
