@@ -38,8 +38,9 @@ USER root
 RUN rm -rf /app/wwwroot
 RUN mkdir -p /app/wwwroot
 RUN mkdir -p /app/cert
-RUN chmod -R 777 /app/wwwroot
-RUN chown -R app:app /app/wwwroot /app/cert
+RUN mkdir -p /app/logs
+RUN chmod -R 777 /app/wwwroot /app/logs
+RUN chown -R app:app /app/wwwroot /app/cert /app/logs
 
 # 切换回app用户以确保安全性
 USER app
