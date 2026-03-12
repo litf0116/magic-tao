@@ -97,6 +97,11 @@ export default {
         delChannel: (data: { chan?: string }) => request('GET', `/ws/del-channel`, data),
         banUser: (data: { userId: number; minutes: number; chan: any }) => request('POST', `/ws/ban-user`, data),
     },
+
+    appRelease: {
+        checkUpdate: (currentVersionCode: number, platform: string) => 
+            request('GET', `/api/services/app/AppRelease/CheckUpdate`, { currentVersionCode, platform }) as Promise<any>
+    },
     userFriend: {
         addFriend: (data: { id?: number }) => request('GET', `/api/services/app/UserFriend/AddFriend`, data),
         getUserFriends: (data: { id: number; status: boolean }) =>

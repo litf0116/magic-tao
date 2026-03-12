@@ -47,6 +47,8 @@ namespace TtWork.Project.EntityFrameworkCore {
         public DbSet<PayOrder> PayOrder { get; set; }
         public DbSet<WechatPaymentNotification> WechatPaymentNotification { get; set; }
 
+        public DbSet<AppRelease> AppReleases { get; set; }
+
 
         #region TtWork.Abp.AppManagement
 
