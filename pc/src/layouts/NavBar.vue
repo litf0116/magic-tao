@@ -8,7 +8,15 @@
             ></div>
             <Breadcrumbs />
         </div>
-        <div class="flex justify-center items-center h-full cursor-pointer">
+        <div class="flex justify-center items-center h-full gap-4">
+            <!-- App下载入口 -->
+            <el-button type="success" @click="toAppDownload">
+                <template #icon>
+                    <el-icon><Download /></el-icon>
+                </template>
+                App下载
+            </el-button>
+
             <!-- BEGIN: Account Menu -->
             <el-dropdown v-if="userStore.isLogin" class="h-full" :hide-on-click="true" @command="handleCommand">
                 <div class="el-dropdown-link flex items-center">
@@ -31,6 +39,7 @@
 </template>
 <script setup lang="ts">
 import Breadcrumbs from '@/layouts/Breadcrumbs.vue'
+import { Download } from '@element-plus/icons-vue'
 
 const appStore = useAppStore()
 const userStore = useUserStore()
@@ -38,6 +47,10 @@ const router = useRouter()
 
 const toLogin = () => {
     router.push('/auth/login')
+}
+
+const toAppDownload = () => {
+    router.push('/app-download')
 }
 
 enum Command {
