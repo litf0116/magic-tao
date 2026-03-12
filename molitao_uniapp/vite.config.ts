@@ -6,7 +6,7 @@ import UniLayouts from '@uni-helper/vite-plugin-uni-layouts'
 
 export default defineConfig({
     define: {
-        __APP_VERSION__: '"20260310@1.1.22"',
+        __APP_VERSION__: '"20260311@1.1.22"',
     },
     build: {
         sourcemap: false,

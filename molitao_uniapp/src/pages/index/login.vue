@@ -7,42 +7,127 @@
                     class="h-[15vh]"
                     mode="aspectFit"
                 />
-                <!-- <text class="font-bold text-2xl my-6">魔力淘</text> -->
             </view>
-            <button class="w-full bg-[#f4835a] text-white rounded-lg mb-4 zoom-in" @click="wxLogin(true)">
-                快捷登录
-            </button>
-            <!-- <button
-                class="w-full bg-[#f4835a] text-white rounded-lg mb-4"
-                open-type="getPhoneNumber"
-                @getphonenumber="getphonenumber($event, true)"
-            >
-                手机登录
-            </button> -->
 
-            <button class="w-full mb-32 rounded-6" :disabled="isloading" @tap="toHome">返回</button>
+            <!-- 账号密码登录表单 -->
+            <view class="mb-4">
+                <input
+                    v-model="form.userNameOrEmailAddress"
+                    placeholder="账号/邮箱/手机号"
+                    class="w-full border border-gray-300 rounded-lg px-4 py-3 mb-3 bg-white"
+                    placeholder-class="text-gray-400"
+                />
+                <input
+                    v-model="form.password"
+                    placeholder="密码"
+                    type="password"
+                    class="w-full border border-gray-300 rounded-lg px-4 py-3 mb-3 bg-white"
+                    placeholder-class="text-gray-400"
+                />
+            </view>
+
+            <!-- 登录按钮 -->
+            <button
+                class="w-full bg-[#f4835a] text-white rounded-lg mb-4 py-3 font-bold"
+                :disabled="isLoading"
+                @tap="handleLogin"
+            >
+                {{ isLoading ? '登录中...' : '登录' }}
+            </button>
+
+            <!-- 小程序端：微信登录 -->
+            <!-- #ifdef MP-WEIXIN -->
+            <button
+                class="w-full bg-green-500 text-white rounded-lg mb-4 py-3 font-bold"
+                :disabled="isLoading"
+                @tap="wxLogin(false)"
+            >
+                微信登录
+            </button>
+            <!-- #endif -->
+
+            <!-- App 端：微信登录（暂时隐藏，后续补充）-->
+            <!-- #ifdef APP-PLUS -->
+            <!-- <button
+                class="w-full bg-green-500 text-white rounded-lg mb-4 py-3 font-bold"
+                :disabled="isLoading"
+                @tap="wxLogin(false)"
+            >
+                微信登录
+            </button> -->
+            <!-- #endif -->
+
+            <button
+                class="w-full mb-32 rounded-lg py-3 text-gray-500"
+                :disabled="isLoading"
+                @tap="toHome"
+            >
+                返回
+            </button>
         </view>
     </tui-page>
 </template>
 
 <script setup lang="ts">
-import api from '@/utils/api'
-import { onShow } from '@dcloudio/uni-app'
+import { ref } from 'vue'
+
 const userStore = useUserStore()
-
-const isloading = ref(false)
-
-onShow(async () => {
-    // await userStore.code2Session().then(() => {});
-})
+const isLoading = ref(false)
 
 const { toHome } = useTo()
 
 const form = ref({
-    phoneNumber: '',
+    userNameOrEmailAddress: '',
     password: '',
 })
 
+// 账号密码登录
+async function handleLogin() {
+    // 验证输入
+    if (!form.value.userNameOrEmailAddress || !form.value.userNameOrEmailAddress.trim()) {
+        uni.showToast({
+            title: '请输入账号/邮箱/手机号',
+            icon: 'none'
+        })
+        return
+    }
+
+    if (!form.value.password || !form.value.password.trim()) {
+        uni.showToast({
+            title: '请输入密码',
+            icon: 'none'
+        })
+        return
+    }
+
+    isLoading.value = true
+
+    try {
+        await userStore.login(
+            form.value.userNameOrEmailAddress.trim(),
+            form.value.password.trim()
+        )
+        uni.showToast({
+            title: '登录成功',
+            icon: 'success'
+        })
+
+        // 发送事件通知
+        uni.$emit('refreshView')
+        uni.navigateBack({})
+    } catch (error: any) {
+        const errorMsg = error?.message || error || '登录失败，请检查账号和密码'
+        uni.showToast({
+            title: errorMsg,
+            icon: 'none',
+            duration: 2000
+        })
+    } finally {
+        isLoading.value = false
+    }
+}
+
+// 微信登录
 function wxLogin(back: boolean) {
     userStore.wxLogin().then(() => {
         if (back) {
@@ -52,55 +137,8 @@ function wxLogin(back: boolean) {
         }
     })
 }
-
-async function login() {
-    if (!/^1\d{10}$/.test(form.value.phoneNumber)) {
-        Tips.info('请输入正确的手机号码')
-        return
-    }
-
-    if (!/^[^ ]{6,32}$/.test(form.value.password)) {
-        Tips.info('请输入正确的密码')
-        return
-    }
-
-    debounce(realLogin, 300)()
-}
-
-async function realLogin() {
-    isloading.value = true
-    await userStore.login(form.value.phoneNumber, form.value.password).then(() => {
-        isloading.value = false
-        uni.navigateBack({})
-    })
-}
-
-function getphonenumber(e: any, back: boolean) {
-    const { detail } = e
-    if (detail.errMsg === 'getPhoneNumber:ok') {
-        userStore
-            .phoneLogin({
-                iv: detail.iv,
-                encryptedData: detail.encryptedData,
-            })
-            .then(() => {
-                if (back) {
-                    uni.navigateBack({})
-                }
-            })
-    } else if (detail.errMsg === 'getPhoneNumber:fail user deny') {
-        uni.showToast({
-            // icon: "error",
-            title: '手机登录失败',
-        })
-    } else {
-        uni.showToast({
-            icon: 'none',
-            title: detail.errMsg,
-        })
-    }
-}
 </script>
+
 <route lang="json">
 {
     "layout": "main",
