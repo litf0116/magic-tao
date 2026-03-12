@@ -117,13 +117,6 @@
                 "navigationBarTitleText": "用户信息编辑"
             }
         },
-        {
-            "path": "pages/user/settings",
-            "type": "page",
-            "style": {
-                "navigationBarTitleText": "账户设置"
-            }
-        },
 {
             "path": "pages/user/list",
             "type": "page",
