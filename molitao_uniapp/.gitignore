@@ -19,3 +19,12 @@ dist
 *.njsproj
 *.sln
 *.sw?
+
+# Android
+android/app/build/
+android/.gradle/
+android/app/libs/*.aar
+
+# Temporary files
+.mock_sdk/
+.task_completion_status
