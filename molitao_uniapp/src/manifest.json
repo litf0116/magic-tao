@@ -1,12 +1,12 @@
 {
-	"name": "魔力淘",
-	"appid": "__UNI__BE7D07D",
-	"description": "",
-	"versionName": "1.0.0",
-	"versionCode": "100",
-	"transformPx": false,
-	/* 5+App特有相关 */
-	"app-plus": {
+ 	"name": "魔力淘",
+ 	"appid": "__UNI__BE7D07D",
+ 	"description": "",
+ 	"versionName": "1.0.0",
+ 	"versionCode": "100",
+ 	"transformPx": false,
+ 	/* 5+App特有相关 */
+ 	"app-plus": {
 		"usingComponents": true,
 		"nvueStyleCompiler": "uni-app",
 		"compilerVersion": 3,
@@ -15,6 +15,13 @@
 			"waiting": true,
 			"autoclose": true,
 			"delay": 0
+		},
+		/* OAuth登录配置 - 微信开放平台 */
+		"oauth": {
+			"weixin": {
+				"appid": "",
+				"universalLinks": ""
+			}
 		},
 		/* 模块配置 */
 		"modules": {
@@ -60,6 +67,11 @@
 					"jpush": {
 						"appkey": "4e91398522bb1286f6452efb",
 						"channel": "developer-default"
+					}
+				},
+				"oauth": {
+					"weixin": {
+						"appid": ""
 					}
 				}
 			}

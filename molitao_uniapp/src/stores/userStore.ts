@@ -183,6 +183,57 @@ export const useUserStore = defineStore('userStore', () => {
         })
     }
 
+    const appWxLogin = async () => {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const platform = uni.getSystemInfoSync().platform
+                if (platform !== 'android' && platform !== 'ios') {
+                    reject('此功能仅在 App 端可用')
+                    return
+                }
+
+                if (typeof plus === 'undefined' || !plus.oauth) {
+                    reject('微信登录服务不可用')
+                    return
+                }
+
+                const weixinService = (plus.oauth as any).getServices?.()?.weixin
+                if (!weixinService) {
+                    reject('未找到微信登录服务')
+                    return
+                }
+
+                const result = await weixinService.authorize()
+
+                await (api as any).weixinAppAuthenticate({
+                    authCode: result.code,
+                    platform: platform
+                }).then(async (res: any) => {
+                    if (res.accessToken) {
+                        token.value = res.accessToken
+                        uni.setStorageSync('token', res.accessToken)
+
+                        if (res.user) {
+                            SET_USER(res.user)
+                            if (res.user.phoneNumber) {
+                                SET_PHONE(res.user.phoneNumber)
+                            }
+                        }
+
+                        await checkLogin()
+                        return resolve(res)
+                    } else {
+                        reject('登录失败')
+                    }
+                }).catch((err: any) => {
+                    reject(err?.message || '微信登录失败')
+                })
+            } catch (error: any) {
+                reject(error?.message || '微信登录失败')
+            }
+        })
+    }
+
     // ANCHOR - 帐号密码登录
     const login = async (userNameOrEmailAddress: string, password: string) => {
         return new Promise(async (resolve, reject) => {
@@ -330,6 +381,7 @@ export const useUserStore = defineStore('userStore', () => {
         clear,
         code2Session,
         wxLogin,
+        appWxLogin,
         login,
         phoneLogin,
         checkLogin,

@@ -60,6 +60,7 @@ export default {
 
     authenticate: (data: any) => request('POST', `/api/TokenAuth/Authenticate`, data),
     weixinMiniAuthenticate: (data: any) => request('POST', `/api/TokenAuth/WeixinMiniAuthenticate`, data),
+        weixinAppAuthenticate: (data: any) => request('POST', `/api/TokenAuth/AuthenticateWeixinApp`, data),
     phoneAuth: (data: any) => request('POST', `/api/TokenAuth/WeixinMiniPhoneAuthenticate`, data),
     getPhone: (data: any) => request('POST', `/api/app/weixin/getPhone`, data),
     code2session: (data: any) => request('GET', `/api/services/app/Client/minicode2session`, data),

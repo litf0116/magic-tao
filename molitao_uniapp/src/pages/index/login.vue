@@ -1,7 +1,7 @@
 <template>
     <tui-page>
-        <view class="h-[100vh] px-4 relative flex flex-col">
-            <view class="flex-1 flex flex-col items-center flex-center">
+        <view class="login-container h-[100vh] px-4 relative flex flex-col">
+            <view class="flex-1 flex flex-col items-center justify-center pt-12">
                 <image
                     src="https://cdn.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png"
                     class="h-[15vh]"
@@ -9,61 +9,63 @@
                 />
             </view>
 
-            <!-- 账号密码登录表单 -->
-            <view class="mb-4">
-                <input
-                    v-model="form.userNameOrEmailAddress"
-                    placeholder="账号/邮箱/手机号"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-3 mb-3 bg-white"
-                    placeholder-class="text-gray-400"
-                />
-                <input
-                    v-model="form.password"
-                    placeholder="密码"
-                    type="password"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-3 mb-3 bg-white"
-                    placeholder-class="text-gray-400"
-                />
+            <view class="flex-1 flex flex-col justify-center w-full max-w-md mx-auto">
+                <view class="form-container bg-white rounded-2xl shadow-lg p-6">
+                    <text class="text-2xl font-bold text-center mb-6 text-gray-800">用户登录</text>
+
+                    <view class="space-y-4">
+                        <input
+                            v-model="form.userNameOrEmailAddress"
+                            placeholder="账号/邮箱/手机号"
+                            class="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white focus:border-[#f4835a] transition-colors"
+                            placeholder-class="text-gray-400"
+                        />
+                        <input
+                            v-model="form.password"
+                            placeholder="密码"
+                            type="password"
+                            class="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white focus:border-[#f4835a] transition-colors"
+                            placeholder-class="text-gray-400"
+                        />
+                    </view>
+
+                    <view class="flex justify-between mt-4 mb-6">
+                        <text class="text-sm text-gray-500" @tap="toRegister">还没有账号？立即注册</text>
+                        <text class="text-sm text-gray-500" @tap="toForgotPassword">忘记密码？</text>
+                    </view>
+
+                    <button
+                        class="w-full bg-[#f4835a] text-white rounded-lg mb-4 py-3 font-bold active:opacity-80 transition-opacity"
+                        :disabled="isLoading"
+                        @tap="handleLogin"
+                    >
+                        {{ isLoading ? '登录中...' : '登录' }}
+                    </button>
+                </view>
+
+                <view class="mt-6 text-center">
+                    <text class="text-sm text-gray-500 mb-4">其他登录方式</text>
+
+                    <button
+                        class="w-full bg-green-500 text-white rounded-lg mb-3 py-3 font-bold active:opacity-80 transition-opacity flex items-center justify-center"
+                        :disabled="isLoading"
+                        @tap="wxLogin(false)"
+                    >
+                        <text class="mr-2">📱</text>
+                        <text>微信登录</text>
+                    </button>
+
+                    <view class="flex justify-between mt-6">
+                        <button
+                            class="flex-1 text-gray-500 py-3 font-bold active:text-gray-700 transition-colors"
+                            :disabled="isLoading"
+                            @tap="toHome"
+                        >
+                            返回首页
+                        </button>
+                    </view>
+                </view>
             </view>
-
-            <!-- 登录按钮 -->
-            <button
-                class="w-full bg-[#f4835a] text-white rounded-lg mb-4 py-3 font-bold"
-                :disabled="isLoading"
-                @tap="handleLogin"
-            >
-                {{ isLoading ? '登录中...' : '登录' }}
-            </button>
-
-            <!-- 小程序端：微信登录 -->
-            <!-- #ifdef MP-WEIXIN -->
-            <button
-                class="w-full bg-green-500 text-white rounded-lg mb-4 py-3 font-bold"
-                :disabled="isLoading"
-                @tap="wxLogin(false)"
-            >
-                微信登录
-            </button>
-            <!-- #endif -->
-
-            <!-- App 端：微信登录（暂时隐藏，后续补充）-->
-            <!-- #ifdef APP-PLUS -->
-            <!-- <button
-                class="w-full bg-green-500 text-white rounded-lg mb-4 py-3 font-bold"
-                :disabled="isLoading"
-                @tap="wxLogin(false)"
-            >
-                微信登录
-            </button> -->
-            <!-- #endif -->
-
-            <button
-                class="w-full mb-32 rounded-lg py-3 text-gray-500"
-                :disabled="isLoading"
-                @tap="toHome"
-            >
-                返回
-            </button>
         </view>
     </tui-page>
 </template>
@@ -74,17 +76,15 @@ import { ref } from 'vue'
 const userStore = useUserStore()
 const isLoading = ref(false)
 
-const { toHome } = useTo()
+const { toHome, toRegister, toForgotPassword } = useTo()
 
 const form = ref({
     userNameOrEmailAddress: '',
     password: '',
 })
 
-// 账号密码登录
-async function handleLogin() {
-    // 验证输入
-    if (!form.value.userNameOrEmailAddress || !form.value.userNameOrEmailAddress.trim()) {
+const handleLogin = async () => {
+    if (!form.value.userNameOrEmailAddress?.trim()) {
         uni.showToast({
             title: '请输入账号/邮箱/手机号',
             icon: 'none'
@@ -92,7 +92,7 @@ async function handleLogin() {
         return
     }
 
-    if (!form.value.password || !form.value.password.trim()) {
+    if (!form.value.password?.trim()) {
         uni.showToast({
             title: '请输入密码',
             icon: 'none'
@@ -112,9 +112,8 @@ async function handleLogin() {
             icon: 'success'
         })
 
-        // 发送事件通知
         uni.$emit('refreshView')
-        uni.navigateBack({})
+        uni.navigateBack()
     } catch (error: any) {
         const errorMsg = error?.message || error || '登录失败，请检查账号和密码'
         uni.showToast({
@@ -127,23 +126,49 @@ async function handleLogin() {
     }
 }
 
-// 微信登录
-function wxLogin(back: boolean) {
+const wxLogin = (back: boolean) => {
     userStore.wxLogin().then(() => {
         if (back) {
-            // 发送事件通知
             uni.$emit('refreshView')
-            uni.navigateBack({})
+            uni.navigateBack()
         }
+    }).catch((error: any) => {
+        uni.showToast({
+            title: error?.message || '微信登录失败',
+            icon: 'none'
+        })
     })
 }
 </script>
+
+<style lang="scss" scoped>
+.login-container {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.form-container {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+input {
+    &:focus {
+        outline: none;
+    }
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+</style>
 
 <route lang="json">
 {
     "layout": "main",
     "style": {
-        "navigationBarTitleText": "用户登录"
+        "navigationBarTitleText": "用户登录",
+        "navigationBarBackgroundColor": "#f4835a",
+        "navigationBarTextStyle": "white"
     }
 }
 </route>

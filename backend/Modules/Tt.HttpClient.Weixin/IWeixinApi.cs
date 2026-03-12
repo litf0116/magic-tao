@@ -1,8 +1,11 @@
+using System;
 using System.Threading.Tasks;
 using TtWork.HttpClient.Weixin.WeixiinResult;
 
-namespace TtWork.HttpClient.Weixin {
-    public interface IWeixinApi {
+namespace TtWork.HttpClient.Weixin
+{
+    public interface IWeixinApi
+    {
         Task<WeixinTokenResult> GetToken(string appid, string appSecret);
         Task<string> GetAccessTokenAsync(string appid = null, string appSecret = null);
         Task<WeixinUserInfoResult> GetUserInfo(string token, string openid);
@@ -27,6 +30,9 @@ namespace TtWork.HttpClient.Weixin {
 
         Task<MsgSecCheckResult> MsgSecCheck(string accessToken, string content, int version = 1, int scene = 1, string openid = "", string title = "");
 
-        Task<BaseWeChatReulst> ImgSecCheck(string accessToken, byte[] imageBuffer);
+Task<BaseWeChatReulst> ImgSecCheck(string accessToken, byte[] imageBuffer);
+
+        Task<OAuth2Result> GetOpenPlatformAccessTokenAsync(string appid, string secret, string code);
     }
+}
 }

@@ -431,6 +431,49 @@ namespace TtWork.Project.Web.Controllers
             }
         }
 
+        [HttpPost]
+        public async Task<ExternalAuthenticateResultModel> AuthenticateWeixinApp(
+            [FromBody] WeixinAppAuthenticateModel loginModel)
+        {
+            try
+            {
+                var app = await mediator.Send(new QueryApp("app"));
+
+                var weixinResult = await weixinManger.GetOpenPlatformAccessTokenAsync(
+                    app.GetValue("appid"),
+                    app.GetValue("appsec"),
+                    loginModel.AuthCode
+                );
+
+                var authUserInfo = new ExternalAuthUserInfo
+                {
+                    ProviderKey = weixinResult.openid,
+                    ProviderName = Consts.LoginProvider.WeChatApp,
+                    Email = null,
+                    Name = null,
+                    Surname = null,
+                };
+
+                if (!string.IsNullOrEmpty(weixinResult.unionid))
+                {
+                    authUserInfo.UnionId = weixinResult.unionid;
+                }
+
+                ExternalAuthenticateModel model = new()
+                    { AuthProvider = authUserInfo.ProviderName, ProviderKey = authUserInfo.ProviderKey };
+
+                var (externalUser, loginResult) = await ExternalLogin(model, authUserInfo);
+
+                return await ExternalAuthenticateResultModel(loginResult, externalUser, model);
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e.Message, e);
+                if (e is UserFriendlyException) throw new UserFriendlyException(e.Message);
+                throw new UserFriendlyException("微信登录失败,请重试");
+            }
+        }
+
         [UnitOfWork]
         protected virtual async Task<(ExternalAuthUserInfo, AbpLoginResult<Tenant, User>)> ExternalLogin(
             ExternalAuthenticateModel model, ExternalAuthUserInfo externalUser)

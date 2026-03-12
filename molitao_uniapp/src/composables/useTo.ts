@@ -18,6 +18,14 @@ export default () => {
         uni.redirectTo({ url: '/pages/index/my' })
     }
 
+    function toRegister() {
+        uni.navigateTo({ url: '/pages/index/register' })
+    }
+
+    function toForgotPassword() {
+        uni.navigateTo({ url: '/pages/index/forgot-password' })
+    }
+
     function toCall(phone: any) {
         uni.makePhoneCall({
             phoneNumber: phone,
@@ -40,5 +48,5 @@ export default () => {
             uni.navigateTo({ url: url })
         }
     }
-    return { toLogin, toHome, toMy, toCall, navTo }
+    return { toLogin, toHome, toMy, toRegister, toForgotPassword, toCall, navTo }
 }
