@@ -35,4 +35,3 @@ Task<BaseWeChatReulst> ImgSecCheck(string accessToken, byte[] imageBuffer);
         Task<OAuth2Result> GetOpenPlatformAccessTokenAsync(string appid, string secret, string code);
     }
 }
-}

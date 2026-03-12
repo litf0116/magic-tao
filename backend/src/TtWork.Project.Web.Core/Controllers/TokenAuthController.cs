@@ -439,7 +439,7 @@ namespace TtWork.Project.Web.Controllers
             {
                 var app = await mediator.Send(new QueryApp("app"));
 
-                var weixinResult = await weixinManger.GetOpenPlatformAccessTokenAsync(
+                var weixinResult = await weixinApi.GetOpenPlatformAccessTokenAsync(
                     app.GetValue("appid"),
                     app.GetValue("appsec"),
                     loginModel.AuthCode
@@ -449,7 +449,7 @@ namespace TtWork.Project.Web.Controllers
                 {
                     ProviderKey = weixinResult.openid,
                     ProviderName = Consts.LoginProvider.WeChatApp,
-                    Email = null,
+                    EmailAddress = null,
                     Name = null,
                     Surname = null,
                     UserLogins = new Dictionary<string, string>

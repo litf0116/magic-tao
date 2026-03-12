@@ -331,6 +331,12 @@ namespace TtWork.HttpClient.Weixin {
         public string openid { get; set; }
 
         public string scope { get; set; }
+
+        public string unionid { get; set; }
+
+        public int errcode { get; set; }
+
+        public string errmsg { get; set; }
     }
 
     public class MediaCheckResult : BaseWeChatReulst {
