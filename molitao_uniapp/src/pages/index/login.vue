@@ -80,7 +80,7 @@ import { ref } from 'vue'
 const userStore = useUserStore()
 const isLoading = ref(false)
 
-const { toHome, toRegister, toForgotPassword } = useTo()
+const { toHome, toForgotPassword } = useTo()
 
 const form = ref({
     userNameOrEmailAddress: '',
