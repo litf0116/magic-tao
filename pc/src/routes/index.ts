@@ -4,6 +4,7 @@ import authRoute from './authRoute'
 import Layout from '@/layouts/layout.vue'
 import adminRoute from './adminRoute'
 import chatRoute from './chatRoute'
+import appDownloadRoute from './appDownloadRoute'
 export const constantRoutes: RouteRecordRaw[] = [
     {
         path: '/',
@@ -49,6 +50,7 @@ export const constantRoutes: RouteRecordRaw[] = [
             },
         ],
     },
+    appDownloadRoute,
     {
         path: '/forum',
         component: () => import('@/layouts/layout2.vue'),

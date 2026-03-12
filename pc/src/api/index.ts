@@ -22,6 +22,8 @@ import {
     ClientService,
 } from './appService'
 
+import appRelease from './appRelease'
+
 serviceOptions.axios = request
 
 const announce = AnnounceService
@@ -46,6 +48,7 @@ const ws = WebSocketService
 export default {
     guid: '00000000-0000-0000-0000-000000000000',
     announce,
+    appRelease,
     auctionItem,
     bidHistory,
     banedUser,
