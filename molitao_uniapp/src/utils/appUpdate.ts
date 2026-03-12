@@ -13,9 +13,12 @@ interface UpdateInfo {
     releaseDate: string
 }
 
+type UpdateType = 'apk' | 'wgt'
+
 class AppUpdateManager {
     private checking = false
     private downloading = false
+    private downloadTask: any = null
     private platform: string = 'android'
 
     async checkUpdate(): Promise<UpdateInfo | null> {
@@ -37,17 +40,31 @@ class AppUpdateManager {
         }
     }
 
-    async downloadAPK(downloadUrl: string, fileName: string, onProgress: (progress: number) => void): Promise<string> {
+    private getUpdateType(fileName: string): UpdateType {
+        const ext = fileName.toLowerCase()
+        if (ext.endsWith('.wgt') || ext.endsWith('.wgtu')) {
+            return 'wgt'
+        }
+        return 'apk'
+    }
+
+    async downloadAndInstall(
+        downloadUrl: string,
+        fileName: string,
+        isForceUpdate: boolean,
+        onProgress: (progress: number) => void
+    ): Promise<void> {
         if (this.downloading) {
             throw new Error('正在下载中')
         }
 
         this.downloading = true
+        const updateType = this.getUpdateType(fileName)
 
         return new Promise((resolve, reject) => {
-            const downloadTask = plus.downloader.createDownload(downloadUrl)
+            this.downloadTask = plus.downloader.createDownload(downloadUrl)
 
-            downloadTask.addEventListener('statechanged', (download: any, status: any) => {
+            this.downloadTask.addEventListener('statechanged', (download: any, status: any) => {
                 if (download.downloadedSize && download.totalSize) {
                     const progress = Math.round((download.downloadedSize / download.totalSize) * 100)
                     onProgress(progress)
@@ -56,22 +73,54 @@ class AppUpdateManager {
                 if (download.state === 4) {
                     if (status === 200) {
                         const filePath = download.filename
-                        plus.runtime.install(filePath, {}, () => {
-                            this.downloading = false
-                            resolve(filePath)
-                        }, (error: any) => {
-                            this.downloading = false
-                            reject(error)
-                        })
+                        this.install(filePath, updateType, isForceUpdate)
+                            .then(() => {
+                                this.downloading = false
+                                this.downloadTask = null
+                                resolve()
+                            })
+                            .catch((error: any) => {
+                                this.downloading = false
+                                this.downloadTask = null
+                                reject(error)
+                            })
                     } else {
                         this.downloading = false
+                        this.downloadTask = null
                         reject(new Error(`下载失败: ${status}`))
                     }
                 }
             })
 
-            downloadTask.start()
+            this.downloadTask.start()
         })
+    }
+
+    private install(filePath: string, updateType: UpdateType, isForceUpdate: boolean): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const options: any = {
+                force: isForceUpdate
+            }
+
+            plus.runtime.install(filePath, options, () => {
+                console.log(`${updateType.toUpperCase()} 安装成功`)
+                if (updateType === 'wgt') {
+                    plus.runtime.restart()
+                }
+                resolve()
+            }, (error: any) => {
+                console.error(`${updateType.toUpperCase()} 安装失败`, error)
+                reject(error)
+            })
+        })
+    }
+
+    cancelDownload(): void {
+        if (this.downloadTask) {
+            this.downloadTask.abort()
+            this.downloadTask = null
+            this.downloading = false
+        }
     }
 
     formatFileSize(bytes: number): string {

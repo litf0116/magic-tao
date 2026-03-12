@@ -1,23 +1,29 @@
 <script setup lang="ts">
-import { onLaunch, onShow, onHide, onUnload } from '@dcloudio/uni-app'
+import { onLaunch, onShow, onHide, onUnload, ref } from '@dcloudio/uni-app'
 import { useEventBus } from '@vueuse/core'
 import api from '@/utils/api'
 import { pushService } from '@/utils/push'
+import { appUpdateManager } from '@/utils/appUpdate'
+import UpdateModal from '@/components/UpdateModal.vue'
 
 const getSystemInfoSync = uni.getSystemInfoSync()
+
+const showUpdateModal = ref(false)
+const versionInfo = ref<any>(null)
+const downloading = ref(false)
+const downloadProgress = ref(0)
 
 onLaunch(() => {
     userStore.checkLogin()
 
-    // 初始化推送服务
     pushService.init()
+
+    checkForUpdate()
 
     // #ifdef MP-WEIXIN
     try {
         const updateManager = uni.getUpdateManager()
-        // console.log("updateManager 加载成功", updateManager)
         updateManager.onCheckForUpdate(() => {
-            // 请求完新版本信息的回调
         })
 
         updateManager.onUpdateReady(() => {
@@ -26,22 +32,67 @@ onLaunch(() => {
                 content: '发现新版本，是否重启应用？',
                 success(res) {
                     if (res.confirm) {
-                        // 新的版本已经下载好，调用 applyUpdate 应用新版本并重启
                         updateManager.applyUpdate()
                     }
                 },
             })
         })
         updateManager.onUpdateFailed(() => {
-            // 新的版本下载失败
         })
     } catch (e) {}
+    // #endif
 })
+
+async function checkForUpdate() {
+    // #ifdef APP-PLUS
+    try {
+        const update = await appUpdateManager.checkUpdate()
+        if (update) {
+            versionInfo.value = update
+            showUpdateModal.value = true
+        }
+    } catch (error) {
+        console.error('检查更新失败', error)
+    }
+    // #endif
+}
+
+async function handleUpdate() {
+    // #ifdef APP-PLUS
+    try {
+        downloading.value = true
+        downloadProgress.value = 0
+
+        await appUpdateManager.downloadAndInstall(
+            versionInfo.value.downloadUrl,
+            versionInfo.value.fileName,
+            versionInfo.value.isForceUpdate,
+            (progress: number) => {
+                downloadProgress.value = progress
+            }
+        )
+
+        showUpdateModal.value = false
+    } catch (error) {
+        console.error('更新失败', error)
+        uni.showToast({
+            title: '更新失败，请重试',
+            icon: 'none'
+        })
+        downloading.value = false
+    }
+    // #endif
+}
+
+function handleCancelUpdate() {
+    if (!versionInfo.value?.isForceUpdate) {
+        showUpdateModal.value = false
+    }
+}
+
 onShow(() => {
-    // console.debug("App Show")
 })
 onHide(() => {
-    // console.log("App Hide")
 })
 
 onUnload(() => {
@@ -51,11 +102,8 @@ onUnload(() => {
 const userStore = useUserStore()
 
 const bus = useEventBus(onmessageKey)
-//LINK[epic=处理收到消息] - TtPage处理收到消息
 const unsubscribe = bus.on((msg: any) => {
-    // console.log('App.vue onmessageKey', msg)
-    //LINK - 播放提示音
-    if (msg.from === userStore.user.id) return //自己发的消息不提醒
+    if (msg.from === userStore.user.id) return
     if (msg.type === ChatMessageType.Welcome && msg.chan !== '0_lobby' && msg.chan !== '-1_auction') {
         ring17()
     } else if ((msg.type === 'Text' || msg.type === 'Image') && !msg.chan) {
@@ -68,10 +116,8 @@ function ring11() {
     innerAudioContext.autoplay = true
     innerAudioContext.src = '/static/wav/cgsys11.mp3'
     innerAudioContext.onPlay(() => {
-        // console.log('开始播放')
     })
     innerAudioContext.onError(() => {
-        // console.log('播放失败')
     })
 }
 function ring17() {
@@ -79,13 +125,23 @@ function ring17() {
     innerAudioContext.autoplay = true
     innerAudioContext.src = '/static/wav/cgsys17.mp3'
     innerAudioContext.onPlay(() => {
-        // console.log('开始播放')
     })
     innerAudioContext.onError(() => {
-        // console.log('播放失败')
     })
 }
 </script>
+
+<template>
+    <UpdateModal
+        v-model:visible="showUpdateModal"
+        :version-info="versionInfo"
+        :downloading="downloading"
+        :progress="downloadProgress"
+        @confirm="handleUpdate"
+        @cancel="handleCancelUpdate"
+    />
+</template>
+
 <style>
 /**--- 隐藏scroll-view滚动条*/
 ::-webkit-scrollbar {
