@@ -2,7 +2,6 @@ export const navList = [
     { name: '首页', path: '/index' },
     { name: '交易站', path: '/forum/tradingPost' },
     { name: '拍卖行', path: '/chat/auction' },
-    { name: 'App下载', path: '/app-download' },
     { name: '魔力宝贝官网', path: '', url: 'https://www.polchina.com.cn' },
     { name: '魔力宝贝论坛', path: '', url: 'http://bbs.polchina.com.cn/forum.php' },
     {
