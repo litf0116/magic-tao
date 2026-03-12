@@ -452,19 +452,59 @@ namespace TtWork.Project.Web.Controllers
                     Email = null,
                     Name = null,
                     Surname = null,
+                    UserLogins = new Dictionary<string, string>
+                    {
+                        [Consts.LoginProvider.WeChatApp] = weixinResult.openid
+                    }
                 };
 
                 if (!string.IsNullOrEmpty(weixinResult.unionid))
                 {
                     authUserInfo.UnionId = weixinResult.unionid;
+                    authUserInfo.UserLogins[Consts.LoginProvider.WeChatUnionId] = weixinResult.unionid;
                 }
 
-                ExternalAuthenticateModel model = new()
-                    { AuthProvider = authUserInfo.ProviderName, ProviderKey = authUserInfo.ProviderKey };
+                AbpLoginResult<Tenant, User> loginResult;
 
-                var (externalUser, loginResult) = await ExternalLogin(model, authUserInfo);
+                if (!string.IsNullOrEmpty(weixinResult.unionid))
+                {
+                    loginResult = await logInManager.LoginAsync(
+                        new UserLoginInfo(Consts.LoginProvider.WeChatUnionId, weixinResult.unionid, Consts.LoginProvider.WeChatUnionId),
+                        GetTenancyNameOrNull());
 
-                return await ExternalAuthenticateResultModel(loginResult, externalUser, model);
+                    if (loginResult.Result == AbpLoginResultType.Success)
+                    {
+                        var existingLogins = await userLoginRepository.GetAllListAsync(x => x.UserId == loginResult.User.Id);
+                        if (!existingLogins.Any(x => x.LoginProvider == Consts.LoginProvider.WeChatApp && x.ProviderKey == weixinResult.openid))
+                        {
+                            await TryAddUserLogin(new UserLogin(loginResult.User.TenantId, loginResult.User.Id, Consts.LoginProvider.WeChatApp, weixinResult.openid));
+                        }
+                        return await ExternalAuthenticateResultModel(loginResult, authUserInfo, new ExternalAuthenticateModel
+                        {
+                            AuthProvider = Consts.LoginProvider.WeChatApp,
+                            ProviderKey = weixinResult.openid
+                        });
+                    }
+                }
+
+                loginResult = await logInManager.LoginAsync(
+                    new UserLoginInfo(Consts.LoginProvider.WeChatApp, weixinResult.openid, Consts.LoginProvider.WeChatApp),
+                    GetTenancyNameOrNull());
+
+                if (loginResult.Result == AbpLoginResultType.Success && !string.IsNullOrEmpty(weixinResult.unionid))
+                {
+                    var existingLogins = await userLoginRepository.GetAllListAsync(x => x.UserId == loginResult.User.Id);
+                    if (!existingLogins.Any(x => x.LoginProvider == Consts.LoginProvider.WeChatUnionId && x.ProviderKey == weixinResult.unionid))
+                    {
+                        await TryAddUserLogin(new UserLogin(loginResult.User.TenantId, loginResult.User.Id, Consts.LoginProvider.WeChatUnionId, weixinResult.unionid));
+                    }
+                }
+
+                return await ExternalAuthenticateResultModel(loginResult, authUserInfo, new ExternalAuthenticateModel
+                {
+                    AuthProvider = Consts.LoginProvider.WeChatApp,
+                    ProviderKey = weixinResult.openid
+                });
             }
             catch (Exception e)
             {

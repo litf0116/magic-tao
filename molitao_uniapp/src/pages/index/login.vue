@@ -10,8 +10,26 @@
             </view>
 
             <view class="flex-1 flex flex-col justify-center w-full max-w-md mx-auto">
-                <view class="form-container bg-white rounded-2xl shadow-lg p-6">
-                    <text class="text-2xl font-bold text-center mb-6 text-gray-800">用户登录</text>
+                <view class="form-container bg-white rounded-2xl shadow-lg p-6 mb-6">
+                    <text class="text-2xl font-bold text-center mb-6 text-gray-800">欢迎登录</text>
+
+                    <button
+                        class="w-full bg-green-500 text-white rounded-lg mb-6 py-4 font-bold active:opacity-80 transition-opacity flex items-center justify-center"
+                        :disabled="isLoading"
+                        @tap="wxLogin(false)"
+                    >
+                        <text class="mr-2 text-xl">📱</text>
+                        <text class="text-lg">微信快捷登录</text>
+                    </button>
+
+                    <view class="relative my-6">
+                        <view class="absolute inset-0 flex items-center">
+                            <view class="w-full border-t border-gray-300"></view>
+                        </view>
+                        <view class="relative flex justify-center text-sm">
+                            <text class="px-2 bg-white text-gray-500">或使用账号密码</text>
+                        </view>
+                    </view>
 
                     <view class="space-y-4">
                         <input
@@ -29,13 +47,12 @@
                         />
                     </view>
 
-                    <view class="flex justify-between mt-4 mb-6">
-                        <text class="text-sm text-gray-500" @tap="toRegister">还没有账号？立即注册</text>
+                    <view class="mt-4 mb-6 text-right">
                         <text class="text-sm text-gray-500" @tap="toForgotPassword">忘记密码？</text>
                     </view>
 
                     <button
-                        class="w-full bg-[#f4835a] text-white rounded-lg mb-4 py-3 font-bold active:opacity-80 transition-opacity"
+                        class="w-full bg-[#f4835a] text-white rounded-lg py-3 font-bold active:opacity-80 transition-opacity"
                         :disabled="isLoading"
                         @tap="handleLogin"
                     >
@@ -43,27 +60,14 @@
                     </button>
                 </view>
 
-                <view class="mt-6 text-center">
-                    <text class="text-sm text-gray-500 mb-4">其他登录方式</text>
-
+                <view class="flex justify-center mt-6">
                     <button
-                        class="w-full bg-green-500 text-white rounded-lg mb-3 py-3 font-bold active:opacity-80 transition-opacity flex items-center justify-center"
+                        class="text-gray-500 py-3 font-bold active:text-gray-700 transition-colors"
                         :disabled="isLoading"
-                        @tap="wxLogin(false)"
+                        @tap="toHome"
                     >
-                        <text class="mr-2">📱</text>
-                        <text>微信登录</text>
+                        返回首页
                     </button>
-
-                    <view class="flex justify-between mt-6">
-                        <button
-                            class="flex-1 text-gray-500 py-3 font-bold active:text-gray-700 transition-colors"
-                            :disabled="isLoading"
-                            @tap="toHome"
-                        >
-                            返回首页
-                        </button>
-                    </view>
                 </view>
             </view>
         </view>

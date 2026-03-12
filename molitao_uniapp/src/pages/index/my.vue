@@ -36,6 +36,21 @@
 
         <view class="my-4 flex items-center">
             <view class="h-3 w-4px mr-2 bg-[#ccc] rounded-full"> </view>
+            <view>账户管理</view>
+        </view>
+
+        <view class="myCard py-3 px-4 mb-4 flex items-center justify-between zoom-in" @click.stop="navTo.navTo('/pages/user/settings')">
+            <view class="flex items-center">
+                <view class="mr-3 bg-[#f6f6f6] size-10 rounded-full flex flex-center">
+                    <view class="i-solar:lock-keyhole-linear size-6"></view>
+                </view>
+                <view class="font-500">账户设置</view>
+            </view>
+            <view class="i-solar:alt-arrow-right-linear text-gray-400"></view>
+        </view>
+
+        <view class="my-4 flex items-center">
+            <view class="h-3 w-4px mr-2 bg-[#ccc] rounded-full"> </view>
             <view>工作台</view>
         </view>
 

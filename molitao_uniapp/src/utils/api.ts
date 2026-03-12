@@ -74,6 +74,13 @@ export default {
         getAll: (data: any) => request('GET', `/api/services/app/User/GetAll`, data),
     },
 
+    account: {
+        canUsePasswordLogin: () => request('GET', `/api/services/app/Account/CanUsePasswordLogin`) as Promise<boolean>,
+        enablePasswordLogin: (newPassword: string) => request('POST', `/api/services/app/Account/EnablePasswordLogin`, newPassword) as Promise<boolean>,
+        changePassword: (currentPassword: string, newPassword: string) => request('POST', `/api/services/app/Account/ChangePassword`, { currentPassword, newPassword }) as Promise<boolean>,
+        disablePasswordLogin: () => request('POST', `/api/services/app/Account/DisablePasswordLogin`) as Promise<boolean>,
+    },
+
     ws: {
         sendChannelMsg: (data: { from: number; chan: string; message: ChatMessage }) =>
             request('POST', `/ws/SendChannelMsg`, data),

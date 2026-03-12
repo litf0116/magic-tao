@@ -26,6 +26,8 @@ namespace TtWork.Project.Web.Authentication.External {
 
         public string Provider { get; set; }
 
+        public string ProviderName { get; set; }
+
         public string UserName { get; set; }
 
         public string PhoneNumber { get; set; }
@@ -33,6 +35,8 @@ namespace TtWork.Project.Web.Authentication.External {
         public string Password { get; set; }
 
         public string HeadImgUrl { get; set; }
+
+        public string UnionId { get; set; }
 
         public FromClient FromClient { get; set; } = 0;
 
