@@ -2,7 +2,7 @@
     <div class="flex-1 flex">
         <div class="chat-container">
             <div class="px-4 z-10 h-65px bg-[#E5D9D9] text-[#82615F] flex items-center">
-                <img :src="friend.avatar" class="chat-avatar" />
+                <img :src="convertImageUrl(friend.avatar)" class="chat-avatar" />
                 <div class="font-700 text-18px">{{ friend.name }}</div>
             </div>
             <chatMain ref="chatRef" @onSend="send" @loadHistoryMessage="loadHistoryMessage"></chatMain>
@@ -19,6 +19,7 @@
 import chatMain from '@/components/Chat/chatMain.vue'
 import { ChatMessageType } from '@/api/appService'
 import api from '@/api'
+import { convertImageUrl } from '@/utils/imageUrlConverter'
 
 const chatStore = useChatStore()
 const route = useRoute()
@@ -48,7 +49,7 @@ onMounted(() => {
 
     api.user.get({ id: friend.id }).then((res) => {
         friend.name = res.name
-        friend.avatar = res.headImgUrl
+        friend.avatar = convertImageUrl(res.headImgUrl)
         friend.qq = res.qq
         friend.weChat = res.wx
     })
