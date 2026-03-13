@@ -20,47 +20,35 @@
             </div>
 
             <div class="download-actions">
-                <el-button
-                    type="primary"
-                    size="large"
-                    :loading="downloading.android"
-                    @click="downloadApk('android')"
-                >
+                <el-button type="primary" size="large" :loading="downloading.android" @click="downloadApk('android')">
                     <template #icon>
                         <el-icon><Download /></el-icon>
                     </template>
                     {{ downloading.android ? '下载中...' : 'Android 下载' }}
                 </el-button>
 
-                <el-button
-                    size="large"
-                    :loading="downloading.ios"
-                    @click="downloadApk('ios')"
-                >
+                <el-button size="large" :loading="downloading.ios" @click="downloadApk('ios')">
                     <template #icon>
                         <el-icon><Iphone /></el-icon>
                     </template>
                     {{ downloading.ios ? '下载中...' : 'iOS 下载' }}
                 </el-button>
 
-                <el-button size="large" @click="showHistoryDialog = true">
-                    历史版本
-                </el-button>
+                <el-button size="large" @click="showHistoryDialog = true"> 历史版本 </el-button>
             </div>
 
             <div class="qr-section">
                 <div class="qr-title">手机扫码快速下载</div>
                 <div class="qr-code">
-                    <img src="https://image.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png!w300" alt="扫码下载" />
+                    <img
+                        src="https://image.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png!w300"
+                        alt="扫码下载"
+                    />
                 </div>
             </div>
         </div>
 
-        <el-dialog
-            v-model="showHistoryDialog"
-            title="历史版本"
-            width="800px"
-        >
+        <el-dialog v-model="showHistoryDialog" title="历史版本" width="800px">
             <el-table :data="historyVersions" style="width: 100%">
                 <el-table-column prop="versionName" label="版本号" width="120" />
                 <el-table-column prop="releaseDate" label="发布时间" width="180" />
@@ -139,7 +127,7 @@ async function loadLatestVersion() {
             fileName: '',
             fileSize: 0,
             isForceUpdate: false,
-            releaseDate: ''
+            releaseDate: '',
         }
     }
 }
@@ -209,7 +197,7 @@ async function openHistoryDialog() {
 }
 
 defineExpose({
-    openHistoryDialog
+    openHistoryDialog,
 })
 </script>
 

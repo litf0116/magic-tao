@@ -30,17 +30,17 @@ interface HistoryResponse {
 }
 
 const appRelease = {
-    checkUpdate: (currentVersionCode: number, platform: string = 'android') => {
+    checkUpdate: (currentVersionCode: number, platform = 'android') => {
         return request.get<any, CheckUpdateResponse>('/api/services/app/AppRelease/CheckUpdate', {
-            params: { currentVersionCode, platform }
+            params: { currentVersionCode, platform },
         })
     },
 
-    getHistory: (platform: string = 'android') => {
+    getHistory: (platform = 'android') => {
         return request.get<any, HistoryResponse>('/api/services/app/AppRelease/GetReleaseHistory', {
-            params: { platform }
+            params: { platform },
         })
-    }
+    },
 }
 
 export default appRelease

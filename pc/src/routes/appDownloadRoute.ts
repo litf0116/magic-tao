@@ -6,7 +6,7 @@ export default {
     meta: {
         title: '应用下载',
         hidden: true,
-        requiresAuth: false
+        requiresAuth: false,
     },
     component: () => import('@/views/app-download/index.vue'),
 } as RouteRecordRaw
