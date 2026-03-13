@@ -36,7 +36,7 @@
                 <div v-for="(u, k) in users" :key="k">
                     <div v-motion-fade-visible class="flex items-center justify-between">
                         <div class="flex items-center">
-                            <img :src="getImgUrl(u.headImgUrl)" class="w-8 h-8 rounded" />
+                            <img :src="convertImageUrl(u.headImgUrl)" class="w-8 h-8 rounded" />
                             <div class="ml-2 text-gray-600">{{ u.name }}</div>
                         </div>
 
@@ -77,6 +77,7 @@ import api from '@/api'
 import { ChatGroupDto, ChatMessageType, UserDto } from '@/api/appService'
 import chatMain from '@/components/Chat/chatMain.vue'
 import { getImgUrl } from '@/composables'
+import { convertImageUrl } from '@/utils/imageUrlConverter'
 import { useEventBus } from '@vueuse/core'
 import { ElMessageBox } from 'element-plus'
 

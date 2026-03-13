@@ -8,7 +8,7 @@
                         <div>{{ profile.name }}</div>
                     </div>
                     <div class="profile-avatar">
-                        <img :src="profile.headImgUrl" />
+                        <img :src="convertImageUrl(profile.headImgUrl)" />
                     </div>
                 </div>
                 <div class="friend-info">
@@ -46,6 +46,7 @@
 import { UserDto } from '@/api/appService'
 import api from '@/api'
 import { copyText } from '@/composables'
+import { convertImageUrl } from '@/utils/imageUrlConverter'
 
 const dialogVisible = ref(false)
 const profile = ref<UserDto | null>(null)

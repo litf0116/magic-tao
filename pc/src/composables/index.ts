@@ -2,6 +2,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 import relativeTime from 'dayjs/plugin/relativeTime'
+import { convertImageUrl } from '@/utils/imageUrlConverter'
 dayjs.extend(relativeTime)
 dayjs.locale('zh-cn')
 
@@ -95,7 +96,8 @@ export function getImgUrl(url?: string, thub = true) {
     const cndUrl = import.meta.env.VITE_APP_UPYUN_IMG_URL
     if (!url) return ''
     if (url.startsWith('http')) {
-        if (!url.startsWith(cndUrl)) return url
+        if (!url.startsWith(cndUrl)) return convertImageUrl(url)
+        return url
     } else {
         url = `${cndUrl}${url}`
     }
