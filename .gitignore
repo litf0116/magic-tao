@@ -20,3 +20,10 @@ README2.md
 /backend/certs/apiclient_cert.p12
 .sisyphus
 .worktrees/
+
+# APK files
+*.apk
+
+# UniApp Android build
+molitao_uniapp/android/
+docs/*.apk
