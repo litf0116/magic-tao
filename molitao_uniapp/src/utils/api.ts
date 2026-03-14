@@ -164,7 +164,7 @@ export default {
             request('GET', `/api/services/app/AuctionItem/StartAuction`, data) as Promise<AuctionItemDto>,
         getMySuccessList: (data: { skipCount: number; MaxResultCount: number }) =>
             request('GET', `/api/services/app/AuctionItem/GetMySuccessList`, data) as Promise<IListType>,
-        subStartNotify: (data: { auctionItemId: number; openid: string }) =>
+        subStartNotify: (data: { auctionItemId: number; openid?: string; registrationId?: string; platform?: string }) =>
             request('POST', `/api/services/app/AuctionItem/SubStartNotify`, data),
         getAuctionMidList: (data: any) =>
             request('POST', `/api/services/app/AuctionItem/GetAuctionMidList`, data) as Promise<IListType>,

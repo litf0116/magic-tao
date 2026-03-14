@@ -131,6 +131,7 @@ const handleLogin = async () => {
 }
 
 const wxLogin = (back: boolean) => {
+    // #ifdef MP-WEIXIN
     userStore.wxLogin().then(() => {
         if (back) {
             uni.$emit('refreshView')
@@ -142,6 +143,21 @@ const wxLogin = (back: boolean) => {
             icon: 'none'
         })
     })
+    // #endif
+
+    // #ifdef APP-PLUS
+    userStore.appWxLogin().then(() => {
+        if (back) {
+            uni.$emit('refreshView')
+            uni.navigateBack()
+        }
+    }).catch((error: any) => {
+        uni.showToast({
+            title: error?.message || '微信登录失败',
+            icon: 'none'
+        })
+    })
+    // #endif
 }
 </script>
 

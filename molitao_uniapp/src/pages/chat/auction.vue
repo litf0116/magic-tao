@@ -104,6 +104,7 @@ import { calculateMinBidPrice } from '@/utils/auction'
 import { onLoad, onShow, onReady } from '@dcloudio/uni-app'
 import { ChatMessageType } from '@/composables/types'
 import { nextTick, onUnmounted } from 'vue'
+import { pushService } from '@/utils/push'
 
 // import AuctionList from '@/components/chat/AuctionList.vue'
 const chatStore = useChatStore()
@@ -236,6 +237,8 @@ const init = async (name: string) => {
 }
 
 function sub(e: AuctionItemDto) {
+    // #ifdef MP-WEIXIN
+    // 小程序：使用订阅消息
     const msgId = 'ZuYTYzw2cM0LVhF5ybH5iATMaDl6lZ82OC6cczsglEA'
     uni.requestSubscribeMessage({
         tmplIds: [msgId],
@@ -248,16 +251,30 @@ function sub(e: AuctionItemDto) {
         complete: (res: any) => {
             // console.log(res)
             if (res[msgId] !== 'reject') {
-                auctionStore.startNotify(e.id!).then(() => {
+                auctionStore.startNotify(e.id!, 'miniprogram', userStore.openid).then(() => {
                     Tips.success('订阅成功')
                 })
-
-                // chatStore.sendChannelMsg('订阅成功', '', ChatMessageType.Text).then(() => {})
             } else {
                 Tips.info('请允许接受通知')
             }
         },
     })
+    // #endif
+
+    // #ifdef APP-PLUS
+    // App：使用极光推送
+    const registrationId = pushService.getRegistrationId()
+    if (!registrationId) {
+        Tips.info('推送服务未初始化，请稍后重试')
+        return
+    }
+
+    auctionStore.startNotify(e.id!, 'app', registrationId).then(() => {
+        Tips.success('订阅成功，拍卖开始时将推送通知')
+    }).catch((error: any) => {
+        Tips.error(error?.message || '订阅失败，请重试')
+    })
+    // #endif
 }
 
 const historyMsgs = computed(() => {
@@ -312,10 +329,11 @@ function doPayment(
     params: { amount: number; type: string; from: string },
     callback: { success: () => void; fail: () => void }
 ) {
+    // #ifdef MP-WEIXIN
     api.client
         .payDeposit({ openid: userStore.openid, amount: params.amount })
         .then((res: any) => {
-            wx.requestPayment({
+            uni.requestPayment({
                 provider: 'wxpay',
                 timeStamp: `${res.timeStamp}`,
                 nonceStr: res.nonceStr,
@@ -323,23 +341,17 @@ function doPayment(
                 signType: res.signType,
                 paySign: res.paySign,
                 success: async (res) => {
-                    // console.log('支付成功:', JSON.stringify(res))
-
-                    // 清除支付状态
                     uni.removeStorageSync('depositStatus')
 
-                    // 更新用户信息
                     try {
                         await userStore.checkLogin(false, true)
-                        // console.log('用户信息更新成功')
                     } catch (error) {
-                        // console.error('更新用户信息失败:', error)
+                        // ignore
                     }
 
                     callback.success()
                     Tips.success('支付成功，魔力值已到账')
 
-                    // 支付成功后，询问用户是否立即出价
                     setTimeout(() => {
                         uni.showModal({
                             title: '支付成功',
@@ -349,7 +361,6 @@ function doPayment(
                             cancelText: '稍后出价',
                             success: (modalRes) => {
                                 if (modalRes.confirm) {
-                                    // 延迟一下再调用出价，确保用户信息已更新
                                     setTimeout(() => {
                                         bid()
                                     }, 500)
@@ -359,25 +370,23 @@ function doPayment(
                     }, 1500)
                 },
                 fail: (err) => {
-                    // console.log('支付失败:', JSON.stringify(err))
-
-                    // 清除支付状态
                     uni.removeStorageSync('depositStatus')
-
                     callback.fail()
                     Tips.info('用户取消支付')
                 },
             })
         })
         .catch((error) => {
-            // console.error('获取支付参数失败:', error)
-
-            // 清除支付状态
             uni.removeStorageSync('depositStatus')
-
             callback.fail()
             Tips.error('获取支付参数失败，请重试')
         })
+    // #endif
+
+    // #ifdef APP-PLUS
+    Tips.info('App 端支付功能开发中，请使用小程序充值')
+    callback.fail()
+    // #endif
 }
 
 //出价

@@ -197,37 +197,51 @@ export const useUserStore = defineStore('userStore', () => {
                     return
                 }
 
-                const weixinService = (plus.oauth as any).getServices?.()?.weixin
-                if (!weixinService) {
-                    reject('未找到微信登录服务')
-                    return
-                }
-
-                const result = await weixinService.authorize()
-
-                await (api as any).weixinAppAuthenticate({
-                    authCode: result.code,
-                    platform: platform
-                }).then(async (res: any) => {
-                    if (res.accessToken) {
-                        token.value = res.accessToken
-                        uni.setStorageSync('token', res.accessToken)
-
-                        if (res.user) {
-                            SET_USER(res.user)
-                            if (res.user.phoneNumber) {
-                                SET_PHONE(res.user.phoneNumber)
-                            }
+                plus.oauth.getServices(
+                    (services: any[]) => {
+                        const weixinService = services.find((s: any) => s.id === 'weixin')
+                        if (!weixinService) {
+                            reject('未找到微信登录服务')
+                            return
                         }
 
-                        await checkLogin()
-                        return resolve(res)
-                    } else {
-                        reject('登录失败')
+                        weixinService.authorize(
+                            async (result: any) => {
+                                try {
+                                    const res: any = await (api as any).weixinAppAuthenticate({
+                                        authCode: result.code,
+                                        platform: platform
+                                    })
+
+                                    if (res.accessToken) {
+                                        token.value = res.accessToken
+                                        uni.setStorageSync('token', res.accessToken)
+
+                                        if (res.user) {
+                                            SET_USER(res.user)
+                                            if (res.user.phoneNumber) {
+                                                SET_PHONE(res.user.phoneNumber)
+                                            }
+                                        }
+
+                                        await checkLogin()
+                                        return resolve(res)
+                                    } else {
+                                        reject('登录失败')
+                                    }
+                                } catch (err: any) {
+                                    reject(err?.message || '微信登录失败')
+                                }
+                            },
+                            (error: any) => {
+                                reject(error?.message || '微信授权失败')
+                            }
+                        )
+                    },
+                    (error: any) => {
+                        reject('获取登录服务失败: ' + (error?.message || error))
                     }
-                }).catch((err: any) => {
-                    reject(err?.message || '微信登录失败')
-                })
+                )
             } catch (error: any) {
                 reject(error?.message || '微信登录失败')
             }

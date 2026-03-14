@@ -466,9 +466,9 @@ function catchImage(e: any, payload: any) {
         }
 
         if (list.length === 0) return
-        wx.previewImage({
-            current: list[0], // 当前显示图片的http链接
-            urls: list, // 需要预览的图片http链接列表
+        uni.previewImage({
+            current: list[0],
+            urls: list,
         })
 
         // console.log('catchImage', list)

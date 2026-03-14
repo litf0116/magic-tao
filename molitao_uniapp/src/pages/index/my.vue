@@ -115,8 +115,9 @@ function getMyCount() {
 }
 //魔力值充值
 function payDeposit() {
+    // #ifdef MP-WEIXIN
     api.client.payDeposit({ openid: userStore.openid, amount: 51 }).then((res: any) => {
-        wx.requestPayment({
+        uni.requestPayment({
             provider: 'wxpay',
             timeStamp: `${res.timeStamp}`,
             nonceStr: res.nonceStr,
@@ -124,14 +125,12 @@ function payDeposit() {
             signType: res.signType,
             paySign: res.paySign,
             success: async (res) => {
-                // 更新用户信息和统计数据
                 try {
                     await userStore.checkLogin(false, true)
                     getMyCount()
                 } catch (error) {
-                    getMyCount() // 即使更新失败也要更新统计数据
+                    getMyCount()
                 }
-
                 Tips.success('支付成功，魔力值已到账')
             },
             fail: (err) => {
@@ -139,6 +138,11 @@ function payDeposit() {
             },
         })
     })
+    // #endif
+
+    // #ifdef APP-PLUS
+    Tips.info('App 端支付功能开发中，请使用小程序充值')
+    // #endif
 }
 //保证金提交信息弹窗
 function cashOut() {
@@ -174,8 +178,9 @@ async function topUp() {
         return
     }
 
+    // #ifdef MP-WEIXIN
     api.client.TopUp({ openid: userStore.openid, amount: _value }).then((res: any) => {
-        wx.requestPayment({
+        uni.requestPayment({
             provider: 'wxpay',
             timeStamp: `${res.timeStamp}`,
             nonceStr: res.nonceStr,
@@ -188,15 +193,21 @@ async function topUp() {
                 })
             },
             fail: (err) => {
-                // Payment failure handling
+                Tips.info('用户取消支付')
             },
         })
     })
+    // #endif
+
+    // #ifdef APP-PLUS
+    Tips.info('App 端支付功能开发中，请使用小程序充值')
+    // #endif
 }
 
 function testPay() {
-    api.testpay({ openid: userStore.openid }).then((res) => {
-        wx.requestPayment({
+    // #ifdef MP-WEIXIN
+    api.testpay({ openid: userStore.openid }).then((res: any) => {
+        uni.requestPayment({
             provider: 'wxpay',
             timeStamp: `${res.timeStamp}`,
             nonceStr: res.nonceStr,
@@ -204,13 +215,18 @@ function testPay() {
             signType: res.signType,
             paySign: res.paySign,
             success: (res) => {
-                // Test payment success
+                Tips.success('支付成功')
             },
             fail: (err) => {
-                // Test payment failure
+                Tips.info('用户取消支付')
             },
         })
     })
+    // #endif
+
+    // #ifdef APP-PLUS
+    Tips.info('App 端支付功能开发中')
+    // #endif
 }
 
 function wait() {
