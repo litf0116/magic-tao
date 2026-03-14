@@ -346,8 +346,9 @@ public class BidEligibilityService : IBidEligibilityService
             var minPrice = 0;
 
             // 6. 检查卡秒状态（从内存缓存获取）
+            // 注意：SetKasecStatus 存储的是字符串 "true"/"false"，必须用字符串类型读取
             var kasecCacheKey = $"{KASEC_CACHE_PREFIX}{input.AuctionItemId}";
-            bool isKasec = _memoryCache.TryGetValue(kasecCacheKey, out bool cachedKasecValue) && cachedKasecValue;
+            bool isKasec = _memoryCache.TryGetValue(kasecCacheKey, out string kasecVal) && kasecVal == "true";
             result.IsKasec = isKasec;
 
             if (find.CurrentPrice.HasValue)
