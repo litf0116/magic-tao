@@ -4,18 +4,29 @@
         <view class="component-page" style="height: 100%">
             <home v-if="current == 0" @refreshCurrentVal="toIndex"></home>
             <chat v-if="current == 1" ref="chatRef" @refreshCurrentVal="getUserFriendCount"></chat>
-            <contacts v-if="current == 2" ref="contactsRef" @refreshCurrentVal="getUserFriendCount"></contacts>
-            <my v-if="current == 3" @refreshCurrentVal="toIndex"></my>
+            <!-- #ifndef MP-WEIXIN -->
+            <!-- H5/APP 显示交易站 -->
+            <tradingPost v-if="current == 2" ref="tradingPostRef" @updateModalConfig="updateModal"></tradingPost>
+            <!-- #endif -->
+            <contacts v-if="current == 3" ref="contactsRef" @refreshCurrentVal="getUserFriendCount"></contacts>
+            <my v-if="current == 4" @refreshCurrentVal="toIndex"></my>
         </view>
 
         <!-- tabbar -->
         <view class="tabbar">
             <template v-for="(item, index) in tabbarList" :key="index">
+                <!-- #ifndef MP-WEIXIN -->
+                <!-- H5/APP 显示中间发布按钮 -->
+                <view v-if="index === 2" class="mid-btn-arc" :style="elementStyle"></view>
+                <view v-if="index === 2" class="mid-btn" @click="toIndex(2)">
+                    <image class="mid-img" src="../../static/images/add.png"></image>
+                </view>
+                <!-- #endif -->
                 <view class="tabbar-item" @click="toIndex(index)">
                     <view class="icon-wrapper">
                         <image :src="current === index ? item.selectedIconPath : item.iconPath"></image>
                         <!-- 添加角标 -->
-                        <view v-if="index == 2 && badgeCount > 0" class="badge">{{ badgeCount }}</view>
+                        <view v-if="index == 3 && badgeCount > 0" class="badge">{{ badgeCount }}</view>
                     </view>
                     <text :class="['font-title', current === index ? 'font-title-active' : '']">{{ item.text }}</text>
                 </view>
@@ -44,6 +55,9 @@ import api from '@/utils/api'
 import home from '../index/index.vue'
 import chat from '../chat/index.vue'
 
+// #ifndef MP-WEIXIN
+import tradingPost from '../tradingPost/index.vue'
+// #endif
 import contacts from '../chat/contacts.vue'
 import my from '../index/my.vue'
 import CustomModal from '@/components/customModal.vue'
@@ -57,6 +71,9 @@ const modalConfig = reactive({
 })
 
 const contactsRef = ref(null)
+// #ifndef MP-WEIXIN
+const tradingPostRef = ref(null)
+// #endif
 
 const timer = ref(null)
 const badgeCount = ref(0)
@@ -74,6 +91,15 @@ const tabbarList = reactive([
         selectedIconPath: '../../static/images/tab2.png',
         text: '会话列表',
     },
+    // #ifndef MP-WEIXIN
+    // H5/APP 显示交易站
+    {
+        pagePath: 'pages/tradingPost/index',
+        iconPath: '../../static/images/tab3_b.png',
+        selectedIconPath: '../../static/images/tab3.png',
+        text: '交易站',
+    },
+    // #endif
     {
         pagePath: 'pages/chat/contacts',
         iconPath: '../../static/images/tab3_b.png',
@@ -154,31 +180,35 @@ onReachBottom(() => {
 //选择跳转页面
 const toIndex = (index) => {
     current.value = index
-    switch (current.value) {
-        case 0:
-            uni.setNavigationBarTitle({
-                title: '魔力淘',
-            })
-            break
-        case 1:
-            uni.setNavigationBarTitle({
-                title: '会话',
-            })
-            break
-        case 2:
-            uni.setNavigationBarTitle({
-                title: '联系人',
-            })
-            break
-        case 3:
-            uni.setNavigationBarTitle({
-                title: '个人中心',
-            })
-            break
+    // #ifdef MP-WEIXIN
+    // 小程序没有交易站，索引映射
+    const titleMap = {
+        0: '魔力淘',
+        1: '会话',
+        2: '通讯录',
+        3: '个人中心',
+    }
+    const personalCenterIndex = 3
+    // #endif
+    // #ifndef MP-WEIXIN
+    // H5/APP 有交易站
+    const titleMap = {
+        0: '魔力淘',
+        1: '会话',
+        2: '交易站',
+        3: '通讯录',
+        4: '个人中心',
+    }
+    const personalCenterIndex = 4
+    // #endif
+
+    if (titleMap[current.value]) {
+        uni.setNavigationBarTitle({
+            title: titleMap[current.value],
+        })
     }
 
-    if (current.value === 3) {
-        //动态修改状态栏的文字颜色
+    if (current.value === personalCenterIndex) {
         uni.setNavigationBarColor({
             frontColor: '#000000',
             backgroundColor: '#f6f6f6',

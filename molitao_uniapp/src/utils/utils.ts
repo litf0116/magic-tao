@@ -71,12 +71,12 @@ const handleUnauthorized = () => {
     const pages = getCurrentPages()
     const currentPage = pages[pages.length - 1]
     const currentPath = currentPage?.route || ''
-    
+
     // 如果已经在登录页，不跳转
     if (currentPath.includes('login')) {
         return
     }
-    
+
     uni.navigateTo({
         url: '/pages/index/login',
     })

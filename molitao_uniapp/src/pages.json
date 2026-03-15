@@ -131,6 +131,27 @@
             "style": {
                 "navigationBarTitleText": "推送示例"
             }
+        },
+        {
+            "path": "pages/tradingPost/index",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "交易站"
+            }
+        },
+        {
+            "path": "pages/tradingPost/addPost",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "发布帖子"
+            }
+        },
+        {
+            "path": "pages/tradingPost/postDetail",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "帖子详情"
+            }
         }
     ],
     "globalStyle": {

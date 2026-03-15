@@ -67,6 +67,57 @@
             </view> -->
         </view>
 
+        <!-- #ifndef MP-WEIXIN -->
+        <view class="my-4 flex items-center">
+            <view class="h-3 w-4px mr-2 bg-[#ccc] rounded-full"> </view>
+            <view>买家</view>
+        </view>
+        <view class="myCard py-2 grid grid-cols-4 mb-4 text-[#171717]">
+            <view class="flex flex-col flex-center zoom-in" @click.stop="wait">
+                <view class="bg-[#f6f6f6] size-10 rounded-full flex flex-center">
+                    <view class="size-6 i-icon-park-outline:payment-method"></view>
+                </view>
+                <text class="pt-1 text-sm font-500">出价中拍卖</text>
+            </view>
+            <view class="flex flex-col flex-center zoom-in" @click.stop="wait">
+                <view class="bg-[#f6f6f6] size-10 rounded-full flex flex-center">
+                    <view class="size-6 i-mdi:deal-outline"></view>
+                </view>
+                <text class="pt-1 text-sm font-500">待收货</text>
+            </view>
+            <view class="flex flex-col flex-center zoom-in" @click.stop="wait">
+                <view class="bg-[#f6f6f6] size-10 rounded-full flex flex-center">
+                    <view class="size-6 i-icon-park-outline:order"></view>
+                </view>
+                <text class="pt-1 text-sm font-500">已成交</text>
+            </view>
+        </view>
+        <view class="my-4 flex items-center">
+            <view class="h-3 w-4px mr-2 bg-[#ccc] rounded-full"> </view>
+            <view>卖家</view>
+        </view>
+        <view class="myCard py-2 grid grid-cols-4 mb-4 text-[#171717]">
+            <view class="flex flex-col flex-center zoom-in" @click.stop="wait">
+                <view class="bg-[#f6f6f6] size-10 rounded-full flex flex-center">
+                    <view class="size-6 i-icon-park-outline:ad-product"></view>
+                </view>
+                <text class="pt-1 text-sm font-500">我要卖</text>
+            </view>
+            <view class="flex flex-col flex-center zoom-in" @click.stop="wait">
+                <view class="bg-[#f6f6f6] size-10 rounded-full flex flex-center">
+                    <view class="size-6 i-mdi:deal-outline"></view>
+                </view>
+                <text class="pt-1 text-sm font-500">待发货</text>
+            </view>
+            <view class="flex flex-col flex-center zoom-in" @click.stop="wait">
+                <view class="bg-[#f6f6f6] size-10 rounded-full flex flex-center">
+                    <view class="size-6 i-icon-park-outline:order"></view>
+                </view>
+                <text class="pt-1 text-sm font-500">订单</text>
+            </view>
+        </view>
+        <!-- #endif -->
+
         <view v-if="userStore.user.phoneNumber" class="my-4">
             <uv-button @tap="logout">退出登录</uv-button>
         </view>

@@ -8,7 +8,11 @@
                 />
             </view>
             <view class="content px-4">
-                <view v-if="showAuctionEntrance" class="flex flex-col">
+                <view class="flex flex-col">
+                    <!-- #ifndef MP-WEIXIN -->
+                    <!-- H5/APP 显示交易站入口 -->
+                    <image class="w-full h-270rpx" src="../../static/jyz.png" @tap="gotoTradingPost" />
+                    <!-- #endif -->
                     <image class="mt-1 w-full h-270rpx" src="../../static/pmh.png" @tap="Goto.auction()" />
                 </view>
                 <view class="mt-2 w-full">
@@ -61,6 +65,12 @@ const { navTo } = useTo()
 const showAuctionEntrance = computed(() => {
     return chatStore.chatList.some((chat) => chat.id === -1)
 })
+
+// 跳转到交易站
+const gotoTradingPost = () => {
+    emit('refreshCurrentVal', 2)
+}
+
 //广告位信息
 const advertisingSpaceList: any = ref([])
 const emit = defineEmits(['refreshCurrentVal'])
