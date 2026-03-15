@@ -126,13 +126,16 @@ onShow(() => {
             }
         },
     })
+    // 只有登录后才启动定时器获取好友申请数量
     if (userStore.token) {
         getUserFriendCount()
+        // 启动定时器 - 每30秒执行一次
+        timer.value = setInterval(() => {
+            if (userStore.token) {
+                getUserFriendCount()
+            }
+        }, 30000)
     }
-    // 启动定时器 - 每5秒执行一次
-    timer.value = setInterval(() => {
-        getUserFriendCount()
-    }, 30000)
 })
 onUnload(() => {
     // 页面卸载时移除事件监听，避免内存泄漏
