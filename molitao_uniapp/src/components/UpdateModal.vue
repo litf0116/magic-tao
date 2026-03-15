@@ -1,5 +1,5 @@
 <template>
-    <view class="update-modal-mask" v-if="visible" @click="handleMaskClick">
+    <view v-if="visible" class="update-modal-mask" @click="handleMaskClick">
         <view class="update-modal" @click.stop>
             <view class="update-header">
                 <text class="update-title">发现新版本</text>
@@ -67,7 +67,7 @@ interface Emits {
 
 const props = withDefaults(defineProps<Props>(), {
     downloading: false,
-    progress: 0
+    progress: 0,
 })
 
 const emit = defineEmits<Emits>()

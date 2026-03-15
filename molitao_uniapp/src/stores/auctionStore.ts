@@ -85,7 +85,7 @@ export const useAuctionStore = defineStore('auction', () => {
         return new Promise<void>((resolve, reject) => {
             const data: { auctionItemId: number; openid?: string; registrationId?: string; platform: string } = {
                 auctionItemId: id,
-                platform
+                platform,
             }
 
             if (platform === 'miniprogram') {
@@ -94,11 +94,14 @@ export const useAuctionStore = defineStore('auction', () => {
                 data.registrationId = identifier
             }
 
-            api.auctionItem.subStartNotify(data).then(() => {
-                return resolve()
-            }).catch((error: any) => {
-                return reject(error)
-            })
+            api.auctionItem
+                .subStartNotify(data)
+                .then(() => {
+                    return resolve()
+                })
+                .catch((error: any) => {
+                    return reject(error)
+                })
         })
     }
 

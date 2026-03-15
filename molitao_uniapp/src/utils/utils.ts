@@ -39,16 +39,15 @@ const errorPrompt = (err: any) => {
 const httpsPromisify = <T>(fn: (opt: any) => void) => {
     return function (options: any | undefined) {
         return new Promise<T>((resolve, reject) => {
-            options!.success = ({ data }: any) => {
+            options!.success = ({ data, statusCode }: any) => {
                 uni.hideLoading()
                 uni.hideNavigationBarLoading()
                 if (data.success) {
                     resolve(data.result)
                 } else {
-                    if (data.unAuthorizedRequest) {
-                        uni.navigateTo({
-                            url: '/pages/index/login',
-                        })
+                    // 处理 401 未授权
+                    if (statusCode === 401 || data.unAuthorizedRequest) {
+                        handleUnauthorized()
                         return
                     }
                     // 处理 HTTP 404 等错误，data.error 可能不存在
@@ -66,6 +65,21 @@ const httpsPromisify = <T>(fn: (opt: any) => void) => {
             fn(options)
         })
     }
+}
+
+const handleUnauthorized = () => {
+    const pages = getCurrentPages()
+    const currentPage = pages[pages.length - 1]
+    const currentPath = currentPage?.route || ''
+    
+    // 如果已经在登录页，不跳转
+    if (currentPath.includes('login')) {
+        return
+    }
+    
+    uni.navigateTo({
+        url: '/pages/index/login',
+    })
 }
 
 export default {

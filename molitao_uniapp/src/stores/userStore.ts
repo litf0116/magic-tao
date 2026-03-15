@@ -210,7 +210,7 @@ export const useUserStore = defineStore('userStore', () => {
                                 try {
                                     const res: any = await (api as any).weixinAppAuthenticate({
                                         authCode: result.code,
-                                        platform: platform
+                                        platform: platform,
                                     })
 
                                     if (res.accessToken) {

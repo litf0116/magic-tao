@@ -115,7 +115,7 @@ namespace TtWork.Project.Web.Controllers
         [HttpGet]
         public async Task<string> PubQrLogin(string state)
         {
-            var app = await mediator.Send(new QueryApp());
+            var app = await mediator.Send(new QueryApp("pub"));
             var (appid, appSec) = (app.GetValue("appid"), app.GetValue("appsec"));
             var token = await weixinManger.GetAccessTokenAsync(appid, appSec);
             try

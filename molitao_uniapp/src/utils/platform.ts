@@ -3,10 +3,10 @@
  */
 
 export const Platform = {
-  name: 'unknown',
-  isMiniprogram: false,
-  isApp: false,
-  isH5: false
+    name: 'unknown',
+    isMiniprogram: false,
+    isApp: false,
+    isH5: false,
 }
 
 // #ifdef MP-WEIXIN
@@ -28,26 +28,26 @@ Platform.isH5 = true
  * 是否为小程序
  */
 export function isMiniprogram(): boolean {
-  return Platform.isMiniprogram
+    return Platform.isMiniprogram
 }
 
 /**
  * 是否为App
  */
 export function isApp(): boolean {
-  return Platform.isApp
+    return Platform.isApp
 }
 
 /**
  * 是否为H5
  */
 export function isH5(): boolean {
-  return Platform.isH5
+    return Platform.isH5
 }
 
 /**
  * 获取当前平台名称
  */
 export function getPlatform(): 'miniprogram' | 'app' | 'h5' | 'unknown' {
-  return Platform.name as any
+    return Platform.name as any
 }

@@ -14,13 +14,9 @@
         </view>
 
         <view class="space-y-3">
-            <button class="w-full py-3 bg-blue-500 text-white rounded" @tap="initPush">
-                初始化推送服务
-            </button>
+            <button class="w-full py-3 bg-blue-500 text-white rounded" @tap="initPush">初始化推送服务</button>
 
-            <button class="w-full py-3 bg-green-500 text-white rounded" @tap="setAlias">
-                设置别名 (用户ID)
-            </button>
+            <button class="w-full py-3 bg-green-500 text-white rounded" @tap="setAlias">设置别名 (用户ID)</button>
 
             <button class="w-full py-3 bg-orange-500 text-white rounded" @tap="testLocalNotification">
                 测试本地通知
@@ -40,9 +36,7 @@
                     placeholder="输入拍卖品ID"
                     class="flex-1 border border-gray-300 rounded px-3 py-2"
                 />
-                <button class="px-4 py-2 bg-red-500 text-white rounded" @tap="subscribeAuction">
-                    订阅
-                </button>
+                <button class="px-4 py-2 bg-red-500 text-white rounded" @tap="subscribeAuction">订阅</button>
             </view>
         </view>
 
@@ -79,13 +73,16 @@ function log(msg: string) {
 function initPush() {
     // #ifdef APP-PLUS
     log('正在初始化推送服务...')
-    pushService.init().then(() => {
-        log('推送服务初始化成功')
-        registrationId.value = pushService.getRegistrationId()
-        log(`Registration ID: ${registrationId.value}`)
-    }).catch((error: any) => {
-        log(`初始化失败: ${error?.message || error}`)
-    })
+    pushService
+        .init()
+        .then(() => {
+            log('推送服务初始化成功')
+            registrationId.value = pushService.getRegistrationId()
+            log(`Registration ID: ${registrationId.value}`)
+        })
+        .catch((error: any) => {
+            log(`初始化失败: ${error?.message || error}`)
+        })
     // #endif
 
     // #ifndef APP-PLUS
@@ -108,11 +105,14 @@ function setAlias() {
     // #ifdef APP-PLUS
     const alias = `user_${userStore.user.id}`
     log(`正在设置别名: ${alias}`)
-    pushService.setAlias(alias).then(() => {
-        log('别名设置成功')
-    }).catch((error: any) => {
-        log(`别名设置失败: ${error?.message || error}`)
-    })
+    pushService
+        .setAlias(alias)
+        .then(() => {
+            log('别名设置成功')
+        })
+        .catch((error: any) => {
+            log(`别名设置失败: ${error?.message || error}`)
+        })
     // #endif
 
     // #ifndef APP-PLUS
@@ -127,7 +127,7 @@ function testLocalNotification() {
         messageId: 'test_' + Date.now(),
         title: '测试通知',
         content: '这是一条测试通知消息',
-        extras: { type: 'test' }
+        extras: { type: 'test' },
     })
     log('本地通知已发送')
     // #endif

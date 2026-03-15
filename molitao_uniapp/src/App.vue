@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onLaunch, onShow, onHide, onUnload, ref } from '@dcloudio/uni-app'
+import { onLaunch, onShow, onHide, onUnload } from '@dcloudio/uni-app'
+import { ref } from 'vue'
 import { useEventBus } from '@vueuse/core'
 import api from '@/utils/api'
 import { pushService } from '@/utils/push'
@@ -23,8 +24,7 @@ onLaunch(() => {
     // #ifdef MP-WEIXIN
     try {
         const updateManager = uni.getUpdateManager()
-        updateManager.onCheckForUpdate(() => {
-        })
+        updateManager.onCheckForUpdate(() => {})
 
         updateManager.onUpdateReady(() => {
             uni.showModal({
@@ -37,8 +37,7 @@ onLaunch(() => {
                 },
             })
         })
-        updateManager.onUpdateFailed(() => {
-        })
+        updateManager.onUpdateFailed(() => {})
     } catch (e) {}
     // #endif
 })
@@ -77,7 +76,7 @@ async function handleUpdate() {
         console.error('更新失败', error)
         uni.showToast({
             title: '更新失败，请重试',
-            icon: 'none'
+            icon: 'none',
         })
         downloading.value = false
     }
@@ -90,10 +89,8 @@ function handleCancelUpdate() {
     }
 }
 
-onShow(() => {
-})
-onHide(() => {
-})
+onShow(() => {})
+onHide(() => {})
 
 onUnload(() => {
     unsubscribe()
@@ -115,19 +112,15 @@ function ring11() {
     const innerAudioContext = uni.createInnerAudioContext()
     innerAudioContext.autoplay = true
     innerAudioContext.src = '/static/wav/cgsys11.mp3'
-    innerAudioContext.onPlay(() => {
-    })
-    innerAudioContext.onError(() => {
-    })
+    innerAudioContext.onPlay(() => {})
+    innerAudioContext.onError(() => {})
 }
 function ring17() {
     const innerAudioContext = uni.createInnerAudioContext()
     innerAudioContext.autoplay = true
     innerAudioContext.src = '/static/wav/cgsys17.mp3'
-    innerAudioContext.onPlay(() => {
-    })
-    innerAudioContext.onError(() => {
-    })
+    innerAudioContext.onPlay(() => {})
+    innerAudioContext.onError(() => {})
 }
 </script>
 

@@ -269,11 +269,14 @@ function sub(e: AuctionItemDto) {
         return
     }
 
-    auctionStore.startNotify(e.id!, 'app', registrationId).then(() => {
-        Tips.success('订阅成功，拍卖开始时将推送通知')
-    }).catch((error: any) => {
-        Tips.error(error?.message || '订阅失败，请重试')
-    })
+    auctionStore
+        .startNotify(e.id!, 'app', registrationId)
+        .then(() => {
+            Tips.success('订阅成功，拍卖开始时将推送通知')
+        })
+        .catch((error: any) => {
+            Tips.error(error?.message || '订阅失败，请重试')
+        })
     // #endif
 }
 

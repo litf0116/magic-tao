@@ -8,6 +8,25 @@ export default defineConfig({
     define: {
         __APP_VERSION__: '"20260311@1.1.22"',
     },
+    // H5 开发服务器配置 - 解决跨域问题
+    server: {
+        port: 5173,
+        host: '0.0.0.0',
+        proxy: {
+            // 代理所有 /api 请求到本地后端服务器
+            '/api': {
+                target: 'http://127.0.0.1:12580',
+                changeOrigin: true,
+                secure: false,
+            },
+            // 代理 WebSocket
+            '/ws': {
+                target: 'ws://127.0.0.1:12580',
+                ws: true,
+                changeOrigin: true,
+            },
+        },
+    },
     build: {
         sourcemap: false,
         watch: {

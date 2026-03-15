@@ -1,84 +1,175 @@
 <template>
-    <tui-page>
-        <view class="login-container h-[100vh] px-4 relative flex flex-col">
-            <view class="flex-1 flex flex-col items-center justify-center pt-12">
+    <view class="login-page">
+        <view class="login-content">
+            <view class="logo-wrap">
                 <image
                     src="https://cdn.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png"
-                    class="h-[15vh]"
+                    class="logo"
                     mode="aspectFit"
                 />
             </view>
 
-            <view class="flex-1 flex flex-col justify-center w-full max-w-md mx-auto">
-                <view class="form-container bg-white rounded-2xl shadow-lg p-6 mb-6">
-                    <text class="text-2xl font-bold text-center mb-6 text-gray-800">欢迎登录</text>
-
-                    <button
-                        class="w-full bg-green-500 text-white rounded-lg mb-6 py-4 font-bold active:opacity-80 transition-opacity flex items-center justify-center"
-                        :disabled="isLoading"
-                        @tap="wxLogin(false)"
-                    >
-                        <text class="mr-2 text-xl">📱</text>
-                        <text class="text-lg">微信快捷登录</text>
-                    </button>
-
-                    <view class="relative my-6">
-                        <view class="absolute inset-0 flex items-center">
-                            <view class="w-full border-t border-gray-300"></view>
-                        </view>
-                        <view class="relative flex justify-center text-sm">
-                            <text class="px-2 bg-white text-gray-500">或使用账号密码</text>
-                        </view>
-                    </view>
-
-                    <view class="space-y-4">
-                        <input
-                            v-model="form.userNameOrEmailAddress"
-                            placeholder="账号/邮箱/手机号"
-                            class="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white focus:border-[#f4835a] transition-colors"
-                            placeholder-class="text-gray-400"
-                        />
-                        <input
-                            v-model="form.password"
-                            placeholder="密码"
-                            type="password"
-                            class="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white focus:border-[#f4835a] transition-colors"
-                            placeholder-class="text-gray-400"
-                        />
-                    </view>
-
-                    <view class="mt-4 mb-6 text-right">
-                        <text class="text-sm text-gray-500" @tap="toForgotPassword">忘记密码？</text>
-                    </view>
-
-                    <button
-                        class="w-full bg-[#f4835a] text-white rounded-lg py-3 font-bold active:opacity-80 transition-opacity"
-                        :disabled="isLoading"
-                        @tap="handleLogin"
-                    >
-                        {{ isLoading ? '登录中...' : '登录' }}
-                    </button>
+            <!-- 微信小程序：只显示微信登录 -->
+            <!-- #ifdef MP-WEIXIN -->
+            <view class="form-card">
+                <view class="welcome-text">
+                    <text class="welcome-title">欢迎来到魔力淘</text>
+                    <text class="welcome-desc">登录后享受更多精彩服务</text>
                 </view>
 
-                <view class="flex justify-center mt-6">
-                    <button
-                        class="text-gray-500 py-3 font-bold active:text-gray-700 transition-colors"
-                        :disabled="isLoading"
-                        @tap="toHome"
-                    >
-                        返回首页
-                    </button>
+                <view class="wx-login-btn" :class="{ disabled: isLoading }" @tap="handleWxLogin">
+                    <text class="wx-login-text">微信一键登录</text>
+                </view>
+
+                <view class="agreement">
+                    <text class="agreement-text">登录即表示同意</text>
+                    <text class="agreement-link" @tap="toAgreement">《用户协议》</text>
                 </view>
             </view>
+            <!-- #endif -->
+
+            <!-- APP：账号密码 + 微信OAuth -->
+            <!-- #ifdef APP-PLUS -->
+            <view class="form-card">
+                <view class="input-wrap">
+                    <input
+                        v-model="form.userNameOrEmailAddress"
+                        placeholder="请输入账号"
+                        class="input"
+                        placeholder-class="input-placeholder"
+                        @focus="focusField = 'account'"
+                        @blur="focusField = ''"
+                    />
+                    <view class="input-underline" :class="{ active: focusField === 'account' }"></view>
+                </view>
+
+                <view class="input-wrap">
+                    <input
+                        v-model="form.password"
+                        placeholder="请输入密码"
+                        type="password"
+                        class="input"
+                        placeholder-class="input-placeholder"
+                        @focus="focusField = 'password'"
+                        @blur="focusField = ''"
+                    />
+                    <view class="input-underline" :class="{ active: focusField === 'password' }"></view>
+                </view>
+
+                <view class="action-row">
+                    <text class="forgot-link" @tap="toForgotPassword">忘记密码？</text>
+                </view>
+
+                <view class="login-btn" :class="{ disabled: isLoading }" @tap="handleLogin">
+                    <text class="login-btn-text">{{ isLoading ? '登录中' : '登录' }}</text>
+                </view>
+
+                <view class="divider">
+                    <view class="divider-line"></view>
+                    <text class="divider-label">其他登录方式</text>
+                    <view class="divider-line"></view>
+                </view>
+
+                <view class="oauth-row">
+                    <view class="oauth-item" @tap="handleWxOAuth">
+                        <view class="oauth-icon wx-icon">
+                            <text class="oauth-icon-text">微信</text>
+                        </view>
+                        <text class="oauth-label">微信登录</text>
+                    </view>
+                </view>
+
+                <view class="home-link" @tap="toHome">
+                    <text class="home-link-text">返回首页</text>
+                </view>
+            </view>
+            <!-- #endif -->
+
+            <!-- H5：账号密码 + 微信扫码 -->
+            <!-- #ifdef H5 -->
+            <view class="form-card">
+                <view class="tab-row">
+                    <view class="tab-item" :class="{ active: loginMode === 'password' }" @tap="loginMode = 'password'">
+                        <text class="tab-text">账号登录</text>
+                    </view>
+                    <view class="tab-item" :class="{ active: loginMode === 'qrcode' }" @tap="switchToQrcode">
+                        <text class="tab-text">扫码登录</text>
+                    </view>
+                </view>
+
+                <!-- 账号密码登录 -->
+                <view v-if="loginMode === 'password'" class="password-form">
+                    <view class="input-wrap">
+                        <input
+                            v-model="form.userNameOrEmailAddress"
+                            placeholder="请输入账号"
+                            class="input"
+                            placeholder-class="input-placeholder"
+                            @focus="focusField = 'account'"
+                            @blur="focusField = ''"
+                        />
+                        <view class="input-underline" :class="{ active: focusField === 'account' }"></view>
+                    </view>
+
+                    <view class="input-wrap">
+                        <input
+                            v-model="form.password"
+                            placeholder="请输入密码"
+                            type="password"
+                            class="input"
+                            placeholder-class="input-placeholder"
+                            @focus="focusField = 'password'"
+                            @blur="focusField = ''"
+                        />
+                        <view class="input-underline" :class="{ active: focusField === 'password' }"></view>
+                    </view>
+
+                    <view class="action-row">
+                        <text class="forgot-link" @tap="toForgotPassword">忘记密码？</text>
+                    </view>
+
+                    <view class="login-btn" :class="{ disabled: isLoading }" @tap="handleLogin">
+                        <text class="login-btn-text">{{ isLoading ? '登录中' : '登录' }}</text>
+                    </view>
+                </view>
+
+                <!-- 微信扫码登录 -->
+                <view v-if="loginMode === 'qrcode'" class="qrcode-form">
+                    <view class="qrcode-wrap">
+                        <image v-if="qrcodeUrl" :src="qrcodeUrl" class="qrcode-image" mode="aspectFit" />
+                        <view v-else class="qrcode-loading">
+                            <text class="qrcode-loading-text">二维码加载中...</text>
+                        </view>
+                    </view>
+                    <text class="qrcode-tip">请使用微信扫码登录</text>
+                    <text class="qrcode-refresh" @tap="refreshQrcode">刷新二维码</text>
+                </view>
+
+                <view class="home-link" @tap="toHome">
+                    <text class="home-link-text">返回首页</text>
+                </view>
+            </view>
+            <!-- #endif -->
         </view>
-    </tui-page>
+
+        <view class="footer">
+            <text class="footer-text">登录即表示同意《用户协议》和《隐私政策》</text>
+        </view>
+    </view>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import api from '@/utils/api'
 
 const userStore = useUserStore()
 const isLoading = ref(false)
+const focusField = ref('')
+const loginMode = ref<'password' | 'qrcode'>('password')
+const qrcodeUrl = ref('')
+const qrcodeState = ref('')
+const qrcodeTimer = ref<any>(null)
+const qrcodeExpireTimer = ref<any>(null)
 
 const { toHome, toForgotPassword } = useTo()
 
@@ -87,98 +178,498 @@ const form = ref({
     password: '',
 })
 
+// 账号密码登录
 const handleLogin = async () => {
+    if (isLoading.value) return
+
     if (!form.value.userNameOrEmailAddress?.trim()) {
-        uni.showToast({
-            title: '请输入账号/邮箱/手机号',
-            icon: 'none'
-        })
+        uni.showToast({ title: '请输入账号', icon: 'none' })
         return
     }
 
     if (!form.value.password?.trim()) {
-        uni.showToast({
-            title: '请输入密码',
-            icon: 'none'
-        })
+        uni.showToast({ title: '请输入密码', icon: 'none' })
         return
     }
 
     isLoading.value = true
 
     try {
-        await userStore.login(
-            form.value.userNameOrEmailAddress.trim(),
-            form.value.password.trim()
-        )
-        uni.showToast({
-            title: '登录成功',
-            icon: 'success'
-        })
-
+        await userStore.login(form.value.userNameOrEmailAddress.trim(), form.value.password.trim())
+        uni.showToast({ title: '登录成功', icon: 'success' })
         uni.$emit('refreshView')
         uni.navigateBack()
     } catch (error: any) {
-        const errorMsg = error?.message || error || '登录失败，请检查账号和密码'
         uni.showToast({
-            title: errorMsg,
+            title: error?.message || '登录失败',
             icon: 'none',
-            duration: 2000
+            duration: 2000,
         })
     } finally {
         isLoading.value = false
     }
 }
 
-const wxLogin = (back: boolean) => {
-    // #ifdef MP-WEIXIN
-    userStore.wxLogin().then(() => {
-        if (back) {
+// 微信小程序登录
+const handleWxLogin = () => {
+    if (isLoading.value) return
+
+    userStore
+        .wxLogin()
+        .then(() => {
             uni.$emit('refreshView')
             uni.navigateBack()
-        }
-    }).catch((error: any) => {
-        uni.showToast({
-            title: error?.message || '微信登录失败',
-            icon: 'none'
         })
-    })
-    // #endif
+        .catch((error: any) => {
+            uni.showToast({ title: error?.message || '微信登录失败', icon: 'none' })
+        })
+}
 
-    // #ifdef APP-PLUS
-    userStore.appWxLogin().then(() => {
-        if (back) {
+// APP 微信 OAuth 登录
+const handleWxOAuth = () => {
+    if (isLoading.value) return
+
+    userStore
+        .appWxLogin()
+        .then(() => {
             uni.$emit('refreshView')
             uni.navigateBack()
-        }
-    }).catch((error: any) => {
-        uni.showToast({
-            title: error?.message || '微信登录失败',
-            icon: 'none'
         })
-    })
-    // #endif
-}
-</script>
-
-<style lang="scss" scoped>
-.login-container {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .catch((error: any) => {
+            uni.showToast({ title: error?.message || '微信登录失败', icon: 'none' })
+        })
 }
 
-.form-container {
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+// H5 微信扫码登录
+const generateState = () => {
+    return 'qr_' + Date.now() + '_' + Math.random().toString(36).substring(2, 10)
 }
 
-input {
-    &:focus {
-        outline: none;
+const getWxQrcode = async () => {
+    try {
+        qrcodeState.value = generateState()
+        const url = await api.tokenAuth.pubQrLogin(qrcodeState.value)
+        qrcodeUrl.value = url
+
+        startQrcodePolling()
+        startQrcodeExpireTimer()
+    } catch (error: any) {
+        uni.showToast({ title: error?.message || '获取二维码失败', icon: 'none' })
+        qrcodeUrl.value = ''
     }
 }
 
-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+const startQrcodePolling = () => {
+    stopQrcodePolling()
+    qrcodeTimer.value = setInterval(async () => {
+        try {
+            const token = await api.tokenAuth.qrToken(qrcodeState.value)
+            if (token) {
+                stopQrcodePolling()
+                stopQrcodeExpireTimer()
+
+                uni.setStorageSync('token', token)
+                uni.$emit('refreshView')
+                uni.showToast({ title: '登录成功', icon: 'success' })
+
+                setTimeout(() => {
+                    uni.navigateBack()
+                }, 500)
+            }
+        } catch (error) {
+            // 轮询失败继续
+        }
+    }, 2000)
+}
+
+const startQrcodeExpireTimer = () => {
+    stopQrcodeExpireTimer()
+    qrcodeExpireTimer.value = setTimeout(() => {
+        stopQrcodePolling()
+        qrcodeUrl.value = ''
+        uni.showToast({ title: '二维码已过期，请刷新', icon: 'none' })
+    }, 60000)
+}
+
+const stopQrcodePolling = () => {
+    if (qrcodeTimer.value) {
+        clearInterval(qrcodeTimer.value)
+        qrcodeTimer.value = null
+    }
+}
+
+const stopQrcodeExpireTimer = () => {
+    if (qrcodeExpireTimer.value) {
+        clearTimeout(qrcodeExpireTimer.value)
+        qrcodeExpireTimer.value = null
+    }
+}
+
+const refreshQrcode = () => {
+    stopQrcodePolling()
+    stopQrcodeExpireTimer()
+    getWxQrcode()
+}
+
+const switchToQrcode = () => {
+    loginMode.value = 'qrcode'
+    getWxQrcode()
+}
+
+const toAgreement = () => {
+    // TODO: 跳转用户协议页面
+}
+
+// #ifdef H5
+onMounted(() => {
+    // 扫码模式下已由 getWxQrcode 启动轮询
+})
+
+onUnmounted(() => {
+    stopQrcodePolling()
+    stopQrcodeExpireTimer()
+})
+// #endif
+</script>
+
+<style lang="scss" scoped>
+.login-page {
+    min-height: 100vh;
+    background: #f6f6f6;
+    display: flex;
+    flex-direction: column;
+}
+
+.login-content {
+    flex: 1;
+    padding: 0 48rpx;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.logo-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 64rpx;
+}
+
+.logo {
+    width: 240rpx;
+    height: 160rpx;
+}
+
+.form-card {
+    background: #ffffff;
+    border-radius: 24rpx;
+    padding: 48rpx 40rpx 40rpx;
+    box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
+}
+
+/* 微信小程序样式 */
+.welcome-text {
+    text-align: center;
+    margin-bottom: 48rpx;
+}
+
+.welcome-title {
+    display: block;
+    font-size: 40rpx;
+    font-weight: 600;
+    color: #333333;
+    margin-bottom: 16rpx;
+}
+
+.welcome-desc {
+    display: block;
+    font-size: 28rpx;
+    color: #999999;
+}
+
+.wx-login-btn {
+    height: 96rpx;
+    background: #07c160;
+    border-radius: 48rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s;
+
+    &:active {
+        opacity: 0.85;
+    }
+
+    &.disabled {
+        opacity: 0.5;
+    }
+}
+
+.wx-login-text {
+    font-size: 32rpx;
+    color: #ffffff;
+    font-weight: 500;
+    letter-spacing: 2rpx;
+}
+
+.agreement {
+    display: flex;
+    justify-content: center;
+    margin-top: 32rpx;
+}
+
+.agreement-text {
+    font-size: 24rpx;
+    color: #999999;
+}
+
+.agreement-link {
+    font-size: 24rpx;
+    color: #f4835a;
+}
+
+/* 输入框样式 */
+.input-wrap {
+    margin-bottom: 32rpx;
+    position: relative;
+}
+
+.input {
+    width: 100%;
+    height: 88rpx;
+    padding: 0 8rpx;
+    font-size: 30rpx;
+    color: #333333;
+    background: transparent;
+}
+
+.input-placeholder {
+    color: #cccccc;
+}
+
+.input-underline {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2rpx;
+    background: #ebebeb;
+    transition: background 0.2s;
+
+    &.active {
+        background: #f4835a;
+    }
+}
+
+.action-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 40rpx;
+}
+
+.forgot-link {
+    font-size: 26rpx;
+    color: #999999;
+
+    &:active {
+        color: #f4835a;
+    }
+}
+
+.login-btn {
+    height: 96rpx;
+    background: #f4835a;
+    border-radius: 48rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s;
+
+    &:active {
+        opacity: 0.85;
+    }
+
+    &.disabled {
+        opacity: 0.5;
+    }
+}
+
+.login-btn-text {
+    font-size: 32rpx;
+    color: #ffffff;
+    font-weight: 500;
+    letter-spacing: 4rpx;
+}
+
+/* 分隔线 */
+.divider {
+    display: flex;
+    align-items: center;
+    margin: 40rpx 0;
+}
+
+.divider-line {
+    flex: 1;
+    height: 1rpx;
+    background: #ebebeb;
+}
+
+.divider-label {
+    padding: 0 32rpx;
+    font-size: 24rpx;
+    color: #bbbbbb;
+}
+
+/* OAuth 登录 */
+.oauth-row {
+    display: flex;
+    justify-content: center;
+    gap: 64rpx;
+}
+
+.oauth-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.oauth-icon {
+    width: 88rpx;
+    height: 88rpx;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16rpx;
+
+    &:active {
+        opacity: 0.8;
+    }
+}
+
+.wx-icon {
+    background: #07c160;
+}
+
+.oauth-icon-text {
+    font-size: 24rpx;
+    color: #ffffff;
+    font-weight: 500;
+}
+
+.oauth-label {
+    font-size: 24rpx;
+    color: #666666;
+}
+
+.home-link {
+    display: flex;
+    justify-content: center;
+    margin-top: 32rpx;
+    padding: 16rpx 0;
+}
+
+.home-link-text {
+    font-size: 28rpx;
+    color: #999999;
+
+    &:active {
+        color: #f4835a;
+    }
+}
+
+/* H5 Tab 切换 */
+.tab-row {
+    display: flex;
+    margin-bottom: 40rpx;
+    border-bottom: 2rpx solid #f0f0f0;
+}
+
+.tab-item {
+    flex: 1;
+    height: 80rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+
+    &.active {
+        .tab-text {
+            color: #f4835a;
+            font-weight: 500;
+        }
+
+        &::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            transform: translateX(-50%);
+            width: 48rpx;
+            height: 4rpx;
+            background: #f4835a;
+            border-radius: 2rpx;
+        }
+    }
+}
+
+.tab-text {
+    font-size: 30rpx;
+    color: #999999;
+}
+
+/* 二维码 */
+.qrcode-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.qrcode-wrap {
+    width: 320rpx;
+    height: 320rpx;
+    background: #f6f6f6;
+    border-radius: 16rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24rpx;
+}
+
+.qrcode-image {
+    width: 280rpx;
+    height: 280rpx;
+}
+
+.qrcode-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.qrcode-loading-text {
+    font-size: 26rpx;
+    color: #999999;
+}
+
+.qrcode-tip {
+    font-size: 28rpx;
+    color: #666666;
+    margin-bottom: 16rpx;
+}
+
+.qrcode-refresh {
+    font-size: 26rpx;
+    color: #f4835a;
+}
+
+.footer {
+    padding: 32rpx 0 48rpx;
+    text-align: center;
+}
+
+.footer-text {
+    font-size: 22rpx;
+    color: #bbbbbb;
 }
 </style>
 
@@ -186,9 +677,9 @@ button:disabled {
 {
     "layout": "main",
     "style": {
-        "navigationBarTitleText": "用户登录",
-        "navigationBarBackgroundColor": "#f4835a",
-        "navigationBarTextStyle": "white"
+        "navigationBarTitleText": "登录",
+        "navigationBarBackgroundColor": "#f6f6f6",
+        "navigationBarTextStyle": "black"
     }
 }
 </route>

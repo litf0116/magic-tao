@@ -99,19 +99,24 @@ class AppUpdateManager {
     private install(filePath: string, updateType: UpdateType, isForceUpdate: boolean): Promise<void> {
         return new Promise((resolve, reject) => {
             const options: any = {
-                force: isForceUpdate
+                force: isForceUpdate,
             }
 
-            plus.runtime.install(filePath, options, () => {
-                console.log(`${updateType.toUpperCase()} 安装成功`)
-                if (updateType === 'wgt') {
-                    plus.runtime.restart()
+            plus.runtime.install(
+                filePath,
+                options,
+                () => {
+                    console.log(`${updateType.toUpperCase()} 安装成功`)
+                    if (updateType === 'wgt') {
+                        plus.runtime.restart()
+                    }
+                    resolve()
+                },
+                (error: any) => {
+                    console.error(`${updateType.toUpperCase()} 安装失败`, error)
+                    reject(error)
                 }
-                resolve()
-            }, (error: any) => {
-                console.error(`${updateType.toUpperCase()} 安装失败`, error)
-                reject(error)
-            })
+            )
         })
     }
 

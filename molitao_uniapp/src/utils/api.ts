@@ -13,10 +13,11 @@ import { getAppVersion } from './version'
 
 let host: string = 'https://www.molitao.top'
 
-// 根据环境动态设置开发/生产服务器地址
-// if ((import.meta as any).env?.VITE_APP_ENV === 'development') {
-//     host = 'http://localhost:12580'
-// }
+// #ifdef H5
+if (import.meta.env.DEV) {
+    host = ''
+}
+// #endif
 
 const getRequest = utils.httpsPromisify(uni.request)
 
@@ -56,11 +57,15 @@ export default {
 
     tokenAuth: {
         Logout: () => request('GET', `/api/TokenAuth/Logout`),
+        /** H5 微信扫码登录 - 获取公众号二维码 URL */
+        pubQrLogin: (state: string) => request('GET', `/api/TokenAuth/PubQrLogin?state=${state}`) as Promise<string>,
+        /** H5 微信扫码登录 - 轮询检查扫码结果，返回 token 或空字符串 */
+        qrToken: (key: string) => request('GET', `/api/TokenAuth/QrToken?key=${key}`) as Promise<string>,
     },
 
     authenticate: (data: any) => request('POST', `/api/TokenAuth/Authenticate`, data),
     weixinMiniAuthenticate: (data: any) => request('POST', `/api/TokenAuth/WeixinMiniAuthenticate`, data),
-        weixinAppAuthenticate: (data: any) => request('POST', `/api/TokenAuth/AuthenticateWeixinApp`, data),
+    weixinAppAuthenticate: (data: any) => request('POST', `/api/TokenAuth/AuthenticateWeixinApp`, data),
     phoneAuth: (data: any) => request('POST', `/api/TokenAuth/WeixinMiniPhoneAuthenticate`, data),
     getPhone: (data: any) => request('POST', `/api/app/weixin/getPhone`, data),
     code2session: (data: any) => request('GET', `/api/services/app/Client/minicode2session`, data),
@@ -76,9 +81,15 @@ export default {
 
     account: {
         canUsePasswordLogin: () => request('GET', `/api/services/app/Account/CanUsePasswordLogin`) as Promise<boolean>,
-        enablePasswordLogin: (newPassword: string) => request('POST', `/api/services/app/Account/EnablePasswordLogin`, newPassword) as Promise<boolean>,
-        changePassword: (currentPassword: string, newPassword: string) => request('POST', `/api/services/app/Account/ChangePassword`, { currentPassword, newPassword }) as Promise<boolean>,
-        disablePasswordLogin: () => request('POST', `/api/services/app/Account/DisablePasswordLogin`) as Promise<boolean>,
+        enablePasswordLogin: (newPassword: string) =>
+            request('POST', `/api/services/app/Account/EnablePasswordLogin`, newPassword) as Promise<boolean>,
+        changePassword: (currentPassword: string, newPassword: string) =>
+            request('POST', `/api/services/app/Account/ChangePassword`, {
+                currentPassword,
+                newPassword,
+            }) as Promise<boolean>,
+        disablePasswordLogin: () =>
+            request('POST', `/api/services/app/Account/DisablePasswordLogin`) as Promise<boolean>,
     },
 
     ws: {
@@ -99,8 +110,11 @@ export default {
     },
 
     appRelease: {
-        checkUpdate: (currentVersionCode: number, platform: string) => 
-            request('GET', `/api/services/app/AppRelease/CheckUpdate`, { currentVersionCode, platform }) as Promise<any>
+        checkUpdate: (currentVersionCode: number, platform: string) =>
+            request('GET', `/api/services/app/AppRelease/CheckUpdate`, {
+                currentVersionCode,
+                platform,
+            }) as Promise<any>,
     },
     userFriend: {
         addFriend: (data: { id?: number }) => request('GET', `/api/services/app/UserFriend/AddFriend`, data),
@@ -164,8 +178,12 @@ export default {
             request('GET', `/api/services/app/AuctionItem/StartAuction`, data) as Promise<AuctionItemDto>,
         getMySuccessList: (data: { skipCount: number; MaxResultCount: number }) =>
             request('GET', `/api/services/app/AuctionItem/GetMySuccessList`, data) as Promise<IListType>,
-        subStartNotify: (data: { auctionItemId: number; openid?: string; registrationId?: string; platform?: string }) =>
-            request('POST', `/api/services/app/AuctionItem/SubStartNotify`, data),
+        subStartNotify: (data: {
+            auctionItemId: number
+            openid?: string
+            registrationId?: string
+            platform?: string
+        }) => request('POST', `/api/services/app/AuctionItem/SubStartNotify`, data),
         getAuctionMidList: (data: any) =>
             request('POST', `/api/services/app/AuctionItem/GetAuctionMidList`, data) as Promise<IListType>,
         getKasecStatus: (auctionItemId: number) =>
