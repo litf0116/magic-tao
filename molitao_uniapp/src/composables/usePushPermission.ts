@@ -4,7 +4,7 @@
  */
 
 import { ref } from 'vue'
-import { h5PushService } from '@/utils/pushH5'
+import { h5PushService } from '../utils/pushH5'
 
 interface PushPermissionState {
   canRequest: boolean
