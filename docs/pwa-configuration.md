@@ -6,44 +6,52 @@
 - ✅ 添加了 `h5` 配置项
 - ✅ 配置了 PWA manifest 参数
 - ✅ 设置了主题色、显示模式等
+- ✅ **使用专用 PWA 图标（8种尺寸）**
 
 ### 2. index.html PWA Meta 标签
 - ✅ 添加了 manifest 链接
 - ✅ 添加了 theme-color
 - ✅ 添加了 iOS PWA 支持
+- ✅ **添加了 PWA 图标和 Apple Touch Icons**
 
-### 3. 配置详情
+### 3. PWA 图标资源
+- ✅ 使用 `docs/molitao_app_icon_512x512.png` 作为源图
+- ✅ 生成 8 种标准尺寸的 PWA 图标
+- ✅ 存放位置：`src/static/icons/`
 
-#### manifest.json - H5 配置
+#### 图标尺寸列表
+| 文件 | 尺寸 | 用途 |
+|------|------|------|
+| icon-72x72.png | 72x72 | Android 低密度屏幕 |
+| icon-96x96.png | 96x96 | Android 中密度屏幕 |
+| icon-128x128.png | 128x128 | Android 高密度屏幕 |
+| icon-144x144.png | 144x144 | Android 超高密度屏幕 |
+| icon-152x152.png | 152x152 | iOS iPad |
+| icon-192x192.png | 192x192 | Android xxhdpi / PWA 推荐 |
+| icon-384x384.png | 384x384 | Android xxxhdpi |
+| icon-512x512.png | 512x512 | Android xxxxxhdpi / PWA 推荐 |
+
+### 4. 配置详情
+
+#### manifest.json - H5 图标配置
 ```json
-"h5": {
-  "title": "魔力淘",
-  "template": "index.html",
-  "router": {
-    "mode": "hash",
-    "base": "./"
-  },
-  "manifest": {
-    "name": "魔力淘",
-    "short_name": "魔力淘",
-    "description": "魔力淘 - 在线拍卖交易平台，发现更多精彩拍品",
-    "display": "standalone",
-    "background_color": "#ffffff",
-    "theme_color": "#f4835a",
-    "icons": [
-      {
-        "src": "/static/logo.png",
-        "sizes": "192x192",
-        "type": "image/png"
-      },
-      {
-        "src": "/static/logo.png",
-        "sizes": "512x512",
-        "type": "image/png"
-      }
-    ],
-    "start_url": "/index.html"
-  }
+"manifest": {
+  "name": "魔力淘",
+  "short_name": "魔力淘",
+  "description": "魔力淘 - 在线拍卖交易平台，发现更多精彩拍品",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#f4835a",
+  "icons": [
+    { "src": "/static/icons/icon-72x72.png", "sizes": "72x72", "type": "image/png" },
+    { "src": "/static/icons/icon-96x96.png", "sizes": "96x96", "type": "image/png" },
+    { "src": "/static/icons/icon-128x128.png", "sizes": "128x128", "type": "image/png" },
+    { "src": "/static/icons/icon-144x144.png", "sizes": "144x144", "type": "image/png" },
+    { "src": "/static/icons/icon-152x152.png", "sizes": "152x152", "type": "image/png" },
+    { "src": "/static/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/static/icons/icon-384x384.png", "sizes": "384x384", "type": "image/png" },
+    { "src": "/static/icons/icon-512x512.png", "sizes": "512x512", "type": "image/png" }
+  ]
 }
 ```
 
@@ -60,18 +68,13 @@
 ## ⚠️ 待完成项目
 
 ### 1. 图标文件（重要）
-**当前状态**: 使用现有 `/static/logo.png`
+**当前状态**: ✅ 已完成
 
-**建议**: 创建专门 PWA 图标
-- 需要 192x192 图标
-- 需要 512x512 图标
-- 建议使用 PNG 格式
-- 可以从现有 logo 裁剪生成
-
-**图标要求**:
-- 支持透明背景（推荐）
-- 简洁明了，易于识别
-- 在各种尺寸下清晰可见
+**已完成内容**:
+- ✅ 使用 `docs/molitao_app_icon_512x512.png` 作为源图
+- ✅ 生成 8 种标准尺寸 PWA 图标
+- ✅ 配置 manifest.json 图标路径
+- ✅ 配置 index.html 图标链接
 
 ### 2. manifest.webmanifest 文件（自动生成）
 UniApp 会在构建时自动从 manifest.json 的 h5 配置生成此文件，无需手动创建。
@@ -99,8 +102,9 @@ UniApp 会在构建时自动从 manifest.json 的 h5 配置生成此文件，无
    - 状态栏颜色适配
 
 4. **应用图标**
-   - 使用现有 logo 作为应用图标
-   - 在主屏幕显示
+    - ✅ 使用专用 PWA 图标（8种尺寸）
+    - ✅ 在主屏幕清晰显示
+    - ✅ 支持各种设备分辨率
 
 ### ⚠️ 未配置功能
 1. **离线访问** - 需要 Service Worker
@@ -176,6 +180,7 @@ npm run dev:h5
 
 ---
 
-**配置完成时间**: 2026-03-16
-**配置版本**: v1.0.0
-**状态**: ✅ 基础配置完成，图标待优化
+**配置完成时间**: 2026-03-17
+**配置版本**: v1.1.0
+**状态**: ✅ 基础配置完成，图标已优化
+**最新更新**: 使用专用 PWA 图标替代 logo，支持 8 种设备尺寸
