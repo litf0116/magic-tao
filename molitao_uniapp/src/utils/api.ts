@@ -230,6 +230,14 @@ export default {
         GetAdvertisingSpaceAll: (type: any) => request('GET', `/api/AdvertisingSpace/GetTypeList/` + type),
     },
 
+    /** 交易站帖子模块 */
+    post: {
+        GetCategoryList: () => request('GET', `/api/services/app/PostCategory/GetAll`),
+        GetPostAll: (data: any) => request('GET', `/api/services/app/Post/GetAll`, data),
+        GetHotWords: () => request('GET', `/api/services/app/Post/GetHotWords`),
+        GetLatestBulletin: () => request('GET', `/api/services/app/Post/GetLatestBulletin`),
+    },
+
     upload: {
         getSignature: `/api/services/app/Upload/GetSignature`,
     },
