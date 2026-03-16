@@ -176,7 +176,12 @@ const { toHome, toForgotPassword } = useTo()
 // 登录成功后跳转处理
 const navigateAfterLogin = () => {
     // #ifdef H5
-    if (window.history.length <= 1) {
+    // 检查上一个页面是否是登录页
+    const referrer = document.referrer
+    const isReferrerLoginPage = referrer.includes('/pages/index/login')
+
+    // 如果没有上一个页面，或上一个页面就是登录页，则跳转到首页
+    if (window.history.length <= 1 || isReferrerLoginPage) {
         uni.reLaunch({ url: '/pages/tabbar/index' })
     } else {
         uni.navigateBack()
