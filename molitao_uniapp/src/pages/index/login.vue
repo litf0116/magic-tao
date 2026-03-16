@@ -178,26 +178,9 @@ const navigateAfterLogin = () => {
     console.log('[navigateAfterLogin] 开始执行')
 
     // #ifdef H5
-    // H5 环境：检查是否需要返回上一页
-    const referrer = document.referrer
-    const hasReferrer = referrer && referrer.length > 0
-    const isFromLoginPage = referrer && referrer.includes('/pages/index/login')
-
-    console.log('[navigateAfterLogin] H5模式', {
-        referrer,
-        hasReferrer,
-        isFromLoginPage,
-    })
-
-    // 如果有来源页面且不是登录页，则返回上一页
-    if (hasReferrer && !isFromLoginPage) {
-        console.log('[navigateAfterLogin] 返回上一页')
-        uni.navigateBack()
-    } else {
-        // 否则跳转到首页（使用 redirectTo 关闭当前登录页）
-        console.log('[navigateAfterLogin] 跳转到首页 /pages/tabbar/index')
-        uni.redirectTo({ url: '/pages/tabbar/index' })
-    }
+    // H5 环境：直接跳转到首页
+    console.log('[navigateAfterLogin] H5模式 - 直接跳转到首页')
+    uni.redirectTo({ url: '/pages/tabbar/index' })
     // #endif
 
     // #ifndef H5
