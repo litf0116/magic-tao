@@ -1,5 +1,6 @@
 <template>
     <view class="container">
+        <!-- #ifndef H5 -->
         <scroll-view
             class="scroll-container"
             scroll-y="true"
@@ -13,6 +14,20 @@
             @refresherrefresh="onRefresh"
             @scrolltolower="onLoadMore"
         >
+        <!-- #endif -->
+        <!-- #ifdef H5 -->
+        <scroll-view
+            class="scroll-container"
+            scroll-y="true"
+            refresher-enabled="true"
+            :refresher-triggered="loadingState.refreshing"
+            :lower-threshold="150"
+            :bounce="true"
+            :show-scrollbar="true"
+            @refresherrefresh="onRefresh"
+            @scrolltolower="onLoadMore"
+        >
+        <!-- #endif -->
             <!-- 顶部筛选区 -->
             <view class="filter-section">
                 <!-- 左侧滑动分类 -->
@@ -152,6 +167,7 @@
             <!-- 底部留白区域，确保最后一个帖子不被tabbar遮挡 -->
             <view class="bottom-spacer"></view>
         </scroll-view>
+        <!-- #endif -->
     </view>
 </template>
 
