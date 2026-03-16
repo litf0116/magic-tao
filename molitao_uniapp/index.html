@@ -34,5 +34,28 @@
     <body>
         <div id="app"><!--app-html--></div>
         <script type="module" src="/src/main.ts"></script>
+        <script>
+            if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
+                window.addEventListener('load', function() {
+                    navigator.serviceWorker.register('/sw.js')
+                        .then(function(registration) {
+                            console.log('[SW] Service Worker 注册成功:', registration.scope);
+                        })
+                        .catch(function(error) {
+                            console.error('[SW] Service Worker 注册失败:', error);
+                        });
+                });
+            } else if ('serviceWorker' in navigator && window.location.hostname === 'localhost') {
+                window.addEventListener('load', function() {
+                    navigator.serviceWorker.register('/sw.js')
+                        .then(function(registration) {
+                            console.log('[SW] Service Worker 注册成功 (localhost):', registration.scope);
+                        })
+                        .catch(function(error) {
+                            console.error('[SW] Service Worker 注册失败:', error);
+                        });
+                });
+            }
+        </script>
     </body>
 </html>
