@@ -1,5 +1,5 @@
 <template>
-    <view class="bg-[#f6f6f6] min-h-screen">
+    <view class="px-4 bg-[#f6f6f6] min-h-screen">
         <view class="myCard p-4 flex flex-col relative">
             <view
                 class="flex flex-center mb-4"
