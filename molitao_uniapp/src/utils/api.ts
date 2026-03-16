@@ -232,10 +232,14 @@ export default {
 
     /** 交易站帖子模块 */
     post: {
-        GetCategoryList: () => request('GET', `/api/services/app/PostCategory/GetAll`),
-        GetPostAll: (data: any) => request('GET', `/api/services/app/Post/GetAll`, data),
-        GetHotWords: () => request('GET', `/api/services/app/Post/GetHotWords`),
-        GetLatestBulletin: () => request('GET', `/api/services/app/Post/GetLatestBulletin`),
+        GetPostAll: (data: any) => request('GET', `/api/Post/GetList`, data),
+        GetLatestBulletin: () => request('GET', `/api/PostBulletin/GetLatestBulletin`),
+        GetCategoryList: () => request('GET', `/api/PostCategory/GetCategoryList`),
+        GetPostDetail: (id: any) => request('GET', `/api/Post/PostDetail/` + id),
+        Delete: (id: any) => request('GET', `/api/Post/Delete/` + id),
+        Add: (data: any) => request('POST', `/api/Post/Add`, data),
+        Edit: (data: any) => request('POST', `/api/Post/Edit`, data),
+        GetHotWords: () => request('GET', `/api/HotWords/GetList?MaxResultCount=999`),
     },
 
     upload: {
