@@ -75,6 +75,7 @@ declare global {
   const useCssVars: typeof import('vue')['useCssVars']
   const useId: typeof import('vue')['useId']
   const useModel: typeof import('vue')['useModel']
+  const usePushPermission: typeof import('./src/composables/usePushPermission')['usePushPermission']
   const useSlots: typeof import('vue')['useSlots']
   const useStorage: typeof import('./src/stores/useStorage')['useStorage']
   const useStorageRef: typeof import('./src/composables/useStorageRef')['useStorageRef']
