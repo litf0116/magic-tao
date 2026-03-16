@@ -127,12 +127,12 @@ const unread = ref('')
 const showUnread = ref(false)
 
 onLoad(() => {
-    // 版本控制检查：验证用户是否有访问拍卖频道的权限
+    // 版本控制检查：验证用户是否有访问秒杀频道的权限
     const hasAccess = chatStore.chatList.some((chat) => chat.id === -1)
 
     if (!hasAccess) {
         uni.showToast({
-            title: '拍卖功能暂未开放',
+            title: '秒杀功能暂未开放',
             icon: 'none',
             duration: 2000,
         })
@@ -272,7 +272,7 @@ function sub(e: AuctionItemDto) {
     auctionStore
         .startNotify(e.id!, 'app', registrationId)
         .then(() => {
-            Tips.success('订阅成功，拍卖开始时将推送通知')
+            Tips.success('订阅成功，秒杀开始时将推送通知')
         })
         .catch((error: any) => {
             Tips.error(error?.message || '订阅失败，请重试')

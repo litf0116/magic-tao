@@ -15,13 +15,6 @@
         <!-- tabbar -->
         <view class="tabbar">
             <template v-for="(item, index) in tabbarList" :key="index">
-                <!-- #ifndef MP-WEIXIN -->
-                <!-- H5/APP 显示中间发布按钮 -->
-                <view v-if="index === 2" class="mid-btn-arc" :style="elementStyle"></view>
-                <view v-if="index === 2" class="mid-btn" @click="toIndex(2)">
-                    <image class="mid-img" src="../../static/images/add.png"></image>
-                </view>
-                <!-- #endif -->
                 <view class="tabbar-item" @click="toIndex(index)">
                     <view class="icon-wrapper">
                         <image :src="current === index ? item.selectedIconPath : item.iconPath"></image>
@@ -31,6 +24,13 @@
                     <text :class="['font-title', current === index ? 'font-title-active' : '']">{{ item.text }}</text>
                 </view>
             </template>
+            <!-- #ifndef MP-WEIXIN -->
+            <!-- H5/APP 显示中间发布按钮 -->
+            <view class="mid-btn-arc" :style="elementStyle"></view>
+            <view class="mid-btn" @click="toIndex(2)">
+                <image class="mid-img" src="../../static/images/add.png"></image>
+            </view>
+            <!-- #endif -->
         </view>
 
         <custom-modal

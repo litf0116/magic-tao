@@ -40,8 +40,14 @@ const httpsPromisify = <T>(fn: (opt: any) => void) => {
     return function (options: any | undefined) {
         return new Promise<T>((resolve, reject) => {
             options!.success = ({ data, statusCode }: any) => {
-                uni.hideLoading()
-                uni.hideNavigationBarLoading()
+                try {
+                    uni.hideLoading()
+                    // #ifndef H5
+                    uni.hideNavigationBarLoading()
+                    // #endif
+                } catch (error) {
+                    // 忽略隐藏加载状态时的错误
+                }
                 if (data.success) {
                     resolve(data.result)
                 } else {
@@ -58,8 +64,14 @@ const httpsPromisify = <T>(fn: (opt: any) => void) => {
                 }
             }
             options!.fail = (err: any) => {
-                uni.hideLoading()
-                uni.hideNavigationBarLoading()
+                try {
+                    uni.hideLoading()
+                    // #ifndef H5
+                    uni.hideNavigationBarLoading()
+                    // #endif
+                } catch (error) {
+                    // 忽略隐藏加载状态时的错误
+                }
                 return reject(err)
             }
             fn(options)

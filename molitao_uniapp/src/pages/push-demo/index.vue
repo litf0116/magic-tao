@@ -28,12 +28,12 @@
         </view>
 
         <view class="mt-6">
-            <text class="text-lg font-bold mb-2 block">拍卖订阅测试</text>
+            <text class="text-lg font-bold mb-2 block">秒杀订阅测试</text>
             <view class="flex gap-2">
                 <input
                     v-model="auctionItemId"
                     type="number"
-                    placeholder="输入拍卖品ID"
+                    placeholder="输入秒杀品ID"
                     class="flex-1 border border-gray-300 rounded px-3 py-2"
                 />
                 <button class="px-4 py-2 bg-red-500 text-white rounded" @tap="subscribeAuction">订阅</button>
@@ -140,7 +140,7 @@ function testLocalNotification() {
 async function subscribeAuction() {
     const id = parseInt(auctionItemId.value)
     if (!id) {
-        log('请输入有效的拍卖品ID')
+        log('请输入有效的秒杀品ID')
         return
     }
 
@@ -156,19 +156,19 @@ async function subscribeAuction() {
         return
     }
 
-    log(`正在订阅拍卖品 ${id}...`)
+    log(`正在订阅秒杀品 ${id}...`)
     log(`Registration ID: ${regId}`)
 
     try {
         await auctionStore.startNotify(id, 'app', regId)
-        log(`订阅成功! 拍卖开始时将收到推送通知`)
+        log(`订阅成功! 秒杀开始时将收到推送通知`)
     } catch (error: any) {
         log(`订阅失败: ${error?.message || error}`)
     }
     // #endif
 
     // #ifdef MP-WEIXIN
-    log('小程序端请使用拍卖页面的订阅按钮')
+    log('小程序端请使用秒杀页面的订阅按钮')
     // #endif
 }
 </script>

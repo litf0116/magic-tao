@@ -401,9 +401,9 @@ export const useChatStore = defineStore('chatStore', () => {
                     addAuctionDealUser(msg.payload, 'AuctionDeal', dealTime)
                 }
 
-                // 接收者（中拍用户）：为拍卖师创建聊天会话
+                // 接收者（中标用户）：为秒杀师创建聊天会话
                 if (msg.to === userStore.user.id) {
-                    // 中拍用户需要看到拍卖师（msg.from），而不是自己
+                    // 中标用户需要看到秒杀师（msg.from），而不是自己
                     const existingChat = chatList.value.find((item) => item.id === msg.from)
                     if (!existingChat) {
                         chatList.value = [

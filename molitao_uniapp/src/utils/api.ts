@@ -28,8 +28,15 @@ const request = (
     showLoading = true
 ) => {
     if (showLoading) {
-        uni.showLoading({})
-        uni.showNavigationBarLoading()
+        try {
+            uni.showLoading({})
+            // H5 环境下，页面未完全加载时 showNavigationBarLoading 可能会失败
+            // #ifndef H5
+            uni.showNavigationBarLoading()
+            // #endif
+        } catch (error) {
+            console.warn('显示加载状态失败:', error)
+        }
     }
 
     const _url = url.startsWith('http') ? url : host + url

@@ -217,7 +217,9 @@ const switchCategory = (key: number) => {
 const initializeData = async () => {
     try {
         await Promise.all([loadCategoryList(), loadLatestBulletin(), loadHotWords(), loadTopPosts(), loadPostList()])
+        // #ifndef H5
         uni.hideHomeButton()
+        // #endif
     } catch (error) {
         console.error('初始化数据失败:', error)
         Tips.error('加载失败，请重试')

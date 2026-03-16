@@ -1,11 +1,31 @@
 <template>
-    <view class="px-4 bg-[#f6f6f6] min-h-screen">
+    <view class="bg-[#f6f6f6] min-h-screen">
         <view class="myCard p-4 flex flex-col relative">
-            <view class="flex flex-center mb-4">
-                <image :src="getImgUrl(userStore.user.headImgUrl, true)" mode="aspectFill" class="size-12 rounded-full">
+            <view
+                class="flex flex-center mb-4"
+                :class="{ 'zoom-in': !userStore.isLogin }"
+                @click.stop="handleUserClick"
+            >
+                <!-- 未登录状态：显示默认图标 -->
+                <view
+                    v-if="!userStore.isLogin"
+                    class="size-12 rounded-full bg-gray-200 flex flex-center"
+                >
+                    <view class="size-8 i-carbon:user-filled text-gray-400"></view>
+                </view>
+                <!-- 已登录状态：显示用户头像 -->
+                <image
+                    v-else
+                    :src="getImgUrl(userStore.user.headImgUrl, true)"
+                    mode="aspectFill"
+                    class="size-12 rounded-full"
+                >
                 </image>
                 <view class="flex-1 pl-2 flex flex-col">
-                    <view>{{ userStore.user.name }}</view>
+                    <!-- 未登录状态：显示"未登录" -->
+                    <view v-if="!userStore.isLogin" class="text-gray-500">未登录</view>
+                    <!-- 已登录状态：显示用户名 -->
+                    <view v-else>{{ userStore.user.name }}</view>
                     <!-- <view class="pt-1 text-gray-500 text-sm">123</view> -->
                 </view>
                 <view class="flex flex-center text-xs">
@@ -15,15 +35,20 @@
             </view>
             <view class="grid grid-cols-4 gap-4">
                 <view class="flex flex-col flex-center">
-                    <view class="text-lg">{{ myCount.friend }}</view>
+                    <!-- 未登录状态：显示0 -->
+                    <view class="text-lg">{{ userStore.isLogin ? myCount.friend : 0 }}</view>
                     <view>好友</view>
                 </view>
                 <!-- <view class="flex flex-col flex-center" @click.stop="navTo.navTo('/pages/user/balanceLog')">
                     <view class="text-lg">{{ myCount.balance }}</view>
                     <view>余额</view>
                 </view> -->
-                <view class="flex flex-col flex-center" @click.stop="navTo.navTo('/pages/user/depositLog')">
-                    <view class="text-lg">{{ myCount.depositBalance }}</view>
+                <view
+                    class="flex flex-col flex-center"
+                    @click.stop="userStore.isLogin ? navTo.navTo('/pages/user/depositLog') : handleUserClick()"
+                >
+                    <!-- 未登录状态：显示0 -->
+                    <view class="text-lg">{{ userStore.isLogin ? myCount.depositBalance : 0 }}</view>
                     <view>魔力值</view>
                 </view>
             </view>
@@ -77,7 +102,7 @@
                 <view class="bg-[#f6f6f6] size-10 rounded-full flex flex-center">
                     <view class="size-6 i-icon-park-outline:payment-method"></view>
                 </view>
-                <text class="pt-1 text-sm font-500">出价中拍卖</text>
+                <text class="pt-1 text-sm font-500">出价中秒杀</text>
             </view>
             <view class="flex flex-col flex-center zoom-in" @click.stop="wait">
                 <view class="bg-[#f6f6f6] size-10 rounded-full flex flex-center">
@@ -151,12 +176,22 @@ const appVersion = getAppVersion()
 
 const modalVisible = ref(false)
 const emit = defineEmits(['refreshCurrentVal'])
+
+// 处理用户区域点击事件
+function handleUserClick() {
+    if (!userStore.isLogin) {
+        userStore.needLogin(true, false)
+    }
+}
+
 onMounted(async () => {
     await userStore.checkLogin(true, false)
     if (userStore.user.id) {
         getMyCount()
     }
+    // #ifndef H5
     uni.hideHomeButton()
+    // #endif
 })
 
 function getMyCount() {
@@ -313,11 +348,9 @@ function toIndex() {
 </style>
 <route lang="json">
 {
-    "layout": "main",
+    "layout": "default",
     "style": {
-        "navigationBarTitleText": "个人中心",
-        "navigationBarBackgroundColor": "#f6f6f6",
-        "navigationBarTextStyle": "black"
+        "navigationBarTitleText": "个人中心"
     }
 }
 </route>

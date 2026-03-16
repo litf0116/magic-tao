@@ -26,9 +26,14 @@
                         :display-multiple-items="0"
                     ></uv-swiper>
                 </view>
-                <view class="advertisingSpace">
+                <view class="advertisingSpace" v-if="advertisingSpaceList.length > 0">
                     <div v-for="(item, index) in advertisingSpaceList" :key="index" class="advertisingSpace-item">
-                        <image class="logo2" :src="convertImageUrl(item.imageUrl, false)" />
+                        <image
+                            class="logo2"
+                            :src="convertImageUrl(item.imageUrl, false)"
+                            mode="aspectFill"
+                            @error="handleImageError(index)"
+                        />
                         <div
                             style="
                                 position: absolute;
@@ -38,9 +43,12 @@
                                 color: #fff;
                             "
                         >
-                            {{ item.title }}
+                            {{ item.title || item.name || '' }}
                         </div>
                     </div>
+                </view>
+                <view v-else class="text-center text-gray-400 py-4 text-sm">
+                    <!-- 暂无广告位信息 -->
                 </view>
             </view>
         </view>
@@ -80,11 +88,29 @@ onMounted(() => {
 })
 //获取广告位列表
 const advertisingSpace = () => {
-    api.AdvertisingSpace.GetAdvertisingSpaceAll(1).then((res: any) => {
-        nextTick(() => {
-            advertisingSpaceList.value = res.items
+    api.AdvertisingSpace.GetAdvertisingSpaceAll(1)
+        .then((res: any) => {
+            console.log('广告位数据响应:', res)
+            if (res && res.items) {
+                advertisingSpaceList.value = res.items
+                console.log('广告位列表:', res.items)
+            } else if (Array.isArray(res)) {
+                advertisingSpaceList.value = res
+                console.log('广告位列表(数组):', res)
+            } else {
+                console.warn('广告位数据格式异常:', res)
+                advertisingSpaceList.value = []
+            }
         })
-    })
+        .catch((err: any) => {
+            console.error('获取广告位数据失败:', err)
+            advertisingSpaceList.value = []
+        })
+}
+
+// 处理图片加载错误
+const handleImageError = (index: number) => {
+    console.warn(`广告位图片加载失败，索引: ${index}`)
 }
 const list = computed(() => {
     return articleList.value.map((item) => {
