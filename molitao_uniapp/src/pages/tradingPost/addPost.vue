@@ -189,7 +189,14 @@ const submitPost = async () => {
             }, 1000)
         })
     } else {
-        api.post.Edit(formData).then((res: any) => {
+        // 编辑时只提交需要更新的字段，排除服务器返回的冗余字段
+        const editData = {
+            title: formData.title,
+            content: formData.content,
+            categoryId: formData.categoryId,
+            postId: formData.postId,
+        }
+        api.post.Edit(editData).then((res: any) => {
             Tips.success('编辑成功')
             setTimeout(() => {
                 uni.navigateTo({
