@@ -296,7 +296,7 @@ import { ChatListItemType, ChatMessageType, type ChatEmojiDto, type ChatMessage 
 import type { AuctionItemDto } from '@/composables/types'
 import { getImgUrl as getImgUrl2, Tips } from '@/composables'
 import type { ChatOptions } from './types'
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { Goto } from '@/composables/goto'
 import { convertAuctionPayload } from '@/utils/propertyConverter'
 import { convertImageUrl } from '@/utils/imageUrlConverter'
@@ -327,10 +327,6 @@ const emojiStore = useChatEmojiStore()
 const chatStore = useChatStore()
 const userStore = useUserStore()
 const auctionStore = useAuctionStore()
-// H5 下不支持录音管理器
-// #ifndef H5
-const recorderManager = uni.getRecorderManager()
-// #endif
 
 // 定时器 ID 需要在使用前声明
 let timeId: any = null
@@ -439,19 +435,6 @@ const emoji = ref({
     visible: false,
     decoder: new emojiDecoder(emojiStore.emojiUrl, emojiStore.emojiMap),
 })
-const audio = reactive({
-    startTime: null,
-    //语音录音中
-    recording: false,
-    //录音按钮展示
-    visible: false,
-})
-
-let audioPlayer = reactive({
-    innerAudioContext: null,
-    audio: {},
-    playingMessage: null,
-})
 
 // 展示消息删除弹出框
 const actionPopup = ref({
@@ -489,55 +472,6 @@ function catchImage(e: any, payload: any) {
         // console.log('catchImage', e)
     }
 }
-
-//语音录制按钮和键盘输入的切换
-
-function switchAudioKeyboard() {
-    audio.visible = !audio.visible
-    if (uni.authorize) {
-        uni.authorize({
-            scope: 'scope.record',
-            fail: () => {
-                uni.showModal({
-                    title: '获取录音权限失败',
-                    content: '请先授权才能发送语音消息！',
-                })
-            },
-        })
-    }
-}
-
-// #ifndef H5
-function onRecordStart() {
-    try {
-        recorderManager.start({})
-    } catch (e) {
-        uni.showModal({
-            title: '录音错误',
-            content: '请在app和小程序端体验录音，Uni官方明确H5不支持getRecorderManager, 详情查看Uni官方文档',
-        })
-    }
-}
-
-function onRecordEnd() {
-    try {
-        recorderManager.stop()
-    } catch (e) {
-        // console.log(e)
-    }
-}
-// #endif
-
-// H5 下的空函数，避免模板调用报错
-// #ifdef H5
-function onRecordStart() {
-    uni.showToast({
-        title: 'H5 暂不支持录音',
-        icon: 'none',
-    })
-}
-function onRecordEnd() {}
-// #endif
 
 function showImageFullScreen(e: any) {
     let imagesUrl = [e.currentTarget.dataset.url]
