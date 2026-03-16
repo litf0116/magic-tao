@@ -7,10 +7,7 @@
                 @click.stop="handleUserClick"
             >
                 <!-- 未登录状态：显示默认图标 -->
-                <view
-                    v-if="!userStore.isLogin"
-                    class="size-12 rounded-full bg-gray-200 flex flex-center"
-                >
+                <view v-if="!userStore.isLogin" class="size-12 rounded-full bg-gray-200 flex flex-center">
                     <view class="size-8 i-carbon:user-filled text-gray-400"></view>
                 </view>
                 <!-- 已登录状态：显示用户头像 -->

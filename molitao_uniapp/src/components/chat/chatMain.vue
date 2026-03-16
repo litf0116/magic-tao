@@ -327,7 +327,14 @@ const emojiStore = useChatEmojiStore()
 const chatStore = useChatStore()
 const userStore = useUserStore()
 const auctionStore = useAuctionStore()
+// H5 下不支持录音管理器
+// #ifndef H5
 const recorderManager = uni.getRecorderManager()
+// #endif
+
+// 定时器 ID 需要在使用前声明
+let timeId: any = null
+
 //显示群聊规则
 const showGroupChatRules = ref(false)
 //群聊等级信息
@@ -335,6 +342,7 @@ const groupChatLevel: any = ref([])
 const emojiIndex = ref(0)
 
 onLoad(async () => {
+    console.log('[ChatMain] onLoad 触发')
     delayloadhistory()
     scrollToBottom(true)
     //获取群等级信息
@@ -349,24 +357,28 @@ onUnload(() => {
     // 发送事件通知
     uni.$emit('refreshView')
     unsubscribe()
+    // #ifndef H5
     clearInterval(timeId)
+    // #endif
 })
-
-let timeId: any = null
 
 // LINK - 延迟加载服务器最新消息,不同则重连服务器
 function delayloadhistory() {
-    // console.log('delayloadhistory')
+    console.log('[ChatMain] delayloadhistory 触发')
+    // #ifndef H5
     clearInterval(timeId)
+    // #endif
     timeId = setInterval(() => {
-        // console.log('delayloadhistory执行')
+        console.log('[ChatMain] delayloadhistory setInterval 执行')
         //检查最后一条消息是否是historyMsgs的最后一条
         chatStore.getServerLastId().then((res) => {
             const hisLast = last(
                 historyMsgs.value.filter((x) => x.type !== 'Welcome' && x.type !== 'BanUser' && x.type !== 'Backout')
             )
+            console.log('[ChatMain] getServerLastId 结果:', res, 'hisLast:', hisLast?.id)
             // console.log('chatStore.getServerLastId', res, hisLast)
             if (res != api.guid && res !== hisLast?.id) {
+                console.log('[ChatMain] 服务器消息与本地不同，触发 connectServer')
                 // console.log('服务器消息与本地不同')
                 chatStore.connectServer(true).then(() => {
                     loadHistoryMessage(true)
@@ -375,6 +387,7 @@ function delayloadhistory() {
                     }
                 })
             } else {
+                console.log('[ChatMain] 服务器消息与本地相同')
                 // console.log('服务器消息与本地相同')
             }
         })
@@ -494,6 +507,7 @@ function switchAudioKeyboard() {
     }
 }
 
+// #ifndef H5
 function onRecordStart() {
     try {
         recorderManager.start({})
@@ -512,6 +526,18 @@ function onRecordEnd() {
         // console.log(e)
     }
 }
+// #endif
+
+// H5 下的空函数，避免模板调用报错
+// #ifdef H5
+function onRecordStart() {
+    uni.showToast({
+        title: 'H5 暂不支持录音',
+        icon: 'none',
+    })
+}
+function onRecordEnd() {}
+// #endif
 
 function showImageFullScreen(e: any) {
     let imagesUrl = [e.currentTarget.dataset.url]
@@ -522,9 +548,16 @@ function showImageFullScreen(e: any) {
 
 watch(
     () => historyMsgs.value.length,
-    () => {
-        const l = historyMsgs.value.length
+    (newLength, oldLength) => {
+        // 如果消息数量没有变化，不执行任何操作
+        if (newLength === oldLength) return
+
+        console.log('[ChatMain] watch 触发 - historyMsgs.length 变化:', oldLength, '->', newLength)
+        const l = newLength
+        // H5 下不频繁设置定时器，避免频繁刷新
+        // #ifndef H5
         delayloadhistory()
+        // #endif
         if (l > 5) {
             // console.log('watchEffect', historyMsgs.value.length)
             scrollToBottom(false)
@@ -533,6 +566,8 @@ watch(
 )
 // LINK - 滚动到底部
 function scrollToBottom(t = true) {
+    console.log('[ChatMain] scrollToBottom 触发, t =', t)
+    // #ifndef H5
     // console.log('scrollToBottom')
     // nextTick(() => {})
     let query = uni.createSelectorQuery()
@@ -541,12 +576,14 @@ function scrollToBottom(t = true) {
     query.exec((res: any) => {
         if (!t) if (res[0].scrollTop + res[1].height < res[0].scrollHeight - 200) return
         setTimeout(() => {
+            console.log('[ChatMain] 执行 uni.pageScrollTo')
             uni.pageScrollTo({
                 scrollTop: 2_000_000,
                 duration: 0,
             })
         }, 100)
     })
+    // #endif
 }
 
 //解析消息

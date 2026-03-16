@@ -26,7 +26,7 @@
                         :display-multiple-items="0"
                     ></uv-swiper>
                 </view>
-                <view class="advertisingSpace" v-if="advertisingSpaceList.length > 0">
+                <view v-if="advertisingSpaceList.length > 0" class="advertisingSpace">
                     <div v-for="(item, index) in advertisingSpaceList" :key="index" class="advertisingSpace-item">
                         <image
                             class="logo2"
