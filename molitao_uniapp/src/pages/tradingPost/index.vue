@@ -41,9 +41,14 @@
                         ></image>
                     </view>
                     <view class="notice-content barrage-box" @tap="getMore(latestBulletin.content)">
+                        <!-- #ifndef H5 -->
                         <view v-if="latestBulletin" class="notice-text text">
                             <hbxw-roll-text :list="bulletinList" :duration="50"></hbxw-roll-text>
                         </view>
+                        <!-- #endif -->
+                        <!-- #ifdef H5 -->
+                        <text v-if="latestBulletin" class="notice-text text">公告</text>
+                        <!-- #endif -->
                     </view>
                 </view>
             </view>
