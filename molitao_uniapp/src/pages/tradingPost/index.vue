@@ -41,14 +41,9 @@
                         ></image>
                     </view>
                     <view class="notice-content barrage-box" @tap="getMore(latestBulletin.content)">
-                        <!-- #ifndef H5 -->
                         <view v-if="latestBulletin" class="notice-text text">
                             <hbxw-roll-text :list="bulletinList" :duration="50"></hbxw-roll-text>
                         </view>
-                        <!-- #endif -->
-                        <!-- #ifdef H5 -->
-                        <text v-if="latestBulletin" class="notice-text text">公告</text>
-                        <!-- #endif -->
                     </view>
                 </view>
             </view>
@@ -290,7 +285,7 @@ const loadPostList = async () => {
             Type: activeKey.value,
             isTop: false,
             Keyword: keywords.value,
-            SkipCount: pagination.page,
+            SkipCount: (pagination.page - 1) * pagination.pageSize,
             MaxResultCount: pagination.pageSize,
         })
 
@@ -377,7 +372,9 @@ const loadLatestBulletin = () => {
             .replace(/<[^>]+>/g, '') // 去掉所有HTML标签
             .split('|SPLIT|') // 根据特殊标记分割成数组
             .map((item: any) => item.trim().replace(/↵/g, '')) // 清理每项的空格和换行
-        bulletinList.value = arr
+            .filter((item: any) => item) // 过滤空消息
+        // 只取最新的一条消息进行滚动展示
+        bulletinList.value = arr.length > 0 ? [arr[0]] : []
     })
 }
 //加载热词
@@ -473,6 +470,10 @@ uni-modal .uni-modal__bd {
     width: 200vw;
     font-size: 16px;
     color: #000;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1;
 }
 
 /* 文字滚动 */
@@ -545,6 +546,25 @@ uni-modal .uni-modal__bd {
     font-size: 26rpx;
     color: #fa8c16;
     transition: transform 0.3s linear;
+    line-height: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 覆盖公告滚动组件高度 */
+.notice-text :deep(.roll-container),
+.notice-text :deep(.roll-wrap) {
+    height: 50rpx !important;
+}
+
+/* 强制单行展示 */
+.notice-text :deep(.text-item),
+.notice-text :deep(text) {
+    line-height: 1 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    display: inline-block !important;
 }
 
 .hotWords {

@@ -127,9 +127,16 @@ const getAuth = () => {
         }
         policy.value = base64.encode(JSON.stringify(opts))
         const data = ['POST', '/' + bucketName, date, policy.value].join('&')
+        // H5 开发模式下使用相对路径，其他模式使用配置的后端地址
+        let baseApi = import.meta.env.VITE_APP_BASE_API || ''
+        // #ifdef H5
+        if (import.meta.env.DEV) {
+            baseApi = ''
+        }
+        // #endif
         uni.request({
             method: 'GET',
-            url: import.meta.env.VITE_APP_BASE_API + api.upload.getSignature,
+            url: baseApi + api.upload.getSignature,
             data: { data: data },
             //请求成功后返回
             success: (res: any) => {
