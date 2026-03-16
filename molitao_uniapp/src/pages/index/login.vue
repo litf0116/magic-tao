@@ -175,15 +175,25 @@ const { toHome, toForgotPassword } = useTo()
 
 // 登录成功后跳转处理
 const navigateAfterLogin = () => {
+    console.log('[navigateAfterLogin] 开始执行')
     // #ifdef H5
     // 检查上一个页面是否是登录页
     const referrer = document.referrer
     const isReferrerLoginPage = referrer.includes('/pages/index/login')
 
+    console.log('[navigateAfterLogin] H5模式', {
+        historyLength: window.history.length,
+        referrer,
+        isReferrerLoginPage,
+    })
+
     // 如果没有上一个页面，或上一个页面就是登录页，则跳转到首页
     if (window.history.length <= 1 || isReferrerLoginPage) {
-        uni.reLaunch({ url: '/pages/tabbar/index' })
+        console.log('[navigateAfterLogin] 跳转到首页 /pages/tabbar/index')
+        // H5 环境下使用 window.location.href 进行跳转
+        window.location.href = '#/pages/tabbar/index'
     } else {
+        console.log('[navigateAfterLogin] 返回上一页')
         uni.navigateBack()
     }
     // #endif
@@ -219,10 +229,13 @@ const handleLogin = async () => {
     isLoading.value = true
 
     try {
+        console.log('[handleLogin] 开始登录', form.value.userNameOrEmailAddress.trim())
         await userStore.login(form.value.userNameOrEmailAddress.trim(), form.value.password.trim())
+        console.log('[handleLogin] 登录API调用成功')
         uni.showToast({ title: '登录成功', icon: 'success' })
         uni.$emit('refreshView')
         setTimeout(() => {
+            console.log('[handleLogin] 准备执行 navigateAfterLogin')
             navigateAfterLogin()
         }, 500)
     } catch (error: any) {
