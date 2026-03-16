@@ -1,21 +1,5 @@
 <template>
     <view class="container">
-        <!-- #ifndef H5 -->
-        <scroll-view
-            class="scroll-container"
-            scroll-y="true"
-            refresher-enabled="true"
-            :refresher-triggered="loadingState.refreshing"
-            :lower-threshold="150"
-            :enhanced="true"
-            :bounce="true"
-            :show-scrollbar="true"
-            fast-deceleration
-            @refresherrefresh="onRefresh"
-            @scrolltolower="onLoadMore"
-        >
-        <!-- #endif -->
-        <!-- #ifdef H5 -->
         <scroll-view
             class="scroll-container"
             scroll-y="true"
@@ -24,10 +8,11 @@
             :lower-threshold="150"
             :bounce="true"
             :show-scrollbar="true"
+            :enhanced="isNotH5"
+            :fast-deceleration="isNotH5"
             @refresherrefresh="onRefresh"
             @scrolltolower="onLoadMore"
         >
-        <!-- #endif -->
             <!-- 顶部筛选区 -->
             <view class="filter-section">
                 <!-- 左侧滑动分类 -->
@@ -167,7 +152,6 @@
             <!-- 底部留白区域，确保最后一个帖子不被tabbar遮挡 -->
             <view class="bottom-spacer"></view>
         </scroll-view>
-        <!-- #endif -->
     </view>
 </template>
 
@@ -190,6 +174,13 @@ const loadingState = reactive({
     loadingMore: false,
     error: null,
 })
+
+// #ifndef H5
+const isNotH5 = true
+// #endif
+// #ifdef H5
+const isNotH5 = false
+// #endif
 
 const activeKey = ref(-1)
 const keywords = ref('')
