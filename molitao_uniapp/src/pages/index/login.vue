@@ -176,33 +176,48 @@ const { toHome, toForgotPassword } = useTo()
 // 登录成功后跳转处理
 const navigateAfterLogin = () => {
     console.log('[navigateAfterLogin] 开始执行')
+
     // #ifdef H5
-    // 检查上一个页面是否是登录页
+    // H5 环境：检查是否需要返回上一页
     const referrer = document.referrer
-    const isReferrerLoginPage = referrer.includes('/pages/index/login')
+    const hasReferrer = referrer && referrer.length > 0
+    const isFromLoginPage = referrer && referrer.includes('/pages/index/login')
 
     console.log('[navigateAfterLogin] H5模式', {
-        historyLength: window.history.length,
         referrer,
-        isReferrerLoginPage,
+        hasReferrer,
+        isFromLoginPage,
     })
 
-    // 如果没有上一个页面，或上一个页面就是登录页，则跳转到首页
-    if (window.history.length <= 1 || isReferrerLoginPage) {
-        console.log('[navigateAfterLogin] 跳转到首页 /pages/tabbar/index')
-        // H5 环境下使用 window.location.href 进行跳转
-        window.location.href = '#/pages/tabbar/index'
-    } else {
+    // 如果有来源页面且不是登录页，则返回上一页
+    if (hasReferrer && !isFromLoginPage) {
         console.log('[navigateAfterLogin] 返回上一页')
         uni.navigateBack()
+    } else {
+        // 否则跳转到首页（使用 redirectTo 关闭当前登录页）
+        console.log('[navigateAfterLogin] 跳转到首页 /pages/tabbar/index')
+        uni.redirectTo({ url: '/pages/tabbar/index' })
     }
     // #endif
+
     // #ifndef H5
+    // 非 H5 环境：检查页面栈
     const pages = uni.getCurrentPages()
-    if (!pages || pages.length <= 1) {
-        uni.reLaunch({ url: '/pages/tabbar/index' })
-    } else {
+    const hasPages = pages && pages.length > 1
+
+    console.log('[navigateAfterLogin] 非 H5 模式', {
+        pagesLength: pages ? pages.length : 0,
+        hasPages,
+    })
+
+    // 如果有上一页，则返回上一页
+    if (hasPages) {
+        console.log('[navigateAfterLogin] 返回上一页')
         uni.navigateBack()
+    } else {
+        // 否则关闭所有页面并跳转到首页
+        console.log('[navigateAfterLogin] 跳转到首页 /pages/tabbar/index')
+        uni.reLaunch({ url: '/pages/tabbar/index' })
     }
     // #endif
 }
