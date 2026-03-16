@@ -240,6 +240,7 @@ export default {
         Add: (data: any) => request('POST', `/api/Post/Add`, data),
         Edit: (data: any) => request('POST', `/api/Post/Edit`, data),
         GetHotWords: () => request('GET', `/api/HotWords/GetList?MaxResultCount=999`),
+        GetHotWordsList: () => request('GET', `/api/HotWords/GetList?MaxResultCount=999`),
     },
 
     upload: {
