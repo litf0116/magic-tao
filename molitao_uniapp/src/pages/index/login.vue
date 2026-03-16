@@ -173,6 +173,25 @@ const qrcodeExpireTimer = ref<any>(null)
 
 const { toHome, toForgotPassword } = useTo()
 
+// 登录成功后跳转处理
+const navigateAfterLogin = () => {
+    // #ifdef H5
+    if (window.history.length <= 1) {
+        uni.reLaunch({ url: '/pages/tabbar/index' })
+    } else {
+        uni.navigateBack()
+    }
+    // #endif
+    // #ifndef H5
+    const pages = uni.getCurrentPages()
+    if (!pages || pages.length <= 1) {
+        uni.reLaunch({ url: '/pages/tabbar/index' })
+    } else {
+        uni.navigateBack()
+    }
+    // #endif
+}
+
 const form = ref({
     userNameOrEmailAddress: '',
     password: '',
@@ -198,7 +217,9 @@ const handleLogin = async () => {
         await userStore.login(form.value.userNameOrEmailAddress.trim(), form.value.password.trim())
         uni.showToast({ title: '登录成功', icon: 'success' })
         uni.$emit('refreshView')
-        uni.navigateBack()
+        setTimeout(() => {
+            navigateAfterLogin()
+        }, 500)
     } catch (error: any) {
         uni.showToast({
             title: error?.message || '登录失败',
@@ -218,7 +239,9 @@ const handleWxLogin = () => {
         .wxLogin()
         .then(() => {
             uni.$emit('refreshView')
-            uni.navigateBack()
+            setTimeout(() => {
+                navigateAfterLogin()
+            }, 500)
         })
         .catch((error: any) => {
             uni.showToast({ title: error?.message || '微信登录失败', icon: 'none' })
@@ -233,7 +256,9 @@ const handleWxOAuth = () => {
         .appWxLogin()
         .then(() => {
             uni.$emit('refreshView')
-            uni.navigateBack()
+            setTimeout(() => {
+                navigateAfterLogin()
+            }, 500)
         })
         .catch((error: any) => {
             uni.showToast({ title: error?.message || '微信登录失败', icon: 'none' })
@@ -273,7 +298,7 @@ const startQrcodePolling = () => {
                 uni.showToast({ title: '登录成功', icon: 'success' })
 
                 setTimeout(() => {
-                    uni.navigateBack()
+                    navigateAfterLogin()
                 }, 500)
             }
         } catch (error) {
