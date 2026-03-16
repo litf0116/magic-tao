@@ -105,6 +105,10 @@ onLoad((option: any) => {
                 selectedCategories.value = res.categoryId.split(',').map(String)
             }
             Object.assign(formData, res)
+            // API返回后，更新编辑器内容
+            if (editorIns.value && formData.content) {
+                preRender(formData.content)
+            }
         })
     }
     getAuth()
