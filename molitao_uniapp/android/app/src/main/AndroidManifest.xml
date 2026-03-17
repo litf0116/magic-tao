@@ -40,6 +40,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MolitaoApp"
         android:usesCleartextTraffic="true"
+        tools:replace="android:allowBackup"
         tools:targetApi="31">
 
         <meta-data
