@@ -172,11 +172,12 @@
 					"type": "image/png"
 				}
 			],
-			"start_url": "/index.html"
+			"start_url": "/"
 		},
 		"devServer": {
 			"https": false,
-			"port": 5175
+			"port": 5175,
+			"disableHostCheck": true
 		}
 	},
 	"uniStatistics": {

@@ -2,7 +2,7 @@
   "name": "魔力淘",
   "short_name": "魔力淘",
   "description": "魔力淘 - 在线拍卖交易平台，发现更多精彩拍品",
-  "start_url": "/index.html",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#f4835a",

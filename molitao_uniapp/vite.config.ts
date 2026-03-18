@@ -5,12 +5,13 @@ import UnoCSS from 'unocss/vite'
 import UniLayouts from '@uni-helper/vite-plugin-uni-layouts'
 
 export default defineConfig({
+    publicDir: 'public',
     define: {
         __APP_VERSION__: '"20260311@1.1.22"',
     },
     // H5 开发服务器配置 - 解决跨域问题
     server: {
-        port: 5173,
+        port: 5175,
         host: '0.0.0.0',
         proxy: {
             // 代理所有 /api 请求到本地后端服务器
@@ -32,7 +33,11 @@ export default defineConfig({
         watch: {
             exclude: ['node_modules/**', '/__uno.css'],
         },
-        rollupOptions: {},
+        rollupOptions: {
+            output: {
+                manualChunks: undefined,
+            },
+        },
     },
     plugins: [
         // UniPages({
