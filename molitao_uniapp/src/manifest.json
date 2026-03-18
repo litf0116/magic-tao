@@ -19,7 +19,7 @@
 		/* OAuth登录配置 - 微信开放平台 */
 		"oauth": {
 			"weixin": {
-				"appid": "",
+				"appid": "wxbfbe7d50ed28ed41",
 				"universalLinks": ""
 			}
 		},
@@ -69,11 +69,11 @@
 						"channel": "developer-default"
 					}
 				},
-				"oauth": {
-					"weixin": {
-						"appid": ""
-					}
+			"oauth": {
+				"weixin": {
+					"appid": "wxbfbe7d50ed28ed41"
 				}
+			}
 			}
 		}
 	},
