@@ -24,6 +24,7 @@ dist
 android/app/build/
 android/.gradle/
 android/app/libs/*.aar
+android/build/
 
 # Temporary files
 .mock_sdk/
