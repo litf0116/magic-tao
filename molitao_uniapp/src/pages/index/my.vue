@@ -345,7 +345,7 @@ function toIndex() {
 </style>
 <route lang="json">
 {
-    "layout": "default",
+    "layout": "main",
     "style": {
         "navigationBarTitleText": "个人中心"
     }
