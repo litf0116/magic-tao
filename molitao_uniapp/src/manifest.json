@@ -116,7 +116,7 @@
 		"template": "index.html",
 		"router": {
 			"mode": "hash",
-			"base": "./"
+			"base": "./h5/"
 		},
 		"optimization": {
 			"treeShaking": {
