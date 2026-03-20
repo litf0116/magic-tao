@@ -48,6 +48,7 @@ const httpsPromisify = <T>(fn: (opt: any) => void) => {
                 } catch (error) {
                     // 忽略隐藏加载状态时的错误
                 }
+                console.log('[API Response]', options!.url, { data, statusCode })
                 if (data.success) {
                     resolve(data.result)
                 } else {
@@ -58,6 +59,7 @@ const httpsPromisify = <T>(fn: (opt: any) => void) => {
                     }
                     // 处理 HTTP 404 等错误，data.error 可能不存在
                     const err = data.error
+                    console.log('[API Error]', options!.url, { err, data })
                     errorPrompt(err)
                     reject(err?.details || err?.message || '请求失败')
                     return
