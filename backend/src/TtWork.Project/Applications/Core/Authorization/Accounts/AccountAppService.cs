@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using TtWork.Abp;
 using TtWork.Abp.Applications.Dtos;
 using TtWork.Abp.Authorization.Users;
+using TtWork.Abp.Definitions;
 using TtWork.Project.Applications.Authorization.Accounts.Dto;
 using TtWork.Project.Authorization.Accounts.Dto;
 
@@ -42,7 +43,7 @@ namespace TtWork.Project.Applications.Core.Authorization.Accounts {
             return new IsTenantAvailableOutput(TenantAvailabilityState.Available, tenant.Id);
         }
 
-        [AbpAuthorize("Admin")]
+        [AbpAuthorize(AppPermissions.Administration)]
         public async Task<RegisterOutput> Register(RegisterInput input) {
             var user = await _userRegistrationManager.RegisterAsync(
                 input.Name,

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TtWork.Abp;
+using TtWork.Abp.Definitions;
 using TtWork.Project.Domains;
 
 namespace TtWork.Project.Applications
@@ -31,7 +32,7 @@ namespace TtWork.Project.Applications
         /// 上传并发布新版本
         /// </summary>
         [HttpPost]
-        [AbpAuthorize("Admin")]
+        [AbpAuthorize(AppPermissions.Administration)]
         public async Task<long> PublishAppRelease(
             [FromForm] string versionName,
             [FromForm] int versionCode,
@@ -138,7 +139,7 @@ namespace TtWork.Project.Applications
         /// 获取版本历史（管理员）
         /// </summary>
         [HttpGet]
-        [AbpAuthorize("Admin")]
+        [AbpAuthorize(AppPermissions.Administration)]
         public async Task<object> GetReleaseHistory(string platform = "android")
         {
             var releases = await _appReleaseRepository.GetAllListAsync(x => x.Platform == platform);
@@ -167,7 +168,7 @@ namespace TtWork.Project.Applications
         /// 删除版本（管理员）
         /// </summary>
         [HttpDelete]
-        [AbpAuthorize("Admin")]
+        [AbpAuthorize(AppPermissions.Administration)]
         public async Task DeleteRelease(long id)
         {
             var release = await _appReleaseRepository.GetAsync(id);
@@ -178,7 +179,7 @@ namespace TtWork.Project.Applications
         /// 切换版本激活状态（管理员）
         /// </summary>
         [HttpPost]
-        [AbpAuthorize("Admin")]
+        [AbpAuthorize(AppPermissions.Administration)]
         public async Task ToggleRelease(long id)
         {
             var release = await _appReleaseRepository.GetAsync(id);
