@@ -7,9 +7,13 @@
             <!-- #ifndef MP-WEIXIN -->
             <!-- H5/APP 显示交易站 -->
             <tradingPost v-if="current == 2" ref="tradingPostRef" @updateModalConfig="updateModal"></tradingPost>
-            <!-- #endif -->
             <contacts v-if="current == 3" ref="contactsRef" @refreshCurrentVal="getUserFriendCount"></contacts>
-            <my v-if="current == 4" @refreshCurrentVal="toIndex"></my>
+            <!-- #endif -->
+            <!-- #ifdef MP-WEIXIN -->
+            <!-- 小程序没有交易站，通讯录在索引2 -->
+            <contacts v-if="current == 2" ref="contactsRef" @refreshCurrentVal="getUserFriendCount"></contacts>
+            <!-- #endif -->
+            <my v-if="current == personalCenterIndex" @refreshCurrentVal="toIndex"></my>
         </view>
 
         <!-- tabbar -->
@@ -78,6 +82,16 @@ const tradingPostRef = ref(null)
 const timer = ref(null)
 const badgeCount = ref(0)
 const current = ref(0)
+
+// #ifdef MP-WEIXIN
+// 小程序：首页(0)、会话(1)、通讯录(2)、个人中心(3)
+const personalCenterIndex = 3
+// #endif
+// #ifndef MP-WEIXIN
+// APP/H5：首页(0)、会话(1)、交易站(2)、通讯录(3)、个人中心(4)
+const personalCenterIndex = 4
+// #endif
+
 const tabbarList = reactive([
     {
         pagePath: 'pages/index/index',

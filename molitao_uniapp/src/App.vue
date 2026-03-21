@@ -6,8 +6,10 @@ import api from '@/utils/api'
 import { pushService } from '@/utils/push'
 import { appUpdateManager } from '@/utils/appUpdate'
 import UpdateModal from '@/components/UpdateModal.vue'
+import { useUserStore } from '@/stores/userStore'
 
 const getSystemInfoSync = uni.getSystemInfoSync()
+const userStore = useUserStore()
 
 const showUpdateModal = ref(false)
 const versionInfo = ref<any>(null)
@@ -95,8 +97,6 @@ onHide(() => {})
 onUnload(() => {
     unsubscribe()
 })
-
-const userStore = useUserStore()
 
 const bus = useEventBus(onmessageKey)
 const unsubscribe = bus.on((msg: any) => {
