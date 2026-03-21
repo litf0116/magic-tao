@@ -204,8 +204,7 @@ public class ChatChannelService : DomainService
         var query = _chatChannelRepository.GetAll()
             .AsNoTracking()
             .IgnoreQueryFilters()
-            .Where(channel => channel.IsActive && channel.LastMessageId != null)
-            // 排除自己与自己的私聊频道
+            .Where(channel => channel.IsActive && (channel.ChannelType == ChatChannelType.System || channel.LastMessageId != null))
             .Where(channel => !(channel.ChannelType == ChatChannelType.Private && channel.User1Id == channel.User2Id))
             .Where(channel =>
                 // 系统频道：所有人可见

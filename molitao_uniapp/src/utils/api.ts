@@ -19,6 +19,14 @@ if (import.meta.env.DEV) {
 }
 // #endif
 
+// #ifdef MP-WEIXIN
+host = 'http://192.168.10.231:12580'
+// #endif
+
+// #ifdef APP-PLUS
+host = 'http://192.168.10.231:12580'
+// #endif
+
 const getRequest = utils.httpsPromisify(uni.request)
 
 const request = (
@@ -43,6 +51,8 @@ const request = (
 
     const appVersion = getAppVersion()
 
+    console.log('[API 请求]', { method, url: _url, data })
+
     return getRequest({
         url: _url,
         data: data,
@@ -55,6 +65,14 @@ const request = (
             AppName: 'uniapp',
             AppVersion: appVersion,
         },
+    }).then((res: any) => {
+        if (res && res.statusCode !== undefined) {
+            console.log('[API 响应]', { url: _url, statusCode: res.statusCode, data: res.data })
+        }
+        return res
+    }).catch((err: any) => {
+        console.error('[API 错误]', { url: _url, error: err })
+        throw err
     })
 }
 
@@ -145,7 +163,6 @@ export default {
             request('GET', `/api/services/app/Message/getChanHistory`, data, false) as Promise<{
                 items?: ChatMessage[]
             }>,
-
         getChanLastId: (data: { chan: string }) =>
             request('GET', `/api/services/app/Message/getChanLastId`, data, false) as Promise<string>,
 

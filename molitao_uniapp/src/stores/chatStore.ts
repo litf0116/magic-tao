@@ -653,7 +653,7 @@ export const useChatStore = defineStore('chatStore', () => {
                 payload: payload,
             }
 
-            await api.ws
+            return api.ws
                 .sendChannelMsg({
                     from: websocketId.value,
                     chan: chan,
@@ -661,6 +661,9 @@ export const useChatStore = defineStore('chatStore', () => {
                 })
                 .then((res) => {
                     return resolve(res)
+                })
+                .catch((err) => {
+                    return resolve(null)
                 })
         })
     }
