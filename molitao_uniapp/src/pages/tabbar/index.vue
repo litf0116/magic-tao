@@ -1,41 +1,62 @@
 <template>
     <view class="container">
-        <!-- 组件页面 -->
+        <!-- ============================================= -->
+        <!-- #ifdef MP-WEIXIN -->
+        <!-- 小程序: 4个tab (首页、会话、通讯录、个人中心) -->
+        <!-- ============================================= -->
         <view class="component-page" style="height: 100%">
             <home v-if="current == 0" @refreshCurrentVal="toIndex"></home>
             <chat v-if="current == 1" ref="chatRef" @refreshCurrentVal="getUserFriendCount"></chat>
-            <!-- #ifndef MP-WEIXIN -->
-            <!-- H5/APP 显示交易站 -->
-            <tradingPost v-if="current == 2" ref="tradingPostRef" @updateModalConfig="updateModal"></tradingPost>
-            <contacts v-if="current == 3" ref="contactsRef" @refreshCurrentVal="getUserFriendCount"></contacts>
-            <!-- #endif -->
-            <!-- #ifdef MP-WEIXIN -->
-            <!-- 小程序没有交易站，通讯录在索引2 -->
             <contacts v-if="current == 2" ref="contactsRef" @refreshCurrentVal="getUserFriendCount"></contacts>
-            <!-- #endif -->
             <my v-if="current == personalCenterIndex" @refreshCurrentVal="toIndex"></my>
         </view>
 
-        <!-- tabbar -->
+        <!-- 小程序 tabbar -->
         <view class="tabbar">
             <template v-for="(item, index) in tabbarList" :key="index">
                 <view class="tabbar-item" @click="toIndex(index)">
                     <view class="icon-wrapper">
                         <image :src="current === index ? item.selectedIconPath : item.iconPath"></image>
-                        <!-- 添加角标 -->
+                        <view v-if="index == 2 && badgeCount > 0" class="badge">{{ badgeCount }}</view>
+                    </view>
+                    <text :class="['font-title', current === index ? 'font-title-active' : '']">{{ item.text }}</text>
+                </view>
+            </template>
+        </view>
+        <!-- #endif -->
+        <!-- ============================================= -->
+
+        <!-- ============================================= -->
+        <!-- #ifndef MP-WEIXIN -->
+        <!-- APP/H5: 5个tab (首页、会话、交易站、通讯录、个人中心) -->
+        <!-- ============================================= -->
+        <view class="component-page" style="height: 100%">
+            <home v-if="current == 0" @refreshCurrentVal="toIndex"></home>
+            <chat v-if="current == 1" ref="chatRef" @refreshCurrentVal="getUserFriendCount"></chat>
+            <tradingPost v-if="current == 2" ref="tradingPostRef" @updateModalConfig="updateModal"></tradingPost>
+            <contacts v-if="current == 3" ref="contactsRef" @refreshCurrentVal="getUserFriendCount"></contacts>
+            <my v-if="current == personalCenterIndex" @refreshCurrentVal="toIndex"></my>
+        </view>
+
+        <!-- APP/H5 tabbar -->
+        <view class="tabbar">
+            <template v-for="(item, index) in tabbarList" :key="index">
+                <view class="tabbar-item" @click="toIndex(index)">
+                    <view class="icon-wrapper">
+                        <image :src="current === index ? item.selectedIconPath : item.iconPath"></image>
                         <view v-if="index == 3 && badgeCount > 0" class="badge">{{ badgeCount }}</view>
                     </view>
                     <text :class="['font-title', current === index ? 'font-title-active' : '']">{{ item.text }}</text>
                 </view>
             </template>
-            <!-- #ifndef MP-WEIXIN -->
-            <!-- H5/APP 显示中间发布按钮 -->
+            <!-- 中间发布按钮 -->
             <view class="mid-btn-arc" :style="elementStyle"></view>
             <view class="mid-btn" @click="toIndex(2)">
                 <image class="mid-img" src="../../static/images/add.png"></image>
             </view>
-            <!-- #endif -->
         </view>
+        <!-- #endif -->
+        <!-- ============================================= -->
 
         <custom-modal
             v-model:show="modalConfig.show"
@@ -53,18 +74,18 @@
 </template>
 
 <script setup>
-import { onLoad, onShow, onUnload, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
-import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
+// =============================================
+// 公共引入
+// =============================================
+import { onShow, onUnload, onPullDownRefresh, onReachBottom, onBeforeUnmount } from '@dcloudio/uni-app'
+import { ref, reactive } from 'vue'
 import api from '@/utils/api'
 import home from '../index/index.vue'
 import chat from '../chat/index.vue'
-
-// #ifndef MP-WEIXIN
-import tradingPost from '../tradingPost/index.vue'
-// #endif
 import contacts from '../chat/contacts.vue'
 import my from '../index/my.vue'
 import CustomModal from '@/components/customModal.vue'
+
 const modalConfig = reactive({
     show: false,
     title: '【魔力淘】交易行使用规范',
@@ -74,23 +95,17 @@ const modalConfig = reactive({
     confirmText: '确定',
 })
 
-const contactsRef = ref(null)
-// #ifndef MP-WEIXIN
-const tradingPostRef = ref(null)
-// #endif
-
-const timer = ref(null)
-const badgeCount = ref(0)
-const current = ref(0)
-
+// =============================================
 // #ifdef MP-WEIXIN
-// 小程序：首页(0)、会话(1)、通讯录(2)、个人中心(3)
+// 小程序: 4个tab
+// =============================================
+const chatRef = ref(null)
+const contactsRef = ref(null)
+const tradingPostRef = ref(null) // 声明但不使用，避名交叉引用问题
+const current = ref(0)
+const badgeCount = ref(0)
+const timer = ref(null)
 const personalCenterIndex = 3
-// #endif
-// #ifndef MP-WEIXIN
-// APP/H5：首页(0)、会话(1)、交易站(2)、通讯录(3)、个人中心(4)
-const personalCenterIndex = 4
-// #endif
 
 const tabbarList = reactive([
     {
@@ -105,15 +120,6 @@ const tabbarList = reactive([
         selectedIconPath: '../../static/images/tab2.png',
         text: '会话列表',
     },
-    // #ifndef MP-WEIXIN
-    // H5/APP 显示交易站
-    {
-        pagePath: 'pages/tradingPost/index',
-        iconPath: '../../static/images/tab3_b.png',
-        selectedIconPath: '../../static/images/tab3.png',
-        text: '交易站',
-    },
-    // #endif
     {
         pagePath: 'pages/chat/contacts',
         iconPath: '../../static/images/tab3_b.png',
@@ -127,49 +133,107 @@ const tabbarList = reactive([
         text: '个人中心',
     },
 ])
+
+const titleMap = {
+    0: '魔力淘',
+    1: '会话',
+    2: '通讯录',
+    3: '个人中心',
+}
+// #endif
+// =============================================
+
+// =============================================
+// #ifndef MP-WEIXIN
+// APP/H5: 5个tab
+// =============================================
+import tradingPost from '../tradingPost/index.vue'
+
 const chatRef = ref(null)
+const contactsRef = ref(null)
+const tradingPostRef = ref(null)
+const elementStyle = ref({ left: '50%' })
+
+const current = ref(0)
+const badgeCount = ref(0)
+const timer = ref(null)
+const personalCenterIndex = 4
+
+const tabbarList = reactive([
+    {
+        pagePath: 'pages/index/index',
+        iconPath: '../../static/images/tab1_b.png',
+        selectedIconPath: '../../static/images/tab1.png',
+        text: '首页',
+    },
+    {
+        pagePath: 'pages/chat/index',
+        iconPath: '../../static/images/tab2_b.png',
+        selectedIconPath: '../../static/images/tab2.png',
+        text: '会话列表',
+    },
+    {
+        pagePath: 'pages/tradingPost/index',
+        iconPath: '../../static/images/tab3_b.png',
+        selectedIconPath: '../../static/images/tab3.png',
+        text: '交易站',
+    },
+    {
+        pagePath: 'pages/chat/contacts',
+        iconPath: '../../static/images/tab3_b.png',
+        selectedIconPath: '../../static/images/tab3.png',
+        text: '通讯录',
+    },
+    {
+        pagePath: 'pages/index/my',
+        iconPath: '../../static/images/tab4_b.png',
+        selectedIconPath: '../../static/images/tab4.png',
+        text: '个人中心',
+    },
+])
+
+const titleMap = {
+    0: '魔力淘',
+    1: '会话',
+    2: '交易站',
+    3: '通讯录',
+    4: '个人中心',
+}
+// #endif
+// =============================================
+
 const userStore = useUserStore()
-const elementStyle = ref({
-    left: '50%', // 默认值
-})
+
+// =============================================
+// 公共逻辑
+// =============================================
 onShow(() => {
     uni.$on('refreshView', () => {
         if (chatRef.value) {
             chatRef.value.init()
         }
     })
+
+    // #ifndef MP-WEIXIN
+    // APP/H5 需要计算中间按钮位置
     uni.getSystemInfo({
         success: (res) => {
             const screenWidth = res.windowWidth
-            // 手动计算 100rpx 等于多少 px
-            // 标准比例：750rpx = 屏幕宽度(px)
             const rpxRatio = screenWidth / 750
             const offsetPx = 100 * rpxRatio
-
-            // 屏幕中点
             const halfScreen = screenWidth / 2
-            //获取系统信息
             const systemInfo = uni.getSystemInfoSync()
-            // 判断操作系统
             if (systemInfo.platform === 'android') {
-                elementStyle.value = {
-                    left: `${halfScreen - offsetPx}px`,
-                }
-            } else if (systemInfo.platform === 'ios') {
-                elementStyle.value = {
-                    left: `${halfScreen - offsetPx + 6}px`,
-                }
+                elementStyle.value = { left: `${halfScreen - offsetPx}px` }
             } else {
-                elementStyle.value = {
-                    left: `${halfScreen - offsetPx + 6}px`,
-                }
+                elementStyle.value = { left: `${halfScreen - offsetPx + 6}px` }
             }
         },
     })
-    // 只有登录后才启动定时器获取好友申请数量
+    // #endif
+
     if (userStore.token) {
         getUserFriendCount()
-        // 启动定时器 - 每30秒执行一次
         timer.value = setInterval(() => {
             if (userStore.token) {
                 getUserFriendCount()
@@ -177,90 +241,63 @@ onShow(() => {
         }, 30000)
     }
 })
+
 onUnload(() => {
-    // 页面卸载时移除事件监听，避免内存泄漏
     uni.$off('refreshView')
 })
+
 onBeforeUnmount(() => {
     if (timer.value) {
         clearInterval(timer.value)
         timer.value = null
     }
 })
+
 onReachBottom(() => {
     uni.$emit('onReachBottom')
 })
 
-//选择跳转页面
+// 选择跳转页面
 const toIndex = (index) => {
     current.value = index
-    // #ifdef MP-WEIXIN
-    // 小程序没有交易站，索引映射
-    const titleMap = {
-        0: '魔力淘',
-        1: '会话',
-        2: '通讯录',
-        3: '个人中心',
-    }
-    const personalCenterIndex = 3
-    // #endif
-    // #ifndef MP-WEIXIN
-    // H5/APP 有交易站
-    const titleMap = {
-        0: '魔力淘',
-        1: '会话',
-        2: '交易站',
-        3: '通讯录',
-        4: '个人中心',
-    }
-    const personalCenterIndex = 4
-    // #endif
 
     if (titleMap[current.value]) {
-        uni.setNavigationBarTitle({
-            title: titleMap[current.value],
-        })
+        uni.setNavigationBarTitle({ title: titleMap[current.value] })
     }
 
     if (current.value === personalCenterIndex) {
-        uni.setNavigationBarColor({
-            frontColor: '#000000',
-            backgroundColor: '#f6f6f6',
-        })
+        uni.setNavigationBarColor({ frontColor: '#000000', backgroundColor: '#f6f6f6' })
     } else {
-        uni.setNavigationBarColor({
-            frontColor: '#ffffff',
-            backgroundColor: '#F4835a',
-        })
+        uni.setNavigationBarColor({ frontColor: '#ffffff', backgroundColor: '#F4835a' })
     }
+
     if (current.value == 1) {
         setTimeout(() => {
-            chatRef.value.init()
+            chatRef.value?.init()
         }, 300)
     }
 }
-//获取用户好友申请记录
+
 const getUserFriendCount = () => {
     api.userFriend.GetUserFriendCount().then((res) => {
         badgeCount.value = res
     })
 }
-//更新数据
+
 const updateModal = (data) => {
     Object.assign(modalConfig, data)
 }
-// 取消按钮处理
+
 const onCancel = () => {
     modalConfig.show = false
 }
-// 确认按钮处理
+
 const onConfirm = () => {
     modalConfig.show = false
 }
 </script>
 
 <style lang="scss">
-/* 内容区域样式 */
 .content-area {
     flex: 1;
     padding-bottom: 120rpx;
@@ -274,7 +311,6 @@ const onConfirm = () => {
     width: 100vw;
     background-color: #f9f9f9;
     z-index: 999;
-    /* 提高层级 */
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -306,10 +342,11 @@ const onConfirm = () => {
     z-index: 100;
 }
 
+// APP/H5 中间发布按钮
+// #ifndef MP-WEIXIN
 .mid-btn-arc {
     position: fixed;
     bottom: 50rpx;
-    // left: calc(51% - 100rpx);
     background-color: #fff;
     z-index: 98;
     height: 100rpx;
@@ -336,6 +373,7 @@ const onConfirm = () => {
         height: 80rpx;
     }
 }
+// #endif
 
 image {
     width: 50rpx;
