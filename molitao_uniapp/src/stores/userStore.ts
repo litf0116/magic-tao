@@ -196,7 +196,7 @@ export const useUserStore = defineStore('userStore', () => {
                     service: 'oauth',
                     success: (res: any) => {
                         console.log('[APP OAuth] providers:', res.provider)
-                        
+
                         if (res.provider.indexOf('weixin') === -1) {
                             reject('请先安装微信')
                             return
@@ -206,13 +206,13 @@ export const useUserStore = defineStore('userStore', () => {
                             provider: 'weixin',
                             success: async (loginRes: any) => {
                                 console.log('[APP OAuth] uni.login success:', JSON.stringify(loginRes))
-                                
+
                                 const { code, authResult } = loginRes
-                                
+
                                 if (authResult && authResult.openid) {
                                     console.log('[APP OAuth] authResult:', JSON.stringify(authResult))
                                 }
-                                
+
                                 if (!code && !authResult?.openid) {
                                     reject('获取授权信息失败')
                                     return
@@ -249,13 +249,13 @@ export const useUserStore = defineStore('userStore', () => {
                             fail: (err: any) => {
                                 console.log('[APP OAuth] uni.login fail:', JSON.stringify(err))
                                 reject(err?.errMsg || '微信授权失败')
-                            }
+                            },
                         })
                     },
                     fail: (err: any) => {
                         console.log('[APP OAuth] getProvider fail:', JSON.stringify(err))
                         reject('获取登录服务失败')
-                    }
+                    },
                 })
             } catch (error: any) {
                 console.log('[APP OAuth] error:', JSON.stringify(error))
