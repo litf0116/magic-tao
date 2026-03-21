@@ -186,7 +186,7 @@ onMounted(async () => {
     if (userStore.user.id) {
         getMyCount()
     }
-    // #ifndef H5
+    // #ifdef MP-WEIXIN
     uni.hideHomeButton()
     // #endif
 })

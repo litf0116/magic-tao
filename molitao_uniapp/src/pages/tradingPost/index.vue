@@ -224,7 +224,7 @@ const switchCategory = (key: number) => {
 const initializeData = async () => {
     try {
         await Promise.all([loadCategoryList(), loadLatestBulletin(), loadHotWords(), loadTopPosts(), loadPostList()])
-        // #ifndef H5
+        // #ifdef MP-WEIXIN
         uni.hideHomeButton()
         // #endif
     } catch (error) {
