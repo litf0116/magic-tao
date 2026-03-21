@@ -128,9 +128,12 @@ const showUnread = ref(false)
 
 onLoad(() => {
     // 版本控制检查：验证用户是否有访问秒杀频道的权限
+    console.log('[Auction] onLoad, chatList:', JSON.stringify(chatStore.chatList))
     const hasAccess = chatStore.chatList.some((chat) => chat.id === -1)
+    console.log('[Auction] hasAccess:', hasAccess)
 
     if (!hasAccess) {
+        console.log('[Auction] hasAccess false, redirecting...')
         uni.showToast({
             title: '秒杀功能暂未开放',
             icon: 'none',
@@ -150,8 +153,10 @@ onLoad(() => {
     }
 
     chatStore.connectServer().then(async () => {
-        //todo
+        console.log('[Auction] connectServer success, calling init')
         init('-1_auction')
+    }).catch((err) => {
+        console.error('[Auction] connectServer error:', err)
     })
     //获取最新公告
     api.announce.getLatest({ id: 2 }).then((res) => {
