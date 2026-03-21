@@ -389,13 +389,13 @@ namespace TtWork.Project.Web.Controllers
                 var authUserInfo =
                     await externalAuthManager.GetUserInfo(Consts.LoginProvider.WeChatMiniOpenid,
                         loginModel.ToJsonString(), app.GetValue("appid"), app.GetValue("appsec"));
-                Logger.Info($"[WeixinMiniAuthenticate] AuthUserInfo: {authUserInfo.ToJsonString()}");
+                Logger.Info($"[WeixinMiniAuthenticate] AuthUserInfo: Provider={authUserInfo.Provider}, ProviderKey={authUserInfo.ProviderKey}, Name={authUserInfo.Name}");
                 
                 ExternalAuthenticateModel model = new()
                     { AuthProvider = authUserInfo.Provider, ProviderKey = authUserInfo.ProviderKey };
 
                 var (externalUser, loginResult) = await ExternalLogin(model, authUserInfo);
-                Logger.Info($"[WeixinMiniAuthenticate] LoginResult: {loginResult.ToJsonString()}");
+                Logger.Info($"[WeixinMiniAuthenticate] LoginResult: Result={loginResult.Result}, UserId={loginResult.User?.Id}");
 
                 return await ExternalAuthenticateResultModel(loginResult, externalUser, model);
             }
