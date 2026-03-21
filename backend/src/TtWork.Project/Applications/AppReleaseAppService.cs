@@ -185,6 +185,7 @@ namespace TtWork.Project.Applications
             var release = await _appReleaseRepository.GetAsync(id);
             release.IsActive = !release.IsActive;
             await _appReleaseRepository.UpdateAsync(release);
+            await CurrentUnitOfWork.SaveChangesAsync();
         }
     }
 }

@@ -187,19 +187,31 @@ async function handleUpload() {
 }
 
 async function toggleActive(row: any) {
-    await ElMessageBox.confirm(
-        row.isActive ? '确定将此版本设为历史版本？' : '确定激活此版本？'
-    )
-    await api.appRelease.toggle(row.id)
-    ElMessage.success('操作成功')
-    loadData()
+    try {
+        await ElMessageBox.confirm(
+            row.isActive ? '确定将此版本设为历史版本？' : '确定激活此版本？'
+        )
+        await api.appRelease.toggle(row.id)
+        ElMessage.success('操作成功')
+        loadData()
+    } catch (e: any) {
+        if (e !== 'cancel') {
+            ElMessage.error('操作失败')
+        }
+    }
 }
 
 async function handleDelete(row: any) {
-    await ElMessageBox.confirm('确定删除此版本？', '警告', { type: 'warning' })
-    await api.appRelease.delete(row.id)
-    ElMessage.success('删除成功')
-    loadData()
+    try {
+        await ElMessageBox.confirm('确定删除此版本？', '警告', { type: 'warning' })
+        await api.appRelease.delete(row.id)
+        ElMessage.success('删除成功')
+        loadData()
+    } catch (e: any) {
+        if (e !== 'cancel') {
+            ElMessage.error('删除失败')
+        }
+    }
 }
 
 onMounted(() => {
