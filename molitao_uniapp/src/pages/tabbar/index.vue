@@ -77,7 +77,7 @@
 // =============================================
 // 公共引入
 // =============================================
-import { onShow, onUnload, onPullDownRefresh, onReachBottom, onBeforeUnmount } from '@dcloudio/uni-app'
+import { onShow, onUnload, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import { ref, reactive } from 'vue'
 import api from '@/utils/api'
 import home from '../index/index.vue'
@@ -244,9 +244,6 @@ onShow(() => {
 
 onUnload(() => {
     uni.$off('refreshView')
-})
-
-onBeforeUnmount(() => {
     if (timer.value) {
         clearInterval(timer.value)
         timer.value = null
