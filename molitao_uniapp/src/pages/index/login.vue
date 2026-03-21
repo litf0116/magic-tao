@@ -178,32 +178,18 @@ const navigateAfterLogin = () => {
     console.log('[navigateAfterLogin] 开始执行')
 
     // #ifdef H5
-    // H5 环境：直接跳转到首页
-    console.log('[navigateAfterLogin] H5模式 - 直接跳转到首页')
     uni.redirectTo({ url: '/pages/tabbar/index' })
     // #endif
 
     // #ifdef APP-PLUS
-    // APP 环境：直接跳转到首页
-    console.log('[navigateAfterLogin] APP模式 - 直接跳转到首页')
     uni.reLaunch({ url: '/pages/tabbar/index' })
     // #endif
 
     // #ifdef MP-WEIXIN
-    // 微信小程序环境：检查页面栈
-    const pages = uni.getCurrentPages()
-    const hasPages = pages && pages.length > 1
-
-    console.log('[navigateAfterLogin] 小程序模式', {
-        pagesLength: pages ? pages.length : 0,
-        hasPages,
-    })
-
-    if (hasPages) {
-        console.log('[navigateAfterLogin] 返回上一页')
+    const pages = getCurrentPages()
+    if (pages && pages.length > 1) {
         uni.navigateBack()
     } else {
-        console.log('[navigateAfterLogin] 跳转到首页')
         uni.reLaunch({ url: '/pages/tabbar/index' })
     }
     // #endif
