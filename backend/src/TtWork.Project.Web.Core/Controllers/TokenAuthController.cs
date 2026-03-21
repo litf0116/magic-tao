@@ -497,6 +497,7 @@ namespace TtWork.Project.Web.Controllers
 
                     if (loginResult.Result == AbpLoginResultType.Success)
                     {
+                        Logger.Info($"[AuthenticateWeixinApp] User found by unionid, linking openid");
                         var existingLogins = await userLoginRepository.GetAllListAsync(x => x.UserId == loginResult.User.Id);
                         if (!existingLogins.Any(x => x.LoginProvider == Consts.LoginProvider.WeChatApp && x.ProviderKey == openid))
                         {
@@ -511,26 +512,49 @@ namespace TtWork.Project.Web.Controllers
                             ProviderKey = openid
                         });
                     }
+                    
+                    Logger.Info($"[AuthenticateWeixinApp] User not found by unionid, trying openid (may be old mini program user without unionid)");
                 }
 
                 loginResult = await logInManager.LoginAsync(
                     new UserLoginInfo(Consts.LoginProvider.WeChatApp, openid, Consts.LoginProvider.WeChatApp),
                     GetTenancyNameOrNull());
 
-                if (loginResult.Result == AbpLoginResultType.Success && !string.IsNullOrEmpty(unionid))
-                {
-                    var existingLogins = await userLoginRepository.GetAllListAsync(x => x.UserId == loginResult.User.Id);
-                    if (!existingLogins.Any(x => x.LoginProvider == Consts.LoginProvider.WeChatUnionId && x.ProviderKey == unionid))
-                    {
-                        await TryAddUserLogin(new UserLogin(loginResult.User.TenantId, loginResult.User.Id, Consts.LoginProvider.WeChatUnionId, unionid));
-                    }
-                }
-
                 if (loginResult.Result == AbpLoginResultType.Success)
                 {
+                    Logger.Info($"[AuthenticateWeixinApp] User found by openid, linking unionid if available");
+                    if (!string.IsNullOrEmpty(unionid))
+                    {
+                        var existingLogins = await userLoginRepository.GetAllListAsync(x => x.UserId == loginResult.User.Id);
+                        if (!existingLogins.Any(x => x.LoginProvider == Consts.LoginProvider.WeChatUnionId && x.ProviderKey == unionid))
+                        {
+                            await TryAddUserLogin(new UserLogin(loginResult.User.TenantId, loginResult.User.Id, Consts.LoginProvider.WeChatUnionId, unionid));
+                            Logger.Info($"[AuthenticateWeixinApp] Unionid linked to existing user");
+                        }
+                    }
+                    
                     await UpdateUserInfoFromWeixin(loginResult.User, accessToken, openid);
+                    
+                    return await ExternalAuthenticateResultModel(loginResult, authUserInfo, new ExternalAuthenticateModel
+                    {
+                        AuthProvider = Consts.LoginProvider.WeChatApp,
+                        ProviderKey = openid
+                    });
                 }
 
+                if (!string.IsNullOrEmpty(unionid))
+                {
+                    Logger.Warn($"[AuthenticateWeixinApp] User not found by unionid or openid. May be old mini program user without unionid. Rejecting to prevent duplicate accounts.");
+                    throw new UserFriendlyException("检测到您已使用小程序账号登录，为了保护您的账号资产，请先打开小程序完成登录验证，之后即可使用APP直接登录。");
+                }
+
+                Logger.Info($"[AuthenticateWeixinApp] New user, creating account");
+                var newUser = await RegisterExternalUserAsync(authUserInfo);
+                loginResult = await logInManager.LoginAsync(
+                    new UserLoginInfo(Consts.LoginProvider.WeChatApp, openid, Consts.LoginProvider.WeChatApp),
+                    GetTenancyNameOrNull());
+                await UpdateUserInfoFromWeixin(loginResult.User, accessToken, openid);
+                
                 return await ExternalAuthenticateResultModel(loginResult, authUserInfo, new ExternalAuthenticateModel
                 {
                     AuthProvider = Consts.LoginProvider.WeChatApp,
