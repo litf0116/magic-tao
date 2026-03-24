@@ -20,11 +20,11 @@ if (import.meta.env.DEV) {
 // #endif
 
 // #ifdef MP-WEIXIN
-host = 'http://192.168.10.231:12580'
+host = 'https://www.molitao.top'
 // #endif
 
 // #ifdef APP-PLUS
-host = 'http://192.168.10.231:12580'
+host = 'https://www.molitao.top'
 // #endif
 
 const getRequest = utils.httpsPromisify(uni.request)
