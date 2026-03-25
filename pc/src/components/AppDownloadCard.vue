@@ -86,6 +86,13 @@ onMounted(async () => {
 </script>
 
 <style lang="scss" scoped>
+// 网站主色调 - 暖色系复古游戏风格
+$primary-color: #833a00;
+$primary-light: #ae6f4d;
+$bg-light: #fff2e8;
+$bg-card: #f3d9b3;
+$border-color: #ae6f4d;
+
 .app-download-card {
     position: fixed;
     top: 100px;
@@ -104,27 +111,30 @@ onMounted(async () => {
     align-items: center;
     gap: 8px;
     padding: 10px 16px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 24px;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    background: $bg-card;
+    border: 2px solid $border-color;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(131, 58, 0, 0.15);
     cursor: pointer;
     transition: all 0.3s ease;
 
     &:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+        box-shadow: 0 6px 16px rgba(131, 58, 0, 0.25);
+        background: darken($bg-card, 5%);
     }
 
     .mini-icon {
         width: 24px;
         height: 24px;
         border-radius: 6px;
+        border: 1px solid $border-color;
     }
 
     .download-text {
-        color: #fff;
+        color: $primary-color;
         font-size: 14px;
-        font-weight: 500;
+        font-weight: 600;
         white-space: nowrap;
     }
 }
@@ -132,8 +142,9 @@ onMounted(async () => {
 .expanded-view {
     width: 280px;
     background: #fff;
+    border: 3px solid $border-color;
     border-radius: 16px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 8px 24px rgba(131, 58, 0, 0.2);
     overflow: hidden;
     animation: slideIn 0.3s ease;
 }
@@ -154,8 +165,8 @@ onMounted(async () => {
     align-items: center;
     justify-content: space-between;
     padding: 16px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: #fff;
+    background: $bg-card;
+    border-bottom: 2px solid $border-color;
 
     .app-info {
         display: flex;
@@ -166,18 +177,23 @@ onMounted(async () => {
             width: 40px;
             height: 40px;
             border-radius: 10px;
+            border: 2px solid $border-color;
         }
 
         .app-meta {
             .app-name {
                 font-size: 16px;
                 font-weight: 600;
+                color: $primary-color;
                 margin: 0 0 2px 0;
             }
 
             .version {
                 font-size: 12px;
-                opacity: 0.8;
+                color: $primary-light;
+                background: #fff;
+                padding: 2px 8px;
+                border-radius: 10px;
             }
         }
     }
@@ -188,21 +204,23 @@ onMounted(async () => {
         display: flex;
         align-items: center;
         justify-content: center;
-        background: rgba(255, 255, 255, 0.2);
-        border: none;
+        background: #fff;
+        border: 1px solid $border-color;
         border-radius: 50%;
-        color: #fff;
+        color: $primary-color;
         cursor: pointer;
-        transition: background 0.2s;
+        transition: all 0.2s;
 
         &:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: $primary-color;
+            color: #fff;
         }
     }
 }
 
 .card-body {
     padding: 16px;
+    background: $bg-light;
 
     .qr-wrapper {
         display: flex;
@@ -214,13 +232,14 @@ onMounted(async () => {
             width: 140px;
             height: 140px;
             border-radius: 8px;
-            border: 1px solid #eee;
+            border: 2px solid $border-color;
+            background: #fff;
         }
 
         .qr-hint {
             margin-top: 8px;
             font-size: 12px;
-            color: #999;
+            color: $primary-light;
         }
     }
 
@@ -231,6 +250,26 @@ onMounted(async () => {
 
         .el-button {
             flex: 1;
+
+            &.el-button--primary {
+                background: $primary-color;
+                border-color: $primary-color;
+
+                &:hover {
+                    background: darken($primary-color, 10%);
+                    border-color: darken($primary-color, 10%);
+                }
+            }
+
+            &:not(.el-button--primary) {
+                color: $primary-color;
+                border-color: $border-color;
+
+                &:hover {
+                    background: $bg-card;
+                    border-color: $primary-color;
+                }
+            }
         }
     }
 }
