@@ -47,11 +47,20 @@ if [ -n "$EXISTING_IMAGES" ]; then
     echo "发现以下相关镜像:"
     echo "$EXISTING_IMAGES"
     echo ""
-    read -p "是否要删除现有镜像并重新加载? (y/N): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        echo "正在删除现有镜像..."
+    # 非交互模式：自动删除现有镜像
+    if [ "$AUTO_REMOVE" = "true" ] || [ "$2" = "-y" ] || [ "$2" = "--yes" ]; then
+        echo "自动模式：删除现有镜像..."
         docker images | grep -E "(molitao|litengfei0302)" | awk '{print $3}' | xargs -r docker rmi -f || true
+    elif [ -t 0 ]; then
+        # 仅在交互式终端时提示
+        read -p "是否要删除现有镜像并重新加载? (y/N): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            echo "正在删除现有镜像..."
+            docker images | grep -E "(molitao|litengfei0302)" | awk '{print $3}' | xargs -r docker rmi -f || true
+        fi
+    else
+        echo "非交互模式：跳过删除现有镜像"
     fi
 else
     echo "未发现现有的相关镜像"
