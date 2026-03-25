@@ -28,20 +28,107 @@
                 <div class="description-content">{{ latestVersion.description }}</div>
             </div>
 
+            <!-- 平台选择 -->
+            <div class="platform-tabs">
+                <div
+                    class="tab-item"
+                    :class="{ active: currentPlatform === 'android' }"
+                    @click="switchPlatform('android')"
+                >
+                    <span class="platform-icon">🤖</span>
+                    <span>Android</span>
+                </div>
+                <div
+                    class="tab-item"
+                    :class="{ active: currentPlatform === 'ios' }"
+                    @click="switchPlatform('ios')"
+                >
+                    <span class="platform-icon">🍎</span>
+                    <span>iOS</span>
+                </div>
+            </div>
+
+            <!-- 二维码区域 -->
+            <div class="qr-section">
+                <div class="qr-title">
+                    <template v-if="currentPlatform === 'android'">
+                        扫码下载 Android APK
+                    </template>
+                    <template v-else>
+                        扫码访问 H5 网页
+                    </template>
+                </div>
+                <div class="qr-code">
+                    <img :src="currentQrCode" :alt="currentPlatform === 'android' ? 'Android 下载' : 'iOS H5 访问'" />
+                </div>
+                <div class="qr-hint">
+                    <template v-if="currentPlatform === 'android'">
+                        使用手机浏览器或微信扫码下载 APK 安装包
+                    </template>
+                    <template v-else>
+                        扫码在 Safari 中打开，可添加到桌面
+                    </template>
+                </div>
+            </div>
+
+            <!-- iOS 添加到桌面说明 -->
+            <div class="ios-guide" v-if="currentPlatform === 'ios'">
+                <h3 class="guide-title">
+                    <el-icon><InfoFilled /></el-icon>
+                    如何将网页添加到桌面
+                </h3>
+                <div class="guide-steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <div class="step-title">在 Safari 中打开</div>
+                            <div class="step-desc">使用 iPhone 自带的 Safari 浏览器打开本页面</div>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <div class="step-title">点击分享按钮</div>
+                            <div class="step-desc">点击底部工具栏的「分享」按钮</div>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <div class="step-title">选择「添加到主屏幕」</div>
+                            <div class="step-desc">在弹出的菜单中找到并点击「添加到主屏幕」选项</div>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <div class="step-title">确认添加</div>
+                            <div class="step-desc">点击右上角「添加」完成操作，桌面上会出现魔力淘图标</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- 下载按钮 -->
             <div class="download-section">
-                <el-button type="primary" size="large" :loading="downloading.android" @click="downloadApk('android')">
+                <el-button
+                    v-if="currentPlatform === 'android'"
+                    type="primary"
+                    size="large"
+                    :loading="downloading"
+                    @click="downloadAndroid"
+                >
                     <template #icon>
                         <el-icon><Download /></el-icon>
                     </template>
-                    {{ downloading.android ? '下载中...' : 'Android 下载' }}
+                    {{ downloading ? '下载中...' : '直接下载 APK' }}
                 </el-button>
 
-                <el-button size="large" :loading="downloading.ios" @click="downloadApk('ios')">
+                <el-button v-else type="primary" size="large" @click="openH5">
                     <template #icon>
-                        <el-icon><Iphone /></el-icon>
+                        <el-icon><Link /></el-icon>
                     </template>
-                    {{ downloading.ios ? '下载中...' : 'iOS 下载' }}
+                    在浏览器中打开 H5
                 </el-button>
 
                 <el-button size="large" @click="showHistoryDialog = true">
@@ -50,17 +137,6 @@
                     </template>
                     历史版本
                 </el-button>
-            </div>
-
-            <!-- 二维码区域 -->
-            <div class="qr-section">
-                <div class="qr-title">手机扫码快速下载</div>
-                <div class="qr-code">
-                    <img
-                        src="https://image.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png!w300"
-                        alt="扫码下载"
-                    />
-                </div>
             </div>
         </div>
 
@@ -90,9 +166,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Download, Iphone, Clock } from '@element-plus/icons-vue'
+import { Download, Iphone, Clock, InfoFilled, Link } from '@element-plus/icons-vue'
 import appReleaseAPI from '@/api/appRelease'
 import logoImage from '@/assets/images/logo.png'
 
@@ -121,11 +197,69 @@ interface HistoryVersion {
     downloadUrl: string
 }
 
+const currentPlatform = ref<'android' | 'ios'>('android')
 const latestVersion = ref<VersionInfo | null>(null)
 const historyVersions = ref<HistoryVersion[]>([])
 const showHistoryDialog = ref(false)
-const downloading = ref({ android: false, ios: false })
+const downloading = ref(false)
 const downloadingVersionId = ref<number | null>(null)
+
+// Android APK 下载二维码
+const androidQrCode = computed(() => {
+    if (latestVersion.value?.downloadUrl) {
+        // 使用二维码服务生成二维码
+        const url = latestVersion.value.downloadUrl.startsWith('http')
+            ? latestVersion.value.downloadUrl
+            : window.location.origin + latestVersion.value.downloadUrl
+        return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`
+    }
+    // 默认二维码
+    return 'https://image.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png!w300'
+})
+
+// iOS H5 访问二维码
+const iosQrCode = computed(() => {
+    const h5Url = window.location.origin
+    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(h5Url)}`
+})
+
+// 当前显示的二维码
+const currentQrCode = computed(() => {
+    return currentPlatform.value === 'android' ? androidQrCode.value : iosQrCode.value
+})
+
+const switchPlatform = (platform: 'android' | 'ios') => {
+    currentPlatform.value = platform
+}
+
+const downloadAndroid = () => {
+    if (!latestVersion.value?.downloadUrl) {
+        ElMessage.warning('暂无可用下载链接')
+        return
+    }
+
+    downloading.value = true
+
+    try {
+        const url = latestVersion.value.downloadUrl.startsWith('http')
+            ? latestVersion.value.downloadUrl
+            : window.location.origin + latestVersion.value.downloadUrl
+
+        window.open(url, '_blank')
+        ElMessage.success('下载已开始')
+    } catch (error) {
+        console.error('下载失败', error)
+        ElMessage.error('下载失败')
+    } finally {
+        setTimeout(() => {
+            downloading.value = false
+        }, 1000)
+    }
+}
+
+const openH5 = () => {
+    window.open(window.location.origin, '_blank')
+}
 
 onMounted(async () => {
     await loadLatestVersion()
@@ -162,32 +296,6 @@ async function loadHistoryVersions() {
     }
 }
 
-async function downloadApk(platform: string) {
-    if (!latestVersion.value?.downloadUrl) {
-        ElMessage.warning('暂无可用下载链接')
-        return
-    }
-
-    downloading.value[platform] = true
-
-    try {
-        const url = latestVersion.value.downloadUrl.startsWith('http')
-            ? latestVersion.value.downloadUrl
-            : window.location.origin + latestVersion.value.downloadUrl
-
-        window.open(url, '_blank')
-
-        ElMessage.success('下载已开始')
-    } catch (error) {
-        console.error('下载失败', error)
-        ElMessage.error('下载失败')
-    } finally {
-        setTimeout(() => {
-            downloading.value[platform] = false
-        }, 1000)
-    }
-}
-
 async function downloadVersion(version: HistoryVersion) {
     downloadingVersionId.value = version.id
 
@@ -210,7 +318,6 @@ async function downloadVersion(version: HistoryVersion) {
 }
 
 // 监听弹窗打开时加载历史版本
-import { watch } from 'vue'
 watch(showHistoryDialog, async (val) => {
     if (val) {
         await loadHistoryVersions()
@@ -219,6 +326,13 @@ watch(showHistoryDialog, async (val) => {
 </script>
 
 <style lang="scss" scoped>
+// 网站主色调
+$primary-color: #833a00;
+$primary-light: #ae6f4d;
+$bg-light: #fff2e8;
+$bg-card: #f3d9b3;
+$border-color: #ae6f4d;
+
 .app-download-page {
     width: 100%;
     max-width: 900px;
@@ -233,7 +347,7 @@ watch(showHistoryDialog, async (val) => {
     .page-title {
         font-size: 28px;
         font-weight: 600;
-        color: #833a00;
+        color: $primary-color;
         margin: 0 0 8px 0;
     }
 
@@ -256,8 +370,8 @@ watch(showHistoryDialog, async (val) => {
     gap: 24px;
     padding: 24px;
     background: #fff;
+    border: 2px solid $border-color;
     border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 
     .app-icon {
         width: 100px;
@@ -265,6 +379,7 @@ watch(showHistoryDialog, async (val) => {
         border-radius: 20px;
         overflow: hidden;
         flex-shrink: 0;
+        border: 2px solid $border-color;
 
         img {
             width: 100%;
@@ -279,7 +394,7 @@ watch(showHistoryDialog, async (val) => {
         .app-name {
             font-size: 24px;
             font-weight: 600;
-            color: #333;
+            color: $primary-color;
             margin: 0 0 12px 0;
         }
 
@@ -288,18 +403,19 @@ watch(showHistoryDialog, async (val) => {
             align-items: center;
             gap: 8px;
             padding: 6px 12px;
-            background: #f0f9eb;
+            background: $bg-light;
+            border: 1px solid $border-color;
             border-radius: 20px;
 
             .label {
                 font-size: 12px;
-                color: #999;
+                color: $primary-light;
             }
 
             .value {
                 font-size: 14px;
                 font-weight: 500;
-                color: #67c23a;
+                color: $primary-color;
             }
         }
     }
@@ -308,13 +424,13 @@ watch(showHistoryDialog, async (val) => {
 .description-card {
     padding: 20px;
     background: #fff;
+    border: 2px solid $border-color;
     border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 
     .card-title {
         font-size: 16px;
         font-weight: 500;
-        color: #333;
+        color: $primary-color;
         margin: 0 0 12px 0;
     }
 
@@ -326,38 +442,151 @@ watch(showHistoryDialog, async (val) => {
     }
 }
 
-.download-section {
+.platform-tabs {
     display: flex;
-    gap: 16px;
+    gap: 12px;
     justify-content: center;
-    flex-wrap: wrap;
+
+    .tab-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 32px;
+        background: #fff;
+        border: 2px solid $border-color;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 16px;
+        font-weight: 500;
+        color: $primary-color;
+
+        &:hover {
+            background: $bg-card;
+        }
+
+        &.active {
+            background: $primary-color;
+            border-color: $primary-color;
+            color: #fff;
+        }
+
+        .platform-icon {
+            font-size: 20px;
+        }
+    }
 }
 
 .qr-section {
     text-align: center;
     padding: 24px;
     background: #fff;
+    border: 2px solid $border-color;
     border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 
     .qr-title {
-        font-size: 14px;
-        color: #666;
+        font-size: 16px;
+        font-weight: 500;
+        color: $primary-color;
         margin-bottom: 16px;
     }
 
     .qr-code {
-        width: 180px;
-        height: 180px;
+        width: 200px;
+        height: 200px;
         margin: 0 auto;
-        border: 1px solid #eee;
+        border: 2px solid $border-color;
         border-radius: 8px;
         overflow: hidden;
+        background: #fff;
 
         img {
             width: 100%;
             height: 100%;
             object-fit: contain;
+        }
+    }
+
+    .qr-hint {
+        margin-top: 12px;
+        font-size: 13px;
+        color: $primary-light;
+    }
+}
+
+.ios-guide {
+    padding: 20px;
+    background: $bg-light;
+    border: 2px solid $border-color;
+    border-radius: 12px;
+
+    .guide-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 16px;
+        font-weight: 500;
+        color: $primary-color;
+        margin: 0 0 16px 0;
+    }
+
+    .guide-steps {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .step {
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+
+        .step-number {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: $primary-color;
+            color: #fff;
+            border-radius: 50%;
+            font-size: 14px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            flex: 1;
+
+            .step-title {
+                font-size: 14px;
+                font-weight: 500;
+                color: $primary-color;
+                margin-bottom: 4px;
+            }
+
+            .step-desc {
+                font-size: 13px;
+                color: $primary-light;
+                line-height: 1.5;
+            }
+        }
+    }
+}
+
+.download-section {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+
+    .el-button--primary {
+        background: $primary-color;
+        border-color: $primary-color;
+
+        &:hover {
+            background: darken($primary-color, 10%);
+            border-color: darken($primary-color, 10%);
         }
     }
 }
@@ -370,6 +599,14 @@ watch(showHistoryDialog, async (val) => {
     .app-card {
         flex-direction: column;
         text-align: center;
+    }
+
+    .platform-tabs {
+        flex-direction: column;
+
+        .tab-item {
+            justify-content: center;
+        }
     }
 
     .download-section {
