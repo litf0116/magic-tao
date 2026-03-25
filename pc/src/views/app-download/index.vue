@@ -2,7 +2,7 @@
     <div class="app-download-container">
         <div class="app-card">
             <div class="app-icon">
-                <img src="/logo.png" alt="魔力淘" />
+                <img :src="logoImage" alt="魔力淘" />
             </div>
 
             <div class="app-info">
@@ -77,6 +77,7 @@ import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import api from '@/api'
 import appReleaseAPI from '@/api/appRelease'
+import logoImage from '@/assets/images/logo.png'
 
 interface VersionInfo {
     latestVersionCode: number
