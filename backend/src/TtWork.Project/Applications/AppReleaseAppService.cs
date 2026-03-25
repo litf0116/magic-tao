@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Abp.Authorization;
 using Abp.Domain.Repositories;
 using Abp.UI;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -104,6 +105,7 @@ namespace TtWork.Project.Applications
         /// 检查更新（无需登录）
         /// </summary>
         [HttpGet]
+        [AllowAnonymous]
         public async Task<object> CheckUpdate(int currentVersionCode, string platform = "android")
         {
             var latestRelease = await _appReleaseRepository.GetAllListAsync(x =>
@@ -139,6 +141,7 @@ namespace TtWork.Project.Applications
         /// 获取版本历史
         /// </summary>
         [HttpGet]
+        [AllowAnonymous]
         public async Task<object> GetReleaseHistory(string platform = "android")
         {
             var releases = await _appReleaseRepository.GetAllListAsync(x => x.Platform == platform);
