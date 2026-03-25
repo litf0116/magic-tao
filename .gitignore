@@ -20,5 +20,25 @@ README2.md
 /backend/certs/apiclient_cert.p12
 .sisyphus
 .worktrees/
+
+# APK files
 *.apk
 .gstack/
+
+# UniApp Android build
+molitao_uniapp/android/
+docs/*.apk
+
+# Backup and temporary files
+*.bak
+*.old
+*.tmp
+
+# Binary files
+*.exe
+*.wps
+
+# Root level scattered files (not in subdirectories)
+/*..png
+/*..jpg
+/*..jpeg
