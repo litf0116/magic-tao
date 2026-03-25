@@ -136,10 +136,9 @@ namespace TtWork.Project.Applications
         }
 
         /// <summary>
-        /// 获取版本历史（管理员）
+        /// 获取版本历史
         /// </summary>
         [HttpGet]
-        [AbpAuthorize(AppPermissions.Administration)]
         public async Task<object> GetReleaseHistory(string platform = "android")
         {
             var releases = await _appReleaseRepository.GetAllListAsync(x => x.Platform == platform);
