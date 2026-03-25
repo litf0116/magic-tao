@@ -32,17 +32,11 @@
                     <span class="qr-hint">扫码下载</span>
                 </div>
 
-                <!-- 下载按钮 -->
-                <div class="download-buttons">
-                    <el-button type="primary" size="small" @click="downloadApp('android')">
-                        <el-icon><Download /></el-icon>
-                        Android
-                    </el-button>
-                    <el-button size="small" @click="downloadApp('ios')">
-                        <el-icon><Iphone /></el-icon>
-                        iOS
-                    </el-button>
-                </div>
+                <!-- 跳转按钮 -->
+                <el-button type="primary" class="goto-btn" @click="goToDownloadPage">
+                    <el-icon><Download /></el-icon>
+                    前往下载页面
+                </el-button>
             </div>
         </div>
     </div>
@@ -50,7 +44,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Close, Download, Iphone } from '@element-plus/icons-vue'
+import { Close, Download } from '@element-plus/icons-vue'
+import { useRouter } from 'vue-router'
 import appReleaseAPI from '@/api/appRelease'
 import logoImage from '@/assets/images/logo.png'
 
@@ -59,6 +54,7 @@ interface VersionInfo {
     downloadUrl: string
 }
 
+const router = useRouter()
 const isExpanded = ref(false)
 const latestVersion = ref<VersionInfo | null>(null)
 
@@ -66,13 +62,8 @@ const toggleExpand = () => {
     isExpanded.value = !isExpanded.value
 }
 
-const downloadApp = (platform: string) => {
-    if (latestVersion.value?.downloadUrl) {
-        window.open(latestVersion.value.downloadUrl, '_blank')
-    } else {
-        // 如果没有版本信息，跳转到下载页面
-        window.location.href = '/app-download'
-    }
+const goToDownloadPage = () => {
+    router.push('/app-download')
 }
 
 onMounted(async () => {
@@ -243,33 +234,14 @@ $border-color: #ae6f4d;
         }
     }
 
-    .download-buttons {
-        display: flex;
-        gap: 10px;
-        justify-content: center;
+    .goto-btn {
+        width: 100%;
+        background: $primary-color;
+        border-color: $primary-color;
 
-        .el-button {
-            flex: 1;
-
-            &.el-button--primary {
-                background: $primary-color;
-                border-color: $primary-color;
-
-                &:hover {
-                    background: darken($primary-color, 10%);
-                    border-color: darken($primary-color, 10%);
-                }
-            }
-
-            &:not(.el-button--primary) {
-                color: $primary-color;
-                border-color: $border-color;
-
-                &:hover {
-                    background: $bg-card;
-                    border-color: $primary-color;
-                }
-            }
+        &:hover {
+            background: darken($primary-color, 10%);
+            border-color: darken($primary-color, 10%);
         }
     }
 }
