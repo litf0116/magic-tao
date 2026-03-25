@@ -1,5 +1,8 @@
 <template>
     <div class="home-container">
+        <!-- App 下载入口卡片 -->
+        <AppDownloadCard />
+
         <!-- 广告展示区域 -->
         <AdvertisementBanner />
 
@@ -12,6 +15,7 @@
 </template>
 
 <script setup lang="ts">
+import AppDownloadCard from '@/components/AppDownloadCard.vue'
 import AdvertisementBanner from './components/AdvertisementBanner.vue'
 import TradingPostCard from './components/TradingPostCard.vue'
 import AuctionCard from './components/AuctionCard.vue'
