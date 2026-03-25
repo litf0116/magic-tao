@@ -35,7 +35,7 @@
                     :class="{ active: currentPlatform === 'android' }"
                     @click="switchPlatform('android')"
                 >
-                    <span class="platform-icon">🤖</span>
+                    <img src="https://cdn.jsdelivr.net/npm/@mdi/svg@7.4.47/svg/android.svg" alt="Android" class="platform-icon" />
                     <span>Android</span>
                 </div>
                 <div
@@ -43,7 +43,7 @@
                     :class="{ active: currentPlatform === 'ios' }"
                     @click="switchPlatform('ios')"
                 >
-                    <span class="platform-icon">🍎</span>
+                    <img src="https://cdn.jsdelivr.net/npm/@mdi/svg@7.4.47/svg/apple.svg" alt="iOS" class="platform-icon" />
                     <span>iOS</span>
                 </div>
             </div>
@@ -219,7 +219,8 @@ const androidQrCode = computed(() => {
 
 // iOS H5 访问二维码
 const iosQrCode = computed(() => {
-    const h5Url = window.location.origin
+    // H5 移动端地址
+    const h5Url = 'https://www.molitao.top/h5/'
     return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(h5Url)}`
 })
 
@@ -258,7 +259,7 @@ const downloadAndroid = () => {
 }
 
 const openH5 = () => {
-    window.open(window.location.origin, '_blank')
+    window.open('https://www.molitao.top/h5/', '_blank')
 }
 
 onMounted(async () => {
@@ -469,10 +470,16 @@ $border-color: #ae6f4d;
             background: $primary-color;
             border-color: $primary-color;
             color: #fff;
+
+            .platform-icon {
+                filter: brightness(0) invert(1);
+            }
         }
 
         .platform-icon {
-            font-size: 20px;
+            width: 24px;
+            height: 24px;
+            transition: filter 0.3s;
         }
     }
 }
