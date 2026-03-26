@@ -11,6 +11,7 @@ declare module 'vue' {
     AnnounceDialog: typeof import('./src/components/Chat/announceDialog.vue')['default']
     AnnounceDiv: typeof import('./src/components/Chat/announceDiv.vue')['default']
     AnnounceQueryFilter: typeof import('./src/components/paged-table/announceQueryFilter.vue')['default']
+    AppDownloadCard: typeof import('./src/components/AppDownloadCard.vue')['default']
     AuctionBidMessage: typeof import('./src/components/Chat/AuctionBidMessage.vue')['default']
     AuctionDealMessage: typeof import('./src/components/Chat/AuctionDealMessage.vue')['default']
     AuctionEndMessage: typeof import('./src/components/Chat/AuctionEndMessage.vue')['default']

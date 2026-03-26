@@ -13,6 +13,12 @@ echo "=========================================="
 TAR_FILE="molitao-backend-latest.tar"
 IMAGE_NAME="litengfei0302/molitao-backend:latest"
 
+# 如果提供了参数，使用参数作为tar文件名
+if [ $# -gt 0 ]; then
+    TAR_FILE="$1"
+    echo "使用指定的tar文件: $TAR_FILE"
+fi
+
 # 检查tar文件是否存在
 if [ ! -f "$TAR_FILE" ]; then
     echo "❌ 错误: tar文件不存在: $TAR_FILE"
@@ -23,18 +29,6 @@ if [ ! -f "$TAR_FILE" ]; then
     echo ""
     echo "如果你有其他名称的tar文件，请作为参数传入:"
     echo "  $0 your-image.tar"
-    exit 1
-fi
-
-# 如果提供了参数，使用参数作为tar文件名
-if [ $# -gt 0 ]; then
-    TAR_FILE="$1"
-    echo "使用指定的tar文件: $TAR_FILE"
-fi
-
-# 再次检查文件是否存在
-if [ ! -f "$TAR_FILE" ]; then
-    echo "❌ 错误: 指定的tar文件不存在: $TAR_FILE"
     exit 1
 fi
 

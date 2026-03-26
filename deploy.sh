@@ -11,16 +11,18 @@ WORKDIR="/Users/mac/workspace/magic-tao/backend"
 LOGS_DIR="/data2/logs"
 WWWROOT_DIR="/www/wwwroot/www.molitao.top/wwwroot"
 CERT_DIR="/www/certs"
+BUILD_DATE=$(date '+%Y%m%d-%H%M%S')
 
 echo "========================================="
 echo "开始部署 Molitao Backend"
+echo "构建版本: ${BUILD_DATE}"
 echo "========================================="
 
 cd "$WORKDIR"
 
-# 1. 构建镜像
+# 1. 构建镜像（使用 --no-cache 确保最新代码）
 echo "[1/5] 构建 Docker 镜像..."
-docker build -t $IMAGE_NAME:latest -f src/TtWork.Project.Web.Host/Dockerfile .
+docker build --no-cache -t $IMAGE_NAME:${BUILD_DATE} -t $IMAGE_NAME:latest -f src/TtWork.Project.Web.Host/Dockerfile .
 
 # 2. 登录 Docker Hub
 echo "[2/5] 登录 Docker Hub..."
@@ -28,6 +30,7 @@ docker login || echo "⚠️ Docker Hub 登录失败，请检查凭证"
 
 # 3. 推送镜像
 echo "[3/5] 推送镜像到 Docker Hub..."
+docker push $IMAGE_NAME:${BUILD_DATE}
 docker push $IMAGE_NAME:latest
 
 # 4. 部署到服务器

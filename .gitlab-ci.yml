@@ -3,6 +3,10 @@ stages:
   - deploy
   - test
 
+variables:
+  IMAGE_NAME: gitlab.somall.top:8090/molitao/api
+  BUILD_DATE: $(date '+%Y%m%d-%H%M%S')
+
 build_image:
   stage: build
   when: manual
@@ -11,8 +15,13 @@ build_image:
     - main
   script:
     - cd backend
-    - ls
-    - docker build -f ./src/TtWork.Project.Web.Host/Dockerfile --network=host --build-arg HTTP_PROXY=http://192.168.3.50:10809 --build-arg HTTPS_PROXY=http://192.168.3.50:10809 -t gitlab.somall.top:8090/molitao/api:latest .
+    - echo "构建时间: $(date '+%Y-%m-%d %H:%M:%S')"
+    - echo "构建版本: ${BUILD_DATE}"
+    # 使用 --no-cache 确保每次都重新构建所有层
+    - docker build --no-cache -f ./src/TtWork.Project.Web.Host/Dockerfile --network=host --build-arg HTTP_PROXY=http://192.168.3.50:10809 --build-arg HTTPS_PROXY=http://192.168.3.50:10809 -t ${IMAGE_NAME}:${BUILD_DATE} -t ${IMAGE_NAME}:latest .
+    - docker push ${IMAGE_NAME}:${BUILD_DATE}
+    - docker push ${IMAGE_NAME}:latest
+    - echo "镜像构建完成: ${IMAGE_NAME}:${BUILD_DATE}"
     - docker push gitlab.somall.top:8090/molitao/api:latest
 
 deploys:
