@@ -11,6 +11,7 @@ RUN export hostip=$(cat /etc/resolv.conf |grep -oP '(?<=nameserver\ ).*') && \
     echo "nameserver 8.8.8.8" >> /etc/resolv.conf && \
     echo "nameserver 8.8.4.4" >> /etc/resolv.conf
 WORKDIR /src
+COPY ["nuget.config", "./"]
 COPY ["FreeIM/FreeIM/FreeIM.csproj", "FreeIM/FreeIM/"]
 COPY ["Modules/Tt.HttpClient.Weixin/Tt.HttpClient.Weixin.csproj", "Modules/Tt.HttpClient.Weixin/"]
 COPY ["Modules/TtWork.Abp.AppManagement/TtWork.Abp.AppManagement.csproj", "Modules/TtWork.Abp.AppManagement/"]
