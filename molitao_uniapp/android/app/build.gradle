@@ -35,10 +35,17 @@ android {
             keyAlias = "androiddebugkey"
             keyPassword = "android"
         }
+        release {
+            storeFile = file("molitao-release.keystore")
+            storePassword = "molitao123"
+            keyAlias = "molitao"
+            keyPassword = "molitao123"
+        }
     }
 
     buildTypes {
         release {
+            signingConfig = signingConfigs.release
             minifyEnabled = false
             proguardFiles += getDefaultProguardFile('proguard-android-optimize.txt')
             proguardFiles += file('proguard-rules.pro')

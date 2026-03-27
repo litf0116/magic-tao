@@ -267,15 +267,9 @@ function sub(e: AuctionItemDto) {
     // #endif
 
     // #ifdef APP-PLUS
-    // App：使用极光推送
-    const registrationId = pushService.getRegistrationId()
-    if (!registrationId) {
-        Tips.info('推送服务未初始化，请稍后重试')
-        return
-    }
-
+    // App：使用极光推送（后端自动使用当前用户ID作为别名）
     auctionStore
-        .startNotify(e.id!, 'app', registrationId)
+        .startNotify(e.id!, 'app')
         .then(() => {
             Tips.success('订阅成功，秒杀开始时将推送通知')
         })

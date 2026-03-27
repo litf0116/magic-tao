@@ -55,6 +55,7 @@ using TtWork.Project.Services.Cache;
 using TtWork.Project.Services.Messaging;
 using TtWork.Project.Services.Messaging.Models;
 using TtWork.Project.Services;
+using TtWork.Project.Services.Push;
 using Newtonsoft.Json.Linq;
 
 namespace TtWork.Project.Applications.Auctions;
@@ -62,7 +63,9 @@ namespace TtWork.Project.Applications.Auctions;
 public class SubStartNotifyRequest
 {
     public long AuctionItemId { get; set; }
+    public long? userId { get; set; }
     public string openid { get; set; }
+    public string platform { get; set; }
 }
 
 public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, AuctionItemDto, long, AppResultRequestDto,
@@ -88,6 +91,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     private readonly IBidEligibilityService _bidEligibilityService;
     private readonly IMemoryCache _memoryCache;
     private readonly IRepository<UserLogin, long> _userLoginRepository;
+    private readonly IJPushService _jPushService;
 
     // 内存锁字典（替代 Redis 分布式锁）
     private static readonly ConcurrentDictionary<long, SemaphoreSlim> _auctionLocks = new();
@@ -114,7 +118,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         IAuctionItemCacheService cacheService,
         IMessageSendingService messageSendingService,
         IBidEligibilityService bidEligibilityService,
-        IRepository<UserLogin, long> userLoginRepository) : base(repository, iocManager)
+        IRepository<UserLogin, long> userLoginRepository,
+        IJPushService jPushService) : base(repository, iocManager)
     {
         _sqlSugarClient = sqlSugarClient;
         _userCache = userCache;
@@ -140,6 +145,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         _messageSendingService = messageSendingService;
         _bidEligibilityService = bidEligibilityService;
         _memoryCache = memoryCache;
+        _jPushService = jPushService;
     }
 
 
@@ -152,39 +158,86 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     /// <returns></returns>
     private async Task Notify(long id, string name, bool isAuction = true)
     {
-        var openIds = await _notifyRepository.GetAll().AsNoTracking()
-            .Where(x => x.AuctionItemId == id).Select(x => x.openid).ToListAsync();
+        var subscribers = await _notifyRepository.GetAll().AsNoTracking()
+            .Where(x => x.AuctionItemId == id)
+            .Select(x => new { x.UserId, x.OpenId, x.Platform })
+            .ToListAsync();
 
         _logger.LogInformation(
-            "========== 准备发送拍卖开拍订阅通知 ========== AuctionItemId={AuctionItemId}, Name={Name}, SubscriberCount={SubscriberCount}",
-            id, name, openIds.Count);
+            "准备发送拍卖开拍订阅通知: AuctionItemId={AuctionItemId}, Name={Name}, SubscriberCount={Count}",
+            id, name, subscribers.Count);
 
-        if (openIds.Count == 0)
+        if (subscribers.Count == 0)
         {
-            _logger.LogWarning("没有订阅用户，跳过发送通知: AuctionItemId={AuctionItemId}", id);
+            _logger.LogWarning("没有订阅用户，跳过发送通知");
             return;
         }
 
-        foreach (var openid in openIds)
+        var title = name.Length > 16 ? name[..16] : name;
+        var content = isAuction ? "拍卖即将开始，快来参与吧！" : "有人出价了，快来查看！";
+
+        // 1. 发送微信模板消息（小程序端）
+        var openIds = subscribers
+            .Where(x => x.Platform == "miniprogram" && !string.IsNullOrEmpty(x.OpenId))
+            .Select(x => x.OpenId)
+            .ToArray();
+
+        if (openIds.Length > 0)
         {
-            _logger.LogInformation("订阅用户: OpenId={OpenId}, AuctionItemId={AuctionItemId}", openid, id);
+            _logger.LogInformation("发送微信模板消息: {Count} 个用户", openIds.Length);
+
+            await _mediator.Publish(new Events.Commands.MessageSendCommand(
+                Events.Commands.MessageType.WechatTemplate,
+                new SendWechatTemplateDetail(
+                    "uniapp",
+                    openIds,
+                    "ZuYTYzw2cM0LVhF5ybH5iATMaDl6lZ82OC6cczsglEA",
+                    new
+                    {
+                        thing2 = new { value = title },
+                        thing1 = new { value = isAuction ? "开始拍卖通知" : "出价通知" },
+                    },
+                    $"pages/index/index"
+                )));
         }
 
-        var title = name.Length > 16 ? name[..16] : name;
-        _logger.LogInformation("通知参数: Title={Title}, IsAuction={IsAuction}, TemplateId={TemplateId}",
-            title, isAuction, "ZuYTYzw2cM0LVhF5ybH5iATMaDl6lZ82OC6cczsglEA");
+        // 2. 发送极光推送（App端）- 使用别名推送
+        var userIds = subscribers
+            .Where(x => x.Platform == "app" && x.UserId.HasValue)
+            .Select(x => $"user_{x.UserId}")
+            .Distinct()
+            .ToList();
 
-        await _mediator.Publish(new Events.Commands.MessageSendCommand(Events.Commands.MessageType.WechatTemplate,
-            new SendWechatTemplateDetail(
-                "uniapp",
-                openIds.ToArray(),
-                "ZuYTYzw2cM0LVhF5ybH5iATMaDl6lZ82OC6cczsglEA",
-                new
+        if (userIds.Count > 0)
+        {
+            _logger.LogInformation("发送极光推送(别名): {Count} 个用户", userIds.Count);
+
+            try
+            {
+                var result = await _jPushService.SendByAliasAsync(
+                    title,
+                    content,
+                    userIds,
+                    new Dictionary<string, string>
+                    {
+                        { "type", isAuction ? "auction_start" : "auction_bid" },
+                        { "auctionItemId", id.ToString() }
+                    });
+
+                if (result.Success)
                 {
-                    thing2 = new { value = title }, //活动详情
-                    thing1 = new { value = isAuction ? "开始拍卖通知" : "出价通知" }, //活动名称
-                }, $"pages/index/index"
-            )));
+                    _logger.LogInformation("极光推送发送成功: MessageId={MessageId}", result.MessageId);
+                }
+                else
+                {
+                    _logger.LogWarning("极光推送发送失败: {Error}", result.ErrorMessage);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "极光推送发送异常");
+            }
+        }
     }
 
 
@@ -192,17 +245,29 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     [AbpAuthorize]
     public async Task SubStartNotify(SubStartNotifyRequest input)
     {
-        if (await _auctionStartNotifyRepository.GetAll()
-                .AsNoTracking()
-                .AnyAsync(x => x.AuctionItemId == input.AuctionItemId && x.openid == input.openid))
+        var platform = input.platform ?? "miniprogram";
+        var userId = AbpSession.UserId;
+        
+        var query = _auctionStartNotifyRepository.GetAll()
+            .Where(x => x.AuctionItemId == input.AuctionItemId);
+
+        if (platform == "miniprogram")
         {
+            query = query.Where(x => x.OpenId == input.openid);
         }
-        else
+        else if (userId.HasValue)
         {
-            await _auctionStartNotifyRepository.InsertAsync(new AuctionStartNotify()
+            query = query.Where(x => x.UserId == userId.Value);
+        }
+
+        if (!await query.AnyAsync())
+        {
+            await _auctionStartNotifyRepository.InsertAsync(new AuctionStartNotify
             {
                 AuctionItemId = input.AuctionItemId,
-                openid = input.openid
+                UserId = userId,
+                OpenId = input.openid,
+                Platform = platform
             });
         }
     }

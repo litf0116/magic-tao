@@ -150,17 +150,11 @@ async function subscribeAuction() {
     }
 
     // #ifdef APP-PLUS
-    const regId = pushService.getRegistrationId()
-    if (!regId) {
-        log('推送服务未初始化，请先初始化')
-        return
-    }
-
     log(`正在订阅秒杀品 ${id}...`)
-    log(`Registration ID: ${regId}`)
+    log(`用户ID: ${userStore.user.id}，别名: user_${userStore.user.id}`)
 
     try {
-        await auctionStore.startNotify(id, 'app', regId)
+        await auctionStore.startNotify(id, 'app')
         log(`订阅成功! 秒杀开始时将收到推送通知`)
     } catch (error: any) {
         log(`订阅失败: ${error?.message || error}`)

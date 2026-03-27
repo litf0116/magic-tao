@@ -1,6 +1,8 @@
 import api from '@/utils/api'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+import { pushService } from '@/utils/push'
+import { isApp } from '@/utils/platform'
 
 export interface IUser {
     id?: number
@@ -173,6 +175,7 @@ export const useUserStore = defineStore('userStore', () => {
                                 }
                             }
                             await checkLogin()
+                            await registerPushAlias()
                             return resolve(res)
                         } else {
                             reject('登录失败')
@@ -238,6 +241,7 @@ export const useUserStore = defineStore('userStore', () => {
                                         }
 
                                         await checkLogin()
+                                        await registerPushAlias()
                                         return resolve(res)
                                     } else {
                                         reject('登录失败')
@@ -274,6 +278,7 @@ export const useUserStore = defineStore('userStore', () => {
                         token.value = res.accessToken
                         uni.setStorageSync('token', res.accessToken)
                         await checkLogin()
+                        await registerPushAlias()
                         return resolve(res)
                     } else {
                         reject('登录失败')
@@ -353,6 +358,7 @@ export const useUserStore = defineStore('userStore', () => {
                                 //     roles.value = res.roleNames
                                 // }
                                 await checkLogin()
+                                await registerPushAlias()
                                 return resolve(res)
                             } else {
                                 return reject('获取登录失败')
@@ -389,6 +395,21 @@ export const useUserStore = defineStore('userStore', () => {
     function clear() {
         _logout()
         chatStore.clear()
+    }
+
+    async function registerPushAlias() {
+        // #ifdef APP-PLUS
+        if (!user.value.id) return
+
+        try {
+            await pushService.init()
+            const alias = `user_${user.value.id}`
+            await pushService.setAlias(alias)
+            console.log('[Push] 别名设置成功:', alias)
+        } catch (error) {
+            console.error('[Push] 别名设置失败:', error)
+        }
+        // #endif
     }
 
     //ANCHOR - return

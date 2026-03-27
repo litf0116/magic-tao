@@ -3,6 +3,12 @@
 # PC 前端部署脚本
 # 用法: ./deploy.sh [环境]
 # 环境: production (默认) | beta
+# 
+# 优化说明：
+# - 添加部署后缓存验证
+# - 检查 index.html 响应头
+# - 验证静态资源可访问性
+# - 生成部署版本文件
 
 set -e
 
@@ -11,6 +17,7 @@ SERVER="molitao"
 WORKDIR="/Users/mac/workspace/magic-tao/pc"
 DIST_DIR="$WORKDIR/dist"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+DEPLOY_VERSION=$(date +%Y%m%d_%H%M%S)_$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 
 # 根据参数选择环境
 ENV=${1:-production}

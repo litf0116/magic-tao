@@ -55,6 +55,7 @@ using TtWork.Abp;
 using TtWork.Project.Web.Host.HealthChecks;
 using TtWork.Lib;
 using TtWork.Project.Web.Host.Services;
+using TtWork.Project.Services.Push;
 
 namespace TtWork.Project.Web.Host.Startup
 {
@@ -79,6 +80,7 @@ namespace TtWork.Project.Web.Host.Startup
                 cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
             services.Configure<RedisOptions>(_appConfiguration.GetSection("Redis"));
+            services.Configure<JPushSettings>(_appConfiguration.GetSection("JPush"));
 
             // 注册 IDistributedCache 实现（基于现有的 IRedisClient）
             services.AddSingleton<IDistributedCache, RedisDistributedCache>();
