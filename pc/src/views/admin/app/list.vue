@@ -52,7 +52,7 @@
             </el-table>
         </el-card>
 
-        <el-dialog v-model="uploadVisible" title="发布新版本" width="500px">
+        <el-dialog v-model="uploadVisible" title="发布新版本" width="550px" :close-on-click-modal="false">
             <el-form ref="formRef" :model="form" label-width="100px">
                 <el-form-item label="版本名称" prop="versionName">
                     <el-input v-model="form.versionName" placeholder="如: 1.0.0" />
@@ -70,23 +70,38 @@
                     <el-switch v-model="form.isForceUpdate" />
                 </el-form-item>
                 <el-form-item label="版本说明" prop="description">
-                    <el-input v-model="form.description" type="textarea" rows="4" />
+                    <el-input v-model="form.description" type="textarea" rows="3" />
                 </el-form-item>
-                <el-form-item label="APK文件" prop="file">
-                    <el-upload
-                        ref="uploadRef"
-                        :auto-upload="false"
-                        :limit="1"
-                        :on-change="handleFileChange"
-                        :file-list="fileList"
-                        accept=".apk,.wgt"
-                    >
-                        <el-button>选择文件</el-button>
-                    </el-upload>
+                <el-form-item label="安装包">
+                    <div class="w-full">
+                        <el-upload
+                            ref="uploadRef"
+                            :auto-upload="false"
+                            :limit="1"
+                            :on-change="handleFileChange"
+                            :file-list="fileList"
+                            :accept="form.platform === 'android' ? '.apk,.wgt' : '.ipa,.wgt'"
+                            :disabled="uploading"
+                        >
+                            <el-button :disabled="uploading">
+                                <el-icon class="mr-1"><Upload /></el-icon>
+                                选择文件
+                            </el-button>
+                        </el-upload>
+                        <div v-if="selectFile" class="mt-2 text-sm text-gray-500">
+                            文件: {{ selectFile.name }} ({{ formatFileSize(selectFile.size || 0) }})
+                        </div>
+                        <el-progress
+                            v-if="uploadProgress > 0 && uploadProgress < 100"
+                            :percentage="uploadProgress"
+                            :status="uploadProgress === 100 ? 'success' : undefined"
+                            class="mt-2"
+                        />
+                    </div>
                 </el-form-item>
             </el-form>
             <template #footer>
-                <el-button @click="uploadVisible = false">取消</el-button>
+                <el-button @click="uploadVisible = false" :disabled="uploading">取消</el-button>
                 <el-button type="primary" :loading="uploading" @click="handleUpload">发布</el-button>
             </template>
         </el-dialog>
@@ -96,16 +111,25 @@
 <script setup lang="ts">
 import api from '@/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Upload } from '@element-plus/icons-vue'
+import cache from '@/utils/cache'
+import base64 from '@/utils/base64'
+import axios from 'axios'
 
 const activePlatform = ref('android')
 const list = ref<any[]>([])
 const loading = ref(false)
 const uploadVisible = ref(false)
 const uploading = ref(false)
+const uploadProgress = ref(0)
 const formRef = ref()
 const uploadRef = ref()
 const fileList = ref<any[]>([])
 const selectFile = ref<File | null>(null)
+
+const imgUrl = import.meta.env.VITE_APP_UPYUN_IMG_URL
+const bucketName = import.meta.env.VITE_APP_UPYUN_BUCKET_NAME
+const userName = import.meta.env.VITE_APP_UPYUN_USERNAME
 
 const form = ref({
     versionName: '',
@@ -127,7 +151,7 @@ async function loadData() {
     loading.value = true
     try {
         const res = await api.appRelease.getHistory(activePlatform.value)
-        list.value = res.items || []
+        list.value = res?.data?.items || []
     } catch (e) {
         ElMessage.error('加载失败')
     } finally {
@@ -145,6 +169,7 @@ function showUploadDialog() {
     }
     selectFile.value = null
     fileList.value = []
+    uploadProgress.value = 0
     uploadVisible.value = true
 }
 
@@ -157,6 +182,50 @@ function handleFileChange(file: any) {
     selectFile.value = file.raw
 }
 
+async function getOssSignature(): Promise<{ signature: string; policy: string }> {
+    const cachedata = cache.getWithExpiry('upyun_app')
+    if (cachedata && cachedata.policy && cachedata.signature) {
+        return { signature: cachedata.signature, policy: cachedata.policy }
+    }
+
+    const date = new Date().toGMTString()
+    const opts = {
+        'save-key': `/apps/${userName}/{year}-{mon}-{day}/{random32}{.suffix}`,
+        bucket: bucketName,
+        expiration: Math.round(new Date().getTime() / 1000) + 43200,
+        date: date,
+    }
+    const policy = base64.encode(JSON.stringify(opts))
+    const data = ['POST', '/' + bucketName, date, policy].join('&')
+
+    const res = await api.upload.getSignature({ data })
+    cache.setWithExpiry('upyun_app', { signature: res.signature, policy }, 600)
+    return { signature: res.signature, policy }
+}
+
+async function uploadToOss(file: File): Promise<string> {
+    const { signature, policy } = await getOssSignature()
+
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('policy', policy)
+    formData.append('authorization', `UPYUN ${userName}:${signature}`)
+
+    const response = await axios.post(`https://v0.api.upyun.com/${bucketName}`, formData, {
+        onUploadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+                uploadProgress.value = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+            }
+        },
+    })
+
+    if (response.data?.message === 'ok' && response.data?.url) {
+        return `${imgUrl}${response.data.url}`
+    }
+
+    throw new Error('上传失败')
+}
+
 async function handleUpload() {
     if (!selectFile.value) {
         ElMessage.warning('请选择文件')
@@ -166,23 +235,32 @@ async function handleUpload() {
         ElMessage.warning('请输入版本名称')
         return
     }
+
     uploading.value = true
+    uploadProgress.value = 0
+
     try {
-        await api.appRelease.publish({
+        const downloadUrl = await uploadToOss(selectFile.value)
+
+        await api.appRelease.publishByUrl({
             versionName: form.value.versionName,
             versionCode: form.value.versionCode,
-            description: form.value.description,
+            description: form.value.description || '',
+            downloadUrl: downloadUrl,
+            fileName: selectFile.value.name,
+            fileSize: selectFile.value.size,
             isForceUpdate: form.value.isForceUpdate,
             platform: form.value.platform,
-            file: selectFile.value,
         })
+
         ElMessage.success('发布成功')
         uploadVisible.value = false
         loadData()
-    } catch (e) {
-        ElMessage.error('发布失败')
+    } catch (e: any) {
+        ElMessage.error(e.message || '发布失败')
     } finally {
         uploading.value = false
+        uploadProgress.value = 0
     }
 }
 

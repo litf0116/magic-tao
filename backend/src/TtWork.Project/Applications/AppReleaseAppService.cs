@@ -199,5 +199,60 @@ namespace TtWork.Project.Applications
             await _appReleaseRepository.UpdateAsync(release);
             await CurrentUnitOfWork.SaveChangesAsync();
         }
+
+        /// <summary>
+        /// 通过 URL 发布新版本（用于大文件，先上传到 OSS 再提交链接）
+        /// </summary>
+        [HttpPost]
+        [AbpAuthorize(AppPermissions.Administration)]
+        public async Task<long> PublishAppReleaseByUrl(
+            [FromBody] PublishAppReleaseByUrlInput input)
+        {
+            if (string.IsNullOrEmpty(input.DownloadUrl))
+            {
+                throw new UserFriendlyException("下载链接不能为空");
+            }
+
+            // 创建发布记录
+            var appRelease = new AppRelease
+            {
+                VersionName = input.VersionName,
+                VersionCode = input.VersionCode,
+                Description = input.Description ?? "",
+                DownloadUrl = input.DownloadUrl,
+                FileName = input.FileName ?? $"molitao-v{input.VersionName}-release.apk",
+                FileSize = input.FileSize,
+                IsForceUpdate = input.IsForceUpdate,
+                Platform = input.Platform ?? "android",
+                ReleaseDate = DateTime.Now,
+                IsActive = true
+            };
+
+            await _appReleaseRepository.InsertAsync(appRelease);
+
+            // 停用旧版本（同一平台的）
+            var oldReleases = await _appReleaseRepository.GetAllListAsync(x =>
+                x.Platform == input.Platform && x.VersionCode < input.VersionCode && x.IsActive);
+
+            foreach (var oldRelease in oldReleases)
+            {
+                oldRelease.IsActive = false;
+                await _appReleaseRepository.UpdateAsync(oldRelease);
+            }
+
+            return appRelease.Id;
+        }
+    }
+
+    public class PublishAppReleaseByUrlInput
+    {
+        public string VersionName { get; set; }
+        public int VersionCode { get; set; }
+        public string Description { get; set; }
+        public string DownloadUrl { get; set; }
+        public string FileName { get; set; }
+        public long FileSize { get; set; }
+        public bool IsForceUpdate { get; set; }
+        public string Platform { get; set; } = "android";
     }
 }
