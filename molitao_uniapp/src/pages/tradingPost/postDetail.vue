@@ -162,7 +162,7 @@ const adminSend = (res: any) => {
         Goto.private({
             id: `${chat.id}`,
             name: chat.name,
-            avatar: chat.avatar || 'https://cdn.molitao.top/avater.png',
+            avatar: chat.avatar || 'https://image.molitao.top/avater.png',
         })
     }
 }

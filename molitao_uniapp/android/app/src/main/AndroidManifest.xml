@@ -47,6 +47,15 @@
             android:name="dcloud_appkey"
             android:value="c7fd89e43bab5a3b26e81efd46dec897"/>
 
+        <!-- Weex 单进程模式 - 解决 Android 14+ IPC timeout -->
+        <meta-data
+            android:name="weex_use_single_process"
+            android:value="true"/>
+
+        <meta-data
+            android:name="dcloud_uninview_background"
+            android:value="true"/>
+
         <meta-data
             android:name="JPUSH_APPKEY"
             android:value="4e91398522bb1286f6452efb"/>
@@ -68,6 +77,17 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+        </activity>
+
+        <activity
+            android:name="io.dcloud.PandoraEntryActivity"
+            android:launchMode="singleTask"
+            android:configChanges="orientation|keyboardHidden|screenSize|mcc|mnc|fontScale|keyboard|smallestScreenSize|screenLayout|screenSize|uiMode"
+            android:hardwareAccelerated="true"
+            android:screenOrientation="user"
+            android:theme="@style/DCloudTheme"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
         </activity>
 
         <provider

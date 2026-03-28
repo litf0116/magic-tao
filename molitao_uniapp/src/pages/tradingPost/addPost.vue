@@ -93,7 +93,7 @@ const signature = ref('')
 const bucketName = 'molitao'
 const policy = ref('')
 const actionUrl = computed(() => `https://v0.api.upyun.com/${bucketName}`)
-const imgUrl = 'https://cdn.molitao.top'
+const imgUrl = 'https://image.molitao.top'
 const userName = 'molitao'
 
 onLoad((option: any) => {

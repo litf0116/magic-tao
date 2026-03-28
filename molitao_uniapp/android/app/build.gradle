@@ -9,7 +9,7 @@ android {
     defaultConfig {
         applicationId = "com.molitao.app"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 33
         versionCode = 100
         versionName = "1.0.0"
 
@@ -20,8 +20,15 @@ android {
             "JPUSH_CHANNEL": "developer-default",
             "plus.unipush.appid": "",
             "plus.unipush.appkey": "",
-            "plus.unipush.appsecret": ""
+            "plus.unipush.appsecret": "",
+            "GETUI_APPID": "",
+            "GY_APP_ID": "",
+            "GT_INSTALL_CHANNEL": "",
+            "plus.paypal.returnUrl": "",
+            "plus.google_map.APIKey_android": ""
         ]
+
+        multiDexEnabled true
 
         ndk {
             abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86_64'
@@ -67,6 +74,12 @@ android {
         }
     }
 
+    // UniApp 离线打包必需配置
+    aaptOptions {
+        additionalParameters '--auto-add-overlay'
+        ignoreAssetsPattern "!.svn:!.git:.*:!CVS:!thumbs.db:!picasa.ini:!*.scc:*~"
+    }
+
     packagingOptions {
         resources {
             excludes += ['META-INF/DEPENDENCIES', 'META-INF/LICENSE', 'META-INF/LICENSE.txt', 'META-INF/NOTICE', 'META-INF/NOTICE.txt']
@@ -80,17 +93,34 @@ android {
 }
 
 dependencies {
-    implementation fileTree(include: ['*.jar', '*.aar'], dir: '.')
+    implementation fileTree(include: ['*.jar', '*.aar'], dir: 'libs')
 
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.10.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 
+    // UniApp 必需 AndroidX 依赖
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+    implementation 'androidx.webkit:webkit:1.5.0'
+    implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
+    implementation 'androidx.core:core:1.6.0'
+    implementation "androidx.fragment:fragment:1.1.0"
+
+    // UniApp 必需第三方库
+    implementation 'com.alibaba:fastjson:1.2.83'
+    implementation 'com.github.bumptech.glide:glide:4.9.0'
+
+    // Fresco for image loading (required by UniApp SDK)
+    implementation "com.facebook.fresco:fresco:3.4.0"
+    implementation "com.facebook.fresco:middleware:3.4.0"
+    implementation "com.facebook.fresco:animated-gif:3.4.0"
+    implementation "com.facebook.fresco:webpsupport:3.4.0"
+    implementation "com.facebook.fresco:animated-webp:3.4.0"
+
+    // JPush
     implementation 'cn.jiguang.sdk:jpush:5.0.0'
     implementation 'cn.jiguang.sdk:jcore:3.6.0'
 
-    // DCloud uni-app SDK - 使用本地 AAR 文件
-    implementation files('libs/uniapp-v8-release.aar')
-    implementation files('libs/lib.5plus.base-release.aar')
-    implementation 'com.alibaba:fastjson:1.2.83'
+    // 微信支付/分享
+    implementation 'com.tencent.mm.opensdk:wechat-sdk-android-without-mta:6.7.9'
 }

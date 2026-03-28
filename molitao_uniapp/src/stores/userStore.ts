@@ -230,6 +230,7 @@ export const useUserStore = defineStore('userStore', () => {
                                     })
 
                                     if (res.accessToken) {
+                                        console.log('[APP OAuth] 获取到 accessToken，开始存储')
                                         token.value = res.accessToken
                                         uni.setStorageSync('token', res.accessToken)
 
@@ -240,8 +241,11 @@ export const useUserStore = defineStore('userStore', () => {
                                             }
                                         }
 
+                                        console.log('[APP OAuth] 开始 checkLogin')
                                         await checkLogin()
+                                        console.log('[APP OAuth] checkLogin 完成，开始 registerPushAlias')
                                         await registerPushAlias()
+                                        console.log('[APP OAuth] 所有操作完成，resolve')
                                         return resolve(res)
                                     } else {
                                         reject('登录失败')
@@ -399,17 +403,30 @@ export const useUserStore = defineStore('userStore', () => {
 
     async function registerPushAlias() {
         // #ifdef APP-PLUS
-        if (!user.value.id) return
+        console.log('[Push] registerPushAlias 开始, userId:', user.value.id)
+        if (!user.value.id) {
+            console.log('[Push] userId 为空，跳过')
+            return
+        }
 
         try {
-            await pushService.init()
+            console.log('[Push] 调用 pushService.init()')
+            const initPromise = pushService.init()
+            const timeoutPromise = new Promise<void>((_, reject) => {
+                setTimeout(() => reject(new Error('init timeout')), 5000)
+            })
+            await Promise.race([initPromise, timeoutPromise])
+            console.log('[Push] pushService.init() 完成')
+
             const alias = `user_${user.value.id}`
+            console.log('[Push] 设置别名:', alias)
             await pushService.setAlias(alias)
             console.log('[Push] 别名设置成功:', alias)
         } catch (error) {
             console.error('[Push] 别名设置失败:', error)
         }
         // #endif
+        console.log('[Push] registerPushAlias 结束')
     }
 
     //ANCHOR - return

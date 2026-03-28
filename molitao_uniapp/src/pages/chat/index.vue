@@ -140,7 +140,7 @@ async function chat(chat: ChatListItem) {
         Goto.private({
             id: `${chat.id}`,
             name: chat.name,
-            avatar: chat.avatar || 'https://cdn.molitao.top/avater.png',
+            avatar: chat.avatar || 'https://image.molitao.top/avater.png',
         })
     } else if (chat.id === -10) {
         Goto.group({ id: '-10_announcement', name: '系统公告' })

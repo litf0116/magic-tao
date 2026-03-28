@@ -3,7 +3,7 @@
         <view class="login-content">
             <view class="logo-wrap">
                 <image
-                    src="https://cdn.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png"
+                    src="https://image.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png"
                     class="logo"
                     mode="aspectFit"
                 />
@@ -255,20 +255,31 @@ const handleWxLogin = () => {
 }
 
 // APP 微信 OAuth 登录
-const handleWxOAuth = () => {
+const handleWxOAuth = async () => {
     if (isLoading.value) return
 
-    userStore
-        .appWxLogin()
-        .then(() => {
-            uni.$emit('refreshView')
-            setTimeout(() => {
-                navigateAfterLogin()
-            }, 500)
-        })
-        .catch((error: any) => {
-            uni.showToast({ title: error?.message || '微信登录失败', icon: 'none' })
-        })
+    isLoading.value = true
+    console.log('[handleWxOAuth] 开始微信登录')
+
+    try {
+        const res = await userStore.appWxLogin()
+        console.log('[handleWxOAuth] 登录成功', res)
+        uni.$emit('refreshView')
+        uni.showToast({ title: '登录成功', icon: 'success' })
+        
+        // 强制跳转
+        setTimeout(() => {
+            console.log('[handleWxOAuth] 执行跳转')
+            // #ifdef APP-PLUS
+            uni.reLaunch({ url: '/pages/tabbar/index' })
+            // #endif
+        }, 800)
+    } catch (error: any) {
+        console.log('[handleWxOAuth] 登录失败', error)
+        uni.showToast({ title: error?.message || error || '微信登录失败', icon: 'none' })
+    } finally {
+        isLoading.value = false
+    }
 }
 
 // H5 微信扫码登录

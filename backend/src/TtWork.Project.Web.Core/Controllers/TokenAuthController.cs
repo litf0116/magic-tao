@@ -389,7 +389,7 @@ namespace TtWork.Project.Web.Controllers
                 var authUserInfo =
                     await externalAuthManager.GetUserInfo(Consts.LoginProvider.WeChatMiniOpenid,
                         loginModel.ToJsonString(), app.GetValue("appid"), app.GetValue("appsec"));
-                Logger.Info($"[WeixinMiniAuthenticate] AuthUserInfo: Provider={authUserInfo.Provider}, ProviderKey={authUserInfo.ProviderKey}, Name={authUserInfo.Name}");
+                Logger.Info($"[WeixinMiniAuthenticate] AuthUserInfo: Provider={authUserInfo.Provider}, ProviderKey={authUserInfo.ProviderKey}, UnionId={authUserInfo.UnionId}, Name={authUserInfo.Name}");
                 
                 ExternalAuthenticateModel model = new()
                     { AuthProvider = authUserInfo.Provider, ProviderKey = authUserInfo.ProviderKey };
@@ -464,7 +464,10 @@ namespace TtWork.Project.Web.Controllers
                     openid = weixinResult.openid;
                     unionid = weixinResult.unionid;
                     accessToken = weixinResult.access_token;
+                    Logger.Info($"[AuthenticateWeixinApp] Old way result - openid={openid}, unionid={unionid}");
                 }
+
+                Logger.Info($"[AuthenticateWeixinApp] Final values - openid={openid}, unionid={(string.IsNullOrEmpty(unionid) ? "NULL/EMPTY" : unionid)}");
 
                 var authUserInfo = new ExternalAuthUserInfo
                 {

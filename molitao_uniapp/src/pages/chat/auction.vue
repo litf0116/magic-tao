@@ -648,7 +648,7 @@ function getStartContent(item: AuctionItemDto) {
         </div>`
     }
     // console.log('description', description)
-    // description <img data-url="https://cdn.molitao.top/molitao/2025-09-20/upload_rper34g17578vqs2ri9y08zhcg8iph51.png" src="https://cdn.molitao.top/molitao/2025-09-20/upload_rper34g17578vqs2ri9y08zhcg8iph51.png!w300" style="max-width: 200px; max-height: 200px;"><div><span>120级02101水龙5胞胎队！纯血满树海！</span><br></div>
+    // description <img data-url="https://image.molitao.top/molitao/2025-09-20/upload_rper34g17578vqs2ri9y08zhcg8iph51.png" src="https://image.molitao.top/molitao/2025-09-20/upload_rper34g17578vqs2ri9y08zhcg8iph51.png!w300" style="max-width: 200px; max-height: 200px;"><div><span>120级02101水龙5胞胎队！纯血满树海！</span><br></div>
     // 其中的图片链接需要转换
     // 使用正则表达式替换所有 img 标签的 data-url 属性
     const updatedDescription = description.replace(/<img[^>]+data-url=['"]([^'"]+)['"][^>]*>/g, (match, p1) => {
@@ -656,7 +656,7 @@ function getStartContent(item: AuctionItemDto) {
         return match.replace(p1, convertedUrl)
     })
     // console.log('updatedDescription', updatedDescription)
-    // src = "https://cdn.molitao.top/molitao/2025-09-20/upload_rper34g17578vqs2ri9y08zhcg8iph51.png!w300" 也要修改
+    // src = "https://image.molitao.top/molitao/2025-09-20/upload_rper34g17578vqs2ri9y08zhcg8iph51.png!w300" 也要修改
     // 使用正则表达式替换所有 img 标签的 src 属性
     const finalDescription = updatedDescription.replace(/<img[^>]+src=['"]([^'"]+)['"][^>]*>/g, (match, p1) => {
         const cleanUrl = p1.replace(/!w300$/, '') // 移除缩略图参数

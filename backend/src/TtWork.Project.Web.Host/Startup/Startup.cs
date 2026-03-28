@@ -279,7 +279,7 @@ namespace TtWork.Project.Web.Host.Startup
 
 #if DEBUG
                 Redis = new FreeRedis.RedisClient("127.0.0.1:6379,poolsize=10,syncTimeout=5000,abortConnect=false"),
-                Servers = ["192.168.10.231:6001"]
+                Servers = ["192.168.10.35:6001"]
 #else
                 Redis = new FreeRedis.RedisClient(
                   "8.130.178.251:6379,poolsize=10,password=7yD3Ddd34,syncTimeout=5000,abortConnect=false"),

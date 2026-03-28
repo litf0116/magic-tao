@@ -140,7 +140,7 @@
         </view>
         <!-- #endif -->
 
-        <view v-if="userStore.user.phoneNumber" class="my-4">
+        <view v-if="userStore.isLogin" class="my-4">
             <uv-button @tap="logout">退出登录</uv-button>
         </view>
         <view class="text-center w-full text-gray-300">{{ appVersion }}</view>

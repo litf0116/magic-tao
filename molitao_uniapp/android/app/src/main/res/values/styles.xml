@@ -6,6 +6,12 @@
         <item name="android:windowBackground">@android:color/transparent</item>
     </style>
 
+    <!-- DCloud 主题 -->
+    <style name="DCloudTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">@android:color/white</item>
+    </style>
+
     <!-- 应用主题 -->
     <style name="Theme.MolitaoApp" parent="android:Theme.Material.Light">
         <item name="android:windowNoTitle">true</item>
