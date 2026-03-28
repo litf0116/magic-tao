@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:fluwx/fluwx.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/repositories/auth_repository.dart';
+import '../../../data/services/wechat_service.dart';
 import '../../providers/user_provider.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -17,10 +19,21 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   final _authRepository = AuthRepository();
+  final _wechatService = WeChatService();
 
   bool _isLoading = false;
   bool _obscurePassword = true;
   String? _focusedField;
+
+  @override
+  void initState() {
+    super.initState();
+    _initWeChat();
+  }
+
+  Future<void> _initWeChat() async {
+    await _wechatService.initialize();
+  }
 
   @override
   void dispose() {
@@ -63,6 +76,61 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('登录失败: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _handleWeChatLogin() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final installed = await _wechatService.isWeChatInstalled();
+      if (!installed) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('请先安装微信')));
+        }
+        return;
+      }
+
+      final response = await _wechatService.login();
+
+      if (response != null && response.isSuccessful && response.code != null) {
+        final userDto = await _authRepository.weixinAppLogin(response.code!);
+
+        if (userDto != null && mounted) {
+          ref
+              .read(userProvider.notifier)
+              .login(
+                userDto.id.toString(),
+                User(
+                  id: userDto.id,
+                  userName: userDto.userName,
+                  fullName: userDto.fullName,
+                  phoneNumber: userDto.phoneNumber,
+                  headImgUrl: userDto.headImgUrl,
+                  depositBalance: userDto.depositBalance?.toDouble(),
+                  permissions: userDto.permissions ?? [],
+                  roleNames: userDto.roleNames ?? [],
+                ),
+              );
+          context.go('/');
+        }
+      } else if (response != null && response.errCode != 0) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('微信登录失败: ${response.errStr}')));
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('微信登录失败: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -203,11 +271,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       const SizedBox(height: 24),
                       // WeChat OAuth
                       GestureDetector(
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('微信登录功能开发中')),
-                          );
-                        },
+                        onTap: _isLoading ? null : _handleWeChatLogin,
                         child: Container(
                           width: 44,
                           height: 44,

@@ -38,8 +38,8 @@ dependencies:
   # WebSocket
   web_socket_channel: ^3.0.2
 
-  # 微信登录/支付 (Phase 3)
-  # fluwx: ^5.7.5
+  # 微信登录/支付
+  fluwx: ^5.7.5
 
 dev_dependencies:
   flutter_test:
