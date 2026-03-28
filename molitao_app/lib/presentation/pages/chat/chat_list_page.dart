@@ -1,40 +1,71 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../data/models/chat_list_item_model.dart' as model;
 import '../../providers/chat_provider.dart';
 import 'package:intl/intl.dart';
 
-class ChatListPage extends ConsumerWidget {
-  const ChatListPage({Key? key}) : super(key: key);
+class ChatListPage extends ConsumerStatefulWidget {
+  const ChatListPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ChatListPage> createState() => _ChatListPageState();
+}
+
+class _ChatListPageState extends ConsumerState<ChatListPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Load chat list and connect to WebSocket
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initChat();
+    });
+  }
+
+  Future<void> _initChat() async {
+    await ref.read(chatProvider.notifier).loadChatList();
+    await ref.read(chatProvider.notifier).connectWebSocket();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final chatState = ref.watch(chatProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('会话')),
-      body: chatState.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : chatState.chatList.isEmpty
-          ? const Center(child: Text('当前没有会话'))
-          : ListView.builder(
-              itemCount: chatState.chatList.length,
-              itemBuilder: (context, index) {
-                // Need to convert from provider model to data model
-                final providerItem = chatState.chatList[index];
-                final chatItem = model.ChatListItem(
-                  id: providerItem.id,
-                  name: providerItem.name,
-                  type: _convertType(providerItem.type),
-                  time: providerItem.time,
-                  avatar: providerItem.avatar,
-                  lastMsg: providerItem.lastMsg,
-                  unread: providerItem.unread,
-                  order: providerItem.order,
-                );
-                return _buildChatItem(context, chatItem);
-              },
-            ),
+      appBar: AppBar(
+        title: const Text('会话'),
+        backgroundColor: const Color(0xFFf4835a),
+        foregroundColor: Colors.white,
+      ),
+      body: RefreshIndicator(
+        onRefresh: () => ref.read(chatProvider.notifier).loadChatList(),
+        child: chatState.isLoading && chatState.chatList.isEmpty
+            ? const Center(child: CircularProgressIndicator())
+            : chatState.chatList.isEmpty
+            ? ListView(
+                children: const [
+                  SizedBox(height: 200),
+                  Center(child: Text('当前没有会话')),
+                ],
+              )
+            : ListView.builder(
+                itemCount: chatState.chatList.length,
+                itemBuilder: (context, index) {
+                  final providerItem = chatState.chatList[index];
+                  final chatItem = model.ChatListItem(
+                    id: providerItem.id,
+                    name: providerItem.name,
+                    type: _convertType(providerItem.type),
+                    time: providerItem.time,
+                    avatar: providerItem.avatar,
+                    lastMsg: providerItem.lastMsg,
+                    unread: providerItem.unread,
+                    order: providerItem.order,
+                  );
+                  return _buildChatItem(context, ref, chatItem);
+                },
+              ),
+      ),
     );
   }
 
@@ -49,12 +80,19 @@ class ChatListPage extends ConsumerWidget {
     }
   }
 
-  Widget _buildChatItem(BuildContext context, model.ChatListItem chatItem) {
+  Widget _buildChatItem(
+    BuildContext context,
+    WidgetRef ref,
+    model.ChatListItem chatItem,
+  ) {
     return GestureDetector(
       onTap: () => _navigateToChatDetail(context, chatItem),
-      onLongPress: () => _showContextMenu(context, chatItem),
+      onLongPress: () => _showContextMenu(context, ref, chatItem),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: Color(0xFFefefef))),
+        ),
         child: Row(
           children: [
             Stack(
@@ -67,12 +105,12 @@ class ChatListPage extends ConsumerWidget {
                     child: Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(10),
+                        color: const Color(0xFFee593c),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       constraints: const BoxConstraints(
-                        minWidth: 18,
-                        minHeight: 18,
+                        minWidth: 20,
+                        minHeight: 20,
                       ),
                       child: Text(
                         chatItem.unread > 99
@@ -89,7 +127,7 @@ class ChatListPage extends ConsumerWidget {
                   ),
               ],
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,9 +138,12 @@ class ChatListPage extends ConsumerWidget {
                       Expanded(
                         child: Text(
                           _getChannelDisplayName(chatItem),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: _isSpecialChannel(chatItem.id)
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: _getChannelNameColor(chatItem),
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -111,8 +152,8 @@ class ChatListPage extends ConsumerWidget {
                         Text(
                           _formatTime(chatItem.time!),
                           style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
+                            fontSize: 13,
+                            color: Color(0xFFB3B3B3),
                           ),
                         ),
                     ],
@@ -120,7 +161,10 @@ class ChatListPage extends ConsumerWidget {
                   const SizedBox(height: 4),
                   Text(
                     chatItem.lastMsg ?? '',
-                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    style: const TextStyle(
+                      fontSize: 15,
+                      color: Color(0xFFB3B3B3),
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -133,16 +177,30 @@ class ChatListPage extends ConsumerWidget {
     );
   }
 
+  bool _isSpecialChannel(int? id) {
+    return id != null && (id == -10 || id == -11 || id == -1 || id == 0);
+  }
+
+  Color _getChannelNameColor(model.ChatListItem chatItem) {
+    if (chatItem.id == -10) return const Color(0xFF9333EA); // purple
+    if (chatItem.id == -11) return const Color(0xFF3B82F6); // blue
+    if (chatItem.id == 0) return const Color(0xFF2563EB); // blue
+    if (chatItem.id == -1) return const Color(0xFF16A34A); // green
+    return const Color(0xFF374151); // gray
+  }
+
   Widget _buildAvatar(model.ChatListItem chatItem) {
+    const double avatarSize = 50;
+
     if (chatItem.id != null) {
       // Special handling for system channels
       if (chatItem.id == -10) {
         // Announcement
         return Container(
-          width: 50,
-          height: 50,
+          width: avatarSize,
+          height: avatarSize,
           decoration: const BoxDecoration(
-            color: Colors.green,
+            color: Color(0xFF16A34A),
             shape: BoxShape.circle,
           ),
           child: const Center(
@@ -159,10 +217,10 @@ class ChatListPage extends ConsumerWidget {
       } else if (chatItem.id == -11) {
         // Newbie group
         return Container(
-          width: 50,
-          height: 50,
+          width: avatarSize,
+          height: avatarSize,
           decoration: const BoxDecoration(
-            color: Colors.green,
+            color: Color(0xFF16A34A),
             shape: BoxShape.circle,
           ),
           child: const Center(
@@ -179,10 +237,10 @@ class ChatListPage extends ConsumerWidget {
       } else if (chatItem.id == 0) {
         // Lobby
         return Container(
-          width: 50,
-          height: 50,
+          width: avatarSize,
+          height: avatarSize,
           decoration: const BoxDecoration(
-            color: Colors.green,
+            color: Color(0xFF16A34A),
             shape: BoxShape.circle,
           ),
           child: const Center(
@@ -199,10 +257,10 @@ class ChatListPage extends ConsumerWidget {
       } else if (chatItem.id == -1) {
         // Auction
         return Container(
-          width: 50,
-          height: 50,
+          width: avatarSize,
+          height: avatarSize,
           decoration: const BoxDecoration(
-            color: Colors.green,
+            color: Color(0xFF16A34A),
             shape: BoxShape.circle,
           ),
           child: const Center(
@@ -219,7 +277,7 @@ class ChatListPage extends ConsumerWidget {
       } else if (chatItem.avatar != null && chatItem.avatar!.isNotEmpty) {
         // Regular user/group with avatar
         return CircleAvatar(
-          radius: 25,
+          radius: avatarSize / 2,
           backgroundImage: NetworkImage(chatItem.avatar!),
         );
       }
@@ -228,42 +286,55 @@ class ChatListPage extends ConsumerWidget {
     // For group chats without avatar, use random color avatar
     if (chatItem.type == model.ChatListItemType.group) {
       return Container(
-        width: 50,
-        height: 50,
+        width: avatarSize,
+        height: avatarSize,
         decoration: BoxDecoration(
           color: _getRandomColor(chatItem.name),
           shape: BoxShape.circle,
         ),
-        child: const Center(
-          child: Icon(Icons.group, color: Colors.white, size: 24),
+        child: Center(
+          child: Text(
+            chatItem.name.isNotEmpty
+                ? chatItem.name.substring(
+                    0,
+                    chatItem.name.length > 2 ? 2 : chatItem.name.length,
+                  )
+                : '组队',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
       );
     }
 
     // Default avatar for users without image
-    return const CircleAvatar(
-      radius: 25,
+    return CircleAvatar(
+      radius: avatarSize / 2,
       backgroundColor: Colors.grey,
-      child: Icon(Icons.person, color: Colors.white, size: 24),
+      child: const Icon(Icons.person, color: Colors.white, size: 24),
     );
   }
 
   Color _getRandomColor(String name) {
-    // Generate a deterministic color based on the name
-    int hash = name.hashCode;
-    int r = (hash >> 16) % 255;
-    int g = (hash >> 8) % 255;
-    int b = hash % 255;
+    if (name.isEmpty) return Colors.black;
+    int hash = 0;
+    for (int i = 0; i < name.length; i++) {
+      hash = name.codeUnitAt(i) + ((hash << 5) - hash);
+    }
+    int r = (hash >> 16) & 0xFF;
+    int g = (hash >> 8) & 0xFF;
+    int b = hash & 0xFF;
     return Color.fromRGBO(r, g, b, 1.0);
   }
 
   String _getChannelDisplayName(model.ChatListItem chatItem) {
-    if (chatItem.id != null) {
-      if (chatItem.id == -10) return '公告';
-      if (chatItem.id == -11) return '新手群';
-      if (chatItem.id == 0) return '大厅';
-      if (chatItem.id == -1) return '秒杀';
-    }
+    if (chatItem.id == -10) return '系统公告';
+    if (chatItem.id == -11) return '新手版主群聊';
+    if (chatItem.id == 0) return '勇者招募所';
+    if (chatItem.id == -1) return '秒杀场';
     return chatItem.name;
   }
 
@@ -276,45 +347,81 @@ class ChatListPage extends ConsumerWidget {
     BuildContext context,
     model.ChatListItem chatItem,
   ) {
-    if (chatItem.id != null) {
-      if (chatItem.id == -1) {
-        // Auction
-        // Navigate to auction chat page
-        Navigator.pushNamed(context, '/chat/auction');
-      } else if (chatItem.type == model.ChatListItemType.user) {
-        // Navigate to private chat page
-        Navigator.pushNamed(context, '/chat/private/${chatItem.id}');
-      } else {
-        // Navigate to group chat page
-        Navigator.pushNamed(context, '/chat/group/${chatItem.id}');
-      }
+    if (chatItem.id == null) return;
+
+    // Mark as read
+    ref.read(chatProvider.notifier).markAsRead(chatItem.id!);
+
+    if (chatItem.id == -1) {
+      // Auction
+      context.push('/chat/auction');
+    } else if (chatItem.id == -10) {
+      // Announcement
+      context.push('/chat/group/-10');
+    } else if (chatItem.id == -11) {
+      // Newbie group
+      context.push('/chat/group/-11');
+    } else if (chatItem.id == 0) {
+      // Lobby
+      context.push('/chat/group/0');
+    } else if (chatItem.type == model.ChatListItemType.user) {
+      // Private chat
+      context.push('/chat/private/${chatItem.id}');
     } else {
-      // Default to private chat if no ID
-      Navigator.pushNamed(context, '/chat/private/${chatItem.id ?? 0}');
+      // Group chat
+      context.push('/chat/group/${chatItem.id}');
     }
   }
 
-  void _showContextMenu(BuildContext context, model.ChatListItem chatItem) {
+  void _showContextMenu(
+    BuildContext context,
+    WidgetRef ref,
+    model.ChatListItem chatItem,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: const Text('删除聊天', textAlign: TextAlign.center),
+                onTap: () {
+                  Navigator.pop(context);
+                  _confirmDelete(context, ref, chatItem);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _confirmDelete(
+    BuildContext context,
+    WidgetRef ref,
+    model.ChatListItem chatItem,
+  ) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('操作'),
-          content: const Text('确定要删除这个会话吗？'),
+          title: const Text('提示'),
+          content: const Text('确定删除聊天记录吗？'),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
-              },
+              onPressed: () => Navigator.of(context).pop(),
               child: const Text('取消'),
             ),
             TextButton(
               onPressed: () {
-                // Close dialog and delete conversation
                 Navigator.of(context).pop();
-                // TODO: Implement delete conversation functionality
+                // Delete conversation
+                ref.read(chatProvider.notifier).deleteChat(chatItem.id ?? 0);
               },
-              child: const Text('删除'),
+              child: const Text('确定', style: TextStyle(color: Colors.red)),
             ),
           ],
         );

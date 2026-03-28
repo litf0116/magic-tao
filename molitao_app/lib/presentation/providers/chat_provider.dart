@@ -1,6 +1,10 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dio/dio.dart';
 import '../../data/services/websocket_service.dart';
+import '../../data/api/api_client.dart';
+import '../../data/api/api_endpoints.dart';
+import '../../data/services/storage_service.dart';
 
 // Chat list item type enum
 enum ChatListItemType { group, user, system }
@@ -260,11 +264,73 @@ class ChatNotifier extends StateNotifier<ChatState> {
     state = state.copyWith(isLoading: true);
 
     try {
-      // In a real implementation, you would fetch chat list from API
-      // For now, we'll simulate with an empty list
-      state = state.copyWith(chatList: [], isLoading: false);
+      final storageService = StorageService();
+      final token = await storageService.getToken();
+
+      if (token == null || token.isEmpty) {
+        state = state.copyWith(chatList: [], isLoading: false);
+        return;
+      }
+
+      final response = await ApiClient().dio.get(ApiEndpoints.getChatList);
+
+      if (response.data != null && response.data is List) {
+        final chatList = (response.data as List)
+            .map((json) => ChatListItem.fromJson(json))
+            .toList();
+
+        // Sort by order descending
+        chatList.sort((a, b) => b.order.compareTo(a.order));
+
+        final totalUnread = chatList.fold(0, (sum, item) => sum + item.unread);
+
+        state = state.copyWith(
+          chatList: chatList,
+          unreadCount: totalUnread,
+          isLoading: false,
+        );
+      } else {
+        state = state.copyWith(chatList: [], isLoading: false);
+      }
     } catch (e) {
-      state = state.copyWith(isLoading: false);
+      print('Error loading chat list: $e');
+      state = state.copyWith(chatList: [], isLoading: false);
+    }
+  }
+
+  Future<void> deleteChat(int chatId) async {
+    try {
+      // Call API to delete chat
+      await ApiClient().dio.delete('${ApiEndpoints.deleteChatList}/$chatId');
+
+      // Remove from local state
+      final updatedChatList = state.chatList
+          .where((item) => item.id != chatId)
+          .toList();
+      final totalUnread = updatedChatList.fold(
+        0,
+        (sum, item) => sum + item.unread,
+      );
+
+      state = state.copyWith(
+        chatList: updatedChatList,
+        unreadCount: totalUnread,
+      );
+    } catch (e) {
+      print('Error deleting chat: $e');
+      // Still remove from local state even if API fails
+      final updatedChatList = state.chatList
+          .where((item) => item.id != chatId)
+          .toList();
+      final totalUnread = updatedChatList.fold(
+        0,
+        (sum, item) => sum + item.unread,
+      );
+
+      state = state.copyWith(
+        chatList: updatedChatList,
+        unreadCount: totalUnread,
+      );
     }
   }
 

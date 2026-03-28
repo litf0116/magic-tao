@@ -1,21 +1,116 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/home_provider.dart';
 import '../../../data/models/cms_article_model.dart';
 import '../../../data/models/advertising_space_model.dart';
 
-class HomePage extends ConsumerWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final homeState = ref.watch(homeProvider);
+  ConsumerState<HomePage> createState() => _HomePageState();
+}
 
-    // Load data when the page is first built
-    ref.read(homeProvider.notifier).loadHomeData();
+class _HomePageState extends ConsumerState<HomePage> {
+  @override
+  void initState() {
+    super.initState();
+    // Load data when the page is first initialized
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(homeProvider.notifier).loadHomeData();
+    });
+  }
+
+  List<Widget> _buildAdRows(List<AdvertisingSpace> spaces) {
+    final List<Widget> rows = [];
+    for (var i = 0; i < spaces.length; i += 2) {
+      final List<Widget> rowChildren = [];
+
+      // First item
+      rowChildren.add(_buildAdItem(spaces[i]));
+
+      // Second item (if exists)
+      if (i + 1 < spaces.length) {
+        rowChildren.add(_buildAdItem(spaces[i + 1]));
+      }
+
+      rows.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Row(children: rowChildren),
+        ),
+      );
+    }
+    return rows;
+  }
+
+  Widget _buildAdItem(AdvertisingSpace item) {
+    return Expanded(
+      child: Container(
+        height: 150,
+        margin: const EdgeInsets.symmetric(horizontal: 3),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 5,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: CachedNetworkImage(
+                imageUrl: item.imageUrl ?? '',
+                fit: BoxFit.cover,
+                placeholder: (context, url) => Container(
+                  color: Colors.grey[200],
+                  child: const Icon(Icons.image, size: 30),
+                ),
+                errorWidget: (context, url, error) => Container(
+                  color: Colors.grey[200],
+                  child: const Icon(Icons.broken_image, size: 30),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 50,
+              left: 0,
+              right: 0,
+              child: Text(
+                item.title ?? item.name ?? '',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  shadows: [
+                    Shadow(
+                      color: Colors.black54,
+                      offset: Offset(1, 1),
+                      blurRadius: 2,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final homeState = ref.watch(homeProvider);
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -118,146 +213,14 @@ class HomePage extends ConsumerWidget {
 
                     // Article swiper
                     if (homeState.articles.isNotEmpty)
-                      Container(
-                        width: double.infinity,
-                        height: 200,
-                        margin: const EdgeInsets.symmetric(vertical: 8),
-                        child: CarouselSlider(
-                          options: CarouselOptions(
-                            height: 200,
-                            autoPlay: true,
-                            autoPlayInterval: const Duration(seconds: 5),
-                            viewportFraction: 1.0,
-                            onPageChanged: (index, reason) {},
-                          ),
-                          items: homeState.articles.map((article) {
-                            return Builder(
-                              builder: (BuildContext context) {
-                                return Container(
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.1),
-                                        spreadRadius: 1,
-                                        blurRadius: 5,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: CachedNetworkImage(
-                                      imageUrl: article.titleImageUrl ?? '',
-                                      fit: BoxFit.cover,
-                                      placeholder: (context, url) => Container(
-                                        color: Colors.grey[200],
-                                        child: const Icon(
-                                          Icons.image,
-                                          size: 30,
-                                        ),
-                                      ),
-                                      errorWidget: (context, url, error) =>
-                                          Container(
-                                            color: Colors.grey[200],
-                                            child: const Icon(
-                                              Icons.broken_image,
-                                              size: 30,
-                                            ),
-                                          ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            );
-                          }).toList(),
-                        ),
-                      ),
+                      _ArticleSwiper(articles: homeState.articles),
 
-                    // Advertising space grid
+                    // Advertising space grid (2 columns)
                     if (homeState.advertisingSpaces.isNotEmpty)
                       Container(
                         margin: const EdgeInsets.symmetric(vertical: 8),
-                        child: Wrap(
-                          spacing: 6,
-                          runSpacing: 6,
-                          children: homeState.advertisingSpaces
-                              .asMap()
-                              .entries
-                              .map((entry) {
-                                final index = entry.key;
-                                final item = entry.value;
-                                return Expanded(
-                                  flex: 1,
-                                  child: Container(
-                                    width:
-                                        (MediaQuery.of(context).size.width *
-                                                    0.9 -
-                                                24) /
-                                            2 -
-                                        3, // Approximate calculation for 2 columns with spacing
-                                    height: 150,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(8),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.1),
-                                          spreadRadius: 1,
-                                          blurRadius: 5,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Stack(
-                                      fit: StackFit.expand,
-                                      children: [
-                                        ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                          child: CachedNetworkImage(
-                                            imageUrl: item.imageUrl ?? '',
-                                            fit: BoxFit.cover,
-                                            placeholder: (context, url) =>
-                                                Container(
-                                                  color: Colors.grey[200],
-                                                  child: const Icon(
-                                                    Icons.image,
-                                                    size: 30,
-                                                  ),
-                                                ),
-                                            errorWidget:
-                                                (context, url, error) =>
-                                                    Container(
-                                                      color: Colors.grey[200],
-                                                      child: const Icon(
-                                                        Icons.broken_image,
-                                                        size: 30,
-                                                      ),
-                                                    ),
-                                          ),
-                                        ),
-                                        Positioned(
-                                          top: 50,
-                                          left: 0,
-                                          right: 0,
-                                          child: Text(
-                                            item.title ?? item.name ?? '',
-                                            textAlign: TextAlign.center,
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              })
-                              .toList(),
+                        child: Column(
+                          children: _buildAdRows(homeState.advertisingSpaces),
                         ),
                       ),
 
@@ -302,6 +265,123 @@ class HomePage extends ConsumerWidget {
             const SliverToBoxAdapter(child: SizedBox(height: 80)),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// Article swiper widget with auto-scroll
+class _ArticleSwiper extends StatefulWidget {
+  final List<CmsArticle> articles;
+
+  const _ArticleSwiper({required this.articles});
+
+  @override
+  State<_ArticleSwiper> createState() => _ArticleSwiperState();
+}
+
+class _ArticleSwiperState extends State<_ArticleSwiper> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+  late Timer _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startAutoPlay();
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _startAutoPlay() {
+    _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (widget.articles.isNotEmpty) {
+        final nextPage = (_currentPage + 1) % widget.articles.length;
+        _pageController.animateToPage(
+          nextPage,
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeIn,
+        );
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: 200,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          PageView.builder(
+            controller: _pageController,
+            onPageChanged: (index) {
+              setState(() => _currentPage = index);
+            },
+            itemCount: widget.articles.length,
+            itemBuilder: (context, index) {
+              final article = widget.articles[index];
+              return Container(
+                width: double.infinity,
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      spreadRadius: 1,
+                      blurRadius: 5,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: CachedNetworkImage(
+                    imageUrl: article.titleImageUrl ?? '',
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      color: Colors.grey[200],
+                      child: const Icon(Icons.image, size: 30),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      color: Colors.grey[200],
+                      child: const Icon(Icons.broken_image, size: 30),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          // Page indicator
+          Positioned(
+            bottom: 8,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                widget.articles.length,
+                (index) => Container(
+                  width: 6,
+                  height: 6,
+                  margin: const EdgeInsets.symmetric(horizontal: 2),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _currentPage == index
+                        ? Colors.white
+                        : Colors.white.withOpacity(0.5),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
