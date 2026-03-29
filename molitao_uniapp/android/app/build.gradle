@@ -80,7 +80,7 @@ android {
 }
 
 dependencies {
-    implementation fileTree(include: ['*.jar', '*.aar'], dir: '.')
+    implementation fileTree(include: ['*.jar', '*.aar'], dir: 'libs')
 
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.10.0'
@@ -89,8 +89,5 @@ dependencies {
     implementation 'cn.jiguang.sdk:jpush:5.0.0'
     implementation 'cn.jiguang.sdk:jcore:3.6.0'
 
-    // DCloud uni-app SDK - 使用本地 AAR 文件
-    implementation files('libs/uniapp-v8-release.aar')
-    implementation files('libs/lib.5plus.base-release.aar')
     implementation 'com.alibaba:fastjson:1.2.83'
 }
