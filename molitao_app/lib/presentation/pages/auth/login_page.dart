@@ -86,7 +86,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     setState(() => _isLoading = true);
 
     try {
-      final installed = await _wechatService.isWeChatInstalled();
+      final installed = await _wechatService.checkWeChatInstalled();
       if (!installed) {
         if (mounted) {
           ScaffoldMessenger.of(
@@ -96,43 +96,63 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         return;
       }
 
-      final response = await _wechatService.login();
+      // Add subscriber to listen for WeChat auth response
+      late WeChatResponseSubscriber subscriber;
+      subscriber = (WeChatResponse response) async {
+        _wechatService.removeSubscriber(subscriber);
 
-      if (response != null && response.isSuccessful && response.code != null) {
-        final userDto = await _authRepository.weixinAppLogin(response.code!);
-
-        if (userDto != null && mounted) {
-          ref
-              .read(userProvider.notifier)
-              .login(
-                userDto.id.toString(),
-                User(
-                  id: userDto.id,
-                  userName: userDto.userName,
-                  fullName: userDto.fullName,
-                  phoneNumber: userDto.phoneNumber,
-                  headImgUrl: userDto.headImgUrl,
-                  depositBalance: userDto.depositBalance?.toDouble(),
-                  permissions: userDto.permissions ?? [],
-                  roleNames: userDto.roleNames ?? [],
-                ),
+        if (response is WeChatAuthResponse) {
+          if (response.isSuccessful && response.code != null) {
+            try {
+              final userDto = await _authRepository.weixinAppLogin(
+                response.code!,
               );
-          context.go('/');
+
+              if (userDto != null && mounted) {
+                ref
+                    .read(userProvider.notifier)
+                    .login(
+                      userDto.id.toString(),
+                      User(
+                        id: userDto.id,
+                        userName: userDto.userName,
+                        fullName: userDto.fullName,
+                        phoneNumber: userDto.phoneNumber,
+                        headImgUrl: userDto.headImgUrl,
+                        depositBalance: userDto.depositBalance?.toDouble(),
+                        permissions: userDto.permissions ?? [],
+                        roleNames: userDto.roleNames ?? [],
+                      ),
+                    );
+                context.go('/');
+              }
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text('微信登录失败: $e')));
+              }
+            }
+          } else if (response.errCode != 0) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('微信登录失败: ${response.errStr}')),
+              );
+            }
+          }
         }
-      } else if (response != null && response.errCode != 0) {
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('微信登录失败: ${response.errStr}')));
-        }
-      }
+
+        if (mounted) setState(() => _isLoading = false);
+      };
+
+      _wechatService.addSubscriber(subscriber);
+      await _wechatService.login();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('微信登录失败: $e')));
       }
-    } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }

@@ -25,22 +25,6 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        
-        <!-- WeChat SDK Configuration -->
-        <activity
-            android:name=".wxapi.WXEntryActivity"
-            android:exported="true"
-            android:taskAffinity="com.molitao.molitao_app"
-            android:launchMode="singleTop">
-        </activity>
-        
-        <activity
-            android:name=".wxapi.WXPayEntryActivity"
-            android:exported="true"
-            android:taskAffinity="com.molitao.molitao_app"
-            android:launchMode="singleTop">
-        </activity>
-        
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
@@ -50,7 +34,6 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
-        <!-- WeChat package visibility -->
         <package android:name="com.tencent.mm"/>
     </queries>
 </manifest>
