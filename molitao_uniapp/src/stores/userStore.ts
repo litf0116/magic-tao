@@ -376,8 +376,6 @@ export const useUserStore = defineStore('userStore', () => {
         })
     }
 
-    const chatStore = useChatStore()
-
     function logout() {
         uni.showModal({
             content: '确定要退出登录么',
@@ -388,7 +386,7 @@ export const useUserStore = defineStore('userStore', () => {
                         .then(() => {
                             clear()
                         })
-                        .catch((e) => {
+                        .catch(() => {
                             clear()
                         })
                 }
@@ -398,6 +396,7 @@ export const useUserStore = defineStore('userStore', () => {
 
     function clear() {
         _logout()
+        const chatStore = useChatStore()
         chatStore.clear()
     }
 

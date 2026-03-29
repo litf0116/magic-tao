@@ -10,7 +10,6 @@ import {
     ChatMessageType,
 } from '../composables/types'
 import { useStorageRef } from '@/composables/useStorageRef'
-import { useAuctionStore } from './auctionStore'
 import { convertImageUrl } from '@/utils/imageUrlConverter'
 
 // 测试友好：导出一个纯函数，方便单元测试历史合并逻辑
@@ -172,9 +171,8 @@ export const useChatStore = defineStore('chatStore', () => {
         })
     }
 
-    const auctionStore = useAuctionStore()
-
     const onmessage = function (msg: ChatMessage) {
+        const auctionStore = useAuctionStore()
         // 转换消息类型：将数值类型转换为字符串类型
         if (typeof msg.type === 'number') {
             const typeMap: { [key: number]: ChatMessageType } = {

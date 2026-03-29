@@ -1481,6 +1481,8 @@ function getLevelStyle(userChatLevel) {
     display: block;
 }
 
+.text-content image,
+.text-content image,
 .text-content img {
     width: 50rpx;
     height: 50rpx;

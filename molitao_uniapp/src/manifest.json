@@ -149,7 +149,7 @@
         "template" : "index.html",
         "router" : {
             "mode" : "hash",
-            "base" : "./h5/"
+            "base" : "./"
         },
         "optimization" : {
             "treeShaking" : {
