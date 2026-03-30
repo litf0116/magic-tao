@@ -18,7 +18,7 @@ class FriendRepository {
     }
   }
 
-  Future<List<UserDtoBase>?> getUserFriends({
+  Future<List<UserDtoBase>> getUserFriends({
     int? userId,
     String? status,
   }) async {
@@ -28,21 +28,9 @@ class FriendRepository {
         queryParameters: {'id': userId, 'status': status},
       );
 
-      // 拦截器已解包 result，response.data 可能是：
-      // 1. { items: [...] } (包装格式)
-      // 2. [...] (直接数组)
-      if (response.data != null) {
-        if (response.data is List) {
-          return (response.data as List)
-              .map((json) => UserDtoBase.fromJson(json))
-              .toList();
-        } else if (response.data['items'] != null) {
-          return (response.data['items'] as List)
-              .map((json) => UserDtoBase.fromJson(json))
-              .toList();
-        }
-      }
-      return [];
+      // 拦截器已统一格式为 { items: [...] }
+      final items = response.data['items'] as List? ?? [];
+      return items.map((json) => UserDtoBase.fromJson(json)).toList();
     } on DioException catch (e) {
       throw Exception('Failed to get user friends: ${e.message}');
     }
@@ -68,7 +56,7 @@ class FriendRepository {
       final response = await _apiClient.dio.get(
         ApiEndpoints.getUserFriendCount,
       );
-      // 拦截器已解包 result
+      // 拦截器已解包
       return response.data?['count'] ?? response.data ?? 0;
     } on DioException catch (e) {
       throw Exception('Failed to get user friend count: ${e.message}');

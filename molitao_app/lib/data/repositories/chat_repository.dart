@@ -56,29 +56,28 @@ class ChatRepository {
     }
   }
 
-  Future<List<ChatMessage>?> getOfflineMessages() async {
+  Future<List<ChatMessage>> getOfflineMessages() async {
     try {
       final response = await _apiClient.dio.get(ApiEndpoints.offline);
-      if (response.data != null && response.data['messages'] != null) {
-        return (response.data['messages'] as List)
-            .map((json) => ChatMessage.fromJson(json))
-            .toList();
-      }
-      return [];
+      // 拦截器已统一格式，但这里可能是 { messages: [...] }
+      final items =
+          response.data['messages'] as List? ??
+          response.data['items'] as List? ??
+          [];
+      return items.map((json) => ChatMessage.fromJson(json)).toList();
     } on DioException catch (e) {
       throw Exception('Failed to get offline messages: ${e.message}');
     }
   }
 
-  Future<List<String>?> getChannels() async {
+  Future<List<String>> getChannels() async {
     try {
       final response = await _apiClient.dio.post(ApiEndpoints.getChannels);
-      if (response.data != null && response.data['channels'] != null) {
-        return (response.data['channels'] as List)
-            .map((e) => e.toString())
-            .toList();
-      }
-      return [];
+      final items =
+          response.data['channels'] as List? ??
+          response.data['items'] as List? ??
+          [];
+      return items.map((e) => e.toString()).toList();
     } on DioException catch (e) {
       throw Exception('Failed to get channels: ${e.message}');
     }
@@ -152,23 +151,13 @@ class ChatRepository {
     }
   }
 
-  Future<List<ChatListItem>?> getChatList() async {
+  Future<List<ChatListItem>> getChatList() async {
     try {
       final response = await _apiClient.dio.get(ApiEndpoints.getChatList);
 
-      // 拦截器已解包 result
-      if (response.data != null) {
-        if (response.data is List) {
-          return (response.data as List)
-              .map((json) => ChatListItem.fromJson(json))
-              .toList();
-        } else if (response.data['items'] != null) {
-          return (response.data['items'] as List)
-              .map((json) => ChatListItem.fromJson(json))
-              .toList();
-        }
-      }
-      return [];
+      // 拦截器已统一格式为 { items: [...] }
+      final items = response.data['items'] as List? ?? [];
+      return items.map((json) => ChatListItem.fromJson(json)).toList();
     } on DioException catch (e) {
       throw Exception('Failed to get chat list: ${e.message}');
     }

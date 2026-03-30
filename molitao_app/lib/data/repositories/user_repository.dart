@@ -9,7 +9,6 @@ class UserRepository {
   Future<UserDto?> getCurrentUser() async {
     try {
       final response = await _apiClient.dio.get(ApiEndpoints.getUser);
-      // 拦截器已解包 result
       if (response.data != null) {
         return UserDto.fromJson(response.data);
       }
@@ -25,7 +24,6 @@ class UserRepository {
         ApiEndpoints.updateUser,
         data: user.toJson(),
       );
-      // 拦截器已解包 result
       if (response.data != null) {
         return UserDto.fromJson(response.data);
       }
@@ -35,23 +33,13 @@ class UserRepository {
     }
   }
 
-  Future<List<UserDto>?> getAllUsers() async {
+  Future<List<UserDto>> getAllUsers() async {
     try {
       final response = await _apiClient.dio.get(ApiEndpoints.getAllUsers);
 
-      // 拦截器已解包 result
-      if (response.data != null) {
-        if (response.data is List) {
-          return (response.data as List)
-              .map((json) => UserDto.fromJson(json))
-              .toList();
-        } else if (response.data['items'] != null) {
-          return (response.data['items'] as List)
-              .map((json) => UserDto.fromJson(json))
-              .toList();
-        }
-      }
-      return [];
+      // 拦截器已统一格式为 { items: [...] }
+      final items = response.data['items'] as List? ?? [];
+      return items.map((json) => UserDto.fromJson(json)).toList();
     } on DioException catch (e) {
       throw Exception('Failed to get all users: ${e.message}');
     }
@@ -62,11 +50,11 @@ class UserRepository {
       final response = await _apiClient.dio.get(
         ApiEndpoints.canUsePasswordLogin,
       );
-      // 拦截器已解包 result，response.data 应该直接是 bool
+      // 拦截器已解包，直接是 bool
       if (response.data is bool) {
         return response.data;
       }
-      return response.data?['result'] ?? false;
+      return false;
     } on DioException catch (e) {
       throw Exception('Failed to check password login: ${e.message}');
     }
@@ -114,15 +102,13 @@ class UserRepository {
       final response = await _apiClient.dio.get(
         ApiEndpoints.getCurrentLoginInformation,
       );
-      // 拦截器已解包 result
       if (response.data != null) {
-        // 响应可能是 { user: {...} } 或直接是用户对象
+        // 响应可能是 { user: {...} } 或 { currentUser: {...} } 或直接用户对象
         if (response.data['user'] != null) {
           return UserDto.fromJson(response.data['user']);
         } else if (response.data['currentUser'] != null) {
           return UserDto.fromJson(response.data['currentUser']);
         } else if (response.data['id'] != null) {
-          // 直接是用户对象
           return UserDto.fromJson(response.data);
         }
       }
