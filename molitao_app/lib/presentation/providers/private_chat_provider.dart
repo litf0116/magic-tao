@@ -2,7 +2,8 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/chat_message_model.dart';
 import '../../data/repositories/chat_repository.dart';
-import '../../data/services/websocket_service.dart';
+import '../../data/services/storage_service.dart';
+import 'chat_provider.dart' show webSocketServiceProvider;
 
 /// 私聊状态
 class PrivateChatState {
@@ -73,7 +74,16 @@ class PrivateChatNotifier extends StateNotifier<PrivateChatState> {
     final webSocketService = _ref.read(webSocketServiceProvider);
 
     if (!webSocketService.isConnected) {
-      await webSocketService.connect();
+      // 获取 token
+      final storageService = StorageService();
+      final token = await storageService.getToken();
+
+      if (token == null || token.isEmpty) {
+        print('[PrivateChat] 无 token，跳过 WebSocket 连接');
+        return;
+      }
+
+      await webSocketService.connect(token: token);
     }
 
     // 监听消息
@@ -249,11 +259,6 @@ class PrivateChatNotifier extends StateNotifier<PrivateChatState> {
     super.dispose();
   }
 }
-
-/// WebSocket 服务 Provider
-final webSocketServiceProvider = Provider<WebSocketService>((ref) {
-  return WebSocketService();
-});
 
 /// 私聊 Provider 工厂
 /// 使用 family 创建带参数的 provider

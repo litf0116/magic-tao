@@ -27,17 +27,23 @@ class _ChatListPageState extends ConsumerState<ChatListPage>
   }
 
   Future<void> _initChat() async {
+    print('========== ChatListPage._initChat() 被调用 ==========');
+
     // 检查是否已登录
     final userState = ref.read(userProvider);
+    print('[ChatListPage] 用户登录状态: ${userState.isLoggedIn}');
+
     if (!userState.isLoggedIn) {
       print('[ChatListPage] 用户未登录，跳过 WebSocket 连接');
       return;
     }
 
     // 加载聊天列表
+    print('[ChatListPage] 加载聊天列表...');
     await ref.read(chatProvider.notifier).loadChatList();
 
     // 连接 WebSocket（只在已登录时）
+    print('[ChatListPage] 连接 WebSocket...');
     await ref.read(chatProvider.notifier).connectWebSocket();
   }
 

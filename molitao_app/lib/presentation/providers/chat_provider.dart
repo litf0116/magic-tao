@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:dio/dio.dart';
 import '../../data/services/websocket_service.dart';
 import '../../data/api/api_client.dart';
 import '../../data/api/api_endpoints.dart';
@@ -247,10 +246,28 @@ class ChatNotifier extends StateNotifier<ChatState> {
   }
 
   Future<void> connectWebSocket() async {
+    print('========== ChatProvider.connectWebSocket() 被调用 ==========');
+
     final webSocketService = _ref.read(webSocketServiceProvider);
-    await webSocketService.connect();
+
+    // 获取 token
+    final storageService = StorageService();
+    final token = await storageService.getToken();
+
+    print(
+      '[ChatProvider] token: ${token != null ? "存在 (${token.length}字符)" : "不存在"}',
+    );
+
+    if (token == null || token.isEmpty) {
+      print('[ChatProvider] 无 token，跳过 WebSocket 连接');
+      return;
+    }
+
+    print('[ChatProvider] 调用 webSocketService.connect()...');
+    await webSocketService.connect(token: token);
 
     state = state.copyWith(isWebSocketConnected: webSocketService.isConnected);
+    print('[ChatProvider] WebSocket 连接状态: ${webSocketService.isConnected}');
   }
 
   Future<void> disconnectWebSocket() async {

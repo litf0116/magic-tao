@@ -2,7 +2,8 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/chat_message_model.dart';
 import '../../data/repositories/chat_repository.dart';
-import '../../data/services/websocket_service.dart';
+import '../../data/services/storage_service.dart';
+import 'chat_provider.dart' show webSocketServiceProvider;
 
 /// 群聊状态
 class GroupChatState {
@@ -80,7 +81,16 @@ class GroupChatNotifier extends StateNotifier<GroupChatState> {
     final webSocketService = _ref.read(webSocketServiceProvider);
 
     if (!webSocketService.isConnected) {
-      await webSocketService.connect();
+      // 获取 token
+      final storageService = StorageService();
+      final token = await storageService.getToken();
+
+      if (token == null || token.isEmpty) {
+        print('[GroupChat] 无 token，跳过 WebSocket 连接');
+        return;
+      }
+
+      await webSocketService.connect(token: token);
     }
 
     // 监听消息
@@ -286,11 +296,6 @@ class GroupChatNotifier extends StateNotifier<GroupChatState> {
     super.dispose();
   }
 }
-
-/// WebSocket 服务 Provider（复用私聊的）
-final webSocketServiceProvider = Provider<WebSocketService>((ref) {
-  return WebSocketService();
-});
 
 /// 群聊 Provider 工厂
 final groupChatProvider =
