@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:molitao_app/data/models/chat_message_model.dart';
 import 'package:molitao_app/presentation/widgets/chat/messages/message_widget.dart';
-import 'package:intl/intl.dart';
+import 'package:molitao_app/presentation/widgets/chat/chat_input_area.dart';
 
 /// 聊天消息预览页面
 /// 用于测试和预览各种消息类型的 UI 效果
-class ChatMessagePreviewPage extends StatelessWidget {
+class ChatMessagePreviewPage extends StatefulWidget {
   const ChatMessagePreviewPage({Key? key}) : super(key: key);
+
+  @override
+  State<ChatMessagePreviewPage> createState() => _ChatMessagePreviewPageState();
+}
+
+class _ChatMessagePreviewPageState extends State<ChatMessagePreviewPage> {
+  final List<ChatMessage> _messages = List.from(mockMessages);
 
   @override
   Widget build(BuildContext context) {
@@ -16,18 +23,73 @@ class ChatMessagePreviewPage extends StatelessWidget {
         backgroundColor: const Color(0xFFF4835A),
         foregroundColor: Colors.white,
       ),
-      body: Container(
-        color: const Color(0xFFFAF1F0),
-        child: ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: mockMessages.length,
-          itemBuilder: (context, index) {
-            final message = mockMessages[index];
-            return _buildMessageItem(message);
-          },
-        ),
+      body: Column(
+        children: [
+          // 消息列表
+          Expanded(
+            child: Container(
+              color: const Color(0xFFFAF1F0),
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: _messages.length,
+                itemBuilder: (context, index) {
+                  final message = _messages[index];
+                  return _buildMessageItem(message);
+                },
+              ),
+            ),
+          ),
+
+          // 输入区域
+          ChatInputArea(
+            onSendText: _handleSendText,
+            onSelectImage: _handleSelectImage,
+            onSelectEmoji: _handleSelectEmoji,
+          ),
+        ],
       ),
     );
+  }
+
+  void _handleSendText(String text) {
+    // 添加新消息
+    final newMessage = ChatMessage(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      type: ChatMessageType.text,
+      from: 1001,
+      fromName: '我',
+      msg: text,
+      time: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+    );
+
+    setState(() {
+      _messages.add(newMessage);
+    });
+  }
+
+  void _handleSelectImage() {
+    // 模拟选择图片
+    final newMessage = ChatMessage(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      type: ChatMessageType.image,
+      from: 1001,
+      fromName: '我',
+      msg: 'https://picsum.photos/300/300',
+      payload: {'url': 'https://picsum.photos/300/300'},
+      time: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+    );
+
+    setState(() {
+      _messages.add(newMessage);
+    });
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('图片选择功能待实现')));
+  }
+
+  void _handleSelectEmoji(String emojiCode) {
+    debugPrint('选择了表情: $emojiCode');
   }
 
   Widget _buildMessageItem(ChatMessage message) {
@@ -182,13 +244,13 @@ final List<ChatMessage> mockMessages = [
     time: DateTime.now().millisecondsSinceEpoch ~/ 1000,
   ),
 
-  // 文本消息
+  // 文本消息（带表情）
   ChatMessage(
     id: '2',
     type: ChatMessageType.text,
     from: 1002,
     fromName: '张三',
-    msg: '这个看起来不错，准备出价了',
+    msg: '这个看起来不错[微笑]，准备出价了[奋斗]',
     time: DateTime.now().millisecondsSinceEpoch ~/ 1000,
   ),
 
@@ -290,7 +352,7 @@ final List<ChatMessage> mockMessages = [
     type: ChatMessageType.text,
     from: 1001,
     fromName: '我',
-    msg: '收到，我会联系的',
+    msg: '收到，我会联系的[OK]',
     time: DateTime.now().millisecondsSinceEpoch ~/ 1000,
   ),
 
