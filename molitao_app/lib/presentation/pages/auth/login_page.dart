@@ -65,6 +65,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         _passwordController.text,
       );
 
+      print('[LoginPage] 登录结果:');
+      print(
+        '[LoginPage] - accessToken: ${result.accessToken != null ? "存在" : "null"}',
+      );
+      print('[LoginPage] - user: ${result.user}');
+      print('[LoginPage] - user.id: ${result.user?.id}');
+      print('[LoginPage] - user.userName: ${result.user?.userName}');
+      print('[LoginPage] - user.fullName: ${result.user?.fullName}');
+
       if (result.accessToken != null && result.user != null && mounted) {
         // Save username for next login
         await _storageService.setRememberedUsername(

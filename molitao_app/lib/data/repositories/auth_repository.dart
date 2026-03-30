@@ -1,8 +1,16 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import '../api/api_client.dart';
 import '../api/api_endpoints.dart';
 import '../models/user_model.dart';
 import '../services/storage_service.dart';
+
+/// 调试日志开关
+const bool _kDebugLog = true;
+
+void _debugLog(String message) {
+  if (_kDebugLog) print(message);
+}
 
 /// 登录响应结果
 class LoginResult {
@@ -25,19 +33,44 @@ class AuthRepository {
         data: {'userNameOrEmailAddress': username, 'password': password},
       );
 
+      // 打印原始返回信息
+      _debugLog('[AuthRepository] ===== 原始响应 =====');
+      _debugLog('[AuthRepository] statusCode: ${response.statusCode}');
+      _debugLog('[AuthRepository] data type: ${response.data.runtimeType}');
+      _debugLog('[AuthRepository] raw data: ${jsonEncode(response.data)}');
+      _debugLog('[AuthRepository] ===================');
+
       if (response.data != null) {
         final data = response.data as Map<String, dynamic>;
         final accessToken = data['accessToken'] as String?;
-        final user = data['user'] != null
-            ? UserDto.fromJson(data['user'] as Map<String, dynamic>)
-            : null;
-        final roles = (data['roles'] as List<dynamic>?)
-            ?.map((e) => e.toString())
-            .toList();
 
         // Save token to storage
         if (accessToken != null) {
           await _storageService.setToken(accessToken);
+        }
+
+        // 登录成功后获取用户信息
+        UserDto? user;
+        List<String>? roles;
+        if (accessToken != null) {
+          try {
+            _debugLog('[AuthRepository] 开始获取用户信息...');
+            final userInfo = await getCurrentLoginInformations();
+            _debugLog('[AuthRepository] 用户信息响应: $userInfo');
+            if (userInfo != null) {
+              user = userInfo['user'] != null
+                  ? UserDto.fromJson(userInfo['user'] as Map<String, dynamic>)
+                  : null;
+              roles = (userInfo['roles'] as List<dynamic>?)
+                  ?.map((e) => e.toString())
+                  .toList();
+              _debugLog(
+                '[AuthRepository] 解析后 user: id=${user?.id}, userName=${user?.userName}, fullName=${user?.fullName}',
+              );
+            }
+          } catch (e) {
+            _debugLog('[AuthRepository] 获取用户信息失败: $e');
+          }
         }
 
         return LoginResult(accessToken: accessToken, user: user, roles: roles);
@@ -55,6 +88,8 @@ class AuthRepository {
         ApiEndpoints.weixinMiniAuthenticate,
         data: {'code': code},
       );
+
+      _debugLog('[AuthRepository] 微信小程序登录响应: ${jsonEncode(response.data)}');
 
       if (response.data != null) {
         final data = response.data as Map<String, dynamic>;
@@ -83,6 +118,8 @@ class AuthRepository {
         data: {'code': code},
       );
 
+      _debugLog('[AuthRepository] 微信App登录响应: ${jsonEncode(response.data)}');
+
       if (response.data != null) {
         final data = response.data as Map<String, dynamic>;
         final accessToken = data['accessToken'] as String?;
@@ -108,8 +145,14 @@ class AuthRepository {
       final response = await _apiClient.dio.get(
         ApiEndpoints.getCurrentLoginInformation,
       );
+      _debugLog(
+        '[AuthRepository] getCurrentLoginInformations 响应: ${jsonEncode(response.data)}',
+      );
       return response.data as Map<String, dynamic>?;
     } on DioException catch (e) {
+      _debugLog(
+        '[AuthRepository] getCurrentLoginInformations 失败: ${e.message}',
+      );
       throw Exception('获取用户信息失败: ${e.message}');
     }
   }

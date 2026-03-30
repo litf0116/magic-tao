@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../data/models/chat_list_item_model.dart' as model;
 import '../../providers/chat_provider.dart';
+import '../../providers/user_provider.dart';
 import '../../mixins/auth_guard_mixin.dart';
 import 'package:intl/intl.dart';
 
@@ -26,7 +27,17 @@ class _ChatListPageState extends ConsumerState<ChatListPage>
   }
 
   Future<void> _initChat() async {
+    // 检查是否已登录
+    final userState = ref.read(userProvider);
+    if (!userState.isLoggedIn) {
+      print('[ChatListPage] 用户未登录，跳过 WebSocket 连接');
+      return;
+    }
+
+    // 加载聊天列表
     await ref.read(chatProvider.notifier).loadChatList();
+
+    // 连接 WebSocket（只在已登录时）
     await ref.read(chatProvider.notifier).connectWebSocket();
   }
 

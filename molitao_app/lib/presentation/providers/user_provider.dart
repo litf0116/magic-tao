@@ -115,20 +115,85 @@ class UserNotifier extends StateNotifier<UserState> {
     final storageService = _ref.read(storageServiceProvider);
 
     final token = await storageService.getToken();
+    print('[UserProvider] _initializeUser: token存在=${token != null}');
+
     if (token != null && token.isNotEmpty) {
-      // 恢复用户数据
+      // 先恢复本地缓存的用户数据（快速显示）
       final userData = await storageService.getUserData();
-      User? user;
+      User? cachedUser;
       if (userData != null) {
-        user = User.fromJson(userData);
+        cachedUser = User.fromJson(userData);
+        state = state.copyWith(
+          token: token,
+          isLoggedIn: true,
+          user: cachedUser,
+        );
       }
 
-      state = state.copyWith(token: token, isLoggedIn: true, user: user);
+      // 使用 token 验证并获取最新用户信息
+      try {
+        print('[UserProvider] 使用 token 获取用户信息...');
+        final authRepository = _ref.read(authRepositoryProvider);
+        final response = await authRepository.getCurrentLoginInformations();
+
+        if (response != null && response['user'] != null) {
+          final user = User.fromJson(response['user'] as Map<String, dynamic>);
+          final roles = (response['roles'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList();
+
+          print('[UserProvider] 解析用户信息:');
+          print('[UserProvider] - user.id: ${user.id}');
+          print('[UserProvider] - user.userName: ${user.userName}');
+          print('[UserProvider] - user.fullName: ${user.fullName}');
+          print('[UserProvider] - user.headImgUrl: ${user.headImgUrl}');
+          print('[UserProvider] - roles: $roles');
+
+          // 更新本地存储和状态
+          await storageService.setUserData(user.toJson());
+          print('[UserProvider] 已保存到本地存储');
+
+          state = state.copyWith(
+            token: token,
+            isLoggedIn: true,
+            user: user,
+            roles: roles,
+          );
+
+          print('[UserProvider] state 已更新:');
+          print('[UserProvider] - state.isLoggedIn: ${state.isLoggedIn}');
+          print(
+            '[UserProvider] - state.user?.userName: ${state.user?.userName}',
+          );
+          print('[UserProvider] 自动登录成功: ${user.userName}');
+        } else {
+          // token 无效，清除登录状态
+          print('[UserProvider] token 无效，清除登录状态');
+          _logoutInternal();
+        }
+      } catch (e) {
+        print('[UserProvider] 自动登录失败: $e');
+        // API 调用失败，但保留本地缓存的用户状态（可能是网络问题）
+        if (cachedUser != null) {
+          print('[UserProvider] 使用本地缓存的用户数据');
+          state = state.copyWith(
+            token: token,
+            isLoggedIn: true,
+            user: cachedUser,
+          );
+        }
+      }
     }
   }
 
   /// 登录成功后保存用户信息
   Future<bool> login(String token, User user, {List<String>? roles}) async {
+    print('[UserProvider] login() 被调用');
+    print('[UserProvider] - token: ${token.substring(0, 20)}...');
+    print('[UserProvider] - user.id: ${user.id}');
+    print('[UserProvider] - user.userName: ${user.userName}');
+    print('[UserProvider] - user.fullName: ${user.fullName}');
+
     state = state.copyWith(isLoading: true);
 
     try {
@@ -144,8 +209,13 @@ class UserNotifier extends StateNotifier<UserState> {
         isLoading: false,
       );
 
+      print('[UserProvider] login() 成功');
+      print('[UserProvider] - state.isLoggedIn: ${state.isLoggedIn}');
+      print('[UserProvider] - state.user: ${state.user?.userName}');
+
       return true;
     } catch (e) {
+      print('[UserProvider] login() 异常: $e');
       state = state.copyWith(isLoading: false);
       return false;
     }
