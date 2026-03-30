@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/services/storage_service.dart';
-import '../../data/models/user_model.dart';
-import '../../data/repositories/user_repository.dart';
+import '../../data/repositories/auth_repository.dart';
 
 // User data model
 class User {
@@ -29,12 +28,16 @@ class User {
     return User(
       id: json['id'],
       userName: json['userName'],
-      fullName: json['fullName'],
+      fullName: json['fullName'] ?? json['name'],
       phoneNumber: json['phoneNumber'],
       headImgUrl: json['headImgUrl'],
       depositBalance: json['depositBalance']?.toDouble(),
-      permissions: List<String>.from(json['permissions'] ?? []),
-      roleNames: List<String>.from(json['roleNames'] ?? []),
+      permissions: (json['permissions'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList(),
+      roleNames: (json['roleNames'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList(),
     );
   }
 
@@ -58,12 +61,14 @@ class UserState {
   final String? token;
   final User? user;
   final bool isLoading;
+  final List<String>? roles;
 
   UserState({
     required this.isLoggedIn,
     this.token,
     this.user,
     required this.isLoading,
+    this.roles,
   });
 
   UserState copyWith({
@@ -71,12 +76,14 @@ class UserState {
     String? token,
     User? user,
     bool? isLoading,
+    List<String>? roles,
   }) {
     return UserState(
       isLoggedIn: isLoggedIn ?? this.isLoggedIn,
       token: token ?? this.token,
       user: user ?? this.user,
       isLoading: isLoading ?? this.isLoading,
+      roles: roles ?? this.roles,
     );
   }
 
@@ -90,6 +97,11 @@ final storageServiceProvider = Provider<StorageService>((ref) {
   return StorageService();
 });
 
+// Auth repository provider
+final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  return AuthRepository();
+});
+
 // User notifier
 class UserNotifier extends StateNotifier<UserState> {
   final Ref _ref;
@@ -98,17 +110,25 @@ class UserNotifier extends StateNotifier<UserState> {
     _initializeUser();
   }
 
+  /// 应用启动时初始化用户状态
   Future<void> _initializeUser() async {
     final storageService = _ref.read(storageServiceProvider);
 
     final token = await storageService.getToken();
-    if (token != null) {
-      // Token exists, user might be logged in
-      state = state.copyWith(token: token, isLoggedIn: true);
+    if (token != null && token.isNotEmpty) {
+      // 恢复用户数据
+      final userData = await storageService.getUserData();
+      User? user;
+      if (userData != null) {
+        user = User.fromJson(userData);
+      }
+
+      state = state.copyWith(token: token, isLoggedIn: true, user: user);
     }
   }
 
-  Future<bool> login(String token, User user) async {
+  /// 登录成功后保存用户信息
+  Future<bool> login(String token, User user, {List<String>? roles}) async {
     state = state.copyWith(isLoading: true);
 
     try {
@@ -120,6 +140,7 @@ class UserNotifier extends StateNotifier<UserState> {
         isLoggedIn: true,
         token: token,
         user: user,
+        roles: roles,
         isLoading: false,
       );
 
@@ -130,25 +151,79 @@ class UserNotifier extends StateNotifier<UserState> {
     }
   }
 
+  /// 检查登录状态
+  /// [forceCheck] 如果为 true，会调用 API 验证 token 是否有效
+  Future<bool> checkLogin({bool forceCheck = true}) async {
+    final token = state.token;
+
+    if (token == null || token.isEmpty) {
+      _logoutInternal();
+      return false;
+    }
+
+    // 如果不需要强制检查且已有用户数据，直接返回
+    if (!forceCheck && state.user?.id != null) {
+      return true;
+    }
+
+    try {
+      final authRepository = _ref.read(authRepositoryProvider);
+      final response = await authRepository.getCurrentLoginInformations();
+
+      if (response != null && response['user'] != null) {
+        final user = User.fromJson(response['user'] as Map<String, dynamic>);
+        final roles = (response['roles'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList();
+
+        // 更新本地存储
+        final storageService = _ref.read(storageServiceProvider);
+        await storageService.setUserData(user.toJson());
+
+        state = state.copyWith(user: user, roles: roles, isLoggedIn: true);
+        return true;
+      } else {
+        _logoutInternal();
+        return false;
+      }
+    } catch (e) {
+      _logoutInternal();
+      return false;
+    }
+  }
+
+  /// 退出登录
   Future<void> logout() async {
     state = state.copyWith(isLoading: true);
 
     try {
-      final storageService = _ref.read(storageServiceProvider);
-      await storageService.clearToken();
-      await storageService.clearUserData();
-
-      state = state.copyWith(
-        isLoggedIn: false,
-        token: null,
-        user: null,
-        isLoading: false,
-      );
+      final authRepository = _ref.read(authRepositoryProvider);
+      await authRepository.logout();
     } catch (e) {
-      state = state.copyWith(isLoading: false);
+      // 即使 API 调用失败，也清除本地状态
     }
+
+    state = state.copyWith(
+      isLoggedIn: false,
+      token: null,
+      user: null,
+      roles: null,
+      isLoading: false,
+    );
   }
 
+  void _logoutInternal() {
+    state = state.copyWith(
+      isLoggedIn: false,
+      token: null,
+      user: null,
+      roles: null,
+    );
+    StorageService().clearToken();
+    StorageService().clearUserData();
+  }
+
+  /// 更新用户信息
   Future<void> updateUser(User user) async {
     state = state.copyWith(user: user);
 
@@ -156,87 +231,18 @@ class UserNotifier extends StateNotifier<UserState> {
       final storageService = _ref.read(storageServiceProvider);
       await storageService.setUserData(user.toJson());
     } catch (e) {
-      // Handle error silently or log
+      // 静默失败
     }
   }
 
-  Future<void> refreshToken(String newToken) async {
-    state = state.copyWith(token: newToken);
+  /// 快速检查是否已登录（不调用 API）
+  bool get isAuthenticated => state.isLoggedIn && state.token != null;
 
-    try {
-      final storageService = _ref.read(storageServiceProvider);
-      await storageService.setToken(newToken);
-    } catch (e) {
-      // Handle error silently or log
-    }
-  }
+  /// 检查是否是管理员
+  bool get isAdmin => state.roles?.contains('Admin') ?? false;
 }
 
 // User provider
 final userProvider = StateNotifierProvider<UserNotifier, UserState>((ref) {
   return UserNotifier(ref);
 });
-
-// User list state
-class UserListState {
-  final List<UserDto> users;
-  final bool isLoading;
-  final String? error;
-  final int totalCount;
-
-  const UserListState({
-    this.users = const [],
-    this.isLoading = false,
-    this.error,
-    this.totalCount = 0,
-  });
-
-  UserListState copyWith({
-    List<UserDto>? users,
-    bool? isLoading,
-    String? error,
-    int? totalCount,
-  }) {
-    return UserListState(
-      users: users ?? this.users,
-      isLoading: isLoading ?? this.isLoading,
-      error: error,
-      totalCount: totalCount ?? this.totalCount,
-    );
-  }
-}
-
-// User list notifier
-class UserListNotifier extends StateNotifier<UserListState> {
-  final UserRepository _repository;
-
-  UserListNotifier(this._repository) : super(const UserListState());
-
-  Future<void> loadUsers({String? keyword}) async {
-    if (state.isLoading) return;
-
-    state = state.copyWith(isLoading: true, error: null);
-
-    try {
-      final users = await _repository.getAllUsers(keyword: keyword);
-      state = state.copyWith(
-        users: users,
-        isLoading: false,
-        totalCount: users.length,
-      );
-    } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
-    }
-  }
-
-  Future<void> searchUsers(String keyword) async {
-    await loadUsers(keyword: keyword);
-  }
-}
-
-// User list provider
-final userListProvider = StateNotifierProvider<UserListNotifier, UserListState>(
-  (ref) {
-    return UserListNotifier(UserRepository());
-  },
-);

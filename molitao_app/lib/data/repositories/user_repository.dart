@@ -33,47 +33,6 @@ class UserRepository {
     }
   }
 
-  Future<List<UserDto>> getAllUsers({String? keyword}) async {
-    try {
-      final response = await _apiClient.dio.get(
-        ApiEndpoints.getAllUsers,
-        queryParameters: keyword != null && keyword.isNotEmpty
-            ? {'Keyword': keyword}
-            : null,
-      );
-
-      // 拦截器已统一格式为 { items: [...] }
-      final items = response.data['items'] as List? ?? [];
-      return items.map((json) => UserDto.fromJson(json)).toList();
-    } on DioException catch (e) {
-      throw Exception('Failed to get all users: ${e.message}');
-    }
-  }
-
-  Future<bool> canUsePasswordLogin() async {
-    try {
-      final response = await _apiClient.dio.get(
-        ApiEndpoints.canUsePasswordLogin,
-      );
-      // 拦截器已解包，直接是 bool
-      if (response.data is bool) {
-        return response.data;
-      }
-      return false;
-    } on DioException catch (e) {
-      throw Exception('Failed to check password login: ${e.message}');
-    }
-  }
-
-  Future<bool> enablePasswordLogin() async {
-    try {
-      await _apiClient.dio.post(ApiEndpoints.enablePasswordLogin);
-      return true;
-    } on DioException catch (e) {
-      throw Exception('Failed to enable password login: ${e.message}');
-    }
-  }
-
   Future<bool> changePassword(
     String currentPassword,
     String newPassword,

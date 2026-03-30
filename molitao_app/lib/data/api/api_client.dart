@@ -9,10 +9,9 @@ class ApiClient {
   Dio get dio => _dio;
 
   ApiClient._internal() {
-    // TODO: Use environment configuration for different environments
-    const baseUrl = String.fromEnvironment(
+    final baseUrl = String.fromEnvironment(
       'API_BASE_URL',
-      defaultValue: 'https://www.molitao.top',
+      defaultValue: 'http://192.168.10.35:12580',
     );
 
     _dio = Dio(

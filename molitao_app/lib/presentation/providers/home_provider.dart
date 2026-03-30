@@ -93,7 +93,6 @@ class HomeNotifier extends StateNotifier<HomeState> {
 
         state = state.copyWith(advertisingSpaces: advertisingSpaces);
       } else if (response.data != null && response.data is List) {
-        // Handle case where response is directly an array
         final advertisingSpaces = (response.data as List)
             .map((json) => AdvertisingSpace.fromJson(json))
             .toList();

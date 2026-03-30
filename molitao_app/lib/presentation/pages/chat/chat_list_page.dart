@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../data/models/chat_list_item_model.dart' as model;
 import '../../providers/chat_provider.dart';
+import '../../mixins/auth_guard_mixin.dart';
 import 'package:intl/intl.dart';
 
 class ChatListPage extends ConsumerStatefulWidget {
@@ -12,11 +13,13 @@ class ChatListPage extends ConsumerStatefulWidget {
   ConsumerState<ChatListPage> createState() => _ChatListPageState();
 }
 
-class _ChatListPageState extends ConsumerState<ChatListPage> {
+class _ChatListPageState extends ConsumerState<ChatListPage>
+    with AuthGuardMixin {
   @override
   void initState() {
     super.initState();
-    // Load chat list and connect to WebSocket
+    // AuthGuardMixin will check login status in initState
+    // Load chat list and connect to WebSocket after auth check
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initChat();
     });

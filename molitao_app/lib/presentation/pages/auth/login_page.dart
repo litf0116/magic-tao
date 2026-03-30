@@ -4,11 +4,14 @@ import 'package:go_router/go_router.dart';
 import 'package:fluwx/fluwx.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/repositories/auth_repository.dart';
+import '../../../data/services/storage_service.dart';
 import '../../../data/services/wechat_service.dart';
 import '../../providers/user_provider.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
-  const LoginPage({super.key});
+  final String? redirectPath;
+
+  const LoginPage({super.key, this.redirectPath});
 
   @override
   ConsumerState<LoginPage> createState() => _LoginPageState();
@@ -19,6 +22,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   final _authRepository = AuthRepository();
+  final _storageService = StorageService();
   final _wechatService = WeChatService();
 
   bool _isLoading = false;
@@ -29,6 +33,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   void initState() {
     super.initState();
     _initWeChat();
+    _loadRememberedUsername();
+  }
+
+  Future<void> _loadRememberedUsername() async {
+    final username = await _storageService.getRememberedUsername();
+    if (username != null && username.isNotEmpty) {
+      _usernameController.text = username;
+    }
   }
 
   Future<void> _initWeChat() async {
@@ -48,28 +60,42 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     setState(() => _isLoading = true);
 
     try {
-      final userDto = await _authRepository.login(
+      final result = await _authRepository.login(
         _usernameController.text.trim(),
         _passwordController.text,
       );
 
-      if (userDto != null && mounted) {
-        ref
+      if (result.accessToken != null && result.user != null && mounted) {
+        // Save username for next login
+        await _storageService.setRememberedUsername(
+          _usernameController.text.trim(),
+        );
+
+        // 保存用户状态
+        await ref
             .read(userProvider.notifier)
             .login(
-              userDto.id.toString(),
+              result.accessToken!,
               User(
-                id: userDto.id,
-                userName: userDto.userName,
-                fullName: userDto.fullName,
-                phoneNumber: userDto.phoneNumber,
-                headImgUrl: userDto.headImgUrl,
-                depositBalance: userDto.depositBalance?.toDouble(),
-                permissions: userDto.permissions ?? [],
-                roleNames: userDto.roleNames ?? [],
+                id: result.user!.id,
+                userName: result.user!.userName,
+                fullName: result.user!.fullName,
+                phoneNumber: result.user!.phoneNumber,
+                headImgUrl: result.user!.headImgUrl,
+                depositBalance: result.user!.depositBalance?.toDouble(),
+                permissions: result.user!.permissions ?? [],
+                roleNames: result.user!.roleNames ?? [],
               ),
+              roles: result.roles,
             );
-        context.go('/');
+
+        context.go(widget.redirectPath ?? '/home');
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('登录失败，请检查账号密码')));
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -104,27 +130,37 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         if (response is WeChatAuthResponse) {
           if (response.isSuccessful && response.code != null) {
             try {
-              final userDto = await _authRepository.weixinAppLogin(
+              // 微信 App 登录
+              final result = await _authRepository.weixinAppLogin(
                 response.code!,
               );
 
-              if (userDto != null && mounted) {
-                ref
+              if (result.accessToken != null &&
+                  result.user != null &&
+                  mounted) {
+                await ref
                     .read(userProvider.notifier)
                     .login(
-                      userDto.id.toString(),
+                      result.accessToken!,
                       User(
-                        id: userDto.id,
-                        userName: userDto.userName,
-                        fullName: userDto.fullName,
-                        phoneNumber: userDto.phoneNumber,
-                        headImgUrl: userDto.headImgUrl,
-                        depositBalance: userDto.depositBalance?.toDouble(),
-                        permissions: userDto.permissions ?? [],
-                        roleNames: userDto.roleNames ?? [],
+                        id: result.user!.id,
+                        userName: result.user!.userName,
+                        fullName: result.user!.fullName,
+                        phoneNumber: result.user!.phoneNumber,
+                        headImgUrl: result.user!.headImgUrl,
+                        depositBalance: result.user!.depositBalance?.toDouble(),
+                        permissions: result.user!.permissions ?? [],
+                        roleNames: result.user!.roleNames ?? [],
                       ),
+                      roles: result.roles,
                     );
-                context.go('/');
+                context.go(widget.redirectPath ?? '/home');
+              } else {
+                if (mounted) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('微信登录失败')));
+                }
               }
             } catch (e) {
               if (mounted) {
@@ -171,7 +207,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Image.network(
-                  'https://cdn.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png',
+                  'https://image.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png',
                   width: 120,
                   height: 80,
                   fit: BoxFit.contain,

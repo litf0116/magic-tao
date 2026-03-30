@@ -129,7 +129,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                   decoration: const BoxDecoration(
                     image: DecorationImage(
                       image: CachedNetworkImageProvider(
-                        'https://cdn.molitao.top/20250330/04j40l4ynlbh3v3h4bgfe7j2pxiqjg8d.png',
+                        'https://image.molitao.top/20250330/04j40l4ynlbh3v3h4bgfe7j2pxiqjg8d.png',
                       ),
                       fit: BoxFit.cover,
                     ),
@@ -141,7 +141,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         borderRadius: BorderRadius.circular(10),
                         child: CachedNetworkImage(
                           imageUrl:
-                              'https://cdn.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png',
+                              'https://image.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png',
                           width: 231, // 462rpx converted to dp
                           height: 106, // 212rpx converted to dp
                           fit: BoxFit.contain,
@@ -178,7 +178,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         decoration: const BoxDecoration(
                           image: DecorationImage(
                             image: CachedNetworkImageProvider(
-                              'https://cdn.molitao.top/molitao/2025-03-30/upload_qxgt8fo3iymdi0heth3rnqipc83rzawn.png',
+                              'https://image.molitao.top/molitao/2025-03-30/upload_qxgt8fo3iymdi0heth3rnqipc83rzawn.png',
                             ),
                             fit: BoxFit.fill,
                             repeat: ImageRepeat.repeatY,
@@ -305,7 +305,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         left: 0,
                         right: 0,
                         child: Image.network(
-                          'https://cdn.molitao.top/molitao/2025-03-30/upload_iw2aq9rsovog4lr3v036irwm90nyos20.png',
+                          'https://image.molitao.top/molitao/2025-03-30/upload_iw2aq9rsovog4lr3v036irwm90nyos20.png',
                           height: 9,
                           fit: BoxFit.fill,
                         ),
@@ -316,7 +316,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         left: 0,
                         right: 0,
                         child: Image.network(
-                          'https://cdn.molitao.top/molitao/2025-03-30/upload_to45oxex09l2uu1ltntj09n6z1x4y0df.png',
+                          'https://image.molitao.top/molitao/2025-03-30/upload_to45oxex09l2uu1ltntj09n6z1x4y0df.png',
                           height: 9,
                           fit: BoxFit.fill,
                         ),

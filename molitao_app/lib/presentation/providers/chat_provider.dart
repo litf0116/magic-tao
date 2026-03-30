@@ -267,19 +267,31 @@ class ChatNotifier extends StateNotifier<ChatState> {
       final storageService = StorageService();
       final token = await storageService.getToken();
 
+      print('loadChatList: token = $token');
+
       if (token == null || token.isEmpty) {
+        print('loadChatList: No token, returning empty list');
         state = state.copyWith(chatList: [], isLoading: false);
         return;
       }
 
       final response = await ApiClient().dio.get(ApiEndpoints.getChatList);
+      print('loadChatList: response.data = ${response.data}');
 
-      if (response.data != null && response.data is List) {
-        final chatList = (response.data as List)
+      List<dynamic>? items;
+      if (response.data is List) {
+        items = response.data as List;
+      } else if (response.data is Map && response.data['items'] != null) {
+        items = response.data['items'] as List;
+      }
+
+      print('loadChatList: items count = ${items?.length ?? 0}');
+
+      if (items != null) {
+        final chatList = items
             .map((json) => ChatListItem.fromJson(json))
             .toList();
 
-        // Sort by order descending
         chatList.sort((a, b) => b.order.compareTo(a.order));
 
         final totalUnread = chatList.fold(0, (sum, item) => sum + item.unread);

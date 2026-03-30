@@ -4,34 +4,52 @@ import '../api/api_endpoints.dart';
 import '../models/user_model.dart';
 import '../services/storage_service.dart';
 
+/// 登录响应结果
+class LoginResult {
+  final String? accessToken;
+  final UserDto? user;
+  final List<String>? roles;
+
+  const LoginResult({this.accessToken, this.user, this.roles});
+}
+
 class AuthRepository {
   final ApiClient _apiClient = ApiClient();
   final StorageService _storageService = StorageService();
 
-  Future<UserDto?> login(String username, String password) async {
+  /// 账号密码登录
+  Future<LoginResult> login(String username, String password) async {
     try {
       final response = await _apiClient.dio.post(
         ApiEndpoints.authenticate,
-        data: {'userName': username, 'password': password},
+        data: {'userNameOrEmailAddress': username, 'password': password},
       );
 
       if (response.data != null) {
-        final userDto = UserDto.fromJson(response.data);
+        final data = response.data as Map<String, dynamic>;
+        final accessToken = data['accessToken'] as String?;
+        final user = data['user'] != null
+            ? UserDto.fromJson(data['user'] as Map<String, dynamic>)
+            : null;
+        final roles = (data['roles'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList();
 
         // Save token to storage
-        if (userDto.id != null) {
-          await _storageService.setToken(userDto.id.toString());
+        if (accessToken != null) {
+          await _storageService.setToken(accessToken);
         }
 
-        return userDto;
+        return LoginResult(accessToken: accessToken, user: user, roles: roles);
       }
-      return null;
+      return const LoginResult();
     } on DioException catch (e) {
-      throw Exception('Login failed: ${e.message}');
+      throw Exception('登录失败: ${e.message}');
     }
   }
 
-  Future<UserDto?> weixinMiniLogin(String code) async {
+  /// 微信小程序登录
+  Future<LoginResult> weixinMiniLogin(String code) async {
     try {
       final response = await _apiClient.dio.post(
         ApiEndpoints.weixinMiniAuthenticate,
@@ -39,16 +57,26 @@ class AuthRepository {
       );
 
       if (response.data != null) {
-        final userDto = UserDto.fromJson(response.data);
-        return userDto;
+        final data = response.data as Map<String, dynamic>;
+        final accessToken = data['accessToken'] as String?;
+        final user = data['user'] != null
+            ? UserDto.fromJson(data['user'] as Map<String, dynamic>)
+            : null;
+
+        if (accessToken != null) {
+          await _storageService.setToken(accessToken);
+        }
+
+        return LoginResult(accessToken: accessToken, user: user);
       }
-      return null;
+      return const LoginResult();
     } on DioException catch (e) {
-      throw Exception('WeChat Mini Program login failed: ${e.message}');
+      throw Exception('微信小程序登录失败: ${e.message}');
     }
   }
 
-  Future<UserDto?> weixinAppLogin(String code) async {
+  /// 微信 App 登录
+  Future<LoginResult> weixinAppLogin(String code) async {
     try {
       final response = await _apiClient.dio.post(
         ApiEndpoints.authenticateWeixinApp,
@@ -56,12 +84,33 @@ class AuthRepository {
       );
 
       if (response.data != null) {
-        final userDto = UserDto.fromJson(response.data);
-        return userDto;
+        final data = response.data as Map<String, dynamic>;
+        final accessToken = data['accessToken'] as String?;
+        final user = data['user'] != null
+            ? UserDto.fromJson(data['user'] as Map<String, dynamic>)
+            : null;
+
+        if (accessToken != null) {
+          await _storageService.setToken(accessToken);
+        }
+
+        return LoginResult(accessToken: accessToken, user: user);
       }
-      return null;
+      return const LoginResult();
     } on DioException catch (e) {
-      throw Exception('WeChat App login failed: ${e.message}');
+      throw Exception('微信 App 登录失败: ${e.message}');
+    }
+  }
+
+  /// 获取当前登录用户信息
+  Future<Map<String, dynamic>?> getCurrentLoginInformations() async {
+    try {
+      final response = await _apiClient.dio.get(
+        ApiEndpoints.getCurrentLoginInformation,
+      );
+      return response.data as Map<String, dynamic>?;
+    } on DioException catch (e) {
+      throw Exception('获取用户信息失败: ${e.message}');
     }
   }
 
@@ -69,9 +118,13 @@ class AuthRepository {
     try {
       await _apiClient.dio.get(ApiEndpoints.logout);
       await _storageService.clearToken();
+      await _storageService.clearUserData();
       return true;
-    } on DioException catch (e) {
-      throw Exception('Logout failed: ${e.message}');
+    } on DioException {
+      // 即使 API 调用失败，也清除本地数据
+      await _storageService.clearToken();
+      await _storageService.clearUserData();
+      return true;
     }
   }
 
@@ -82,23 +135,32 @@ class AuthRepository {
       );
       return response.data?['qrUrl'];
     } on DioException catch (e) {
-      throw Exception('QR Login URL failed: ${e.message}');
+      throw Exception('获取二维码失败: ${e.message}');
     }
   }
 
-  Future<UserDto?> getQrToken(String key) async {
+  Future<LoginResult?> getQrToken(String key) async {
     try {
       final response = await _apiClient.dio.get(
         '${ApiEndpoints.qrToken}?key=$key',
       );
 
       if (response.data != null) {
-        final userDto = UserDto.fromJson(response.data);
-        return userDto;
+        final data = response.data as Map<String, dynamic>;
+        final accessToken = data['accessToken'] as String?;
+        final user = data['user'] != null
+            ? UserDto.fromJson(data['user'] as Map<String, dynamic>)
+            : null;
+
+        if (accessToken != null) {
+          await _storageService.setToken(accessToken);
+        }
+
+        return LoginResult(accessToken: accessToken, user: user);
       }
       return null;
     } on DioException catch (e) {
-      throw Exception('QR Token retrieval failed: ${e.message}');
+      throw Exception('获取二维码登录结果失败: ${e.message}');
     }
   }
 }

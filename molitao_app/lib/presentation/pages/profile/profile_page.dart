@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../domain/entities/my_count_entity.dart';
-import '../../../providers/user_provider.dart';
+import '../../providers/user_provider.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -56,13 +56,13 @@ class ProfilePage extends ConsumerWidget {
                             GestureDetector(
                               onTap: () {
                                 if (userState.user != null &&
-                                    userState.isLogin) {
+                                    userState.isLoggedIn) {
                                   context.push('/user/info');
                                 }
                               },
                               child: Row(
                                 children: [
-                                  if (!userState.isLogin ||
+                                  if (!userState.isLoggedIn ||
                                       userState.user == null)
                                     Container(
                                       width: 48,
@@ -104,9 +104,11 @@ class ProfilePage extends ConsumerWidget {
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Text(
-                                      userState.isLogin &&
+                                      userState.isLoggedIn &&
                                               userState.user != null
-                                          ? userState.user!.name ?? '未登录'
+                                          ? userState.user!.fullName ??
+                                                userState.user!.userName ??
+                                                '未登录'
                                           : '未登录',
                                       style: const TextStyle(
                                         fontSize: 18,
@@ -144,7 +146,7 @@ class ProfilePage extends ConsumerWidget {
                           ],
                         ),
                         // Settings icon (only when logged in)
-                        if (userState.isLogin && userState.user != null)
+                        if (userState.isLoggedIn && userState.user != null)
                           Positioned(
                             right: 0,
                             top: 0,
@@ -255,7 +257,8 @@ class ProfilePage extends ConsumerWidget {
                   const SizedBox(height: 16),
 
                   // Logout button (only when logged in)
-                  if (userState.isLogin && userState.user?.phoneNumber != null)
+                  if (userState.isLoggedIn &&
+                      userState.user?.phoneNumber != null)
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 16.0),
                       child: ElevatedButton(
