@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../domain/entities/user_entity.dart';
 import '../../../domain/entities/my_count_entity.dart';
 import '../../../providers/user_provider.dart';
 
@@ -176,10 +175,10 @@ class ProfilePage extends ConsumerWidget {
                     crossAxisSpacing: 8,
                     mainAxisSpacing: 8,
                     children: [
-                      _buildWorkToolItem('魔力值增加', () {
+                      _buildWorkToolItem('魔力值增加', Icons.security, () {
                         _payDeposit(context, ref);
                       }),
-                      _buildWorkToolItem('魔力值减少', () {
+                      _buildWorkToolItem('魔力值减少', Icons.security, () {
                         _cashOut(context);
                       }),
                     ],
@@ -212,9 +211,9 @@ class ProfilePage extends ConsumerWidget {
                       crossAxisCount: 4,
                       childAspectRatio: 1.0,
                       children: [
-                        _buildSectionItem('出价中秒杀'),
-                        _buildSectionItem('待收货'),
-                        _buildSectionItem('已成交'),
+                        _buildSectionItem('出价中秒杀', Icons.payment),
+                        _buildSectionItem('待收货', Icons.local_shipping_outlined),
+                        _buildSectionItem('已成交', Icons.receipt_long),
                       ],
                     ),
                   ),
@@ -246,9 +245,9 @@ class ProfilePage extends ConsumerWidget {
                       crossAxisCount: 4,
                       childAspectRatio: 1.0,
                       children: [
-                        _buildSectionItem('我要卖'),
-                        _buildSectionItem('待发货'),
-                        _buildSectionItem('订单'),
+                        _buildSectionItem('我要卖', Icons.sell_outlined),
+                        _buildSectionItem('待发货', Icons.local_shipping_outlined),
+                        _buildSectionItem('订单', Icons.receipt_long),
                       ],
                     ),
                   ),
@@ -309,10 +308,11 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
-  Widget _buildWorkToolItem(String label, VoidCallback onTap) {
+  Widget _buildWorkToolItem(String label, IconData icon, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(8.0),
@@ -325,17 +325,53 @@ class ProfilePage extends ConsumerWidget {
             ),
           ],
         ),
-        child: Center(child: Text(label, style: const TextStyle(fontSize: 14))),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xfff6f6f6),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 24, color: Colors.black87),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildSectionItem(String label) {
-    return Container(
-      alignment: Alignment.center,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [Text(label, style: const TextStyle(fontSize: 12))],
+  Widget _buildSectionItem(String label, IconData icon, {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xfff6f6f6),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 24, color: Colors.black87),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,3 +1,5 @@
+import '../../core/utils/image_url_converter.dart';
+
 class AdvertisingSpace {
   final int? id;
   final String? name;
@@ -24,7 +26,7 @@ class AdvertisingSpace {
       id: json['id'],
       name: json['name'],
       title: json['title'],
-      imageUrl: json['imageUrl'],
+      imageUrl: ImageUrlConverter.convert(json['imageUrl']),
       linkUrl: json['linkUrl'],
       sort: json['sort'],
       type: json['type'],

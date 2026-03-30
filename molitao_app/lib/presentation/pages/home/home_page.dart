@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../providers/home_provider.dart';
 import '../../../data/models/cms_article_model.dart';
 import '../../../data/models/advertising_space_model.dart';
+import '../../../core/utils/image_url_converter.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -69,7 +70,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: CachedNetworkImage(
-                imageUrl: item.imageUrl ?? '',
+                imageUrl: ImageUrlConverter.convert(item.imageUrl),
                 fit: BoxFit.cover,
                 placeholder: (context, url) => Container(
                   color: Colors.grey[200],
@@ -410,7 +411,7 @@ class _ArticleSwiperState extends State<_ArticleSwiper> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: CachedNetworkImage(
-                    imageUrl: article.titleImageUrl ?? '',
+                    imageUrl: ImageUrlConverter.convert(article.titleImageUrl),
                     fit: BoxFit.cover,
                     placeholder: (context, url) => Container(
                       color: Colors.grey[200],
