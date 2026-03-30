@@ -9,12 +9,12 @@
 const CACHE_NAME = 'molitao-pwa-v1'
 const API_CACHE_NAME = 'molitao-api-v1'
 const STATIC_CACHE_LIST = [
-  '/',
-  '/index.html',
-  '/manifest.webmanifest',
-  '/static/logo.png',
-  '/static/icons/icon-192x192.png',
-  '/static/icons/icon-512x512.png'
+  './',
+  './index.html',
+  './manifest.webmanifest',
+  './static/logo.png',
+  './static/icons/icon-192x192.png',
+  './static/icons/icon-512x512.png'
 ]
 
 // 安装事件：缓存静态资源
@@ -114,12 +114,12 @@ self.addEventListener('push', (event) => {
 
     const options = {
       body: data.content || '',
-      icon: '/static/icons/icon-192x192.png',
-      badge: '/static/icons/icon-72x72.png',
+      icon: './static/icons/icon-192x192.png',
+      badge: './static/icons/icon-72x72.png',
       vibrate: [200, 100, 200],
       tag: data.messageId || Date.now().toString(),
       data: {
-        url: data.url || '/',
+        url: data.url || './',
         messageId: data.messageId,
         extras: data.extras || {}
       },
@@ -145,7 +145,7 @@ self.addEventListener('notificationclick', (event) => {
   event.notification.close()
 
   if (event.action === 'view') {
-    const url = event.notification.data?.url || '/'
+    const url = event.notification.data?.url || './'
     console.log('[SW] 跳转到:', url)
 
     event.waitUntil(
@@ -155,7 +155,7 @@ self.addEventListener('notificationclick', (event) => {
       }).then((clientList) => {
         // 找到或打开一个窗口
         for (const client of clientList) {
-          if (client.url === url || client.url === '/') {
+          if (client.url === url || client.url === './') {
             client.focus()
             return
           }

@@ -16,12 +16,12 @@
         <title>魔力淘</title>
         <meta name="theme-color" content="#f4835a" />
         <!-- PWA Icons -->
-        <link rel="icon" type="image/png" sizes="192x192" href="/static/icons/icon-192x192.png" />
-        <link rel="icon" type="image/png" sizes="512x512" href="/static/icons/icon-512x512.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="./static/icons/icon-192x192.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="./static/icons/icon-512x512.png" />
         <!-- Apple Touch Icons -->
-        <link rel="apple-touch-icon" sizes="180x180" href="/static/icons/icon-192x192.png" />
-        <link rel="apple-touch-icon" sizes="192x192" href="/static/icons/icon-192x192.png" />
-        <link rel="apple-touch-icon" sizes="512x512" href="/static/icons/icon-512x512.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="./static/icons/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="192x192" href="./static/icons/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="512x512" href="./static/icons/icon-512x512.png" />
         <!-- PWA Meta Tags -->
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -36,7 +36,7 @@
             const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
             if ('serviceWorker' in navigator && !isDev && window.location.protocol === 'https:') {
                 window.addEventListener('load', function() {
-                    navigator.serviceWorker.register('/sw.js')
+                    navigator.serviceWorker.register('./sw.js')
                         .then(function(registration) {
                             console.log('[SW] Service Worker 注册成功:', registration.scope);
                         })
@@ -46,7 +46,7 @@
                 });
             } else if ('serviceWorker' in navigator && !isDev && window.location.hostname === 'localhost') {
                 window.addEventListener('load', function() {
-                    navigator.serviceWorker.register('/sw.js')
+                    navigator.serviceWorker.register('./sw.js')
                         .then(function(registration) {
                             console.log('[SW] Service Worker 注册成功 (localhost):', registration.scope);
                         })
