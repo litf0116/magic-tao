@@ -33,9 +33,14 @@ class UserRepository {
     }
   }
 
-  Future<List<UserDto>> getAllUsers() async {
+  Future<List<UserDto>> getAllUsers({String? keyword}) async {
     try {
-      final response = await _apiClient.dio.get(ApiEndpoints.getAllUsers);
+      final response = await _apiClient.dio.get(
+        ApiEndpoints.getAllUsers,
+        queryParameters: keyword != null && keyword.isNotEmpty
+            ? {'Keyword': keyword}
+            : null,
+      );
 
       // 拦截器已统一格式为 { items: [...] }
       final items = response.data['items'] as List? ?? [];

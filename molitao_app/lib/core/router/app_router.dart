@@ -10,6 +10,9 @@ import '../../presentation/pages/contacts/contacts_page.dart';
 import '../../presentation/pages/profile/profile_page.dart';
 import '../../presentation/pages/user/deposit_log_page.dart';
 import '../../presentation/pages/user/user_info_page.dart';
+import '../../presentation/pages/user/balance_log_page.dart';
+import '../../presentation/pages/user/user_list_page.dart';
+import '../../presentation/pages/announce/announce_list_page.dart';
 import '../../presentation/pages/auth/login_page.dart';
 import '../../presentation/pages/auction/auction_page.dart';
 
@@ -93,6 +96,28 @@ final GoRouter router = GoRouter(
                   path: 'user-info',
                   name: 'user-info',
                   builder: (context, state) => const UserInfoPage(),
+                ),
+                GoRoute(
+                  path: 'balance-log',
+                  name: 'balance-log',
+                  builder: (context, state) => const BalanceLogPage(),
+                ),
+                GoRoute(
+                  path: 'user-list',
+                  name: 'user-list',
+                  builder: (context, state) => const UserListPage(),
+                ),
+                GoRoute(
+                  path: 'announce',
+                  name: 'announce',
+                  builder: (context, state) {
+                    final categoryId = state.uri.queryParameters['categoryId'];
+                    return AnnounceListPage(
+                      categoryId: categoryId != null
+                          ? int.tryParse(categoryId)
+                          : null,
+                    );
+                  },
                 ),
               ],
             ),

@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/services/storage_service.dart';
+import '../../data/models/user_model.dart';
+import '../../data/repositories/user_repository.dart';
 
 // User data model
 class User {
@@ -174,3 +176,67 @@ class UserNotifier extends StateNotifier<UserState> {
 final userProvider = StateNotifierProvider<UserNotifier, UserState>((ref) {
   return UserNotifier(ref);
 });
+
+// User list state
+class UserListState {
+  final List<UserDto> users;
+  final bool isLoading;
+  final String? error;
+  final int totalCount;
+
+  const UserListState({
+    this.users = const [],
+    this.isLoading = false,
+    this.error,
+    this.totalCount = 0,
+  });
+
+  UserListState copyWith({
+    List<UserDto>? users,
+    bool? isLoading,
+    String? error,
+    int? totalCount,
+  }) {
+    return UserListState(
+      users: users ?? this.users,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+      totalCount: totalCount ?? this.totalCount,
+    );
+  }
+}
+
+// User list notifier
+class UserListNotifier extends StateNotifier<UserListState> {
+  final UserRepository _repository;
+
+  UserListNotifier(this._repository) : super(const UserListState());
+
+  Future<void> loadUsers({String? keyword}) async {
+    if (state.isLoading) return;
+
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final users = await _repository.getAllUsers(keyword: keyword);
+      state = state.copyWith(
+        users: users,
+        isLoading: false,
+        totalCount: users.length,
+      );
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  Future<void> searchUsers(String keyword) async {
+    await loadUsers(keyword: keyword);
+  }
+}
+
+// User list provider
+final userListProvider = StateNotifierProvider<UserListNotifier, UserListState>(
+  (ref) {
+    return UserListNotifier(UserRepository());
+  },
+);
