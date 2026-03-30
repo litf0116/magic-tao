@@ -22,10 +22,21 @@ class PostRepository {
         },
       );
 
-      if (response.data != null && response.data['items'] != null) {
-        return (response.data['items'] as List)
-            .map((json) => PostModel.fromJson(json))
-            .toList();
+      // 拦截器已解包 result，response.data 可能是：
+      // 1. { items: [...], totalCount, hasNextPages } (分页格式)
+      // 2. [...] (直接数组，兼容旧格式)
+      if (response.data != null) {
+        if (response.data is List) {
+          // 直接数组格式
+          return (response.data as List)
+              .map((json) => PostModel.fromJson(json))
+              .toList();
+        } else if (response.data['items'] != null) {
+          // 分页格式
+          return (response.data['items'] as List)
+              .map((json) => PostModel.fromJson(json))
+              .toList();
+        }
       }
       return [];
     } on DioException catch (e) {
@@ -36,6 +47,7 @@ class PostRepository {
   Future<CmsArticleDto?> getLatestBulletin() async {
     try {
       final response = await _apiClient.dio.get(ApiEndpoints.getLatestBulletin);
+      // 拦截器已解包 result，response.data 就是单个对象
       if (response.data != null) {
         return CmsArticleDto.fromJson(response.data);
       }
@@ -48,10 +60,22 @@ class PostRepository {
   Future<List<CmsArticleDto>?> getCategoryList() async {
     try {
       final response = await _apiClient.dio.get(ApiEndpoints.getCategoryList);
-      if (response.data != null && response.data['items'] != null) {
-        return (response.data['items'] as List)
-            .map((json) => CmsArticleDto.fromJson(json))
-            .toList();
+
+      // 拦截器已解包 result，response.data 可能是：
+      // 1. [...] (直接数组)
+      // 2. { items: [...] } (包装格式)
+      if (response.data != null) {
+        if (response.data is List) {
+          // 直接数组格式 (GetCategoryList 返回这种格式)
+          return (response.data as List)
+              .map((json) => CmsArticleDto.fromJson(json))
+              .toList();
+        } else if (response.data['items'] != null) {
+          // 包装格式
+          return (response.data['items'] as List)
+              .map((json) => CmsArticleDto.fromJson(json))
+              .toList();
+        }
       }
       return [];
     } on DioException catch (e) {
@@ -64,6 +88,7 @@ class PostRepository {
       final response = await _apiClient.dio.get(
         '${ApiEndpoints.getPostDetail}$postId',
       );
+      // 拦截器已解包 result
       if (response.data != null) {
         return PostModel.fromJson(response.data);
       }
@@ -99,6 +124,7 @@ class PostRepository {
         },
       );
 
+      // 拦截器已解包 result
       if (response.data != null) {
         return PostModel.fromJson(response.data);
       }
@@ -127,6 +153,7 @@ class PostRepository {
         },
       );
 
+      // 拦截器已解包 result
       if (response.data != null) {
         return PostModel.fromJson(response.data);
       }

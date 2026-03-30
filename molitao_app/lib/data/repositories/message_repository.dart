@@ -17,10 +17,17 @@ class MessageRepository {
         queryParameters: {'id': userId, 'lastTime': lastTime, 'size': size},
       );
 
-      if (response.data != null && response.data['items'] != null) {
-        return (response.data['items'] as List)
-            .map((json) => ChatMessage.fromJson(json))
-            .toList();
+      // 拦截器已解包 result
+      if (response.data != null) {
+        if (response.data is List) {
+          return (response.data as List)
+              .map((json) => ChatMessage.fromJson(json))
+              .toList();
+        } else if (response.data['items'] != null) {
+          return (response.data['items'] as List)
+              .map((json) => ChatMessage.fromJson(json))
+              .toList();
+        }
       }
       return [];
     } on DioException catch (e) {
@@ -39,10 +46,17 @@ class MessageRepository {
         queryParameters: {'chan': channel, 'lastTime': lastTime, 'size': size},
       );
 
-      if (response.data != null && response.data['items'] != null) {
-        return (response.data['items'] as List)
-            .map((json) => ChatMessage.fromJson(json))
-            .toList();
+      // 拦截器已解包 result
+      if (response.data != null) {
+        if (response.data is List) {
+          return (response.data as List)
+              .map((json) => ChatMessage.fromJson(json))
+              .toList();
+        } else if (response.data['items'] != null) {
+          return (response.data['items'] as List)
+              .map((json) => ChatMessage.fromJson(json))
+              .toList();
+        }
       }
       return [];
     } on DioException catch (e) {
@@ -57,7 +71,8 @@ class MessageRepository {
         queryParameters: {'chan': channel},
       );
 
-      return response.data?['lastId'];
+      // 拦截器已解包 result
+      return response.data?['lastId'] ?? response.data;
     } on DioException catch (e) {
       throw Exception('Failed to get channel last ID: ${e.message}');
     }
@@ -70,7 +85,8 @@ class MessageRepository {
         queryParameters: {'id': userId},
       );
 
-      return response.data?['lastId'];
+      // 拦截器已解包 result
+      return response.data?['lastId'] ?? response.data;
     } on DioException catch (e) {
       throw Exception('Failed to get private last ID: ${e.message}');
     }

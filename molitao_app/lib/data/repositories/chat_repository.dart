@@ -155,10 +155,18 @@ class ChatRepository {
   Future<List<ChatListItem>?> getChatList() async {
     try {
       final response = await _apiClient.dio.get(ApiEndpoints.getChatList);
-      if (response.data != null && response.data['items'] != null) {
-        return (response.data['items'] as List)
-            .map((json) => ChatListItem.fromJson(json))
-            .toList();
+
+      // 拦截器已解包 result
+      if (response.data != null) {
+        if (response.data is List) {
+          return (response.data as List)
+              .map((json) => ChatListItem.fromJson(json))
+              .toList();
+        } else if (response.data['items'] != null) {
+          return (response.data['items'] as List)
+              .map((json) => ChatListItem.fromJson(json))
+              .toList();
+        }
       }
       return [];
     } on DioException catch (e) {

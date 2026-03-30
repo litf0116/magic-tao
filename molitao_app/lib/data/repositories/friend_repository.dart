@@ -28,10 +28,19 @@ class FriendRepository {
         queryParameters: {'id': userId, 'status': status},
       );
 
-      if (response.data != null && response.data['items'] != null) {
-        return (response.data['items'] as List)
-            .map((json) => UserDtoBase.fromJson(json))
-            .toList();
+      // 拦截器已解包 result，response.data 可能是：
+      // 1. { items: [...] } (包装格式)
+      // 2. [...] (直接数组)
+      if (response.data != null) {
+        if (response.data is List) {
+          return (response.data as List)
+              .map((json) => UserDtoBase.fromJson(json))
+              .toList();
+        } else if (response.data['items'] != null) {
+          return (response.data['items'] as List)
+              .map((json) => UserDtoBase.fromJson(json))
+              .toList();
+        }
       }
       return [];
     } on DioException catch (e) {
@@ -59,7 +68,8 @@ class FriendRepository {
       final response = await _apiClient.dio.get(
         ApiEndpoints.getUserFriendCount,
       );
-      return response.data?['count'] ?? 0;
+      // 拦截器已解包 result
+      return response.data?['count'] ?? response.data ?? 0;
     } on DioException catch (e) {
       throw Exception('Failed to get user friend count: ${e.message}');
     }
