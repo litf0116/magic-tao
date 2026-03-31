@@ -7,8 +7,9 @@
 ```
 design/
 ├── README.md                      # 本文件
-├── mobile-ui-design-v2.html       # 移动端 UI 设计稿（推荐）⭐
-├── mobile-ui-design.html          # 移动端 UI 设计稿（初版）
+├── design-system.html             # 设计规范展示（推荐）⭐
+├── mobile-ui-design-v2.html       # 移动端 UI 设计稿 v2
+├── mobile-ui-design.html          # 移动端 UI 设计稿初版
 ├── app-ui-design-checklist.md     # App UI 设计检查清单
 ├── message-styles-spec.md         # 消息样式规范
 ├── flutter-design-spec.md         # Flutter 设计规范
@@ -17,10 +18,17 @@ design/
 
 ## 设计稿预览
 
+### 设计规范展示（推荐）
+
+```bash
+# 查看完整设计系统（色彩、字体、组件、消息样式）
+open design/design-system.html
+```
+
 ### 移动端 UI 设计稿
 
 ```bash
-# 打开 v2 版本（推荐）
+# 打开 v2 版本
 open design/mobile-ui-design-v2.html
 
 # 打开初版

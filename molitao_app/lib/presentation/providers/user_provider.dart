@@ -12,6 +12,8 @@ class User {
   final double? depositBalance;
   final List<String>? permissions;
   final List<String>? roleNames;
+  final String? qq;
+  final String? wx;
 
   User({
     this.id,
@@ -22,6 +24,8 @@ class User {
     this.depositBalance,
     this.permissions,
     this.roleNames,
+    this.qq,
+    this.wx,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -38,6 +42,8 @@ class User {
       roleNames: (json['roleNames'] as List<dynamic>?)
           ?.map((e) => e.toString())
           .toList(),
+      qq: json['qq'],
+      wx: json['wx'],
     );
   }
 
@@ -51,7 +57,35 @@ class User {
       'depositBalance': depositBalance,
       'permissions': permissions,
       'roleNames': roleNames,
+      'qq': qq,
+      'wx': wx,
     };
+  }
+
+  User copyWith({
+    int? id,
+    String? userName,
+    String? fullName,
+    String? phoneNumber,
+    String? headImgUrl,
+    double? depositBalance,
+    List<String>? permissions,
+    List<String>? roleNames,
+    String? qq,
+    String? wx,
+  }) {
+    return User(
+      id: id ?? this.id,
+      userName: userName ?? this.userName,
+      fullName: fullName ?? this.fullName,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      headImgUrl: headImgUrl ?? this.headImgUrl,
+      depositBalance: depositBalance ?? this.depositBalance,
+      permissions: permissions ?? this.permissions,
+      roleNames: roleNames ?? this.roleNames,
+      qq: qq ?? this.qq,
+      wx: wx ?? this.wx,
+    );
   }
 }
 
