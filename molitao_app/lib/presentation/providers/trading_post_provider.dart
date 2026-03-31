@@ -51,8 +51,10 @@ class TradingPostState {
     bool? hasMore,
     String? errorMessage,
     int? selectedCategoryId,
+    bool clearSelectedCategoryId = false,
     String? searchKeywords,
     int? selectedHotWordId,
+    bool clearSelectedHotWordId = false,
   }) {
     return TradingPostState(
       posts: posts ?? this.posts,
@@ -66,9 +68,13 @@ class TradingPostState {
       currentPage: currentPage ?? this.currentPage,
       hasMore: hasMore ?? this.hasMore,
       errorMessage: errorMessage ?? this.errorMessage,
-      selectedCategoryId: selectedCategoryId ?? this.selectedCategoryId,
+      selectedCategoryId: clearSelectedCategoryId
+          ? null
+          : (selectedCategoryId ?? this.selectedCategoryId),
       searchKeywords: searchKeywords ?? this.searchKeywords,
-      selectedHotWordId: selectedHotWordId ?? this.selectedHotWordId,
+      selectedHotWordId: clearSelectedHotWordId
+          ? null
+          : (selectedHotWordId ?? this.selectedHotWordId),
     );
   }
 }
@@ -225,7 +231,10 @@ class TradingPostNotifier extends StateNotifier<TradingPostState> {
   }
 
   Future<void> selectCategory(int? categoryId) async {
-    state = state.copyWith(selectedCategoryId: categoryId);
+    state = state.copyWith(
+      selectedCategoryId: categoryId,
+      clearSelectedCategoryId: categoryId == null,
+    );
     await refresh();
   }
 

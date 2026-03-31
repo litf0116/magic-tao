@@ -65,8 +65,8 @@ class CmsArticleDto {
 
   factory CmsArticleDto.fromJson(Map<String, dynamic> json) {
     return CmsArticleDto(
-      categoryId: json['categoryId'],
-      title: json['title'],
+      categoryId: json['categoryId'] ?? json['id'],
+      title: json['title'] ?? json['name'], // 兼容 name 字段
       titleImageUrl: json['titleImageUrl'],
       content: json['content'],
       status: _parseArticleStatusEnum(json['status']),
@@ -74,7 +74,7 @@ class CmsArticleDto {
           ? DateTime.tryParse(json['creationTime'].toString())
           : null,
       creatorUserId: json['creatorUserId'],
-      id: json['id'],
+      id: json['id'] ?? json['categoryId'], // 兼容 categoryId 作为 id
     );
   }
 

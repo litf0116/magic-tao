@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>魔力淘设计规范 - Design System</title>
+    <style>
+        :root {
+            /* 主题色 */
+            --primary-color: #F4835a;
+            --primary-light: #ff7144;
+            --primary-dark: #e06a3a;
+            --success-color: #52c41a;
+            --warning-color: #fa8c16;
+            --info-color: #1890ff;
+            --error-color: #ef4444;
+            
+            /* 背景色 */
+            --bg-color: #1a1a2e;
+            --surface-color: #2d2d44;
+            --card-bg: #252536;
+            --text-color: #ffffff;
+            --text-secondary: #aaaaaa;
+            --border-color: #444455;
+            
+            /* 品质颜色 */
+            --quality-common: #9E9E9E;
+            --quality-uncommon: #4CAF50;
+            --quality-rare: #2196F3;
+            --quality-legendary: #FF9800;
+            --quality-epic: #9C27B0;
+            
+            /* 间距系统 (4px基准) */
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 12px;
+            --spacing-lg: 16px;
+            --spacing-xl: 20px;
+            --spacing-xxl: 24px;
+            --spacing-xxxl: 32px;
+            
+            /* 圆角系统 */
+            --radius-xs: 2px;
+            --radius-sm: 4px;
+            --radius-md: 6px;
+            --radius-lg: 8px;
+            --radius-xl: 12px;
+            --radius-xxl: 16px;
+            --radius-round: 999px;
+            --radius-circle: 50%;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* 左侧导航栏 */
+        .sidebar {
+            width: 280px;
+            background: var(--surface-color);
+            padding: 20px 0;
+            border-right: 1px solid var(--border-color);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+        }
+
+        .sidebar-nav li {
+            margin-bottom: 4px;
+        }
+
+        .sidebar-nav a {
+            display: block;
+            padding: 12px 20px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-nav a:hover,
+        .sidebar-nav a.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* 右侧内容区 */
+        .content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 60px;
+            padding: 30px;
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+        }
+
+        .section-title {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+        }
+
+        .section-subtitle {
+            font-size: 18px;
+            margin: 20px 0 15px;
+            color: var(--primary-light);
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .color-item {
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .color-swatch {
+            height: 80px;
+        }
+
+        .color-info {
+            padding: 12px;
+            background: var(--surface-color);
+            font-size: 12px;
+        }
+
+        .color-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .color-value {
+            color: var(--text-secondary);
+        }
+
+        .font-sample {
+            margin: 10px 0;
+            padding: 10px;
+            background: var(--surface-color);
+            border-radius: var(--radius-sm);
+        }
+
+        .spacing-demo {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: var(--surface-color);
+            border-radius: var(--radius-sm);
+        }
+
+        .spacing-box {
+            background: var(--primary-color);
+            margin-right: 10px;
+        }
+
+        .radius-demo {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: var(--surface-color);
+            border-radius: var(--radius-sm);
+        }
+
+        .radius-box {
+            width: 60px;
+            height: 60px;
+            background: var(--primary-color);
+            margin-right: 15px;
+        }
+
+        .shadow-demo {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: var(--surface-color);
+            border-radius: var(--radius-sm);
+        }
+
+        .shadow-box {
+            width: 80px;
+            height: 60px;
+            background: white;
+            color: black;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .component-demo {
+            margin: 20px 0;
+            padding: 20px;
+            background: var(--surface-color);
+            border-radius: var(--radius-md);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+
+        .message-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .message-demo {
+            padding: 15px;
+            border-radius: var(--radius-md);
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+        }
+
+        .badge-demo {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+
+        .quality-badge {
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .popup-demo {
+            position: relative;
+            height: 200px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        /* 代码示例 */
+        .code-block {
+            background: #1e1e1e;
+            border-radius: var(--radius-sm);
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .copy-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: var(--radius-xs);
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        /* 消息样式 */
+        .text-message {
+            padding: 8px 12px;
+            border-radius: var(--radius-md);
+            color: #000000;
+            background: #ffffff;
+            word-break: break-all;
+            text-align: left;
+            font-size: 14px;
+            line-height: 1.5;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .image-message {
+            width: 150px;
+            height: 150px;
+            border-radius: var(--radius-md);
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 12px;
+        }
+
+        .auction-bid-message {
+            border: 2px solid #ff7144;
+            background: #ffb673;
+            padding: 8px 16px;
+            border-radius: var(--radius-lg);
+            position: relative;
+            margin: 8px 0;
+            min-width: 200px;
+            max-width: 280px;
+        }
+
+        .auction-bid-message .tag {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #ff7144;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 0 10px 0 8px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .auction-bid-message .product-name {
+            font-size: 13px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .auction-bid-message .price {
+            font-size: 24px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .auction-start-message {
+            border: 2px solid #ef4444;
+            background: #fff5f5;
+            padding: 8px 16px;
+            border-radius: var(--radius-md);
+            position: relative;
+            margin: 8px 0;
+            min-width: 200px;
+            max-width: 280px;
+        }
+
+        .auction-start-message .tag {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #ef4444;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 0 8px 0 8px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .auction-start-message .product-name {
+            font-size: 13px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .auction-start-message .description {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .auction-end-message {
+            border: 2px solid #ff9800;
+            padding: 8px 16px;
+            border-radius: var(--radius-md);
+            position: relative;
+            margin: 8px 0;
+            min-width: 200px;
+            max-width: 280px;
+        }
+
+        .auction-end-message .tag {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #ff9800;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 0 8px 0 8px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .auction-end-message .result-text {
+            color: #ef4444;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .auction-end-message .result-text .highlight {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .auction-end-message .product-box {
+            border: 2.5px solid #ff9800;
+            border-radius: var(--radius-lg);
+            padding: 10px 16px;
+            margin: 8px 0;
+            background: #ffb673;
+            box-shadow: 0 0 8px 2px rgba(255, 152, 0, 0.2);
+        }
+
+        .auction-end-message .product-box .name {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .auction-deal-message {
+            border: 2px solid #22c55e;
+            padding: 8px 16px;
+            border-radius: var(--radius-md);
+            position: relative;
+            margin: 8px 0;
+            min-width: 200px;
+            max-width: 280px;
+        }
+
+        .auction-deal-message .tag {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #22c55e;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 0 8px 0 8px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .auction-deal-message .success-text {
+            color: #16a34a;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .auction-deal-message .product-box {
+            border: 2.5px solid #22c55e;
+            border-radius: var(--radius-lg);
+            padding: 10px 16px;
+            margin: 8px 0;
+            background: #86efac;
+            box-shadow: 0 0 8px 2px rgba(34, 197, 94, 0.2);
+        }
+
+        .auction-deal-message .product-box .name {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .kasec-status-message {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-radius: var(--radius-lg);
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin: 8px 0;
+            border: 2px solid;
+        }
+
+        .kasec-status-message.enabled {
+            background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+            border-color: #e53e3e;
+            color: #c53030;
+        }
+
+        .kasec-status-message.disabled {
+            background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+            border-color: #38a169;
+            color: #2f855a;
+        }
+
+        .kasec-status-message .kasec-icon {
+            font-size: 20px;
+            margin-right: 10px;
+        }
+
+        .system-message {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #888;
+            font-size: 12px;
+            margin: 10px 0;
+            text-align: center;
+            width: 100%;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: static;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+            
+            .content {
+                margin-left: 0;
+            }
+            
+            .color-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <ul class="sidebar-nav">
+                <li><a href="#colors" class="active">色彩系统</a></li>
+                <li><a href="#typography">字体规范</a></li>
+                <li><a href="#spacing">间距系统</a></li>
+                <li><a href="#radius">圆角规范</a></li>
+                <li><a href="#shadows">阴影规范</a></li>
+                <li><a href="#buttons">按钮组件</a></li>
+                <li><a href="#cards">卡片组件</a></li>
+                <li><a href="#messages">消息类型样式</a></li>
+                <li><a href="#popups">弹窗示例</a></li>
+                <li><a href="#badges">品质徽章</a></li>
+            </ul>
+        </div>
+
+        <div class="content">
+            <h1 class="section-title">魔力淘设计规范</h1>
+            <p style="margin-bottom: 30px; color: var(--text-secondary);">统一的设计语言，构建一致的用户体验</p>
+
+            <section id="colors" class="section">
+                <h2 class="section-title">色彩系统</h2>
+                
+                <h3 class="section-subtitle">主色</h3>
+                <div class="color-grid">
+                    <div class="color-item">
+                        <div class="color-swatch" style="background: var(--primary-color);"></div>
+                        <div class="color-info">
+                            <div class="color-name">Primary</div>
+                            <div class="color-value">#F4835a</div>
+                        </div>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-swatch" style="background: var(--primary-light);"></div>
+                        <div class="color-info">
+                            <div class="color-name">Primary Light</div>
+                            <div class="color-value">#ff7144</div>
+                        </div>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-swatch" style="background: var(--primary-dark);"></div>
+                        <div class="color-info">
+                            <div class="color-name">Primary Dark</div>
+                            <div class="color-value">#e06a3a</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="section-subtitle">功能色</h3>
+                <div class="color-grid">
+                    <div class="color-item">
+                        <div class="color-swatch" style="background: var(--success-color);"></div>
+                        <div class="color-info">
+                            <div class="color-name">Success</div>
+                            <div class="color-value">#52c41a</div>
+                        </div>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-swatch" style="background: var(--warning-color);"></div>
+                        <div class="color-info">
+                            <div class="color-name">Warning</div>
+                            <div class="color-value">#fa8c16</div>
+                        </div>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-swatch" style="background: var(--info-color);"></div>
+                        <div class="color-info">
+                            <div class="color-name">Info</div>
+                            <div class="color-value">#1890ff</div>
+                        </div>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-swatch" style="background: var(--error-color);"></div>
+                        <div class="color-info">
+                            <div class="color-name">Error</div>
+                            <div class="color-value">#ef4444</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="section-subtitle">品质色</h3>
+                <div class="color-grid">
+                    <div class="color-item">
+                        <div class="color-swatch" style="background: var(--quality-common);"></div>
+                        <div class="color-info">
+                            <div class="color-name">普通</div>
+                            <div class="color-value">#9E9E9E</div>
+                        </div>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-swatch" style="background: var(--quality-uncommon);"></div>
+                        <div class="color-info">
+                            <div class="color-name">优秀</div>
+                            <div class="color-value">#4CAF50</div>
+                        </div>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-swatch" style="background: var(--quality-rare);"></div>
+                        <div class="color-info">
+                            <div class="color-name">精良</div>
+                            <div class="color-value">#2196F3</div>
+                        </div>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-swatch" style="background: var(--quality-legendary);"></div>
+                        <div class="color-info">
+                            <div class="color-name">传说</div>
+                            <div class="color-value">#FF9800</div>
+                        </div>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-swatch" style="background: var(--quality-epic);"></div>
+                        <div class="color-info">
+                            <div class="color-name">史诗</div>
+                            <div class="color-value">#9C27B0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>CSS 变量定义</span>
+                        <button class="copy-btn">复制</button>
+                    </div>
+                    <pre>:root {
+  /* 主题色 */
+  --primary-color: #F4835a;
+  --primary-light: #ff7144;
+  --primary-dark: #e06a3a;
+  
+  /* 功能色 */
+  --success-color: #52c41a;
+  --warning-color: #fa8c16;
+  --info-color: #1890ff;
+  --error-color: #ef4444;
+  
+  /* 品质色 */
+  --quality-common: #9E9E9E;
+  --quality-uncommon: #4CAF50;
+  --quality-rare: #2196F3;
+  --quality-legendary: #FF9800;
+  --quality-epic: #9C27B0;
+}</pre>
+                </div>
+            </section>
+
+            <!-- 字体规范 -->
+            <section id="typography" class="section">
+                <h2 class="section-title">字体规范</h2>
+                
+                <h3 class="section-subtitle">字体族</h3>
+                <div class="font-sample">
+                    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; font-size: 24px; margin: 10px 0;">魔力淘 - 苹方/微软雅黑</div>
+                    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; font-size: 18px; margin: 10px 0;">魔力淘 - 苹方/微软雅黑</div>
+                    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; font-size: 16px; margin: 10px 0;">魔力淘 - 苹方/微软雅黑</div>
+                    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; font-size: 14px; margin: 10px 0;">魔力淘 - 苹方/微软雅黑</div>
+                    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; font-size: 12px; margin: 10px 0;">魔力淘 - 苹方/微软雅黑</div>
+                </div>
+
+                <h3 class="section-subtitle">字号层级</h3>
+                <div class="font-sample">
+                    <div style="font-size: 32px; font-weight: 700; margin: 10px 0;">Heading 1 (32px)</div>
+                    <div style="font-size: 24px; font-weight: 600; margin: 10px 0;">Heading 2 (24px)</div>
+                    <div style="font-size: 18px; font-weight: 600; margin: 10px 0;">Heading 3 (18px)</div>
+                    <div style="font-size: 16px; font-weight: 400; margin: 10px 0;">Body 1 (16px)</div>
+                    <div style="font-size: 14px; font-weight: 400; margin: 10px 0;">Body 2 (14px)</div>
+                    <div style="font-size: 13px; font-weight: 400; margin: 10px 0;">Body 3 (13px)</div>
+                    <div style="font-size: 12px; font-weight: 400; margin: 10px 0;">Caption (12px)</div>
+                    <div style="font-size: 11px; font-weight: 400; margin: 10px 0;">Small (11px)</div>
+                </div>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>SCSS 字体定义</span>
+                        <button class="copy-btn">复制</button>
+                    </div>
+                    <pre>$font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+
+$font-sizes: (
+  'h1': 32px,
+  'h2': 24px,
+  'h3': 18px,
+  'body1': 16px,
+  'body2': 14px,
+  'body3': 13px,
+  'caption': 12px,
+  'small': 11px
+);
+
+$font-weights: (
+  'regular': 400,
+  'medium': 500,
+  'semibold': 600,
+  'bold': 700
+);</pre>
+                </div>
+            </section>
+
+            <!-- 间距系统 -->
+            <section id="spacing" class="section">
+                <h2 class="section-title">间距系统</h2>
+                <p style="margin-bottom: 20px; color: var(--text-secondary);">基于 4px 基准的间距系统，确保界面的一致性和节奏感。</p>
+                
+                <div class="spacing-demo">
+                    <div class="spacing-box" style="width: var(--spacing-xs); height: 30px;"></div>
+                    <div>xs: 4px</div>
+                </div>
+                <div class="spacing-demo">
+                    <div class="spacing-box" style="width: var(--spacing-sm); height: 30px;"></div>
+                    <div>sm: 8px</div>
+                </div>
+                <div class="spacing-demo">
+                    <div class="spacing-box" style="width: var(--spacing-md); height: 30px;"></div>
+                    <div>md: 12px</div>
+                </div>
+                <div class="spacing-demo">
+                    <div class="spacing-box" style="width: var(--spacing-lg); height: 30px;"></div>
+                    <div>lg: 16px</div>
+                </div>
+                <div class="spacing-demo">
+                    <div class="spacing-box" style="width: var(--spacing-xl); height: 30px;"></div>
+                    <div>xl: 20px</div>
+                </div>
+                <div class="spacing-demo">
+                    <div class="spacing-box" style="width: var(--spacing-xxl); height: 30px;"></div>
+                    <div>xxl: 24px</div>
+                </div>
+                <div class="spacing-demo">
+                    <div class="spacing-box" style="width: var(--spacing-xxxl); height: 30px;"></div>
+                    <div>xxxl: 32px</div>
+                </div>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>CSS 变量定义</span>
+                        <button class="copy-btn">复制</button>
+                    </div>
+                    <pre>:root {
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 20px;
+  --spacing-xxl: 24px;
+  --spacing-xxxl: 32px;
+}</pre>
+                </div>
+            </section>
+
+            <!-- 圆角规范 -->
+            <section id="radius" class="section">
+                <h2 class="section-title">圆角规范</h2>
+                
+                <div class="radius-demo">
+                    <div class="radius-box" style="border-radius: var(--radius-xs);"></div>
+                    <div>xs: 2px</div>
+                </div>
+                <div class="radius-demo">
+                    <div class="radius-box" style="border-radius: var(--radius-sm);"></div>
+                    <div>sm: 4px</div>
+                </div>
+                <div class="radius-demo">
+                    <div class="radius-box" style="border-radius: var(--radius-md);"></div>
+                    <div>md: 6px</div>
+                </div>
+                <div class="radius-demo">
+                    <div class="radius-box" style="border-radius: var(--radius-lg);"></div>
+                    <div>lg: 8px</div>
+                </div>
+                <div class="radius-demo">
+                    <div class="radius-box" style="border-radius: var(--radius-xl);"></div>
+                    <div>xl: 12px</div>
+                </div>
+                <div class="radius-demo">
+                    <div class="radius-box" style="border-radius: var(--radius-xxl);"></div>
+                    <div>xxl: 16px</div>
+                </div>
+                <div class="radius-demo">
+                    <div class="radius-box" style="border-radius: var(--radius-round);"></div>
+                    <div>round: 999px</div>
+                </div>
+                <div class="radius-demo">
+                    <div class="radius-box" style="border-radius: var(--radius-circle);"></div>
+                    <div>circle: 50%</div>
+                </div>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>CSS 变量定义</span>
+                        <button class="copy-btn">复制</button>
+                    </div>
+                    <pre>:root {
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-xxl: 16px;
+  --radius-round: 999px;
+  --radius-circle: 50%;
+}
+
+/* 预设圆角 */
+.radius-card { border-radius: var(--radius-lg); }
+.radius-button { border-radius: 22px; }
+.radius-input { border-radius: 18px; }
+.radius-message { border-radius: 6px; }</pre>
+                </div>
+            </section>
+
+            <!-- 阴影规范 -->
+            <section id="shadows" class="section">
+                <h2 class="section-title">阴影规范</h2>
+                
+                <div class="shadow-demo">
+                    <div class="shadow-box" style="box-shadow: 0 1px 2px rgba(0,0,0,0.05);">Card</div>
+                    <div>Card Shadow: 0 1px 2px rgba(0,0,0,0.05)</div>
+                </div>
+                <div class="shadow-demo">
+                    <div class="shadow-box" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1);">Button</div>
+                    <div>Button Shadow: 0 2px 8px rgba(0,0,0,0.1)</div>
+                </div>
+                <div class="shadow-demo">
+                    <div class="shadow-box" style="box-shadow: 0 4px 15px rgba(0,0,0,0.15);">Modal</div>
+                    <div>Modal Shadow: 0 4px 15px rgba(0,0,0,0.15)</div>
+                </div>
+                <div class="shadow-demo">
+                    <div class="shadow-box" style="box-shadow: 0 8px 32px rgba(0,0,0,0.2);">Popover</div>
+                    <div>Popover Shadow: 0 8px 32px rgba(0,0,0,0.2)</div>
+                </div>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>CSS 阴影定义</span>
+                        <button class="copy-btn">复制</button>
+                    </div>
+                    <pre>.shadow-card {
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.shadow-button {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.shadow-modal {
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
+
+.shadow-popover {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}</pre>
+                </div>
+            </section>
+
+            <!-- 按钮组件 -->
+            <section id="buttons" class="section">
+                <h2 class="section-title">按钮组件</h2>
+                
+                <div class="component-demo">
+                    <h3 class="section-subtitle">主要按钮</h3>
+                    <div class="button-group">
+                        <button style="padding: 12px 24px; background: var(--primary-color); color: white; border: none; border-radius: 22px; cursor: pointer; font-weight: 500;">主要按钮</button>
+                        <button style="padding: 12px 24px; background: var(--primary-light); color: white; border: none; border-radius: 22px; cursor: pointer; font-weight: 500;">悬停状态</button>
+                        <button style="padding: 12px 24px; background: var(--primary-dark); color: white; border: none; border-radius: 22px; cursor: pointer; font-weight: 500;">按下状态</button>
+                        <button style="padding: 12px 24px; background: #666; color: white; border: none; border-radius: 22px; cursor: not-allowed; font-weight: 500;" disabled>禁用状态</button>
+                    </div>
+                </div>
+
+                <div class="component-demo">
+                    <h3 class="section-subtitle">次要按钮</h3>
+                    <div class="button-group">
+                        <button style="padding: 12px 24px; background: var(--surface-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 22px; cursor: pointer; font-weight: 500;">次要按钮</button>
+                        <button style="padding: 12px 24px; background: var(--card-bg); color: var(--text-secondary); border: 1px solid var(--border-color); border-radius: 22px; cursor: pointer; font-weight: 500;">悬停状态</button>
+                        <button style="padding: 12px 24px; background: #333; color: #999; border: 1px solid #555; border-radius: 22px; cursor: not-allowed;" disabled>禁用状态</button>
+                    </div>
+                </div>
+
+                <div class="component-demo">
+                    <h3 class="section-subtitle">文字按钮</h3>
+                    <div class="button-group">
+                        <button style="padding: 8px 16px; background: none; color: var(--primary-color); border: none; cursor: pointer; font-weight: 500;">文字按钮</button>
+                        <button style="padding: 8px 16px; background: none; color: var(--primary-light); border: none; cursor: pointer; font-weight: 500;">悬停状态</button>
+                        <button style="padding: 8px 16px; background: none; color: #666; border: none; cursor: not-allowed;" disabled>禁用状态</button>
+                    </div>
+                </div>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>按钮 CSS 类</span>
+                        <button class="copy-btn">复制</button>
+                    </div>
+                    <pre>.btn-primary {
+  padding: 12px 24px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 22px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: var(--primary-light);
+}
+
+.btn-primary:active {
+  background: var(--primary-dark);
+}
+
+.btn-primary:disabled {
+  background: #666;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  padding: 12px 24px;
+  background: var(--surface-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: 22px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btn-text {
+  padding: 8px 16px;
+  background: none;
+  color: var(--primary-color);
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+}</pre>
+                </div>
+            </section>
+
+            <!-- 卡片组件 -->
+            <section id="cards" class="section">
+                <h2 class="section-title">卡片组件</h2>
+                
+                <div class="component-demo">
+                    <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 20px; margin: 10px 0; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                        <h3 style="margin: 0 0 10px; color: var(--primary-color);">卡片标题</h3>
+                        <p style="color: var(--text-secondary); margin: 0 0 15px;">这是一个标准的卡片组件，用于展示内容区块。</p>
+                        <button style="padding: 8px 16px; background: var(--primary-color); color: white; border: none; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px;">操作按钮</button>
+                    </div>
+                </div>
+
+                <div class="component-demo">
+                    <div style="display: flex; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius-lg); overflow: hidden;">
+                        <div style="flex: 1; padding: 20px;">
+                            <h3 style="margin: 0 0 10px; color: var(--primary-color);">左侧内容</h3>
+                            <p style="color: var(--text-secondary); margin: 0;">这里是卡片的主体内容区域。</p>
+                        </div>
+                        <div style="width: 120px; background: rgba(244,131,90,0.1); display: flex; align-items: center; justify-content: center;">
+                            <span style="color: var(--primary-color); font-size: 24px;">🖼️</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>卡片 CSS 类</span>
+                        <button class="copy-btn">复制</button>
+                    </div>
+                    <pre>.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.card-horizontal {
+  display: flex;
+}
+
+.card-image-side {
+  width: 120px;
+  background: rgba(244,131,90,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}</pre>
+                </div>
+            </section>
+
+            <!-- 消息类型样式 -->
+            <section id="messages" class="section">
+                <h2 class="section-title">消息类型样式</h2>
+                
+                <h3 class="section-subtitle">文本消息</h3>
+                <div class="message-demo">
+                    <div class="text-message">这是一条普通的文本消息，展示基本的文本气泡样式。</div>
+                </div>
+
+                <h3 class="section-subtitle">图片消息</h3>
+                <div class="message-demo">
+                    <div class="image-message">🖼️ 商品图片</div>
+                </div>
+
+                <h3 class="section-subtitle">出价消息 (AuctionBidMessage)</h3>
+                <div class="message-demo">
+                    <div class="auction-bid-message">
+                        <div class="tag">出价</div>
+                        <div class="product-name">商品: 175级神天兵满修号</div>
+                        <div class="price">当前出价：￥68</div>
+                    </div>
+                </div>
+
+                <h3 class="section-subtitle">开始秒杀消息 (AuctionStartMessage)</h3>
+                <div class="message-demo">
+                    <div class="auction-start-message">
+                        <div class="tag">开始秒杀</div>
+                        <div class="product-name">商品名称: 175级神天兵满修号</div>
+                        <div class="description">起拍价: 50魔力值<br/>装备齐全，技能全满</div>
+                    </div>
+                </div>
+
+                <h3 class="section-subtitle">秒杀结束消息 (AuctionEndMessage)</h3>
+                <div class="message-demo">
+                    <div class="auction-end-message">
+                        <div class="tag">成功秒杀</div>
+                        <div class="result-text">恭喜 <span class="highlight">张三</span> 最终以 128魔力值秒得商品</div>
+                        <div class="product-box">
+                            <div class="name">175级神天兵满修号</div>
+                        </div>
+                        <div class="deal-time">2026-03-31 10:30:00</div>
+                        <div class="tips">双方私聊秒杀主持确认交易!<br/>认准星标小心冒充</div>
+                    </div>
+                </div>
+
+                <h3 class="section-subtitle">成交通知消息 (AuctionDealMessage)</h3>
+                <div class="message-demo">
+                    <div class="auction-deal-message">
+                        <div class="tag">交易通知</div>
+                        <div class="success-text">🎉 恭喜您成功拍得商品！</div>
+                        <div class="product-box">
+                            <div class="name">175级神天兵满修号</div>
+                        </div>
+                        <div class="price-text">成交价: ￥128</div>
+                        <div class="deal-time">2026-03-31 10:30:00</div>
+                        <div class="tips">请联系秒杀主持确认交易详情<br/>认准星标，小心冒充</div>
+                    </div>
+                </div>
+
+                <h3 class="section-subtitle">卡秒状态消息 (KasecStatusMessage)</h3>
+                <div class="message-demo">
+                    <div class="kasec-status-message enabled">
+                        <span class="kasec-icon">⚡</span>
+                        <span class="kasec-text">秒杀主持已开启卡秒模式，需三倍加价！</span>
+                    </div>
+                    <div class="kasec-status-message disabled">
+                        <span class="kasec-icon">⚡</span>
+                        <span class="kasec-text">卡秒已关闭，恢复正常加价</span>
+                    </div>
+                </div>
+
+                <h3 class="section-subtitle">系统消息</h3>
+                <div class="message-demo">
+                    <div class="system-message">欢迎张三进入秒杀场</div>
+                </div>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>消息样式 CSS</span>
+                        <button class="copy-btn">复制</button>
+                    </div>
+                    <pre>/* 文本消息 */
+.text-message {
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  color: #000000;
+  background: #ffffff;
+  word-break: break-all;
+  text-align: left;
+  font-size: 14px;
+  line-height: 1.5;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* 出价消息 */
+.auction-bid-message {
+  border: 2px solid #ff7144;
+  background: #ffb673;
+  padding: 8px 16px;
+  border-radius: var(--radius-lg);
+  position: relative;
+  min-width: 200px;
+  max-width: 280px;
+}
+
+.auction-bid-message .tag {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #ff7144;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 0 10px 0 8px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* 开始秒杀消息 */
+.auction-start-message {
+  border: 2px solid #ef4444;
+  background: #fff5f5;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  position: relative;
+  min-width: 200px;
+  max-width: 280px;
+}
+
+/* 更多样式...</pre>
+                </div>
+            </section>
+
+            <!-- 弹窗示例 -->
+            <section id="popups" class="section">
+                <h2 class="section-title">弹窗示例</h2>
+                
+                <h3 class="section-subtitle">拍品详情弹窗</h3>
+                <div class="popup-demo">
+                    <div style="width: 100%; max-width: 320px; background: white; border-radius: 20px 20px 0 0; color: black;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #eee;">
+                            <div style="font-weight: 600; font-size: 18px;">拍品详情</div>
+                            <div style="font-size: 24px; color: #999;">×</div>
+                        </div>
+                        <div style="padding: 16px 20px;">
+                            <div style="width: 100%; height: 180px; background: #f5f5f5; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                                <div>🖼️ 商品图片</div>
+                            </div>
+                            <div style="font-weight: 600; color: #F4835a; margin-bottom: 12px;">175级神天兵满修号</div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                                <div>当前价格</div>
+                                <div style="font-weight: bold; font-size: 24px; color: #ef4444;">￥128</div>
+                            </div>
+                            <div style="display: flex; gap: 12px;">
+                                <button style="flex: 1; height: 44px; background: #f5f5f5; border-radius: 22px; border: none; font-size: 15px;">关闭</button>
+                                <button style="flex: 1; height: 44px; background: linear-gradient(135deg, #ff7144, #ff9500); border-radius: 22px; border: none; color: white; font-size: 15px; font-weight: 500;">立即出价</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="section-subtitle">出价输入弹窗</h3>
+                <div class="popup-demo" style="justify-content: center;">
+                    <div style="width: 270px; background: white; border-radius: 12px; padding: 24px; color: black;">
+                        <div style="text-align: center; font-weight: bold; margin-bottom: 20px;">提示</div>
+                        <div style="text-align: center; color: #666; margin-bottom: 16px;">请输入您的出价金额</div>
+                        <div style="width: 100%; height: 40px; border: 1px solid #ddd; border-radius: 8px; padding: 0 12px; margin-bottom: 20px; display: flex; align-items: center;">
+                            <div style="color: #999;">￥128</div>
+                        </div>
+                        <div style="display: flex; gap: 16px;">
+                            <button style="flex: 1; height: 40px; background: #f5f5f5; border-radius: 8px; border: none; font-size: 16px;">取消</button>
+                            <button style="flex: 1; height: 40px; background: #007aff; color: white; border-radius: 8px; border: none; font-size: 16px;">确定</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>弹窗 CSS 类</span>
+                        <button class="copy-btn">复制</button>
+                    </div>
+                    <pre>.popup-base {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-bottom-sheet {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 20px 20px 0 0;
+  max-height: 70%;
+  overflow-y: auto;
+}
+
+.simple-modal {
+  width: 270px;
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+}</pre>
+                </div>
+            </section>
+
+            <!-- 品质徽章 -->
+            <section id="badges" class="section">
+                <h2 class="section-title">品质徽章</h2>
+                
+                <div class="badge-demo">
+                    <div class="quality-badge" style="background: var(--quality-common);">普通</div>
+                    <div class="quality-badge" style="background: var(--quality-uncommon);">优秀</div>
+                    <div class="quality-badge" style="background: var(--quality-rare);">精良</div>
+                    <div class="quality-badge" style="background: var(--quality-legendary);">传说</div>
+                    <div class="quality-badge" style="background: var(--quality-epic);">史诗</div>
+                </div>
+
+                <div class="component-demo">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="color: var(--quality-common);">⚔️</span>
+                        <span style="color: var(--quality-common);">铁剑</span>
+                        <div class="quality-badge" style="background: var(--quality-common);">普通</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+                        <span style="color: var(--quality-uncommon);">🛡️</span>
+                        <span style="color: var(--quality-uncommon);">青铜盾</span>
+                        <div class="quality-badge" style="background: var(--quality-uncommon);">优秀</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+                        <span style="color: var(--quality-rare);">🏹</span>
+                        <span style="color: var(--quality-rare);">精钢弓</span>
+                        <div class="quality-badge" style="background: var(--quality-rare);">精良</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+                        <span style="color: var(--quality-legendary);">👑</span>
+                        <span style="color: var(--quality-legendary);">龙王冠</span>
+                        <div class="quality-badge" style="background: var(--quality-legendary);">传说</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+                        <span style="color: var(--quality-epic);">✨</span>
+                        <span style="color: var(--quality-epic);">神器</span>
+                        <div class="quality-badge" style="background: var(--quality-epic);">史诗</div>
+                    </div>
+                </div>
+
+                <div class="code-block">
+                    <div class="code-header">
+                        <span>品质徽章 CSS</span>
+                        <button class="copy-btn">复制</button>
+                    </div>
+                    <pre>.quality-common { background: var(--quality-common); }
+.quality-uncommon { background: var(--quality-uncommon); }
+.quality-rare { background: var(--quality-rare); }
+.quality-legendary { background: var(--quality-legendary); }
+.quality-epic { background: var(--quality-epic); }
+
+.quality-badge {
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+}
+
+.item-common { color: var(--quality-common); }
+.item-uncommon { color: var(--quality-uncommon); }
+.item-rare { color: var(--quality-rare); }
+.item-legendary { color: var(--quality-legendary); }
+.item-epic { color: var(--quality-epic); }</pre>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        // 简单的导航高亮功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.sidebar-nav a');
+            const sections = document.querySelectorAll('.section');
+            
+            // 为导航链接添加点击事件
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // 移除所有活动状态
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    
+                    // 添加当前活动状态
+                    this.classList.add('active');
+                    
+                    // 滚动到对应区域
+                    const targetId = this.getAttribute('href').substring(1);
+                    const targetSection = document.getElementById(targetId);
+                    if (targetSection) {
+                        targetSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
+            });
+            
+            // 为代码块添加复制功能
+            document.querySelectorAll('.copy-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const codeBlock = this.closest('.code-block').querySelector('pre');
+                    navigator.clipboard.writeText(codeBlock.textContent).then(() => {
+                        const originalText = this.textContent;
+                        this.textContent = '已复制!';
+                        setTimeout(() => {
+                            this.textContent = originalText;
+                        }, 2000);
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -61,8 +61,8 @@ class TradingPostPage extends ConsumerWidget {
                         return _buildCategoryChip(
                           context,
                           category.title ?? '',
-                          state.selectedCategoryId == category.id,
-                          () => notifier.selectCategory(category.id),
+                          state.selectedCategoryId == category.categoryId,
+                          () => notifier.selectCategory(category.categoryId),
                         );
                       },
                     ),
