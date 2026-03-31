@@ -11,14 +11,22 @@ class AuctionRepository {
   Future<ListResult<AuctionItemDto>> getPublicAuctionList({
     int? skipCount = 0,
     int? maxResultCount = 10,
+    int? status, // Add this
   }) async {
     try {
+      final queryParameters = {
+        'SkipCount': skipCount,
+        'MaxResultCount': maxResultCount,
+      };
+
+      // Add status parameter if provided
+      if (status != null) {
+        queryParameters['Status'] = status;
+      }
+
       final response = await _apiClient.dio.get(
         ApiEndpoints.getPublicAuctionList,
-        queryParameters: {
-          'SkipCount': skipCount,
-          'MaxResultCount': maxResultCount,
-        },
+        queryParameters: queryParameters,
       );
 
       return ListResult<AuctionItemDto>.fromJson(

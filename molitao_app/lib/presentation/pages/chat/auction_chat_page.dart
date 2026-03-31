@@ -67,9 +67,9 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
           ),
         );
 
-    // 初始化 - 与 UniApp onLoad 一致
+    // 初始化 - 与 UniApp onload 一致
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // 加载拍卖列表
+      // 加载拍卖列表 (今日榜单)
       ref.read(auctionProvider.notifier).loadAuctions();
 
       // 连接 WebSocket
@@ -260,9 +260,13 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(_channelName),
+        title: const Text('秒杀场'),
         backgroundColor: const Color(0xFFF4835A),
         foregroundColor: Colors.white,
+      ),
+        ),
+        backgroundColor: const Color(0xFFF4835A),
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
       ),
       body: Stack(
         children: [
@@ -701,113 +705,286 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                   color: Colors.white,
                   child: Column(
                     children: [
+                      // Tab header
                       Container(
-                        padding: const EdgeInsets.all(16),
-                        color: const Color(0xFFF4835A),
+                        height: 48,
+                        margin: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
-                              '秒杀榜',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  ref
+                                      .read(auctionProvider.notifier)
+                                      .setActiveAuctionTab(1);
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: auctionState.activeAuctionTab == 1
+                                        ? const Color(
+                                            0xFFF4835A,
+                                          ) // Active tab background
+                                        : Colors
+                                              .white, // Inactive tab background
+                                    borderRadius: BorderRadius.horizontal(
+                                      left: Radius.circular(8),
+                                    ),
+                                    border: Border.all(
+                                      color: Colors.grey.shade300,
+                                      width: auctionState.activeAuctionTab == 1
+                                          ? 0
+                                          : 1,
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      '今日榜单',
+                                      style: TextStyle(
+                                        color:
+                                            auctionState.activeAuctionTab == 1
+                                            ? Colors
+                                                  .white // Active tab text
+                                            : const Color(
+                                                0xFF666666,
+                                              ), // Inactive tab text
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
-                            IconButton(
-                              icon: const Icon(
-                                Icons.close,
-                                color: Colors.white,
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  ref
+                                      .read(auctionProvider.notifier)
+                                      .setActiveAuctionTab(2);
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: auctionState.activeAuctionTab == 2
+                                        ? const Color(
+                                            0xFFF4835A,
+                                          ) // Active tab background
+                                        : Colors
+                                              .white, // Inactive tab background
+                                    borderRadius: BorderRadius.horizontal(
+                                      right: Radius.circular(8),
+                                    ),
+                                    border: Border.all(
+                                      color: Colors.grey.shade300,
+                                      width: auctionState.activeAuctionTab == 2
+                                          ? 0
+                                          : 1,
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      '昨日成交',
+                                      style: TextStyle(
+                                        color:
+                                            auctionState.activeAuctionTab == 2
+                                            ? Colors
+                                                  .white // Active tab text
+                                            : const Color(
+                                                0xFF666666,
+                                              ), // Inactive tab text
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
-                              onPressed: _toggleAuctionList,
                             ),
                           ],
                         ),
                       ),
+                      // Tab content area
                       Expanded(
-                        child: auctionState.isLoading
-                            ? const Center(child: CircularProgressIndicator())
-                            : auctionState.auctionList.isEmpty
-                            ? const Center(child: Text('暂无拍品'))
-                            : ListView.builder(
-                                padding: const EdgeInsets.all(8),
-                                itemCount: auctionState.auctionList.length,
-                                itemBuilder: (context, index) {
-                                  final item = auctionState.auctionList[index];
-                                  final isActive =
-                                      item.status ==
-                                      AuctionStatusEnum.auctioning;
+                        child: (() {
+                          if (auctionState.activeAuctionTab == 1) {
+                            // Tab 1: 今日榜单 (Today's list - listed and auctioning items)
+                            final todayList = auctionState.todayList;
 
-                                  return Card(
-                                    margin: const EdgeInsets.symmetric(
-                                      vertical: 4,
-                                    ),
-                                    child: ListTile(
-                                      leading: ClipRRect(
-                                        borderRadius: BorderRadius.circular(4),
-                                        child: item.imageUrl != null
-                                            ? Image.network(
-                                                item.imageUrl!,
-                                                width: 50,
-                                                height: 50,
-                                                fit: BoxFit.cover,
-                                                errorBuilder: (_, __, ___) =>
-                                                    Container(
-                                                      width: 50,
-                                                      height: 50,
-                                                      color:
-                                                          Colors.grey.shade200,
-                                                      child: const Icon(
-                                                        Icons.image,
-                                                        size: 24,
-                                                      ),
+                            if (auctionState.isLoading && todayList.isEmpty) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            }
+
+                            if (todayList.isEmpty) {
+                              return const Center(child: Text('暂无拍品'));
+                            }
+
+                            return ListView.builder(
+                              padding: const EdgeInsets.all(8),
+                              itemCount: todayList.length,
+                              itemBuilder: (context, index) {
+                                final item = todayList[index];
+                                final isAuctioning =
+                                    item.status == AuctionStatusEnum.auctioning;
+
+                                return Card(
+                                  margin: const EdgeInsets.symmetric(
+                                    vertical: 4,
+                                  ),
+                                  child: ListTile(
+                                    leading: ClipRRect(
+                                      borderRadius: BorderRadius.circular(4),
+                                      child: item.imageUrl != null
+                                          ? Image.network(
+                                              item.imageUrl!,
+                                              width: 50,
+                                              height: 50,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (_, __, ___) =>
+                                                  Container(
+                                                    width: 50,
+                                                    height: 50,
+                                                    color: Colors.grey.shade200,
+                                                    child: const Icon(
+                                                      Icons.image,
+                                                      size: 24,
                                                     ),
-                                              )
-                                            : Container(
-                                                width: 50,
-                                                height: 50,
-                                                color: Colors.grey.shade200,
-                                                child: const Icon(
-                                                  Icons.image,
-                                                  size: 24,
-                                                ),
+                                                  ),
+                                            )
+                                          : Container(
+                                              width: 50,
+                                              height: 50,
+                                              color: Colors.grey.shade200,
+                                              child: const Icon(
+                                                Icons.image,
+                                                size: 24,
                                               ),
-                                      ),
-                                      title: Text(
-                                        item.name ?? '未知拍品',
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      subtitle: Text(
-                                        '¥${item.currentPrice ?? item.startingPrice ?? 0}',
-                                      ),
-                                      trailing: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 4,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: isActive
-                                              ? const Color(0xFF4CAF50)
-                                              : Colors.grey,
-                                          borderRadius: BorderRadius.circular(
-                                            4,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          isActive ? '拍卖中' : '待拍',
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ),
-                                      onTap: () => _showAuctionDetail(item),
+                                            ),
                                     ),
-                                  );
-                                },
-                              ),
+                                    title: Text(
+                                      item.name ?? '未知拍品',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    subtitle: Text(
+                                      '¥${item.currentPrice ?? item.startingPrice ?? 0}',
+                                    ),
+                                    trailing: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: isAuctioning
+                                            ? const Color(
+                                                0xFF4CAF50,
+                                              ) // Green for auctioning
+                                            : Colors.grey, // Gray for listed
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        isAuctioning ? '拍卖中' : '待拍',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                    onTap: () => _showAuctionDetail(item),
+                                  ),
+                                );
+                              },
+                            );
+                          } else {
+                            // Tab 2: 昨日成交 (Yesterday's list - sold items)
+                            if (auctionState.isLoading &&
+                                auctionState.yesterdayList.isEmpty) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            }
+
+                            if (auctionState.yesterdayList.isEmpty) {
+                              return const Center(child: Text('暂无成交'));
+                            }
+
+                            return ListView.builder(
+                              padding: const EdgeInsets.all(8),
+                              itemCount: auctionState.yesterdayList.length,
+                              itemBuilder: (context, index) {
+                                final item = auctionState.yesterdayList[index];
+
+                                return Card(
+                                  margin: const EdgeInsets.symmetric(
+                                    vertical: 4,
+                                  ),
+                                  child: ListTile(
+                                    leading: ClipRRect(
+                                      borderRadius: BorderRadius.circular(4),
+                                      child: item.imageUrl != null
+                                          ? Image.network(
+                                              item.imageUrl!,
+                                              width: 50,
+                                              height: 50,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (_, __, ___) =>
+                                                  Container(
+                                                    width: 50,
+                                                    height: 50,
+                                                    color: Colors.grey.shade200,
+                                                    child: const Icon(
+                                                      Icons.image,
+                                                      size: 24,
+                                                    ),
+                                                  ),
+                                            )
+                                          : Container(
+                                              width: 50,
+                                              height: 50,
+                                              color: Colors.grey.shade200,
+                                              child: const Icon(
+                                                Icons.image,
+                                                size: 24,
+                                              ),
+                                            ),
+                                    ),
+                                    title: Text(
+                                      item.name ?? '未知拍品',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    subtitle: Text(
+                                      '¥${item.finalPrice ?? item.currentPrice ?? item.startingPrice ?? 0}',
+                                    ),
+                                    trailing: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(
+                                          0xFF4CAF50,
+                                        ), // Green for sold
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        '已成交',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                    onTap: () => _showAuctionDetail(item),
+                                  ),
+                                );
+                              },
+                            );
+                          }
+                        })(),
                       ),
                     ],
                   ),
