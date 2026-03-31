@@ -29,7 +29,6 @@ class AuctionBidMessage extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           border: Border.all(color: const Color(0xffFF7144), width: 2),
           color: const Color(0xffFFB673),
@@ -62,7 +61,7 @@ class AuctionBidMessage extends StatelessWidget {
             ),
             // 内容区域
             Padding(
-              padding: const EdgeInsets.only(top: 20),
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
