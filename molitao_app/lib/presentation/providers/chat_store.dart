@@ -131,9 +131,12 @@ class ChatStore extends StateNotifier<ChatState> {
 
   /// 处理收到的消息 - 与 UniApp onmessage 一致
   void _onMessage(Map<String, dynamic> msgData) {
-    print('[ChatStore] 收到消息: $msgData');
+    print('[ChatStore] 收到原始消息: $msgData');
 
     final msg = ChatMessage.fromJson(msgData);
+    print(
+      '[ChatStore] 解析后消息: type=${msg.type}, msg=${msg.msg}, fromName=${msg.fromName}, avatar=${msg.avatar}',
+    );
 
     // 处理回执消息
     if (msg.receipt != null) {
