@@ -5,6 +5,7 @@ import '../../data/models/chat_list_item_model.dart';
 import '../../data/services/websocket_service.dart';
 import '../../data/services/storage_service.dart';
 import '../../data/repositories/chat_repository.dart';
+import 'user_provider.dart';
 
 /// 聊天状态 - 与 UniApp chatStore 保持一致
 class ChatState {
@@ -338,10 +339,17 @@ class ChatStore extends StateNotifier<ChatState> {
     dynamic payload,
   }) async {
     try {
+      // 获取当前用户信息
+      final userState = _ref.read(userProvider);
+      final user = userState.user;
+
       await _chatRepository.sendChannelMessage(
         channel: channel,
         message: message,
         type: type,
+        from: user?.id?.toInt() ?? state.websocketId,
+        fromName: user?.fullName ?? user?.userName,
+        avatar: user?.headImgUrl,
       );
       return true;
     } catch (e) {
@@ -358,10 +366,17 @@ class ChatStore extends StateNotifier<ChatState> {
     dynamic payload,
   }) async {
     try {
+      // 获取当前用户信息
+      final userState = _ref.read(userProvider);
+      final user = userState.user;
+
       await _chatRepository.sendDirectMessage(
         toUserId: toUserId,
         message: message,
         type: type,
+        from: user?.id?.toInt() ?? state.websocketId,
+        fromName: user?.fullName ?? user?.userName,
+        avatar: user?.headImgUrl,
       );
       return true;
     } catch (e) {

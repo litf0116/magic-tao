@@ -11,15 +11,25 @@ class ChatRepository {
     required String channel,
     required String message,
     ChatMessageType? type,
+    int? from,
+    String? fromName,
+    String? avatar,
   }) async {
     try {
+      // 构建 ChatMessage 对象，与 UniApp 保持一致
+      final chatMessage = {
+        'type': type != null ? _chatMessageTypeToString(type) : 'Text',
+        'chan': channel,
+        'from': from,
+        'fromName': fromName,
+        'avatar': avatar,
+        'msg': message,
+        'payload': null,
+      };
+
       await _apiClient.dio.post(
         ApiEndpoints.sendChannelMsg,
-        data: {
-          'channel': channel,
-          'message': message,
-          'type': type != null ? _chatMessageTypeToString(type) : 'Text',
-        },
+        data: {'from': from ?? 0, 'chan': channel, 'message': chatMessage},
       );
       return true;
     } on DioException catch (e) {
@@ -31,15 +41,25 @@ class ChatRepository {
     required int toUserId,
     required String message,
     ChatMessageType? type,
+    int? from,
+    String? fromName,
+    String? avatar,
   }) async {
     try {
+      // 构建 ChatMessage 对象，与 UniApp 保持一致
+      final chatMessage = {
+        'type': type != null ? _chatMessageTypeToString(type) : 'Text',
+        'to': toUserId,
+        'from': from,
+        'fromName': fromName,
+        'avatar': avatar,
+        'msg': message,
+        'payload': null,
+      };
+
       await _apiClient.dio.post(
         ApiEndpoints.sendMsg,
-        data: {
-          'to': toUserId,
-          'message': message,
-          'type': type != null ? _chatMessageTypeToString(type) : 'Text',
-        },
+        data: {'from': from ?? 0, 'to': toUserId, 'message': chatMessage},
       );
       return true;
     } on DioException catch (e) {
