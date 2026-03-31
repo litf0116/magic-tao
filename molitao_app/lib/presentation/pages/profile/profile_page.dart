@@ -105,7 +105,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                             onTap: () {
                               if (userState.user != null &&
                                   userState.isLoggedIn) {
-                                context.push('/user/info');
+                                context.push('/profile/user-info');
                               }
                             },
                             child: Row(
@@ -194,7 +194,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                           top: 0,
                           child: IconButton(
                             icon: const Icon(Icons.settings),
-                            onPressed: () => context.push('/user/info'),
+                            onPressed: () => context.push('/profile/user-info'),
                           ),
                         ),
                     ],
