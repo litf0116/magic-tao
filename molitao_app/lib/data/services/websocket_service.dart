@@ -8,7 +8,7 @@ import 'package:web_socket_channel/status.dart' as status;
 /// 与 UniApp 实现保持一致，使用 /ws/pre-connect 端点
 class WebSocketService {
   // HTTP 基础 URL
-  static const String _httpBaseUrl = 'http://192.168.2.125:12580';
+  static const String _httpBaseUrl = 'http://192.168.10.35:12580';
 
   // 重连延迟（秒）
   static const int _reconnectDelaySeconds = 5;
@@ -68,12 +68,8 @@ class WebSocketService {
         return;
       }
 
-      // 替换 WebSocket 服务器地址为内网地址
-      // 后端可能返回 ws://192.168.10.35:6001，但内网环境需要 ws://192.168.2.125:6001
-      final correctedServerUrl = serverUrl.replaceAll(
-        '192.168.10.35',
-        '192.168.2.125',
-      );
+      // 直接使用后端返回的 WebSocket 服务器地址
+      final correctedServerUrl = serverUrl;
 
       print('[WebSocket] 获取到 server: $serverUrl');
       print('[WebSocket] 修正后 server: $correctedServerUrl');
