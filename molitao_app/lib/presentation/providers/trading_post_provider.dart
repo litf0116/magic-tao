@@ -19,6 +19,7 @@ class TradingPostState {
   final String? errorMessage;
   final int? selectedCategoryId;
   final String searchKeywords;
+  final int? selectedHotWordId;
 
   TradingPostState({
     this.posts = const [],
@@ -34,6 +35,7 @@ class TradingPostState {
     this.errorMessage,
     this.selectedCategoryId,
     this.searchKeywords = '',
+    this.selectedHotWordId,
   });
 
   TradingPostState copyWith({
@@ -50,6 +52,7 @@ class TradingPostState {
     String? errorMessage,
     int? selectedCategoryId,
     String? searchKeywords,
+    int? selectedHotWordId,
   }) {
     return TradingPostState(
       posts: posts ?? this.posts,
@@ -65,6 +68,7 @@ class TradingPostState {
       errorMessage: errorMessage ?? this.errorMessage,
       selectedCategoryId: selectedCategoryId ?? this.selectedCategoryId,
       searchKeywords: searchKeywords ?? this.searchKeywords,
+      selectedHotWordId: selectedHotWordId ?? this.selectedHotWordId,
     );
   }
 }
@@ -246,7 +250,10 @@ class TradingPostNotifier extends StateNotifier<TradingPostState> {
   }
 
   Future<void> switchToHotWord(CmsArticleDto hotWord) async {
-    state = state.copyWith(searchKeywords: hotWord.title ?? '');
+    state = state.copyWith(
+      searchKeywords: hotWord.title ?? '',
+      selectedHotWordId: hotWord.id,
+    );
     await searchPosts();
   }
 }
