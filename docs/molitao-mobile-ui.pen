@@ -1,0 +1,2347 @@
+{
+  "version": "2.8",
+  "children": [
+    {
+      "type": "frame",
+      "id": "frame-home",
+      "x": 0,
+      "y": 0,
+      "name": "首页",
+      "clip": true,
+      "width": 375,
+      "height": 812,
+      "fill": "#f6f6f6",
+      "layout": "none",
+      "children": [
+        {
+          "type": "rect",
+          "id": "home-header-bg",
+          "x": 0,
+          "y": 0,
+          "width": 375,
+          "height": 160,
+          "fill": "#F4835a"
+        },
+        {
+          "type": "text",
+          "id": "home-logo",
+          "x": 0,
+          "y": 50,
+          "content": "魔力淘",
+          "font-family": "PingFang SC",
+          "font-size": 32,
+          "font-weight": "700",
+          "fill": "#FFFFFF",
+          "align": "center"
+        },
+        {
+          "type": "text",
+          "id": "home-logo-sub",
+          "x": 0,
+          "y": 90,
+          "content": "MOLITAO",
+          "font-family": "PingFang SC",
+          "font-size": 12,
+          "font-weight": "400",
+          "fill": "rgba(255,255,255,0.9)",
+          "align": "center"
+        },
+        {
+          "type": "rect",
+          "id": "entry-card-1",
+          "x": 15,
+          "y": 130,
+          "width": 168,
+          "height": 80,
+          "fill": "#FFFFFF",
+          "rx": 12,
+          "shadow": true
+        },
+        {
+          "type": "text",
+          "id": "entry-icon-1",
+          "x": 40,
+          "y": 145,
+          "content": "🏪",
+          "font-family": "PingFang SC",
+          "font-size": 24
+        },
+        {
+          "type": "text",
+          "id": "entry-title-1",
+          "x": 40,
+          "y": 180,
+          "content": "交易站",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "font-weight": "600",
+          "fill": "#333333"
+        },
+        {
+          "type": "rect",
+          "id": "entry-card-2",
+          "x": 193,
+          "y": 130,
+          "width": 168,
+          "height": 80,
+          "fill": "#FFFFFF",
+          "rx": 12,
+          "shadow": true
+        },
+        {
+          "type": "text",
+          "id": "entry-icon-2",
+          "x": 218,
+          "y": 145,
+          "content": "🔥",
+          "font-family": "PingFang SC",
+          "font-size": 24
+        },
+        {
+          "type": "text",
+          "id": "entry-title-2",
+          "x": 218,
+          "y": 180,
+          "content": "秒杀场",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "font-weight": "600",
+          "fill": "#333333"
+        },
+        {
+          "type": "text",
+          "id": "section-title-1",
+          "x": 15,
+          "y": 230,
+          "content": "🔥 热门推荐",
+          "font-family": "PingFang SC",
+          "font-size": 16,
+          "font-weight": "600",
+          "fill": "#333333"
+        },
+        {
+          "type": "rect",
+          "id": "banner-1",
+          "x": 15,
+          "y": 260,
+          "width": 345,
+          "height": 150,
+          "fill": "linear-gradient(135deg, #667eea, #764ba2)",
+          "rx": 12
+        },
+        {
+          "type": "text",
+          "id": "banner-text-1",
+          "x": 100,
+          "y": 325,
+          "content": "🎉 新用户首充送福利",
+          "font-family": "PingFang SC",
+          "font-size": 16,
+          "font-weight": "600",
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "text",
+          "id": "section-title-2",
+          "x": 15,
+          "y": 430,
+          "content": "📢 广告位",
+          "font-family": "PingFang SC",
+          "font-size": 16,
+          "font-weight": "600",
+          "fill": "#333333"
+        },
+        {
+          "type": "rect",
+          "id": "ad-1",
+          "x": 15,
+          "y": 460,
+          "width": 168,
+          "height": 120,
+          "fill": "#fff0e6",
+          "rx": 10
+        },
+        {
+          "type": "rect",
+          "id": "ad-2",
+          "x": 193,
+          "y": 460,
+          "width": 168,
+          "height": 120,
+          "fill": "#e6f7ff",
+          "rx": 10
+        },
+        {
+          "type": "rect",
+          "id": "ad-3",
+          "x": 15,
+          "y": 590,
+          "width": 168,
+          "height": 120,
+          "fill": "#f6ffed",
+          "rx": 10
+        },
+        {
+          "type": "rect",
+          "id": "ad-4",
+          "x": 193,
+          "y": 590,
+          "width": 168,
+          "height": 120,
+          "fill": "#fff7e6",
+          "rx": 10
+        },
+        {
+          "type": "rect",
+          "id": "tabbar-home",
+          "x": 0,
+          "y": 729,
+          "width": 375,
+          "height": 83,
+          "fill": "#FFFFFF",
+          "stroke": "#e5e5e5",
+          "stroke-width": 1
+        },
+        {
+          "type": "text",
+          "id": "tab-1",
+          "x": 30,
+          "y": 745,
+          "content": "🏠",
+          "font-size": 22
+        },
+        {
+          "type": "text",
+          "id": "tab-1-text",
+          "x": 30,
+          "y": 775,
+          "content": "首页",
+          "font-family": "PingFang SC",
+          "font-size": 10,
+          "fill": "#F4835a"
+        },
+        {
+          "type": "text",
+          "id": "tab-2",
+          "x": 115,
+          "y": 745,
+          "content": "💬",
+          "font-size": 22
+        },
+        {
+          "type": "text",
+          "id": "tab-2-text",
+          "x": 115,
+          "y": 775,
+          "content": "会话",
+          "font-family": "PingFang SC",
+          "font-size": 10,
+          "fill": "#999999"
+        },
+        {
+          "type": "text",
+          "id": "tab-3",
+          "x": 200,
+          "y": 745,
+          "content": "👥",
+          "font-size": 22
+        },
+        {
+          "type": "text",
+          "id": "tab-3-text",
+          "x": 200,
+          "y": 775,
+          "content": "通讯录",
+          "font-family": "PingFang SC",
+          "font-size": 10,
+          "fill": "#999999"
+        },
+        {
+          "type": "text",
+          "id": "tab-4",
+          "x": 300,
+          "y": 745,
+          "content": "👤",
+          "font-size": 22
+        },
+        {
+          "type": "text",
+          "id": "tab-4-text",
+          "x": 300,
+          "y": 775,
+          "content": "我的",
+          "font-family": "PingFang SC",
+          "font-size": 10,
+          "fill": "#999999"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "frame-auction",
+      "x": 400,
+      "y": 0,
+      "name": "秒杀场",
+      "clip": true,
+      "width": 375,
+      "height": 812,
+      "fill": "#f6f6f6",
+      "layout": "none",
+      "children": [
+        {
+          "type": "rect",
+          "id": "auction-statusbar",
+          "x": 0,
+          "y": 0,
+          "width": 375,
+          "height": 44,
+          "fill": "#F4835a"
+        },
+        {
+          "type": "text",
+          "id": "auction-time",
+          "x": 15,
+          "y": 15,
+          "content": "9:41",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "font-weight": "600",
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "rect",
+          "id": "auction-navbar",
+          "x": 0,
+          "y": 44,
+          "width": 375,
+          "height": 44,
+          "fill": "#F4835a"
+        },
+        {
+          "type": "text",
+          "id": "auction-nav-back",
+          "x": 15,
+          "y": 58,
+          "content": "←",
+          "font-size": 20,
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "text",
+          "id": "auction-nav-title",
+          "x": 160,
+          "y": 58,
+          "content": "秒杀场",
+          "font-family": "PingFang SC",
+          "font-size": 17,
+          "font-weight": "600",
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "rect",
+          "id": "auction-notice-bar",
+          "x": 0,
+          "y": 88,
+          "width": 375,
+          "height": 40,
+          "fill": "#ff7144"
+        },
+        {
+          "type": "text",
+          "id": "auction-notice-icon",
+          "x": 15,
+          "y": 100,
+          "content": "📢",
+          "font-size": 14
+        },
+        {
+          "type": "text",
+          "id": "auction-notice-text",
+          "x": 40,
+          "y": 102,
+          "content": "重要公告：新用户参与秒杀需缴纳魔力值...",
+          "font-family": "PingFang SC",
+          "font-size": 12,
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "rect",
+          "id": "auction-chat-bg",
+          "x": 0,
+          "y": 128,
+          "width": 375,
+          "height": 580,
+          "fill": "#f6f6f6"
+        },
+        {
+          "type": "rect",
+          "id": "auction-float-newmsg",
+          "x": 320,
+          "y": 150,
+          "width": 55,
+          "height": 36,
+          "fill": "#ff7144",
+          "rx": 8
+        },
+        {
+          "type": "text",
+          "id": "auction-float-newmsg-text",
+          "x": 328,
+          "y": 160,
+          "content": "新消息 3",
+          "font-family": "PingFang SC",
+          "font-size": 11,
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "rect",
+          "id": "auction-float-rank",
+          "x": 320,
+          "y": 195,
+          "width": 55,
+          "height": 50,
+          "fill": "#ff7144",
+          "rx": 8
+        },
+        {
+          "type": "text",
+          "id": "auction-float-rank-text",
+          "x": 328,
+          "y": 205,
+          "content": "🏆",
+          "font-size": 16
+        },
+        {
+          "type": "text",
+          "id": "auction-float-rank-label",
+          "x": 328,
+          "y": 228,
+          "content": "秒杀榜",
+          "font-family": "PingFang SC",
+          "font-size": 10,
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "rect",
+          "id": "auction-bid-btn",
+          "x": 320,
+          "y": 580,
+          "width": 55,
+          "height": 70,
+          "fill": "#ff4d4f",
+          "rx": 10
+        },
+        {
+          "type": "text",
+          "id": "auction-bid-label",
+          "x": 325,
+          "y": 595,
+          "content": "秒杀中",
+          "font-family": "PingFang SC",
+          "font-size": 10,
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "text",
+          "id": "auction-bid-text",
+          "x": 335,
+          "y": 620,
+          "content": "出价",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "font-weight": "700",
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "rect",
+          "id": "chat-msg-1-bg",
+          "x": 60,
+          "y": 160,
+          "width": 250,
+          "height": 60,
+          "fill": "#f0f0f0",
+          "rx": 8
+        },
+        {
+          "type": "text",
+          "id": "chat-msg-1-text",
+          "x": 70,
+          "y": 170,
+          "content": "系统公告",
+          "font-family": "PingFang SC",
+          "font-size": 12,
+          "fill": "#999999"
+        },
+        {
+          "type": "text",
+          "id": "chat-msg-1-content",
+          "x": 70,
+          "y": 195,
+          "content": "欢迎来到秒杀场，请注意遵守交易规则",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "fill": "#666666"
+        },
+        {
+          "type": "rect",
+          "id": "chat-msg-2-bg",
+          "x": 60,
+          "y": 240,
+          "width": 180,
+          "height": 40,
+          "fill": "#FFFFFF",
+          "rx": 8
+        },
+        {
+          "type": "text",
+          "id": "chat-msg-2-name",
+          "x": 70,
+          "y": 250,
+          "content": "张三",
+          "font-family": "PingFang SC",
+          "font-size": 12,
+          "fill": "#999999"
+        },
+        {
+          "type": "text",
+          "id": "chat-msg-2-content",
+          "x": 70,
+          "y": 268,
+          "content": "这个看起来不错",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "fill": "#333333"
+        },
+        {
+          "type": "rect",
+          "id": "chat-msg-3-bg",
+          "x": 60,
+          "y": 300,
+          "width": 200,
+          "height": 50,
+          "fill": "#fff7e6",
+          "rx": 8
+        },
+        {
+          "type": "text",
+          "id": "chat-msg-3-name",
+          "x": 70,
+          "y": 310,
+          "content": "李四",
+          "font-family": "PingFang SC",
+          "font-size": 12,
+          "fill": "#999999"
+        },
+        {
+          "type": "text",
+          "id": "chat-msg-3-content",
+          "x": 70,
+          "y": 330,
+          "content": "💰 出价：¥128",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "font-weight": "600",
+          "fill": "#fa8c16"
+        },
+        {
+          "type": "rect",
+          "id": "chat-msg-4-bg",
+          "x": 60,
+          "y": 370,
+          "width": 200,
+          "height": 50,
+          "fill": "#fff7e6",
+          "rx": 8
+        },
+        {
+          "type": "text",
+          "id": "chat-msg-4-name",
+          "x": 70,
+          "y": 380,
+          "content": "王五",
+          "font-family": "PingFang SC",
+          "font-size": 12,
+          "fill": "#999999"
+        },
+        {
+          "type": "text",
+          "id": "chat-msg-4-content",
+          "x": 70,
+          "y": 400,
+          "content": "💰 出价：¥135",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "font-weight": "600",
+          "fill": "#fa8c16"
+        },
+        {
+          "type": "rect",
+          "id": "chat-msg-5-bg",
+          "x": 60,
+          "y": 440,
+          "width": 250,
+          "height": 50,
+          "fill": "#f6ffed",
+          "rx": 8
+        },
+        {
+          "type": "text",
+          "id": "chat-msg-5-name",
+          "x": 70,
+          "y": 450,
+          "content": "系统消息",
+          "font-family": "PingFang SC",
+          "font-size": 12,
+          "fill": "#999999"
+        },
+        {
+          "type": "text",
+          "id": "chat-msg-5-content",
+          "x": 70,
+          "y": 470,
+          "content": "🎉 恭喜 王五 以 ¥135 成交！",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "fill": "#52c41a"
+        },
+        {
+          "type": "rect",
+          "id": "auction-input-area",
+          "x": 0,
+          "y": 708,
+          "width": 375,
+          "height": 104,
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "rect",
+          "id": "auction-input-box",
+          "x": 15,
+          "y": 720,
+          "width": 280,
+          "height": 36,
+          "fill": "#f6f6f6",
+          "rx": 18
+        },
+        {
+          "type": "text",
+          "id": "auction-input-placeholder",
+          "x": 30,
+          "y": 730,
+          "content": "说点什么...",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "fill": "#999999"
+        },
+        {
+          "type": "rect",
+          "id": "auction-send-btn",
+          "x": 305,
+          "y": 720,
+          "width": 60,
+          "height": 36,
+          "fill": "#F4835a",
+          "rx": 18
+        },
+        {
+          "type": "text",
+          "id": "auction-send-text",
+          "x": 320,
+          "y": 730,
+          "content": "发送",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "font-weight": "600",
+          "fill": "#FFFFFF"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "frame-chat-list",
+      "x": 800,
+      "y": 0,
+      "name": "会话列表",
+      "clip": true,
+      "width": 375,
+      "height": 812,
+      "fill": "#f6f6f6",
+      "layout": "none",
+      "children": [
+        {
+          "type": "rect",
+          "id": "chatlist-statusbar",
+          "x": 0,
+          "y": 0,
+          "width": 375,
+          "height": 44,
+          "fill": "#F4835a"
+        },
+        {
+          "type": "text",
+          "id": "chatlist-time",
+          "x": 15,
+          "y": 15,
+          "content": "9:41",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "font-weight": "600",
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "rect",
+          "id": "chatlist-navbar",
+          "x": 0,
+          "y": 44,
+          "width": 375,
+          "height": 44,
+          "fill": "#F4835a"
+        },
+        {
+          "type": "text",
+          "id": "chatlist-nav-title",
+          "x": 165,
+          "y": 58,
+          "content": "会话",
+          "font-family": "PingFang SC",
+          "font-size": 17,
+          "font-weight": "600",
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "rect",
+          "id": "chat-item-1",
+          "x": 0,
+          "y": 88,
+          "width": 375,
+          "height": 75,
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "rect",
+          "id": "chat-avatar-1",
+          "x": 15,
+          "y": 100,
+          "width": 50,
+          "height": 50,
+          "fill": "#fa8c16",
+          "rx": 25
+        },
+        {
+          "type": "text",
+          "id": "chat-avatar-1-text",
+          "x": 30,
+          "y": 115,
+          "content": "秒",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "font-weight": "700",
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "rect",
+          "id": "chat-unread-1",
+          "x": 50,
+          "y": 95,
+          "width": 20,
+          "height": 20,
+          "fill": "#ff4d4f",
+          "rx": 10
+        },
+        {
+          "type": "text",
+          "id": "chat-unread-1-num",
+          "x": 56,
+          "y": 100,
+          "content": "5",
+          "font-family": "PingFang SC",
+          "font-size": 11,
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "text",
+          "id": "chat-name-1",
+          "x": 75,
+          "y": 105,
+          "content": "秒杀场",
+          "font-family": "PingFang SC",
+          "font-size": 16,
+          "font-weight": "600",
+          "fill": "#333333"
+        },
+        {
+          "type": "text",
+          "id": "chat-time-1",
+          "x": 320,
+          "y": 105,
+          "content": "刚刚",
+          "font-family": "PingFang SC",
+          "font-size": 12,
+          "fill": "#999999"
+        },
+        {
+          "type": "text",
+          "id": "chat-preview-1",
+          "x": 75,
+          "y": 130,
+          "content": "王五: 💰 出价 ¥135",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "fill": "#999999"
+        },
+        {
+          "type": "rect",
+          "id": "chat-item-2",
+          "x": 0,
+          "y": 163,
+          "width": 375,
+          "height": 75,
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "rect",
+          "id": "chat-avatar-2",
+          "x": 15,
+          "y": 175,
+          "width": 50,
+          "height": 50,
+          "fill": "#52c41a",
+          "rx": 25
+        },
+        {
+          "type": "text",
+          "id": "chat-avatar-2-text",
+          "x": 28,
+          "y": 190,
+          "content": "公",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "font-weight": "700",
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "text",
+          "id": "chat-name-2",
+          "x": 75,
+          "y": 180,
+          "content": "系统公告",
+          "font-family": "PingFang SC",
+          "font-size": 16,
+          "font-weight": "600",
+          "fill": "#333333"
+        },
+        {
+          "type": "text",
+          "id": "chat-time-2",
+          "x": 310,
+          "y": 180,
+          "content": "10:30",
+          "font-family": "PingFang SC",
+          "font-size": 12,
+          "fill": "#999999"
+        },
+        {
+          "type": "text",
+          "id": "chat-preview-2",
+          "x": 75,
+          "y": 205,
+          "content": "平台重要通知公告",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "fill": "#999999"
+        },
+        {
+          "type": "rect",
+          "id": "chat-item-3",
+          "x": 0,
+          "y": 238,
+          "width": 375,
+          "height": 75,
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "rect",
+          "id": "chat-avatar-3",
+          "x": 15,
+          "y": 250,
+          "width": 50,
+          "height": 50,
+          "fill": "#52c41a",
+          "rx": 25
+        },
+        {
+          "type": "text",
+          "id": "chat-avatar-3-text",
+          "x": 25,
+          "y": 265,
+          "content": "新",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "font-weight": "700",
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "text",
+          "id": "chat-name-3",
+          "x": 75,
+          "y": 255,
+          "content": "新手版主群聊",
+          "font-family": "PingFang SC",
+          "font-size": 16,
+          "font-weight": "600",
+          "fill": "#333333"
+        },
+        {
+          "type": "text",
+          "id": "chat-time-3",
+          "x": 310,
+          "y": 255,
+          "content": "09:15",
+          "font-family": "PingFang SC",
+          "font-size": 12,
+          "fill": "#999999"
+        },
+        {
+          "type": "text",
+          "id": "chat-preview-3",
+          "x": 75,
+          "y": 280,
+          "content": "欢迎新人加入~",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "fill": "#999999"
+        },
+        {
+          "type": "rect",
+          "id": "chat-item-4",
+          "x": 0,
+          "y": 313,
+          "width": 375,
+          "height": 75,
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "rect",
+          "id": "chat-avatar-4",
+          "x": 15,
+          "y": 325,
+          "width": 50,
+          "height": 50,
+          "fill": "#1890ff",
+          "rx": 25
+        },
+        {
+          "type": "text",
+          "id": "chat-avatar-4-text",
+          "x": 28,
+          "y": 340,
+          "content": "张",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "font-weight": "700",
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "rect",
+          "id": "chat-unread-4",
+          "x": 50,
+          "y": 320,
+          "width": 20,
+          "height": 20,
+          "fill": "#ff4d4f",
+          "rx": 10
+        },
+        {
+          "type": "text",
+          "id": "chat-unread-4-num",
+          "x": 56,
+          "y": 325,
+          "content": "2",
+          "font-family": "PingFang SC",
+          "font-size": 11,
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "text",
+          "id": "chat-name-4",
+          "x": 75,
+          "y": 330,
+          "content": "张三",
+          "font-family": "PingFang SC",
+          "font-size": 16,
+          "font-weight": "600",
+          "fill": "#333333"
+        },
+        {
+          "type": "text",
+          "id": "chat-time-4",
+          "x": 310,
+          "y": 330,
+          "content": "昨天",
+          "font-family": "PingFang SC",
+          "font-size": 12,
+          "fill": "#999999"
+        },
+        {
+          "type": "text",
+          "id": "chat-preview-4",
+          "x": 75,
+          "y": 355,
+          "content": "好的，明天见",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "fill": "#999999"
+        },
+        {
+          "type": "rect",
+          "id": "chat-item-5",
+          "x": 0,
+          "y": 388,
+          "width": 375,
+          "height": 75,
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "rect",
+          "id": "chat-avatar-5",
+          "x": 15,
+          "y": 400,
+          "width": 50,
+          "height": 50,
+          "fill": "#722ed1",
+          "rx": 25
+        },
+        {
+          "type": "text",
+          "id": "chat-avatar-5-text",
+          "x": 28,
+          "y": 415,
+          "content": "李",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "font-weight": "700",
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "text",
+          "id": "chat-name-5",
+          "x": 75,
+          "y": 405,
+          "content": "李四",
+          "font-family": "PingFang SC",
+          "font-size": 16,
+          "font-weight": "600",
+          "fill": "#333333"
+        },
+        {
+          "type": "text",
+          "id": "chat-time-5",
+          "x": 310,
+          "y": 405,
+          "content": "周一",
+          "font-family": "PingFang SC",
+          "font-size": 12,
+          "fill": "#999999"
+        },
+        {
+          "type": "text",
+          "id": "chat-preview-5",
+          "x": 75,
+          "y": 430,
+          "content": "交易愉快！",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "fill": "#999999"
+        },
+        {
+          "type": "rect",
+          "id": "chatlist-tabbar",
+          "x": 0,
+          "y": 729,
+          "width": 375,
+          "height": 83,
+          "fill": "#FFFFFF",
+          "stroke": "#e5e5e5",
+          "stroke-width": 1
+        },
+        {
+          "type": "text",
+          "id": "chatlist-tab-1",
+          "x": 30,
+          "y": 745,
+          "content": "🏠",
+          "font-size": 22
+        },
+        {
+          "type": "text",
+          "id": "chatlist-tab-1-text",
+          "x": 30,
+          "y": 775,
+          "content": "首页",
+          "font-family": "PingFang SC",
+          "font-size": 10,
+          "fill": "#999999"
+        },
+        {
+          "type": "text",
+          "id": "chatlist-tab-2",
+          "x": 115,
+          "y": 745,
+          "content": "💬",
+          "font-size": 22
+        },
+        {
+          "type": "text",
+          "id": "chatlist-tab-2-text",
+          "x": 115,
+          "y": 775,
+          "content": "会话",
+          "font-family": "PingFang SC",
+          "font-size": 10,
+          "fill": "#F4835a"
+        },
+        {
+          "type": "text",
+          "id": "chatlist-tab-3",
+          "x": 200,
+          "y": 745,
+          "content": "👥",
+          "font-size": 22
+        },
+        {
+          "type": "text",
+          "id": "chatlist-tab-3-text",
+          "x": 200,
+          "y": 775,
+          "content": "通讯录",
+          "font-family": "PingFang SC",
+          "font-size": 10,
+          "fill": "#999999"
+        },
+        {
+          "type": "text",
+          "id": "chatlist-tab-4",
+          "x": 300,
+          "y": 745,
+          "content": "👤",
+          "font-size": 22
+        },
+        {
+          "type": "text",
+          "id": "chatlist-tab-4-text",
+          "x": 300,
+          "y": 775,
+          "content": "我的",
+          "font-family": "PingFang SC",
+          "font-size": 10,
+          "fill": "#999999"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "frame-profile",
+      "x": 1200,
+      "y": 0,
+      "name": "个人中心",
+      "clip": true,
+      "width": 375,
+      "height": 812,
+      "fill": "#f6f6f6",
+      "layout": "none",
+      "children": [
+        {
+          "type": "rect",
+          "id": "profile-statusbar",
+          "x": 0,
+          "y": 0,
+          "width": 375,
+          "height": 44,
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "text",
+          "id": "profile-time",
+          "x": 15,
+          "y": 15,
+          "content": "9:41",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "font-weight": "600",
+          "fill": "#333333"
+        },
+        {
+          "type": "rect",
+          "id": "profile-navbar",
+          "x": 0,
+          "y": 44,
+          "width": 375,
+          "height": 44,
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "text",
+          "id": "profile-nav-title",
+          "x": 155,
+          "y": 58,
+          "content": "个人中心",
+          "font-family": "PingFang SC",
+          "font-size": 17,
+          "font-weight": "600",
+          "fill": "#333333"
+        },
+        {
+          "type": "text",
+          "id": "profile-nav-setting",
+          "x": 340,
+          "y": 58,
+          "content": "⚙️",
+          "font-size": 18
+        },
+        {
+          "type": "rect",
+          "id": "user-card",
+          "x": 15,
+          "y": 100,
+          "width": 345,
+          "height": 150,
+          "fill": "#FFFFFF",
+          "rx": 12,
+          "shadow": true
+        },
+        {
+          "type": "rect",
+          "id": "user-avatar",
+          "x": 30,
+          "y": 120,
+          "width": 60,
+          "height": 60,
+          "fill": "#F4835a",
+          "rx": 30
+        },
+        {
+          "type": "text",
+          "id": "user-avatar-icon",
+          "x": 50,
+          "y": 138,
+          "content": "👤",
+          "font-size": 24
+        },
+        {
+          "type": "text",
+          "id": "user-name",
+          "x": 105,
+          "y": 130,
+          "content": "魔力淘用户",
+          "font-family": "PingFang SC",
+          "font-size": 18,
+          "font-weight": "600",
+          "fill": "#333333"
+        },
+        {
+          "type": "text",
+          "id": "user-id",
+          "x": 105,
+          "y": 158,
+          "content": "ID: 12345",
+          "font-family": "PingFang SC",
+          "font-size": 12,
+          "fill": "#999999"
+        },
+        {
+          "type": "text",
+          "id": "stat-value-1",
+          "x": 60,
+          "y": 195,
+          "content": "128",
+          "font-family": "PingFang SC",
+          "font-size": 20,
+          "font-weight": "600",
+          "fill": "#F4835a"
+        },
+        {
+          "type": "text",
+          "id": "stat-label-1",
+          "x": 55,
+          "y": 220,
+          "content": "好友",
+          "font-family": "PingFang SC",
+          "font-size": 12,
+          "fill": "#999999"
+        },
+        {
+          "type": "text",
+          "id": "stat-value-2",
+          "x": 165,
+          "y": 195,
+          "content": "51",
+          "font-family": "PingFang SC",
+          "font-size": 20,
+          "font-weight": "600",
+          "fill": "#F4835a"
+        },
+        {
+          "type": "text",
+          "id": "stat-label-2",
+          "x": 155,
+          "y": 220,
+          "content": "魔力值",
+          "font-family": "PingFang SC",
+          "font-size": 12,
+          "fill": "#999999"
+        },
+        {
+          "type": "text",
+          "id": "stat-value-3",
+          "x": 280,
+          "y": 195,
+          "content": "¥0",
+          "font-family": "PingFang SC",
+          "font-size": 20,
+          "font-weight": "600",
+          "fill": "#F4835a"
+        },
+        {
+          "type": "text",
+          "id": "stat-label-3",
+          "x": 275,
+          "y": 220,
+          "content": "余额",
+          "font-family": "PingFang SC",
+          "font-size": 12,
+          "fill": "#999999"
+        },
+        {
+          "type": "rect",
+          "id": "menu-section-1",
+          "x": 15,
+          "y": 270,
+          "width": 345,
+          "height": 100,
+          "fill": "#FFFFFF",
+          "rx": 12
+        },
+        {
+          "type": "text",
+          "id": "menu-title-1",
+          "x": 30,
+          "y": 285,
+          "content": "工作台",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "font-weight": "600",
+          "fill": "#333333"
+        },
+        {
+          "type": "text",
+          "id": "menu-icon-1",
+          "x": 55,
+          "y": 315,
+          "content": "💰",
+          "font-size": 20
+        },
+        {
+          "type": "text",
+          "id": "menu-text-1",
+          "x": 45,
+          "y": 345,
+          "content": "魔力值充值",
+          "font-family": "PingFang SC",
+          "font-size": 12,
+          "fill": "#333333"
+        },
+        {
+          "type": "text",
+          "id": "menu-icon-2",
+          "x": 175,
+          "y": 315,
+          "content": "📤",
+          "font-size": 20
+        },
+        {
+          "type": "text",
+          "id": "menu-text-2",
+          "x": 165,
+          "y": 345,
+          "content": "魔力值退还",
+          "font-family": "PingFang SC",
+          "font-size": 12,
+          "fill": "#333333"
+        },
+        {
+          "type": "rect",
+          "id": "menu-section-2",
+          "x": 15,
+          "y": 385,
+          "width": 345,
+          "height": 100,
+          "fill": "#FFFFFF",
+          "rx": 12
+        },
+        {
+          "type": "text",
+          "id": "menu-title-2",
+          "x": 30,
+          "y": 400,
+          "content": "买家中心",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "font-weight": "600",
+          "fill": "#333333"
+        },
+        {
+          "type": "text",
+          "id": "menu-icon-3",
+          "x": 55,
+          "y": 430,
+          "content": "🎯",
+          "font-size": 20
+        },
+        {
+          "type": "text",
+          "id": "menu-text-3",
+          "x": 50,
+          "y": 460,
+          "content": "出价中",
+          "font-family": "PingFang SC",
+          "font-size": 12,
+          "fill": "#333333"
+        },
+        {
+          "type": "text",
+          "id": "menu-icon-4",
+          "x": 145,
+          "y": 430,
+          "content": "📦",
+          "font-size": 20
+        },
+        {
+          "type": "text",
+          "id": "menu-text-4",
+          "x": 140,
+          "y": 460,
+          "content": "待收货",
+          "font-family": "PingFang SC",
+          "font-size": 12,
+          "fill": "#333333"
+        },
+        {
+          "type": "text",
+          "id": "menu-icon-5",
+          "x": 235,
+          "y": 430,
+          "content": "✅",
+          "font-size": 20
+        },
+        {
+          "type": "text",
+          "id": "menu-text-5",
+          "x": 230,
+          "y": 460,
+          "content": "已成交",
+          "font-family": "PingFang SC",
+          "font-size": 12,
+          "fill": "#333333"
+        },
+        {
+          "type": "rect",
+          "id": "menu-section-3",
+          "x": 15,
+          "y": 500,
+          "width": 345,
+          "height": 100,
+          "fill": "#FFFFFF",
+          "rx": 12
+        },
+        {
+          "type": "text",
+          "id": "menu-title-3",
+          "x": 30,
+          "y": 515,
+          "content": "卖家中心",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "font-weight": "600",
+          "fill": "#333333"
+        },
+        {
+          "type": "text",
+          "id": "menu-icon-6",
+          "x": 55,
+          "y": 545,
+          "content": "🏷️",
+          "font-size": 20
+        },
+        {
+          "type": "text",
+          "id": "menu-text-6",
+          "x": 50,
+          "y": 575,
+          "content": "我要卖",
+          "font-family": "PingFang SC",
+          "font-size": 12,
+          "fill": "#333333"
+        },
+        {
+          "type": "text",
+          "id": "menu-icon-7",
+          "x": 145,
+          "y": 545,
+          "content": "🚚",
+          "font-size": 20
+        },
+        {
+          "type": "text",
+          "id": "menu-text-7",
+          "x": 140,
+          "y": 575,
+          "content": "待发货",
+          "font-family": "PingFang SC",
+          "font-size": 12,
+          "fill": "#333333"
+        },
+        {
+          "type": "text",
+          "id": "menu-icon-8",
+          "x": 235,
+          "y": 545,
+          "content": "📋",
+          "font-size": 20
+        },
+        {
+          "type": "text",
+          "id": "menu-text-8",
+          "x": 235,
+          "y": 575,
+          "content": "订单",
+          "font-family": "PingFang SC",
+          "font-size": 12,
+          "fill": "#333333"
+        },
+        {
+          "type": "rect",
+          "id": "logout-btn",
+          "x": 15,
+          "y": 620,
+          "width": 345,
+          "height": 44,
+          "fill": "#FFFFFF",
+          "rx": 8,
+          "stroke": "#e5e5e5",
+          "stroke-width": 1
+        },
+        {
+          "type": "text",
+          "id": "logout-text",
+          "x": 160,
+          "y": 633,
+          "content": "退出登录",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "fill": "#999999"
+        },
+        {
+          "type": "rect",
+          "id": "profile-tabbar",
+          "x": 0,
+          "y": 729,
+          "width": 375,
+          "height": 83,
+          "fill": "#FFFFFF",
+          "stroke": "#e5e5e5",
+          "stroke-width": 1
+        },
+        {
+          "type": "text",
+          "id": "profile-tab-1",
+          "x": 30,
+          "y": 745,
+          "content": "🏠",
+          "font-size": 22
+        },
+        {
+          "type": "text",
+          "id": "profile-tab-1-text",
+          "x": 30,
+          "y": 775,
+          "content": "首页",
+          "font-family": "PingFang SC",
+          "font-size": 10,
+          "fill": "#999999"
+        },
+        {
+          "type": "text",
+          "id": "profile-tab-2",
+          "x": 115,
+          "y": 745,
+          "content": "💬",
+          "font-size": 22
+        },
+        {
+          "type": "text",
+          "id": "profile-tab-2-text",
+          "x": 115,
+          "y": 775,
+          "content": "会话",
+          "font-family": "PingFang SC",
+          "font-size": 10,
+          "fill": "#999999"
+        },
+        {
+          "type": "text",
+          "id": "profile-tab-3",
+          "x": 200,
+          "y": 745,
+          "content": "👥",
+          "font-size": 22
+        },
+        {
+          "type": "text",
+          "id": "profile-tab-3-text",
+          "x": 200,
+          "y": 775,
+          "content": "通讯录",
+          "font-family": "PingFang SC",
+          "font-size": 10,
+          "fill": "#999999"
+        },
+        {
+          "type": "text",
+          "id": "profile-tab-4",
+          "x": 300,
+          "y": 745,
+          "content": "👤",
+          "font-size": 22
+        },
+        {
+          "type": "text",
+          "id": "profile-tab-4-text",
+          "x": 300,
+          "y": 775,
+          "content": "我的",
+          "font-family": "PingFang SC",
+          "font-size": 10,
+          "fill": "#F4835a"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "frame-trading",
+      "x": 0,
+      "y": 850,
+      "name": "交易站",
+      "clip": true,
+      "width": 375,
+      "height": 812,
+      "fill": "#f6f6f6",
+      "layout": "none",
+      "children": [
+        {
+          "type": "rect",
+          "id": "trading-statusbar",
+          "x": 0,
+          "y": 0,
+          "width": 375,
+          "height": 44,
+          "fill": "#F4835a"
+        },
+        {
+          "type": "text",
+          "id": "trading-time",
+          "x": 15,
+          "y": 15,
+          "content": "9:41",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "font-weight": "600",
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "rect",
+          "id": "trading-navbar",
+          "x": 0,
+          "y": 44,
+          "width": 375,
+          "height": 44,
+          "fill": "#F4835a"
+        },
+        {
+          "type": "text",
+          "id": "trading-nav-title",
+          "x": 165,
+          "y": 58,
+          "content": "交易站",
+          "font-family": "PingFang SC",
+          "font-size": 17,
+          "font-weight": "600",
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "rect",
+          "id": "trading-header",
+          "x": 0,
+          "y": 88,
+          "width": 375,
+          "height": 140,
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "rect",
+          "id": "category-tag-1",
+          "x": 15,
+          "y": 95,
+          "width": 50,
+          "height": 28,
+          "fill": "#F4835a",
+          "rx": 14
+        },
+        {
+          "type": "text",
+          "id": "category-text-1",
+          "x": 25,
+          "y": 103,
+          "content": "全部",
+          "font-family": "PingFang SC",
+          "font-size": 13,
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "rect",
+          "id": "category-tag-2",
+          "x": 75,
+          "y": 95,
+          "width": 70,
+          "height": 28,
+          "fill": "#f6f6f6",
+          "rx": 14
+        },
+        {
+          "type": "text",
+          "id": "category-text-2",
+          "x": 85,
+          "y": 103,
+          "content": "游戏账号",
+          "font-family": "PingFang SC",
+          "font-size": 13,
+          "fill": "#999999"
+        },
+        {
+          "type": "rect",
+          "id": "category-tag-3",
+          "x": 155,
+          "y": 95,
+          "width": 70,
+          "height": 28,
+          "fill": "#f6f6f6",
+          "rx": 14
+        },
+        {
+          "type": "text",
+          "id": "category-text-3",
+          "x": 165,
+          "y": 103,
+          "content": "装备道具",
+          "font-family": "PingFang SC",
+          "font-size": 13,
+          "fill": "#999999"
+        },
+        {
+          "type": "rect",
+          "id": "search-box",
+          "x": 15,
+          "y": 135,
+          "width": 345,
+          "height": 36,
+          "fill": "#f6f6f6",
+          "rx": 18
+        },
+        {
+          "type": "text",
+          "id": "search-icon",
+          "x": 25,
+          "y": 145,
+          "content": "🔍",
+          "font-size": 14
+        },
+        {
+          "type": "text",
+          "id": "search-placeholder",
+          "x": 45,
+          "y": 145,
+          "content": "搜索关键词...",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "fill": "#999999"
+        },
+        {
+          "type": "rect",
+          "id": "hotword-1",
+          "x": 15,
+          "y": 185,
+          "width": 70,
+          "height": 24,
+          "fill": "#fff7e6",
+          "rx": 4
+        },
+        {
+          "type": "text",
+          "id": "hotword-text-1",
+          "x": 25,
+          "y": 191,
+          "content": "梦幻西游",
+          "font-family": "PingFang SC",
+          "font-size": 11,
+          "fill": "#fa8c16"
+        },
+        {
+          "type": "rect",
+          "id": "hotword-2",
+          "x": 95,
+          "y": 185,
+          "width": 70,
+          "height": 24,
+          "fill": "#fff7e6",
+          "rx": 4
+        },
+        {
+          "type": "text",
+          "id": "hotword-text-2",
+          "x": 105,
+          "y": 191,
+          "content": "大话西游",
+          "font-family": "PingFang SC",
+          "font-size": 11,
+          "fill": "#fa8c16"
+        },
+        {
+          "type": "rect",
+          "id": "post-card-1",
+          "x": 15,
+          "y": 230,
+          "width": 345,
+          "height": 80,
+          "fill": "#FFFFFF",
+          "rx": 10
+        },
+        {
+          "type": "text",
+          "id": "post-title-1",
+          "x": 25,
+          "y": 245,
+          "content": "【置顶】交易注意事项，新手必看！",
+          "font-family": "PingFang SC",
+          "font-size": 15,
+          "font-weight": "600",
+          "fill": "#F4835a"
+        },
+        {
+          "type": "rect",
+          "id": "post-category-1",
+          "x": 25,
+          "y": 275,
+          "width": 40,
+          "height": 20,
+          "fill": "#e6f7ff",
+          "rx": 4
+        },
+        {
+          "type": "text",
+          "id": "post-category-text-1",
+          "x": 30,
+          "y": 280,
+          "content": "公告",
+          "font-family": "PingFang SC",
+          "font-size": 11,
+          "fill": "#1890ff"
+        },
+        {
+          "type": "text",
+          "id": "post-meta-1",
+          "x": 75,
+          "y": 280,
+          "content": "官方  03-31",
+          "font-family": "PingFang SC",
+          "font-size": 12,
+          "fill": "#999999"
+        },
+        {
+          "type": "rect",
+          "id": "post-avatar-1",
+          "x": 310,
+          "y": 250,
+          "width": 40,
+          "height": 40,
+          "fill": "#f6f6f6",
+          "rx": 20
+        },
+        {
+          "type": "rect",
+          "id": "post-card-2",
+          "x": 15,
+          "y": 320,
+          "width": 345,
+          "height": 80,
+          "fill": "#FFFFFF",
+          "rx": 10
+        },
+        {
+          "type": "text",
+          "id": "post-title-2",
+          "x": 25,
+          "y": 335,
+          "content": "出 175 级神天兵账号，满修满技能",
+          "font-family": "PingFang SC",
+          "font-size": 15,
+          "font-weight": "600",
+          "fill": "#333333"
+        },
+        {
+          "type": "rect",
+          "id": "post-category-2",
+          "x": 25,
+          "y": 365,
+          "width": 60,
+          "height": 20,
+          "fill": "#e6f7ff",
+          "rx": 4
+        },
+        {
+          "type": "text",
+          "id": "post-category-text-2",
+          "x": 30,
+          "y": 370,
+          "content": "游戏账号",
+          "font-family": "PingFang SC",
+          "font-size": 11,
+          "fill": "#1890ff"
+        },
+        {
+          "type": "text",
+          "id": "post-meta-2",
+          "x": 95,
+          "y": 370,
+          "content": "张三  10:30",
+          "font-family": "PingFang SC",
+          "font-size": 12,
+          "fill": "#999999"
+        },
+        {
+          "type": "rect",
+          "id": "post-avatar-2",
+          "x": 310,
+          "y": 340,
+          "width": 40,
+          "height": 40,
+          "fill": "#f6f6f6",
+          "rx": 20
+        },
+        {
+          "type": "rect",
+          "id": "post-card-3",
+          "x": 15,
+          "y": 410,
+          "width": 345,
+          "height": 80,
+          "fill": "#FFFFFF",
+          "rx": 10
+        },
+        {
+          "type": "text",
+          "id": "post-title-3",
+          "x": 25,
+          "y": 425,
+          "content": "求购高级藏宝图，有的联系我",
+          "font-family": "PingFang SC",
+          "font-size": 15,
+          "font-weight": "600",
+          "fill": "#333333"
+        },
+        {
+          "type": "rect",
+          "id": "post-category-3",
+          "x": 25,
+          "y": 455,
+          "width": 60,
+          "height": 20,
+          "fill": "#f6ffed",
+          "rx": 4
+        },
+        {
+          "type": "text",
+          "id": "post-category-text-3",
+          "x": 30,
+          "y": 460,
+          "content": "装备道具",
+          "font-family": "PingFang SC",
+          "font-size": 11,
+          "fill": "#52c41a"
+        },
+        {
+          "type": "text",
+          "id": "post-meta-3",
+          "x": 95,
+          "y": 460,
+          "content": "李四  09:15",
+          "font-family": "PingFang SC",
+          "font-size": 12,
+          "fill": "#999999"
+        },
+        {
+          "type": "rect",
+          "id": "post-avatar-3",
+          "x": 310,
+          "y": 430,
+          "width": 40,
+          "height": 40,
+          "fill": "#f6f6f6",
+          "rx": 20
+        },
+        {
+          "type": "rect",
+          "id": "fab-button",
+          "x": 310,
+          "y": 620,
+          "width": 50,
+          "height": 50,
+          "fill": "#F4835a",
+          "rx": 25,
+          "shadow": true
+        },
+        {
+          "type": "text",
+          "id": "fab-icon",
+          "x": 325,
+          "y": 635,
+          "content": "+",
+          "font-size": 24,
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "rect",
+          "id": "trading-tabbar",
+          "x": 0,
+          "y": 729,
+          "width": 375,
+          "height": 83,
+          "fill": "#FFFFFF",
+          "stroke": "#e5e5e5",
+          "stroke-width": 1
+        },
+        {
+          "type": "text",
+          "id": "trading-tab-1",
+          "x": 30,
+          "y": 745,
+          "content": "🏠",
+          "font-size": 22
+        },
+        {
+          "type": "text",
+          "id": "trading-tab-1-text",
+          "x": 30,
+          "y": 775,
+          "content": "首页",
+          "font-family": "PingFang SC",
+          "font-size": 10,
+          "fill": "#999999"
+        },
+        {
+          "type": "text",
+          "id": "trading-tab-2",
+          "x": 115,
+          "y": 745,
+          "content": "💬",
+          "font-size": 22
+        },
+        {
+          "type": "text",
+          "id": "trading-tab-2-text",
+          "x": 115,
+          "y": 775,
+          "content": "会话",
+          "font-family": "PingFang SC",
+          "font-size": 10,
+          "fill": "#999999"
+        },
+        {
+          "type": "text",
+          "id": "trading-tab-3",
+          "x": 200,
+          "y": 745,
+          "content": "👥",
+          "font-size": 22
+        },
+        {
+          "type": "text",
+          "id": "trading-tab-3-text",
+          "x": 200,
+          "y": 775,
+          "content": "通讯录",
+          "font-family": "PingFang SC",
+          "font-size": 10,
+          "fill": "#999999"
+        },
+        {
+          "type": "text",
+          "id": "trading-tab-4",
+          "x": 300,
+          "y": 745,
+          "content": "👤",
+          "font-size": 22
+        },
+        {
+          "type": "text",
+          "id": "trading-tab-4-text",
+          "x": 300,
+          "y": 775,
+          "content": "我的",
+          "font-family": "PingFang SC",
+          "font-size": 10,
+          "fill": "#999999"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "frame-login",
+      "x": 400,
+      "y": 850,
+      "name": "登录页",
+      "clip": true,
+      "width": 375,
+      "height": 812,
+      "fill": "#F4835a",
+      "layout": "none",
+      "children": [
+        {
+          "type": "rect",
+          "id": "login-statusbar",
+          "x": 0,
+          "y": 0,
+          "width": 375,
+          "height": 44,
+          "fill": "transparent"
+        },
+        {
+          "type": "text",
+          "id": "login-time",
+          "x": 15,
+          "y": 15,
+          "content": "9:41",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "font-weight": "600",
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "text",
+          "id": "login-logo",
+          "x": 0,
+          "y": 100,
+          "content": "魔力淘",
+          "font-family": "PingFang SC",
+          "font-size": 40,
+          "font-weight": "700",
+          "fill": "#FFFFFF",
+          "align": "center"
+        },
+        {
+          "type": "text",
+          "id": "login-subtitle",
+          "x": 0,
+          "y": 150,
+          "content": "安全可靠的二手交易平台",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "fill": "rgba(255,255,255,0.9)",
+          "align": "center"
+        },
+        {
+          "type": "rect",
+          "id": "login-card",
+          "x": 30,
+          "y": 220,
+          "width": 315,
+          "height": 380,
+          "fill": "#FFFFFF",
+          "rx": 16,
+          "shadow": true
+        },
+        {
+          "type": "rect",
+          "id": "login-method-1",
+          "x": 50,
+          "y": 250,
+          "width": 100,
+          "height": 40,
+          "fill": "transparent"
+        },
+        {
+          "type": "text",
+          "id": "login-method-1-text",
+          "x": 55,
+          "y": 263,
+          "content": "微信登录",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "fill": "#F4835a"
+        },
+        {
+          "type": "rect",
+          "id": "login-method-1-line",
+          "x": 50,
+          "y": 285,
+          "width": 100,
+          "height": 2,
+          "fill": "#F4835a"
+        },
+        {
+          "type": "rect",
+          "id": "login-method-2",
+          "x": 170,
+          "y": 250,
+          "width": 100,
+          "height": 40,
+          "fill": "transparent"
+        },
+        {
+          "type": "text",
+          "id": "login-method-2-text",
+          "x": 175,
+          "y": 263,
+          "content": "账号登录",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "fill": "#999999"
+        },
+        {
+          "type": "rect",
+          "id": "login-input-1",
+          "x": 50,
+          "y": 310,
+          "width": 275,
+          "height": 48,
+          "fill": "#f6f6f6",
+          "rx": 8
+        },
+        {
+          "type": "text",
+          "id": "login-input-1-placeholder",
+          "x": 65,
+          "y": 327,
+          "content": "请输入手机号",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "fill": "#999999"
+        },
+        {
+          "type": "rect",
+          "id": "login-input-2",
+          "x": 50,
+          "y": 370,
+          "width": 275,
+          "height": 48,
+          "fill": "#f6f6f6",
+          "rx": 8
+        },
+        {
+          "type": "text",
+          "id": "login-input-2-placeholder",
+          "x": 65,
+          "y": 387,
+          "content": "请输入密码",
+          "font-family": "PingFang SC",
+          "font-size": 14,
+          "fill": "#999999"
+        },
+        {
+          "type": "rect",
+          "id": "login-submit-btn",
+          "x": 50,
+          "y": 440,
+          "width": 275,
+          "height": 48,
+          "fill": "#F4835a",
+          "rx": 24
+        },
+        {
+          "type": "text",
+          "id": "login-submit-text",
+          "x": 160,
+          "y": 457,
+          "content": "登录",
+          "font-family": "PingFang SC",
+          "font-size": 16,
+          "font-weight": "600",
+          "fill": "#FFFFFF"
+        },
+        {
+          "type": "text",
+          "id": "login-divider",
+          "x": 0,
+          "y": 510,
+          "content": "其他登录方式",
+          "font-family": "PingFang SC",
+          "font-size": 12,
+          "fill": "#999999",
+          "align": "center"
+        },
+        {
+          "type": "rect",
+          "id": "social-icon-1",
+          "x": 120,
+          "y": 545,
+          "width": 50,
+          "height": 50,
+          "fill": "#07c160",
+          "rx": 25
+        },
+        {
+          "type": "text",
+          "id": "social-icon-1-text",
+          "x": 137,
+          "y": 560,
+          "content": "📱",
+          "font-size": 20
+        },
+        {
+          "type": "rect",
+          "id": "social-icon-2",
+          "x": 180,
+          "y": 545,
+          "width": 50,
+          "height": 50,
+          "fill": "#f6f6f6",
+          "rx": 25
+        },
+        {
+          "type": "text",
+          "id": "social-icon-2-text",
+          "x": 197,
+          "y": 560,
+          "content": "📱",
+          "font-size": 20
+        },
+        {
+          "type": "rect",
+          "id": "social-icon-3",
+          "x": 240,
+          "y": 545,
+          "width": 50,
+          "height": 50,
+          "fill": "#f6f6f6",
+          "rx": 25
+        },
+        {
+          "type": "text",
+          "id": "social-icon-3-text",
+          "x": 257,
+          "y": 560,
+          "content": "📧",
+          "font-size": 20
+        }
+      ]
+    }
+  ]
+}
