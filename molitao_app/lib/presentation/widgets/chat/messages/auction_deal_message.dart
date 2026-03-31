@@ -32,16 +32,18 @@ class AuctionDealMessage extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
+        clipBehavior: Clip.none,
         decoration: BoxDecoration(
           border: Border.all(color: const Color(0xff22C55E), width: 2),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Stack(
+          clipBehavior: Clip.none,
           children: [
             // 右上角标签
             Positioned(
-              top: 0,
-              right: 0,
+              top: -2,
+              right: -2,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: const BoxDecoration(
