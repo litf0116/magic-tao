@@ -54,8 +54,13 @@ class WebSocketService {
         return;
       }
 
-      final serverUrl = preConnectResult['server'] as String?;
-      _websocketId = preConnectResult['websocketId'] as int?;
+      // 后端返回的数据结构是 {result: {server: "...", websocketId: ...}}
+      // 或者是 {result: {code: 0, server: "...", websocketId: ...}}
+      final result = preConnectResult['result'] as Map<String, dynamic>?;
+      final serverUrl =
+          result?['server'] as String? ?? preConnectResult['server'] as String?;
+      _websocketId =
+          (result?['websocketId'] ?? preConnectResult['websocketId']) as int?;
 
       if (serverUrl == null || serverUrl.isEmpty) {
         print('[WebSocket] 未获取到 server URL');
@@ -63,12 +68,20 @@ class WebSocketService {
         return;
       }
 
+      // 替换 WebSocket 服务器地址为内网地址
+      // 后端可能返回 ws://192.168.10.35:6001，但内网环境需要 ws://192.168.2.125:6001
+      final correctedServerUrl = serverUrl.replaceAll(
+        '192.168.10.35',
+        '192.168.2.125',
+      );
+
       print('[WebSocket] 获取到 server: $serverUrl');
+      print('[WebSocket] 修正后 server: $correctedServerUrl');
       print('[WebSocket] websocketId: $_websocketId');
 
       // 2. 建立 WebSocket 连接
       print('[WebSocket] 步骤2: 建立 WebSocket 连接...');
-      _channel = WebSocketChannel.connect(Uri.parse(serverUrl));
+      _channel = WebSocketChannel.connect(Uri.parse(correctedServerUrl));
 
       _subscription = _channel?.stream.listen(
         _onMessageReceived,
