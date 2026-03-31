@@ -19,6 +19,11 @@ class TextMessage extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = message.msg ?? '';
 
+    // 调试输出
+    print(
+      '[TextMessage] msg=${message.msg}, type=${message.type}, from=${message.from}, fromName=${message.fromName}',
+    );
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
