@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+
+import '../../../data/models/auction_item_model.dart';
+import '../../../data/models/chat_message_model.dart';
+import '../../providers/auction_provider.dart';
 import '../../providers/chat_store.dart';
 import '../../providers/user_provider.dart';
-import '../../providers/auction_provider.dart';
-import '../../../data/models/chat_message_model.dart';
-import '../../../data/models/auction_item_model.dart';
-import '../../widgets/chat/messages/message_widget.dart';
 import '../../widgets/chat/chat_input_area.dart';
+import '../../widgets/chat/messages/message_widget.dart';
 
 /// 拍卖聊天页面（秒杀场）
 /// 与 UniApp auction.vue 保持一致
@@ -115,11 +116,16 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
 
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
+      // 等待下一帧渲染完成后再滚动，确保消息已添加到列表
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
     }
   }
 
@@ -260,13 +266,9 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('秒杀场'),
+        title: const Text(_channelName),
         backgroundColor: const Color(0xFFF4835A),
         foregroundColor: Colors.white,
-      ),
-        ),
-        backgroundColor: const Color(0xFFF4835A),
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
       ),
       body: Stack(
         children: [
