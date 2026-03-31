@@ -463,7 +463,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                 const SizedBox(height: 4),
                 MessageWidget(
                   message: message,
-                  onTap: () => debugPrint('消息被点击: ${message.id}'),
+                  onTap: () => _onMessageTap(message),
                 ),
               ],
             ),
@@ -472,6 +472,30 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
         ],
       ),
     );
+  }
+
+  /// 处理消息点击事件
+  void _onMessageTap(ChatMessage message) {
+    // 拍卖相关消息点击后显示拍品详情
+    if (message.type == ChatMessageType.auctionStart ||
+        message.type == ChatMessageType.auctionBid ||
+        message.type == ChatMessageType.auctionEnd ||
+        message.type == ChatMessageType.auctionDeal) {
+      _showAuctionDetailFromMessage(message);
+    }
+  }
+
+  /// 从消息中提取拍品信息并显示详情
+  void _showAuctionDetailFromMessage(ChatMessage message) {
+    final payload = message.payload;
+    if (payload == null) return;
+
+    // payload 已经在 ChatMessage.fromJson 中解析为 Map
+    if (payload is Map<String, dynamic>) {
+      // 使用 AuctionItemDto.fromJson 解析拍品信息
+      final item = AuctionItemDto.fromJson(payload);
+      _showAuctionDetail(item);
+    }
   }
 
   int? _getCurrentUserId() {

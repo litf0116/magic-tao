@@ -21,11 +21,6 @@ class MessageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 调试输出
-    print(
-      '[MessageWidget] type=${message.type}, msg=${message.msg}, payload=${message.payload}',
-    );
-
     switch (message.type) {
       case ChatMessageType.text:
         return TextMessage(message: message, onTap: onTap);
