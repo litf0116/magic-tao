@@ -140,14 +140,27 @@ namespace TtWork.Project.Web.Host.Startup
             {
                 options.AddPolicy(DefaultCorsPolicyName, builder =>
                 {
+                    var origins = orgs
+                        .Split(",", StringSplitOptions.RemoveEmptyEntries)
+                        .ToArray();
+
                     builder
-                        .WithOrigins(
-                            (orgs)
-                            .Split(",", StringSplitOptions.RemoveEmptyEntries)
-                            // .Select(o => o.RemovePostFix("/"))
-                            .ToArray()
-                        )
+                        .WithOrigins(origins)
                         .SetIsOriginAllowedToAllowWildcardSubdomains()
+                        .SetIsOriginAllowed(origin =>
+                        {
+                            // 开发环境允许任意 localhost 端口
+                            if (_hostingEnvironment.IsDevelopment())
+                            {
+                                var uri = new Uri(origin);
+                                if (uri.Host == "localhost" || uri.Host == "127.0.0.1")
+                                {
+                                    return true;
+                                }
+                            }
+                            // 检查是否在配置的 origins 列表中
+                            return origins.Any(o => o.Equals(origin, StringComparison.OrdinalIgnoreCase));
+                        })
                         .AllowAnyHeader()
                         .AllowAnyMethod()
                         .AllowCredentials();
