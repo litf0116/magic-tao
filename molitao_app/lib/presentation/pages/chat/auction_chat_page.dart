@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../providers/group_chat_provider.dart';
+import '../../providers/chat_store.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/auction_provider.dart';
 import '../../../data/models/chat_message_model.dart';
@@ -9,9 +9,7 @@ import '../../widgets/chat/messages/message_widget.dart';
 import '../../widgets/chat/chat_input_area.dart';
 
 /// 拍卖聊天页面（秒杀场）
-///
-/// 这是一个特殊的群聊页面，channel 固定为 '-1_auction'
-/// 包含拍卖特有的功能：出价、查看拍品列表等
+/// 与 UniApp auction.vue 保持一致
 class AuctionChatPage extends ConsumerStatefulWidget {
   const AuctionChatPage({super.key});
 
@@ -27,7 +25,6 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   // UI 状态
   bool _showAuctionList = false;
   bool _showUnreadNotification = false;
-  int _unreadCount = 0;
 
   // 动画控制器
   late AnimationController _auctionListAnimationController;
@@ -44,7 +41,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
     super.initState();
     _scrollController.addListener(_onScroll);
 
-    // 初始化拍卖列表动画
+    // 初始化动画
     _auctionListAnimationController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -57,7 +54,6 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
           ),
         );
 
-    // 初始化未读消息动画
     _unreadAnimationController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -70,9 +66,27 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
           ),
         );
 
-    // 加载拍卖列表
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    // 初始化 - 与 UniApp onLoad 一致
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // 加载拍卖列表
       ref.read(auctionProvider.notifier).loadAuctions();
+
+      // 连接 WebSocket
+      await ref.read(chatStoreProvider.notifier).connectServer();
+
+      // 设置当前聊天
+      ref
+          .read(chatStoreProvider.notifier)
+          .setCurrentChatId(_channelId, name: _channelName);
+
+      // 加入频道
+      await ref.read(chatStoreProvider.notifier).joinChannel(_channel);
+
+      // 加载历史消息
+      await ref.read(chatStoreProvider.notifier).getGroupHistory(_channel);
+
+      // 滚动到底部
+      _scrollToBottom();
     });
   }
 
@@ -88,15 +102,13 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 100) {
-      ref
-          .read(
-            groupChatProvider((
-              channel: _channel,
-              channelId: _channelId,
-              channelName: _channelName,
-            )).notifier,
-          )
-          .loadHistoryMessages();
+      final messages = ref.read(currentChatMessagesProvider);
+      final lastTime = messages.isNotEmpty ? messages.last.time : null;
+      if (lastTime != null) {
+        ref
+            .read(chatStoreProvider.notifier)
+            .getGroupHistory(_channel, lastTime: lastTime);
+      }
     }
   }
 
@@ -110,41 +122,14 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
     }
   }
 
-  /// 显示新消息通知
-  void _showUnreadNotificationWithCount(int count) {
-    if (count <= 0) return;
-
-    setState(() {
-      _unreadCount = count;
-      _showUnreadNotification = true;
-    });
-
-    _unreadAnimationController.forward();
-
-    // 3秒后自动隐藏
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        _unreadAnimationController.reverse().then((_) {
-          if (mounted) {
-            setState(() {
-              _showUnreadNotification = false;
-            });
-          }
-        });
-      }
-    });
-  }
-
   Future<void> _onSendText(String text) async {
-    final notifier = ref.read(
-      groupChatProvider((
-        channel: _channel,
-        channelId: _channelId,
-        channelName: _channelName,
-      )).notifier,
-    );
-
-    await notifier.sendTextMessage(text);
+    await ref
+        .read(chatStoreProvider.notifier)
+        .sendChannelMsg(
+          channel: _channel,
+          message: text,
+          type: ChatMessageType.text,
+        );
     _scrollToBottom();
   }
 
@@ -158,15 +143,14 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
       );
 
       if (image != null) {
-        final notifier = ref.read(
-          groupChatProvider((
-            channel: _channel,
-            channelId: _channelId,
-            channelName: _channelName,
-          )).notifier,
-        );
-
-        await notifier.sendImageMessage(image.path);
+        // TODO: 上传图片后发送
+        await ref
+            .read(chatStoreProvider.notifier)
+            .sendChannelMsg(
+              channel: _channel,
+              message: image.path,
+              type: ChatMessageType.image,
+            );
         _scrollToBottom();
       }
     } catch (e) {
@@ -201,20 +185,15 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
       context: context,
       builder: (context) => AlertDialog(
         title: Text(auctionState.isKasec ? '卡秒出价' : '出价'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: priceController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                hintText: auctionState.isKasec
-                    ? '卡秒模式-需三倍加价(最低$minPrice R)'
-                    : '请输入出价金额(最低$minPrice R)',
-                suffixText: 'R',
-              ),
-            ),
-          ],
+        content: TextField(
+          controller: priceController,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            hintText: auctionState.isKasec
+                ? '卡秒模式-需三倍加价(最低$minPrice R)'
+                : '请输入出价金额(最低$minPrice R)',
+            suffixText: 'R',
+          ),
         ),
         actions: [
           TextButton(
@@ -238,16 +217,8 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                 return;
               }
 
-              if (auctionState.isKasec && price < minPrice) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('卡秒模式需要三倍加价，最低出价为$minPrice R')),
-                );
-                return;
-              }
-
               Navigator.pop(context);
 
-              // 调用出价 API
               final success = await ref
                   .read(auctionProvider.notifier)
                   .bid(onAuctionItem.id!, price.toDouble());
@@ -281,13 +252,8 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
 
   @override
   Widget build(BuildContext context) {
-    final chatState = ref.watch(
-      groupChatProvider((
-        channel: _channel,
-        channelId: _channelId,
-        channelName: _channelName,
-      )),
-    );
+    final messages = ref.watch(currentChatMessagesProvider);
+    final chatState = ref.watch(chatStoreProvider);
     final auctionState = ref.watch(auctionProvider);
     final onAuctionItem = auctionState.onAuctionItem;
 
@@ -301,50 +267,36 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
         children: [
           Column(
             children: [
-              // 公告栏
               _buildAnnouncementBar(),
-
-              // 消息列表
               Expanded(
                 child: Container(
                   color: const Color(0xFFFAF1F0),
-                  child: chatState.isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : chatState.messages.isEmpty
+                  child: messages.isEmpty
                       ? _buildEmptyState()
-                      : _buildMessageList(chatState.messages),
+                      : _buildMessageList(messages),
                 ),
               ),
-
-              // 输入区域
               ChatInputArea(
                 onSendText: _onSendText,
                 onSelectImage: _onPickImage,
               ),
             ],
           ),
-
-          // 右侧垂直按钮条
           _buildRightSideButtons(onAuctionItem),
-
-          // 新消息提醒按钮
-          if (_showUnreadNotification) _buildNewMessageButton(),
-
-          // 拍卖商品列表侧边栏
+          if (_showUnreadNotification)
+            _buildNewMessageButton(chatState.unreadCount),
           if (_showAuctionList) _buildAuctionListPanel(auctionState),
         ],
       ),
     );
   }
 
-  /// 右侧垂直按钮条（秒杀榜 + 出价按钮）
   Widget _buildRightSideButtons(dynamic onAuctionItem) {
     return Positioned(
       right: 0,
       top: 100,
       child: Column(
         children: [
-          // 秒杀榜按钮
           GestureDetector(
             onTap: _toggleAuctionList,
             child: Container(
@@ -355,13 +307,6 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                   topLeft: Radius.circular(8),
                   bottomLeft: Radius.circular(8),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0x1A000000),
-                    blurRadius: 4,
-                    offset: Offset(0, 2),
-                  ),
-                ],
               ),
               child: const Text(
                 '秒杀榜',
@@ -373,28 +318,15 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
               ),
             ),
           ),
-
           const SizedBox(height: 12),
-
-          // 出价按钮区域（只有正在拍卖时才显示）
           if (onAuctionItem != null && onAuctionItem.id != null) ...[
-            // 拍品详情按钮
             GestureDetector(
-              onTap: () {
-                _showAuctionDetail(onAuctionItem);
-              },
+              onTap: () => _showAuctionDetail(onAuctionItem),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFF7144),
                   borderRadius: BorderRadius.circular(8),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x1A000000),
-                      blurRadius: 4,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
                 ),
                 child: const Text(
                   '拍品详情',
@@ -406,10 +338,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                 ),
               ),
             ),
-
             const SizedBox(height: 8),
-
-            // 出价按钮
             GestureDetector(
               onTap: _showBidDialog,
               child: Container(
@@ -420,22 +349,15 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                 decoration: BoxDecoration(
                   color: const Color(0xFFFF4D4F),
                   borderRadius: BorderRadius.circular(10),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x26000000),
-                      blurRadius: 8,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
                 ),
-                child: Column(
+                child: const Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
+                    Text(
                       '秒杀中',
                       style: TextStyle(color: Colors.white, fontSize: 10),
                     ),
-                    const Text(
+                    Text(
                       '出价',
                       style: TextStyle(
                         color: Colors.white,
@@ -459,11 +381,11 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       color: const Color(0xFFFF7144),
-      child: Row(
+      child: const Row(
         children: [
-          const Icon(Icons.campaign, color: Colors.white, size: 16),
-          const SizedBox(width: 8),
-          const Expanded(
+          Icon(Icons.campaign, color: Colors.white, size: 16),
+          SizedBox(width: 8),
+          Expanded(
             child: Text(
               '欢迎来到秒杀场！点击右侧"秒杀榜"查看拍品',
               style: TextStyle(color: Colors.white, fontSize: 13),
@@ -534,7 +456,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                 const SizedBox(height: 4),
                 MessageWidget(
                   message: message,
-                  onTap: () => _handleMessageTap(message),
+                  onTap: () => debugPrint('消息被点击: ${message.id}'),
                 ),
               ],
             ),
@@ -601,10 +523,6 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
     );
   }
 
-  void _handleMessageTap(ChatMessage message) {
-    debugPrint('消息被点击: ${message.id}, 类型: ${message.type}');
-  }
-
   void _showAuctionDetail(dynamic item) {
     showModalBottomSheet(
       context: context,
@@ -622,7 +540,6 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 标题
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -642,10 +559,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                   ),
                 ],
               ),
-
               const SizedBox(height: 16),
-
-              // 图片
               if (item.imageUrl != null)
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
@@ -663,10 +577,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                     ),
                   ),
                 ),
-
               const SizedBox(height: 16),
-
-              // 价格信息
               Row(
                 children: [
                   const Text('当前价格: ', style: TextStyle(fontSize: 14)),
@@ -680,10 +591,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                   ),
                 ],
               ),
-
               const SizedBox(height: 8),
-
-              // 状态
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
@@ -722,7 +630,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
     return name.length > 2 ? name.substring(0, 2) : name;
   }
 
-  Widget _buildNewMessageButton() {
+  Widget _buildNewMessageButton(int unreadCount) {
     return Positioned(
       right: 60,
       top: 60,
@@ -738,16 +646,9 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                 topLeft: Radius.circular(8),
                 bottomLeft: Radius.circular(8),
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Color(0x1A000000),
-                  blurRadius: 4,
-                  offset: Offset(0, 2),
-                ),
-              ],
             ),
             child: Text(
-              '$_unreadCount条新消息',
+              '$unreadCount条新消息',
               style: const TextStyle(color: Colors.white, fontSize: 12),
             ),
           ),
@@ -765,7 +666,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
           child: Align(
             alignment: Alignment.centerRight,
             child: GestureDetector(
-              onTap: () {}, // 阻止点击穿透
+              onTap: () {},
               child: SlideTransition(
                 position: _auctionListAnimation,
                 child: Container(
@@ -774,7 +675,6 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                   color: Colors.white,
                   child: Column(
                     children: [
-                      // 标题栏
                       Container(
                         padding: const EdgeInsets.all(16),
                         color: const Color(0xFFF4835A),
@@ -799,8 +699,6 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                           ],
                         ),
                       ),
-
-                      // 列表
                       Expanded(
                         child: auctionState.isLoading
                             ? const Center(child: CircularProgressIndicator())
@@ -878,9 +776,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                                           ),
                                         ),
                                       ),
-                                      onTap: () {
-                                        _showAuctionDetail(item);
-                                      },
+                                      onTap: () => _showAuctionDetail(item),
                                     ),
                                   );
                                 },

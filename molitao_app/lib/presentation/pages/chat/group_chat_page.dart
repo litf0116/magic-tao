@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../providers/group_chat_provider.dart';
+import '../../providers/chat_store.dart';
 import '../../providers/user_provider.dart';
 import '../../../data/models/chat_message_model.dart';
 import '../../widgets/chat/messages/message_widget.dart';
 import '../../widgets/chat/chat_input_area.dart';
 
 /// 群聊页面
+/// 与 UniApp chatMain.vue 保持一致
 class GroupChatPage extends ConsumerStatefulWidget {
   final String channel;
   final int channelId;
@@ -32,6 +33,28 @@ class _GroupChatPageState extends ConsumerState<GroupChatPage> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+
+    // 初始化 - 与 UniApp onLoad 一致
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // 连接 WebSocket
+      await ref.read(chatStoreProvider.notifier).connectServer();
+
+      // 设置当前聊天
+      ref
+          .read(chatStoreProvider.notifier)
+          .setCurrentChatId(widget.channelId, name: widget.channelName);
+
+      // 加入频道
+      await ref.read(chatStoreProvider.notifier).joinChannel(widget.channel);
+
+      // 加载历史消息
+      await ref
+          .read(chatStoreProvider.notifier)
+          .getGroupHistory(widget.channel);
+
+      // 滚动到底部
+      _scrollToBottom();
+    });
   }
 
   @override
@@ -44,15 +67,13 @@ class _GroupChatPageState extends ConsumerState<GroupChatPage> {
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 100) {
-      ref
-          .read(
-            groupChatProvider((
-              channel: widget.channel,
-              channelId: widget.channelId,
-              channelName: widget.channelName,
-            )).notifier,
-          )
-          .loadHistoryMessages();
+      final messages = ref.read(currentChatMessagesProvider);
+      final lastTime = messages.isNotEmpty ? messages.last.time : null;
+      if (lastTime != null) {
+        ref
+            .read(chatStoreProvider.notifier)
+            .getGroupHistory(widget.channel, lastTime: lastTime);
+      }
     }
   }
 
@@ -67,15 +88,13 @@ class _GroupChatPageState extends ConsumerState<GroupChatPage> {
   }
 
   Future<void> _onSendText(String text) async {
-    final notifier = ref.read(
-      groupChatProvider((
-        channel: widget.channel,
-        channelId: widget.channelId,
-        channelName: widget.channelName,
-      )).notifier,
-    );
-
-    await notifier.sendTextMessage(text);
+    await ref
+        .read(chatStoreProvider.notifier)
+        .sendChannelMsg(
+          channel: widget.channel,
+          message: text,
+          type: ChatMessageType.text,
+        );
     _scrollToBottom();
   }
 
@@ -89,15 +108,13 @@ class _GroupChatPageState extends ConsumerState<GroupChatPage> {
       );
 
       if (image != null) {
-        final notifier = ref.read(
-          groupChatProvider((
-            channel: widget.channel,
-            channelId: widget.channelId,
-            channelName: widget.channelName,
-          )).notifier,
-        );
-
-        await notifier.sendImageMessage(image.path);
+        await ref
+            .read(chatStoreProvider.notifier)
+            .sendChannelMsg(
+              channel: widget.channel,
+              message: image.path,
+              type: ChatMessageType.image,
+            );
         _scrollToBottom();
       }
     } catch (e) {
@@ -111,13 +128,8 @@ class _GroupChatPageState extends ConsumerState<GroupChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    final chatState = ref.watch(
-      groupChatProvider((
-        channel: widget.channel,
-        channelId: widget.channelId,
-        channelName: widget.channelName,
-      )),
-    );
+    final messages = ref.watch(currentChatMessagesProvider);
+    final chatState = ref.watch(chatStoreProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -141,19 +153,14 @@ class _GroupChatPageState extends ConsumerState<GroupChatPage> {
       ),
       body: Column(
         children: [
-          // 消息列表
           Expanded(
             child: Container(
               color: const Color(0xFFFAF1F0),
-              child: chatState.isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : chatState.messages.isEmpty
+              child: messages.isEmpty
                   ? _buildEmptyState()
-                  : _buildMessageList(chatState.messages),
+                  : _buildMessageList(messages),
             ),
           ),
-
-          // 输入区域
           ChatInputArea(onSendText: _onSendText, onSelectImage: _onPickImage),
         ],
       ),
@@ -194,10 +201,8 @@ class _GroupChatPageState extends ConsumerState<GroupChatPage> {
   }
 
   Widget _buildMessageItem(ChatMessage message) {
-    // 判断是否是自己发送的消息
     final isSelf = message.from != null && message.from == _getCurrentUserId();
 
-    // 系统消息和欢迎消息居中显示
     if (message.type == ChatMessageType.welcome ||
         message.type == ChatMessageType.banUser ||
         message.type == ChatMessageType.backout) {
@@ -215,27 +220,22 @@ class _GroupChatPageState extends ConsumerState<GroupChatPage> {
             : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 头像（非自己消息显示在左边）
           if (!isSelf) ...[_buildAvatar(message), const SizedBox(width: 10)],
-          // 消息内容
           Flexible(
             child: Column(
               crossAxisAlignment: isSelf
                   ? CrossAxisAlignment.end
                   : CrossAxisAlignment.start,
               children: [
-                // 用户名和标签
                 if (!isSelf) _buildUserName(message),
                 const SizedBox(height: 4),
-                // 消息组件
                 MessageWidget(
                   message: message,
-                  onTap: () => _handleMessageTap(message),
+                  onTap: () => debugPrint('消息被点击: ${message.id}'),
                 ),
               ],
             ),
           ),
-          // 头像（自己消息显示在右边）
           if (isSelf) ...[const SizedBox(width: 10), _buildAvatar(message)],
         ],
       ),
@@ -296,10 +296,6 @@ class _GroupChatPageState extends ConsumerState<GroupChatPage> {
         ),
       ],
     );
-  }
-
-  void _handleMessageTap(ChatMessage message) {
-    debugPrint('消息被点击: ${message.id}, 类型: ${message.type}');
   }
 
   Color _getAvatarColor(int userId) {
