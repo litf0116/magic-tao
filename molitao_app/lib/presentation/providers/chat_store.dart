@@ -4,6 +4,7 @@ import '../../data/models/chat_message_model.dart';
 import '../../data/models/chat_list_item_model.dart';
 import '../../data/services/websocket_service.dart';
 import '../../data/services/storage_service.dart';
+import '../../data/services/sound_service.dart';
 import '../../data/repositories/chat_repository.dart';
 import 'user_provider.dart';
 
@@ -67,6 +68,7 @@ class ChatStore extends StateNotifier<ChatState> {
   final Ref _ref;
   final WebSocketService _webSocketService = WebSocketService();
   final ChatRepository _chatRepository = ChatRepository();
+  final SoundService _soundService = SoundService();
   StreamSubscription<Map<String, dynamic>>? _messageSubscription;
 
   ChatStore(this._ref) : super(const ChatState()) {
@@ -145,6 +147,9 @@ class ChatStore extends StateNotifier<ChatState> {
       }
     }
 
+    // 播放消息声音（与 UniApp App.vue 一致）
+    _playMessageSound(msg);
+
     // 处理群聊消息（有 chan 字段）
     if (msg.chan != null && msg.chan!.isNotEmpty) {
       _handleChannelMessage(msg);
@@ -154,6 +159,40 @@ class ChatStore extends StateNotifier<ChatState> {
     // 处理私聊消息（有 from 字段但没有 chan）
     if (msg.from != null) {
       _handlePrivateMessage(msg);
+    }
+  }
+
+  /// 播放消息声音 - 与 UniApp App.vue 一致
+  void _playMessageSound(ChatMessage msg) {
+    final userState = _ref.read(userProvider);
+    final currentUserId = userState.user?.id;
+
+    // 如果是自己发送的消息，不播放声音
+    if (msg.from != null && msg.from == currentUserId) {
+      return;
+    }
+
+    // Welcome 消息（用户进入群聊）- 非 lobby 和 auction 频道
+    if (msg.type == ChatMessageType.welcome) {
+      final chan = msg.chan ?? '';
+      if (chan != '0_lobby' && chan != '-1_auction') {
+        _soundService.playWelcomeSound();
+      }
+      return;
+    }
+
+    // 私聊消息（Text/Image）
+    if ((msg.type == ChatMessageType.text ||
+            msg.type == ChatMessageType.image) &&
+        msg.chan == null) {
+      _soundService.playMessageSound();
+      return;
+    }
+
+    // 拍卖成交消息
+    if (msg.type == ChatMessageType.auctionEnd) {
+      _soundService.playAuctionEndSound();
+      return;
     }
   }
 
