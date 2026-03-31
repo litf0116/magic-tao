@@ -91,7 +91,10 @@ class AuctionEndMessage extends StatelessWidget {
                             const TextSpan(text: ' 最终以 '),
                             TextSpan(
                               text: '￥${finalPrice.toStringAsFixed(2)}',
-                              style: const TextStyle(fontSize: 16),
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             const TextSpan(text: ' 秒得商品'),
                           ],
@@ -120,7 +123,7 @@ class AuctionEndMessage extends StatelessWidget {
                       child: Text(
                         name,
                         style: const TextStyle(
-                          fontSize: 20,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

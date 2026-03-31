@@ -33,7 +33,7 @@ class AuctionBidMessage extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border.all(color: const Color(0xffFF7144), width: 2),
           color: const Color(0xffFFB673),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Stack(
           children: [
@@ -46,8 +46,8 @@ class AuctionBidMessage extends StatelessWidget {
                 decoration: const BoxDecoration(
                   color: Color(0xffFF7144),
                   borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(4),
-                    bottomLeft: Radius.circular(4),
+                    topRight: Radius.circular(10),
+                    bottomLeft: Radius.circular(8),
                   ),
                 ),
                 child: const Text(

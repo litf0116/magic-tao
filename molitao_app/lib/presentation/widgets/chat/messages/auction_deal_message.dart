@@ -74,7 +74,7 @@ class AuctionDealMessage extends StatelessWidget {
                     child: RichText(
                       text: TextSpan(
                         style: const TextStyle(
-                          color: Colors.green,
+                          color: Color(0xff16A34A),
                           fontSize: 14,
                         ),
                         children: [
@@ -86,7 +86,10 @@ class AuctionDealMessage extends StatelessWidget {
                           const TextSpan(text: ' 最终以 '),
                           TextSpan(
                             text: '￥${finalPrice.toStringAsFixed(2)}',
-                            style: const TextStyle(fontSize: 16),
+                            style: const TextStyle(
+                              fontSize: 18,
+                              color: Color(0xffEF4444),
+                            ),
                           ),
                           const TextSpan(text: ' 秒得商品'),
                         ],

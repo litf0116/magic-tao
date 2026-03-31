@@ -80,7 +80,7 @@ class AuctionStartMessage extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     description,
-                    style: const TextStyle(fontSize: 14, color: Colors.black87),
+                    style: const TextStyle(fontSize: 12, color: Colors.black87),
                   ),
                 ],
               ),
