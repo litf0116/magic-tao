@@ -579,7 +579,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
     );
   }
 
-  void _showAuctionDetail(dynamic item) {
+  void _showAuctionDetail(AuctionItemDto item) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -595,6 +595,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -647,26 +648,91 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF4CAF50),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Text(
-                  '拍卖中',
-                  style: TextStyle(color: Colors.white, fontSize: 12),
-                ),
+              const SizedBox(height: 12),
+              // 状态标签和开拍通知按钮
+              Row(
+                children: [
+                  _buildStatusBadge(item.status),
+                  const Spacer(),
+                  // 待拍卖状态显示开拍通知按钮
+                  if (item.status == AuctionStatusEnum.listed)
+                    ElevatedButton(
+                      onPressed: () => _subscribeNotification(item.id),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF4CAF50),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text('开拍通知'),
+                    ),
+                ],
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  /// 构建状态标签
+  Widget _buildStatusBadge(AuctionStatusEnum? status) {
+    String text;
+    Color color;
+
+    switch (status) {
+      case AuctionStatusEnum.auctioning:
+        text = '拍卖中';
+        color = const Color(0xFF4CAF50);
+        break;
+      case AuctionStatusEnum.listed:
+        text = '待拍卖';
+        color = const Color(0xFF999999);
+        break;
+      case AuctionStatusEnum.sold:
+        text = '已成交';
+        color = const Color(0xFF4CAF50);
+        break;
+      default:
+        text = '未知状态';
+        color = const Color(0xFF999999);
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(color: Colors.white, fontSize: 12),
+      ),
+    );
+  }
+
+  /// 订阅开拍通知
+  Future<void> _subscribeNotification(int? auctionItemId) async {
+    if (auctionItemId == null) return;
+
+    final success = await ref
+        .read(auctionProvider.notifier)
+        .subscribeStartNotification(auctionItemId);
+
+    if (mounted) {
+      Navigator.pop(context); // 关闭弹窗
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success ? '订阅成功，秒杀开始时将推送通知' : '订阅失败，请重试'),
+          backgroundColor: success ? const Color(0xFF4CAF50) : Colors.red,
+        ),
+      );
+    }
   }
 
   Color _getAvatarColor(int userId) {

@@ -147,6 +147,16 @@ class AuctionNotifier extends StateNotifier<AuctionState> {
       await loadYesterdayAuctions();
     }
   }
+
+  /// 订阅开拍通知
+  Future<bool> subscribeStartNotification(int auctionItemId) async {
+    try {
+      await _repository.subscribeStartNotification(auctionItemId);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 }
 
 /// 拍卖 Provider
