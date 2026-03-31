@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -617,15 +618,26 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                 ],
               ),
               const SizedBox(height: 16),
-              if (item.imageUrl != null)
+              if (item.imageUrl != null && item.imageUrl!.isNotEmpty)
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    item.imageUrl!,
+                  child: CachedNetworkImage(
+                    imageUrl: item.imageUrl!,
                     width: double.infinity,
                     height: 200,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
+                    placeholder: (_, __) => Container(
+                      height: 200,
+                      color: Colors.grey.shade200,
+                      child: const Center(
+                        child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    ),
+                    errorWidget: (_, __, ___) => Container(
                       height: 200,
                       color: Colors.grey.shade200,
                       child: const Center(
@@ -929,13 +941,28 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                                   child: ListTile(
                                     leading: ClipRRect(
                                       borderRadius: BorderRadius.circular(4),
-                                      child: item.imageUrl != null
-                                          ? Image.network(
-                                              item.imageUrl!,
+                                      child:
+                                          item.imageUrl != null &&
+                                              item.imageUrl!.isNotEmpty
+                                          ? CachedNetworkImage(
+                                              imageUrl: item.imageUrl!,
                                               width: 50,
                                               height: 50,
                                               fit: BoxFit.cover,
-                                              errorBuilder: (_, __, ___) =>
+                                              placeholder: (_, __) => Container(
+                                                width: 50,
+                                                height: 50,
+                                                color: Colors.grey.shade200,
+                                                child: const SizedBox(
+                                                  width: 16,
+                                                  height: 16,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                      ),
+                                                ),
+                                              ),
+                                              errorWidget: (_, __, ___) =>
                                                   Container(
                                                     width: 50,
                                                     height: 50,
@@ -1016,13 +1043,28 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                                   child: ListTile(
                                     leading: ClipRRect(
                                       borderRadius: BorderRadius.circular(4),
-                                      child: item.imageUrl != null
-                                          ? Image.network(
-                                              item.imageUrl!,
+                                      child:
+                                          item.imageUrl != null &&
+                                              item.imageUrl!.isNotEmpty
+                                          ? CachedNetworkImage(
+                                              imageUrl: item.imageUrl!,
                                               width: 50,
                                               height: 50,
                                               fit: BoxFit.cover,
-                                              errorBuilder: (_, __, ___) =>
+                                              placeholder: (_, __) => Container(
+                                                width: 50,
+                                                height: 50,
+                                                color: Colors.grey.shade200,
+                                                child: const SizedBox(
+                                                  width: 16,
+                                                  height: 16,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                      ),
+                                                ),
+                                              ),
+                                              errorWidget: (_, __, ___) =>
                                                   Container(
                                                     width: 50,
                                                     height: 50,
