@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 enum ChatMessageStatus { sending, fail, success }
 
 enum ChatMessageType {
@@ -55,6 +57,16 @@ class ChatMessage {
   });
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
+    // 统一处理 payload：如果是 JSON 字符串，解析为 Map
+    dynamic payload = json['payload'];
+    if (payload is String && payload.isNotEmpty) {
+      try {
+        payload = jsonDecode(payload);
+      } catch (e) {
+        // 如果解析失败，保持原始字符串
+      }
+    }
+
     return ChatMessage(
       id: json['id'],
       type: _parseChatMessageType(json['type']),
@@ -69,7 +81,7 @@ class ChatMessage {
       to: json['to'],
       time: json['time'],
       msg: json['msg'],
-      payload: json['payload'],
+      payload: payload,
       receipt: json['receipt'],
       sequenceNumber: json['sequenceNumber'],
     );
