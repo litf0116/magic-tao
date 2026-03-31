@@ -48,8 +48,8 @@ class AuctionDealMessage extends StatelessWidget {
                 decoration: const BoxDecoration(
                   color: Color(0xff22C55E),
                   borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(4),
-                    bottomLeft: Radius.circular(4),
+                    topRight: Radius.circular(8),
+                    bottomLeft: Radius.circular(8),
                   ),
                 ),
                 child: const Text(

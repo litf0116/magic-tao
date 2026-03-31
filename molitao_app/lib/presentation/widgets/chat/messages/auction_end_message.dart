@@ -50,8 +50,8 @@ class AuctionEndMessage extends StatelessWidget {
                 decoration: const BoxDecoration(
                   color: Color(0xffFF9800),
                   borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(4),
-                    bottomLeft: Radius.circular(4),
+                    topRight: Radius.circular(8),
+                    bottomLeft: Radius.circular(8),
                   ),
                 ),
                 child: const Text(
