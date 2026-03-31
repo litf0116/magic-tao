@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/chat_message_model.dart';
 import '../../data/repositories/chat_repository.dart';
 import '../../data/services/storage_service.dart';
+import '../../data/services/upload_service.dart';
 import 'chat_provider.dart' show webSocketServiceProvider;
 
 /// 群聊状态
@@ -53,6 +54,7 @@ class GroupChatNotifier extends StateNotifier<GroupChatState> {
   final int _channelId;
   final String _channelName;
   final ChatRepository _chatRepository = ChatRepository();
+  final UploadService _uploadService = UploadService();
   StreamSubscription<Map<String, dynamic>>? _messageSubscription;
 
   GroupChatNotifier(
@@ -209,10 +211,11 @@ class GroupChatNotifier extends StateNotifier<GroupChatState> {
   }
 
   /// 发送图片消息
-  Future<bool> sendImageMessage(String imageUrl) async {
-    if (imageUrl.isEmpty) return false;
+  Future<bool> sendImageMessage(String localPath) async {
+    if (localPath.isEmpty) return false;
 
     try {
+      // 创建本地消息（显示正在上传）
       final localMessage = ChatMessage(
         id: 'local_${DateTime.now().millisecondsSinceEpoch}',
         type: ChatMessageType.image,
@@ -220,13 +223,25 @@ class GroupChatNotifier extends StateNotifier<GroupChatState> {
         chan: _channel,
         from: 0,
         fromName: '',
-        msg: imageUrl,
-        payload: {'url': imageUrl},
+        msg: localPath, // 先使用本地路径
+        payload: {'url': localPath},
         time: DateTime.now().millisecondsSinceEpoch ~/ 1000,
       );
 
       _addMessage(localMessage);
 
+      // 1. 上传图片到服务器
+      final imageUrl = await _uploadService.uploadImage(localPath);
+      if (imageUrl == null) {
+        _updateMessageStatus(localMessage.id!, ChatMessageStatus.fail);
+        state = state.copyWith(error: '图片上传失败');
+        return false;
+      }
+
+      // 2. 更新本地消息的图片URL
+      _updateMessageContent(localMessage.id!, imageUrl);
+
+      // 3. 发送消息到频道
       final success = await _chatRepository.sendChannelMessage(
         channel: _channel,
         message: imageUrl,
@@ -244,6 +259,34 @@ class GroupChatNotifier extends StateNotifier<GroupChatState> {
       state = state.copyWith(error: '发送图片失败: $e');
       return false;
     }
+  }
+
+  void _updateMessageContent(String messageId, String newContent) {
+    final messages = state.messages.map((msg) {
+      if (msg.id == messageId) {
+        return ChatMessage(
+          id: msg.id,
+          type: msg.type,
+          status: msg.status,
+          chan: msg.chan,
+          from: msg.from,
+          fromName: msg.fromName,
+          fromAdmin: msg.fromAdmin,
+          fromTag: msg.fromTag,
+          tagClass: msg.tagClass,
+          avatar: msg.avatar,
+          to: msg.to,
+          time: msg.time,
+          msg: newContent,
+          payload: {'url': newContent},
+          receipt: msg.receipt,
+          sequenceNumber: msg.sequenceNumber,
+        );
+      }
+      return msg;
+    }).toList();
+
+    state = state.copyWith(messages: messages);
   }
 
   void _updateMessageStatus(String messageId, ChatMessageStatus status) {
