@@ -235,25 +235,48 @@ class _PrivateChatPageState extends ConsumerState<PrivateChatPage> {
   }
 
   Widget _buildAvatar(ChatMessage message) {
-    final avatarUrl = message.from == _getCurrentUserId()
-        ? null
-        : widget.friendAvatar;
+    // 优先使用消息中的 avatar 字段
+    String? avatarUrl;
+    if (message.from != _getCurrentUserId() && message.avatar != null) {
+      final avatar = message.avatar!;
+      avatarUrl = avatar.startsWith('http')
+          ? avatar
+          : 'https://image.molitao.top/$avatar';
+    }
+    // 如果没有 message.avatar，使用传入的 friendAvatar 作为后备
+    avatarUrl ??= widget.friendAvatar;
 
+    if (avatarUrl == null || avatarUrl.isEmpty) {
+      // 显示默认头像（文字）
+      return Container(
+        width: 36,
+        height: 36,
+        decoration: const BoxDecoration(
+          color: Color(0xFFF4835A),
+          shape: BoxShape.circle,
+        ),
+        child: Center(
+          child: Text(
+            _getAvatarText(message.fromName ?? '用户'),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      );
+    }
+
+    // 显示网络头像
     return Container(
       width: 36,
       height: 36,
       decoration: BoxDecoration(
-        color: const Color(0xFFF4835A),
         shape: BoxShape.circle,
-      ),
-      child: Center(
-        child: Text(
-          _getAvatarText(message.fromName ?? '用户'),
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-          ),
+        image: DecorationImage(
+          image: NetworkImage(avatarUrl),
+          fit: BoxFit.cover,
         ),
       ),
     );
