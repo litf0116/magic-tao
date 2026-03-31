@@ -5,6 +5,7 @@ import '../../providers/chat_store.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/auction_provider.dart';
 import '../../../data/models/chat_message_model.dart';
+import '../../../data/models/auction_item_model.dart';
 import '../../widgets/chat/messages/message_widget.dart';
 import '../../widgets/chat/chat_input_area.dart';
 
@@ -735,7 +736,8 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                                 itemBuilder: (context, index) {
                                   final item = auctionState.auctionList[index];
                                   final isActive =
-                                      item.status?.name == 'auctioning';
+                                      item.status ==
+                                      AuctionStatusEnum.auctioning;
 
                                   return Card(
                                     margin: const EdgeInsets.symmetric(
