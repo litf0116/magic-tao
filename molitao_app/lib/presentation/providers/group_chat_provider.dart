@@ -116,33 +116,36 @@ class GroupChatNotifier extends StateNotifier<GroupChatState> {
   }
 
   void _handleIncomingMessage(Map<String, dynamic> message) {
-    final target = message['target'] as String?;
+    print('[GroupChat] 收到消息: $message');
 
-    if (target == 'ReceiveChannelMessage') {
-      final arguments = message['arguments'] as List<dynamic>?;
-      if (arguments != null && arguments.isNotEmpty) {
-        final msgData = arguments.first as Map<String, dynamic>;
-        final chatMessage = ChatMessage.fromJson(msgData);
-
-        // 检查消息是否属于当前频道
-        if (chatMessage.chan == _channel) {
-          _addMessage(chatMessage);
-        }
+    // 检查是否有 receipt（回执消息）
+    final receipt = message['receipt'] as String?;
+    if (receipt != null) {
+      if (receipt == '用户不在线') {
+        print('[GroupChat] 用户不在线');
+        return;
+      } else if (receipt == '发送成功') {
+        print('[GroupChat] 发送成功');
+        return;
       }
-    } else if (target == 'ReceiveMessage') {
-      // 处理接收到的消息（可能是系统消息）
-      final arguments = message['arguments'] as List<dynamic>?;
-      if (arguments != null && arguments.isNotEmpty) {
-        final msgData = arguments.first as Map<String, dynamic>;
-        final chatMessage = ChatMessage.fromJson(msgData);
+    }
 
-        // 处理特殊消息类型
-        if (chatMessage.type == ChatMessageType.welcome ||
-            chatMessage.type == ChatMessageType.banUser ||
-            chatMessage.type == ChatMessageType.backout) {
-          _addMessage(chatMessage);
-        }
+    // 解析消息（与 UniApp onmessage 保持一致）
+    final chatMessage = ChatMessage.fromJson(message);
+
+    // 处理群聊消息（有 chan 字段）
+    if (chatMessage.chan != null && chatMessage.chan!.isNotEmpty) {
+      // 检查消息是否属于当前频道
+      if (chatMessage.chan == _channel) {
+        _addMessage(chatMessage);
       }
+      return;
+    }
+
+    // 处理私聊消息（有 from 字段但没有 chan）
+    if (chatMessage.from != null && chatMessage.type != null) {
+      // 私聊消息不在群聊 provider 中处理
+      return;
     }
   }
 
