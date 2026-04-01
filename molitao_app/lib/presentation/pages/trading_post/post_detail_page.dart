@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_html/flutter_html.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import '../../providers/post_provider.dart';
 import '../../../data/models/post_model.dart';
 
@@ -257,24 +259,69 @@ class PostDetailPage extends ConsumerWidget {
           ),
         ],
       ),
-      child: GestureDetector(
-        onTap: () => _showImagePreview(context, post.content ?? ''),
-        child: _buildRichText(post.content ?? ''),
-      ),
+      child: _buildRichText(context, post.content ?? ''),
     );
   }
 
-  Widget _buildRichText(String content) {
-    // 简化处理：直接显示文本
-    // Flutter 没有内置的 HTML 渲染，需要使用 flutter_html 包
-    // 这里先做简单处理，提取纯文本显示
-    final textContent = _stripHtmlTags(content);
-    return Text(textContent, style: const TextStyle(fontSize: 15, height: 1.6));
+  Widget _buildRichText(BuildContext context, String content) {
+    return Html(
+      data: content,
+      style: {
+        "body": Style(
+          fontSize: FontSize(15),
+          lineHeight: LineHeight(1.6),
+          margin: Margins.zero,
+          padding: HtmlPaddings.zero,
+        ),
+        "p": Style(margin: Margins.only(bottom: 8)),
+        "img": Style(width: Width(double.infinity)),
+      },
+      onLinkTap: (url, attributes, element) {
+        if (url != null) {
+          _launchUrl(url);
+        }
+      },
+      extensions: [
+        TagExtension(
+          tagsToExtend: {"img"},
+          builder: (extensionContext) {
+            final src = extensionContext.attributes['src'];
+            if (src == null) return const SizedBox.shrink();
+
+            return GestureDetector(
+              onTap: () => _showImagePreview(context, src),
+              child: Container(
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    src,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      height: 200,
+                      color: Colors.grey[200],
+                      child: const Center(
+                        child: Icon(Icons.broken_image, color: Colors.grey),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
   }
 
-  String _stripHtmlTags(String html) {
-    final regExp = RegExp(r'<[^>]*>');
-    return html.replaceAll(regExp, ' ').replaceAll('&nbsp;', ' ');
+  void _launchUrl(String url) async {
+    try {
+      if (await canLaunchUrlString(url)) {
+        await launchUrlString(url);
+      }
+    } catch (e) {
+      debugPrint('Failed to launch URL: $e');
+    }
   }
 
   Widget _buildActionButtons(
@@ -384,15 +431,7 @@ class PostDetailPage extends ConsumerWidget {
     );
   }
 
-  void _showImagePreview(BuildContext context, String content) {
-    // 从 HTML 中提取图片 URL
-    final regExp = RegExp(r'<img.+?src="(.+?)".*?>');
-    final matches = regExp.allMatches(content);
-    final images = matches.map((m) => m.group(1)).whereType<String>().toList();
-
-    if (images.isEmpty) return;
-
-    // 显示图片预览
+  void _showImagePreview(BuildContext context, String imageUrl) {
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -401,16 +440,11 @@ class PostDetailPage extends ConsumerWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            PageView.builder(
-              itemCount: images.length,
-              itemBuilder: (context, index) {
-                return GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: InteractiveViewer(
-                    child: Image.network(images[index], fit: BoxFit.contain),
-                  ),
-                );
-              },
+            GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: InteractiveViewer(
+                child: Image.network(imageUrl, fit: BoxFit.contain),
+              ),
             ),
             Positioned(
               top: MediaQuery.of(context).padding.top + 8,
