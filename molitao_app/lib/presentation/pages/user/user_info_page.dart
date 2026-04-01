@@ -1,9 +1,12 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:molitao_app/presentation/providers/user_provider.dart';
 import 'package:molitao_app/data/repositories/user_repository.dart';
 import 'package:molitao_app/data/models/user_model.dart';
+import 'package:molitao_app/data/services/upload_service.dart';
 
 class UserInfoPage extends ConsumerStatefulWidget {
   const UserInfoPage({super.key});
@@ -17,10 +20,14 @@ class _UserInfoPageState extends ConsumerState<UserInfoPage> {
   final _nicknameController = TextEditingController();
   final _qqController = TextEditingController();
   final _wxController = TextEditingController();
+  final ImagePicker _picker = ImagePicker();
+  final UploadService _uploadService = UploadService();
 
   bool _isLoading = false;
   bool _isSaving = false;
+  bool _isUploading = false;
   String? _headImgUrl;
+  String? _tempAvatarPath;
 
   @override
   void initState() {
@@ -52,6 +59,64 @@ class _UserInfoPageState extends ConsumerState<UserInfoPage> {
       _showSnackBar('获取用户信息失败');
     } finally {
       setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _pickAvatar() async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 80,
+      );
+
+      if (image != null) {
+        setState(() {
+          _tempAvatarPath = image.path;
+          _isUploading = true;
+        });
+        await _uploadAvatar(image.path);
+      }
+    } catch (e) {
+      _showSnackBar('选择图片失败');
+      setState(() {
+        _tempAvatarPath = null;
+        _isUploading = false;
+      });
+    }
+  }
+
+  Future<void> _uploadAvatar(String filePath) async {
+    try {
+      final userState = ref.read(userProvider);
+      final userId = userState.user?.id?.toString();
+
+      final imageUrl = await _uploadService.uploadImage(
+        filePath,
+        userId: userId,
+      );
+
+      if (imageUrl != null) {
+        setState(() {
+          _headImgUrl = imageUrl;
+          _tempAvatarPath = null;
+          _isUploading = false;
+        });
+        _showSnackBar('头像上传成功');
+      } else {
+        setState(() {
+          _tempAvatarPath = null;
+          _isUploading = false;
+        });
+        _showSnackBar('头像上传失败');
+      }
+    } catch (e) {
+      setState(() {
+        _tempAvatarPath = null;
+        _isUploading = false;
+      });
+      _showSnackBar('头像上传失败');
     }
   }
 
@@ -92,19 +157,20 @@ class _UserInfoPageState extends ConsumerState<UserInfoPage> {
             .updateUser(
               currentUser.copyWith(
                 fullName: _nicknameController.text.trim(),
+                headImgUrl: _headImgUrl,
                 qq: _qqController.text.trim(),
                 wx: _wxController.text.trim(),
               ),
             );
         _showSnackBar('修改成功');
-        context.pop();
+        if (mounted) context.pop();
       } else {
         _showSnackBar('保存失败');
       }
     } catch (e) {
       _showSnackBar('保存失败');
     } finally {
-      setState(() => _isSaving = false);
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
@@ -160,34 +226,97 @@ class _UserInfoPageState extends ConsumerState<UserInfoPage> {
 
                     const SizedBox(height: 16),
 
-                    // 头像（只读展示）
+                    // 头像
                     _buildFormItem(
                       label: '头像',
-                      child: Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey[300]!),
-                        ),
-                        child: _headImgUrl != null && _headImgUrl!.isNotEmpty
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.network(
-                                  _headImgUrl!,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stack) =>
-                                      _buildAvatarPlaceholder(),
+                      child: GestureDetector(
+                        onTap: _isUploading ? null : _pickAvatar,
+                        child: Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey[300]!),
+                          ),
+                          child: _isUploading
+                              ? const Center(
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : _tempAvatarPath != null
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.file(
+                                    File(_tempAvatarPath!),
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                              : _headImgUrl != null && _headImgUrl!.isNotEmpty
+                              ? Stack(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.network(
+                                        _headImgUrl!,
+                                        fit: BoxFit.cover,
+                                        width: 100,
+                                        height: 100,
+                                        errorBuilder: (context, error, stack) =>
+                                            _buildAvatarPlaceholder(),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      right: 4,
+                                      bottom: 4,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(4),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black54,
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          Icons.camera_alt,
+                                          size: 16,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : Stack(
+                                  children: [
+                                    _buildAvatarPlaceholder(),
+                                    Positioned(
+                                      right: 4,
+                                      bottom: 4,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(4),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black54,
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          Icons.add,
+                                          size: 16,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              )
-                            : _buildAvatarPlaceholder(),
+                        ),
                       ),
                     ),
                     Padding(
                       padding: const EdgeInsets.only(top: 8),
                       child: Text(
-                        '头像暂时无法修改',
+                        '点击头像${_headImgUrl != null && _headImgUrl!.isNotEmpty ? '重新上传' : '上传'}',
                         style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       ),
                     ),
@@ -259,7 +388,9 @@ class _UserInfoPageState extends ConsumerState<UserInfoPage> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _isSaving ? null : _saveUserInfo,
+                        onPressed: _isSaving || _isUploading
+                            ? null
+                            : _saveUserInfo,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xfff4835a),
                           foregroundColor: Colors.white,
