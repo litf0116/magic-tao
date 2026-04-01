@@ -30,7 +30,7 @@
         <activity
             android:name=".WXEntryActivity"
             android:exported="true"
-            android:theme="@android:style/Translucent">
+            android:theme="@style/LaunchTheme">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
