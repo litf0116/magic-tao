@@ -57,7 +57,14 @@ class _HomePageState extends ConsumerState<HomePage> {
         margin: const EdgeInsets.symmetric(horizontal: 3),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), spreadRadius: 1, blurRadius: 5, offset: const Offset(0, 2))],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 5,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Stack(
           fit: StackFit.expand,
@@ -67,8 +74,14 @@ class _HomePageState extends ConsumerState<HomePage> {
               child: CachedNetworkImage(
                 imageUrl: ImageUrlConverter.convert(item.imageUrl),
                 fit: BoxFit.cover,
-                placeholder: (context, url) => Container(color: Colors.grey[200], child: const Icon(Icons.image, size: 30)),
-                errorWidget: (context, url, error) => Container(color: Colors.grey[200], child: const Icon(Icons.broken_image, size: 30)),
+                placeholder: (context, url) => Container(
+                  color: Colors.grey[200],
+                  child: const Icon(Icons.image, size: 30),
+                ),
+                errorWidget: (context, url, error) => Container(
+                  color: Colors.grey[200],
+                  child: const Icon(Icons.broken_image, size: 30),
+                ),
               ),
             ),
             Positioned(
@@ -82,7 +95,13 @@ class _HomePageState extends ConsumerState<HomePage> {
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
-                  shadows: [Shadow(color: Colors.black54, offset: Offset(1, 1), blurRadius: 2)],
+                  shadows: [
+                    Shadow(
+                      color: Colors.black54,
+                      offset: Offset(1, 1),
+                      blurRadius: 2,
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -107,7 +126,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: NetworkImage('https://image.molitao.top/20250330/097jzbhb3jq364wcrsyjw61qb0bj9xob.png'),
+            image: AssetImage('assets/images/local/banner_1.png'),
             fit: BoxFit.cover,
             alignment: Alignment.topCenter,
           ),
@@ -126,7 +145,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                       width: double.infinity,
                       decoration: const BoxDecoration(
                         image: DecorationImage(
-                          image: NetworkImage('https://image.molitao.top/20250330/04j40l4ynlbh3v3h4bgfe7j2pxiqjg8d.png'),
+                          image: AssetImage('assets/images/local/banner_2.png'),
                           fit: BoxFit.cover,
                           alignment: Alignment(0, -0.3), // 向上偏移
                         ),
@@ -139,19 +158,11 @@ class _HomePageState extends ConsumerState<HomePage> {
                       child: Center(
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(10),
-                          child: CachedNetworkImage(
-                            imageUrl: 'https://image.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png',
+                          child: Image.asset(
+                            'assets/images/local/banner_3.png',
                             width: 231,
                             height: 106,
                             fit: BoxFit.contain,
-                            placeholder: (context, url) =>
-                                Container(width: 231, height: 106, color: Colors.grey[200], child: const Icon(Icons.image, size: 30)),
-                            errorWidget: (context, url, error) => Container(
-                              width: 231,
-                              height: 106,
-                              color: Colors.grey[200],
-                              child: const Icon(Icons.broken_image, size: 30),
-                            ),
                           ),
                         ),
                       ),
@@ -166,7 +177,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     width: MediaQuery.of(context).size.width * 0.9,
                     decoration: const BoxDecoration(
                       image: DecorationImage(
-                        image: NetworkImage('https://image.molitao.top/molitao/2025-03-30/upload_qxgt8fo3iymdi0heth3rnqipc83rzawn.png'),
+                        image: AssetImage('assets/images/local/logo.png'),
                         fit: BoxFit.fill,
                         repeat: ImageRepeat.repeatY,
                       ),
@@ -180,7 +191,11 @@ class _HomePageState extends ConsumerState<HomePage> {
                           onTap: () => context.go('/trading-post'),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(8),
-                            child: Image.asset('assets/images/jyz.png', height: 135, fit: BoxFit.cover),
+                            child: Image.asset(
+                              'assets/images/jyz.png',
+                              height: 135,
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -189,29 +204,47 @@ class _HomePageState extends ConsumerState<HomePage> {
                           onTap: () => context.push('/chat/auction'),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(8),
-                            child: Image.asset('assets/images/pmh.png', height: 135, fit: BoxFit.cover),
+                            child: Image.asset(
+                              'assets/images/pmh.png',
+                              height: 135,
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 8),
 
                         // Article swiper
-                        if (homeState.articles.isNotEmpty) _ArticleSwiper(articles: homeState.articles),
+                        if (homeState.articles.isNotEmpty)
+                          _ArticleSwiper(articles: homeState.articles),
 
                         // Advertising space grid
                         if (homeState.advertisingSpaces.isNotEmpty)
                           Container(
                             margin: const EdgeInsets.symmetric(vertical: 8),
-                            child: Column(children: _buildAdRows(homeState.advertisingSpaces)),
+                            child: Column(
+                              children: _buildAdRows(
+                                homeState.advertisingSpaces,
+                              ),
+                            ),
                           ),
 
-                        if (homeState.advertisingSpaces.isEmpty && !homeState.isLoading)
+                        if (homeState.advertisingSpaces.isEmpty &&
+                            !homeState.isLoading)
                           Container(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             alignment: Alignment.center,
-                            child: const Text('暂无广告位信息', style: TextStyle(color: Colors.grey, fontSize: 14)),
+                            child: const Text(
+                              '暂无广告位信息',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 14,
+                              ),
+                            ),
                           ),
 
-                        if (homeState.isLoading && homeState.articles.isEmpty && homeState.advertisingSpaces.isEmpty)
+                        if (homeState.isLoading &&
+                            homeState.articles.isEmpty &&
+                            homeState.advertisingSpaces.isEmpty)
                           const Padding(
                             padding: EdgeInsets.all(16),
                             child: Center(child: CircularProgressIndicator()),
@@ -220,7 +253,13 @@ class _HomePageState extends ConsumerState<HomePage> {
                         if (homeState.errorMessage != null)
                           Container(
                             padding: const EdgeInsets.all(16),
-                            child: Text('加载失败: ${homeState.errorMessage}', style: const TextStyle(color: Colors.red, fontSize: 14)),
+                            child: Text(
+                              '加载失败: ${homeState.errorMessage}',
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontSize: 14,
+                              ),
+                            ),
                           ),
                       ],
                     ),
@@ -270,7 +309,11 @@ class _ArticleSwiperState extends State<_ArticleSwiper> {
     _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
       if (widget.articles.isNotEmpty) {
         final nextPage = (_currentPage + 1) % widget.articles.length;
-        _pageController.animateToPage(nextPage, duration: const Duration(milliseconds: 350), curve: Curves.easeIn);
+        _pageController.animateToPage(
+          nextPage,
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeIn,
+        );
       }
     });
   }
@@ -297,16 +340,28 @@ class _ArticleSwiperState extends State<_ArticleSwiper> {
                 margin: const EdgeInsets.symmetric(horizontal: 4),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), spreadRadius: 1, blurRadius: 5, offset: const Offset(0, 2))],
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      spreadRadius: 1,
+                      blurRadius: 5,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: CachedNetworkImage(
                     imageUrl: ImageUrlConverter.convert(article.titleImageUrl),
                     fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(color: Colors.grey[200], child: const Icon(Icons.image, size: 30)),
-                    errorWidget: (context, url, error) =>
-                        Container(color: Colors.grey[200], child: const Icon(Icons.broken_image, size: 30)),
+                    placeholder: (context, url) => Container(
+                      color: Colors.grey[200],
+                      child: const Icon(Icons.image, size: 30),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      color: Colors.grey[200],
+                      child: const Icon(Icons.broken_image, size: 30),
+                    ),
                   ),
                 ),
               );
@@ -325,7 +380,9 @@ class _ArticleSwiperState extends State<_ArticleSwiper> {
                   margin: const EdgeInsets.symmetric(horizontal: 2),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(2),
-                    color: _currentPage == index ? Colors.white : Colors.white.withOpacity(0.5),
+                    color: _currentPage == index
+                        ? Colors.white
+                        : Colors.white.withOpacity(0.5),
                   ),
                 ),
               ),
