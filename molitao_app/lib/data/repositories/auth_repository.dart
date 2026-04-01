@@ -132,15 +132,37 @@ class AuthRepository {
       if (response.data != null) {
         final data = response.data as Map<String, dynamic>;
         final accessToken = data['accessToken'] as String?;
-        final user = data['user'] != null
-            ? UserDto.fromJson(data['user'] as Map<String, dynamic>)
-            : null;
 
+        // 保存 token
         if (accessToken != null) {
           await _storageService.setToken(accessToken);
         }
 
-        return LoginResult(accessToken: accessToken, user: user);
+        // 获取用户信息（参考账号密码登录流程）
+        UserDto? user;
+        List<String>? roles;
+        if (accessToken != null) {
+          try {
+            _debugLog('[AuthRepository] 微信登录成功，开始获取用户信息...');
+            final userInfo = await getCurrentLoginInformations();
+            _debugLog('[AuthRepository] 用户信息响应: $userInfo');
+            if (userInfo != null) {
+              user = userInfo['user'] != null
+                  ? UserDto.fromJson(userInfo['user'] as Map<String, dynamic>)
+                  : null;
+              roles = (userInfo['roles'] as List<dynamic>?)
+                  ?.map((e) => e.toString())
+                  .toList();
+              _debugLog(
+                '[AuthRepository] 解析后 user: id=${user?.id}, userName=${user?.userName}, fullName=${user?.fullName}',
+              );
+            }
+          } catch (e) {
+            _debugLog('[AuthRepository] 获取用户信息失败: $e');
+          }
+        }
+
+        return LoginResult(accessToken: accessToken, user: user, roles: roles);
       }
       return const LoginResult();
     } on DioException catch (e) {
