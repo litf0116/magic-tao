@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../data/models/auction_item_model.dart';
 import '../../../data/models/chat_message_model.dart';
+import '../../../data/services/upload_service.dart';
 import '../../providers/auction_provider.dart';
 import '../../providers/chat_store.dart';
 import '../../providers/user_provider.dart';
@@ -24,10 +25,12 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
     with TickerProviderStateMixin {
   final ScrollController _scrollController = ScrollController();
   final ImagePicker _imagePicker = ImagePicker();
+  final UploadService _uploadService = UploadService();
 
   // UI 状态
   bool _showAuctionList = false;
   bool _showUnreadNotification = false;
+  bool _isUploadingImage = false;
 
   // 动画控制器
   late AnimationController _auctionListAnimationController;
@@ -151,21 +154,55 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
       );
 
       if (image != null) {
-        // TODO: 上传图片后发送
-        await ref
-            .read(chatStoreProvider.notifier)
-            .sendChannelMsg(
-              channel: _channel,
-              message: image.path,
-              type: ChatMessageType.image,
-            );
-        _scrollToBottom();
+        // 获取当前用户 ID
+        final userId = _getCurrentUserId();
+
+        // 显示上传中状态
+        setState(() {
+          _isUploadingImage = true;
+        });
+
+        try {
+          // 上传图片
+          final imageUrl = await _uploadService.uploadImage(
+            image.path,
+            userId: userId?.toString(),
+          );
+
+          if (imageUrl != null) {
+            // 发送图片 URL
+            await ref
+                .read(chatStoreProvider.notifier)
+                .sendChannelMsg(
+                  channel: _channel,
+                  message: imageUrl,
+                  type: ChatMessageType.image,
+                );
+            _scrollToBottom();
+          } else {
+            if (mounted) {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('图片上传失败，请重试')));
+            }
+          }
+        } finally {
+          // 恢复上传状态
+          if (mounted) {
+            setState(() {
+              _isUploadingImage = false;
+            });
+          }
+        }
       }
     } catch (e) {
       if (mounted) {
+        setState(() {
+          _isUploadingImage = false;
+        });
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('选择图片失败: $e')));
+        ).showSnackBar(SnackBar(content: Text('选择图片失败：$e')));
       }
     }
   }

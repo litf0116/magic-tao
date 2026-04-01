@@ -259,7 +259,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     children: [
                       _buildSectionItem('出价中秒杀', Icons.payment),
                       _buildSectionItem('待收货', Icons.local_shipping_outlined),
-                      _buildSectionItem('已成交', Icons.receipt_long),
+                      _buildSectionItem(
+                        '已成交',
+                        Icons.receipt_long,
+                        onTap: () =>
+                            context.push('/profile/auction-success-list'),
+                      ),
                     ],
                   ),
                 ),

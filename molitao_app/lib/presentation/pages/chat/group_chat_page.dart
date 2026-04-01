@@ -77,6 +77,45 @@ class _GroupChatPageState extends ConsumerState<GroupChatPage> {
     }
   }
 
+  void _showMemberList() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (BuildContext context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                '群成员',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                '暂无成员信息',
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
       // 等待下一帧渲染完成后再滚动，确保消息已添加到列表
@@ -134,7 +173,6 @@ class _GroupChatPageState extends ConsumerState<GroupChatPage> {
   @override
   Widget build(BuildContext context) {
     final messages = ref.watch(currentChatMessagesProvider);
-    final chatState = ref.watch(chatStoreProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -144,9 +182,7 @@ class _GroupChatPageState extends ConsumerState<GroupChatPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.people),
-            onPressed: () {
-              // TODO: 显示群成员列表
-            },
+            onPressed: _showMemberList,
           ),
           IconButton(
             icon: const Icon(Icons.more_vert),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../data/repositories/post_repository.dart';
+import '../../../data/services/upload_service.dart';
 
 /// 发布/编辑帖子页面
 class AddPostPage extends ConsumerStatefulWidget {
@@ -20,8 +21,10 @@ class _AddPostPageState extends ConsumerState<AddPostPage> {
   final _wechatController = TextEditingController();
   final _qqController = TextEditingController();
   final ImagePicker _imagePicker = ImagePicker();
+  final UploadService _uploadService = UploadService();
 
   bool _isLoading = false;
+  bool _isUploadingImage = false;
   bool _isEditing = false;
   List<String> _selectedCategories = [];
 
@@ -90,15 +93,46 @@ class _AddPostPageState extends ConsumerState<AddPostPage> {
       );
 
       if (image != null) {
-        // TODO: 上传图片并插入到内容中
-        final imageHtml = '<img src="${image.path}" />';
-        _contentController.text += imageHtml;
+        // 上传图片
+        setState(() => _isUploadingImage = true);
+
+        try {
+          final imageUrl = await _uploadService.uploadImage(image.path);
+
+          if (imageUrl != null) {
+            // 插入图片 HTML 到内容中
+            final imageHtml = '<img src="$imageUrl" />';
+            _contentController.text += imageHtml;
+
+            if (mounted) {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('图片上传成功')));
+            }
+          } else {
+            if (mounted) {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('图片上传失败，请重试')));
+            }
+          }
+        } catch (uploadError) {
+          if (mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('图片上传失败：$uploadError')));
+          }
+        } finally {
+          if (mounted) {
+            setState(() => _isUploadingImage = false);
+          }
+        }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('选择图片失败: $e')));
+        ).showSnackBar(SnackBar(content: Text('选择图片失败：$e')));
       }
     }
   }
@@ -207,11 +241,20 @@ class _AddPostPageState extends ConsumerState<AddPostPage> {
               labelText: '内容',
               hintText: '请输入内容',
               border: const OutlineInputBorder(),
-              suffixIcon: IconButton(
-                icon: const Icon(Icons.image),
-                onPressed: _pickImage,
-                tooltip: '插入图片',
-              ),
+              suffixIcon: _isUploadingImage
+                  ? const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  : IconButton(
+                      icon: const Icon(Icons.image),
+                      onPressed: _pickImage,
+                      tooltip: '插入图片',
+                    ),
             ),
             maxLines: 8,
             maxLength: 5000,

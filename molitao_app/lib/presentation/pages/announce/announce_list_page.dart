@@ -90,7 +90,50 @@ class AnnounceListPage extends ConsumerWidget {
                             announce.imageUrl!.isNotEmpty)
                           GestureDetector(
                             onTap: () {
-                              // TODO: 图片预览
+                              showDialog(
+                                context: context,
+                                builder: (context) => Dialog(
+                                  backgroundColor: Colors.black,
+                                  child: Stack(
+                                    children: [
+                                      InteractiveViewer(
+                                        panEnabled: true,
+                                        boundaryMargin: const EdgeInsets.all(
+                                          20,
+                                        ),
+                                        minScale: 0.5,
+                                        maxScale: 4.0,
+                                        child: Image.network(
+                                          announce.imageUrl!,
+                                          fit: BoxFit.contain,
+                                          errorBuilder:
+                                              (context, error, stackTrace) =>
+                                                  const Center(
+                                                    child: Icon(
+                                                      Icons.broken_image,
+                                                      color: Colors.white,
+                                                      size: 64,
+                                                    ),
+                                                  ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: 10,
+                                        right: 10,
+                                        child: IconButton(
+                                          icon: const Icon(
+                                            Icons.close,
+                                            color: Colors.white,
+                                            size: 28,
+                                          ),
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
                             },
                             child: Container(
                               width: 80,

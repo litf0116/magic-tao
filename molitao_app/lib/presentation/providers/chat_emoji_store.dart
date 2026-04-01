@@ -168,14 +168,7 @@ class ChatEmojiState {
     '[龇牙]': 'emoji_141@2x.png',
   };
 
-  /// 用户收藏的表情
-  final List<ChatEmojiDto> userEmoji;
-
-  const ChatEmojiState({this.userEmoji = const []});
-
-  ChatEmojiState copyWith({List<ChatEmojiDto>? userEmoji}) {
-    return ChatEmojiState(userEmoji: userEmoji ?? this.userEmoji);
-  }
+  const ChatEmojiState();
 
   /// 获取表情图片完整 URL
   String? getEmojiUrl(String code) {
@@ -252,36 +245,7 @@ class EmojiTextSegment {
   });
 }
 
-/// 表情 Store Notifier
-class ChatEmojiNotifier extends StateNotifier<ChatEmojiState> {
-  final Ref _ref;
-
-  ChatEmojiNotifier(this._ref) : super(const ChatEmojiState());
-
-  /// 加载用户收藏表情
-  Future<void> fetchUserEmoji() async {
-    // TODO: 调用 API 获取用户收藏的表情
-    // final response = await api.chatEmoji.getAll();
-    // state = state.copyWith(userEmoji: response.items);
-  }
-
-  /// 添加表情到收藏
-  Future<void> addToEmoji(String url) async {
-    // TODO: 调用 API 添加表情
-    // await api.chatEmoji.create({ url: url });
-    // await fetchUserEmoji();
-  }
-
-  /// 删除收藏表情
-  Future<void> removeEmoji(int id) async {
-    // TODO: 调用 API 删除表情
-    // await api.chatEmoji.delete(id);
-    // await fetchUserEmoji();
-  }
-}
-
-/// 表情 Store Provider
-final chatEmojiStoreProvider =
-    StateNotifierProvider<ChatEmojiNotifier, ChatEmojiState>((ref) {
-      return ChatEmojiNotifier(ref);
-    });
+/// 表情 Store Provider - 简化版本，不包含收藏功能
+final chatEmojiStoreProvider = Provider<ChatEmojiState>((ref) {
+  return const ChatEmojiState();
+});

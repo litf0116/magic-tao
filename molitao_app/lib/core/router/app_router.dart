@@ -14,9 +14,10 @@ import '../../presentation/pages/profile/profile_page.dart';
 import '../../presentation/pages/user/deposit_log_page.dart';
 import '../../presentation/pages/user/user_info_page.dart';
 import '../../presentation/pages/user/balance_log_page.dart';
+import '../../presentation/pages/user/auction_success_list_page.dart';
 import '../../presentation/pages/announce/announce_list_page.dart';
 import '../../presentation/pages/auth/login_page.dart';
-import '../../presentation/pages/auction/auction_page.dart';
+
 import '../../presentation/providers/auth_notifier.dart';
 
 /// 需要登录才能访问的路由
@@ -153,16 +154,16 @@ GoRouter _createRouter(AuthNotifier authNotifier) {
                       );
                     },
                   ),
+                  GoRoute(
+                    path: 'auction-success-list',
+                    name: 'auction-success-list',
+                    builder: (context, state) => const AuctionSuccessListPage(),
+                  ),
                 ],
               ),
             ],
           ),
         ],
-      ),
-      GoRoute(
-        path: '/auction',
-        name: 'auction',
-        builder: (context, state) => const AuctionPage(),
       ),
       // 聊天详情路由
       GoRoute(
