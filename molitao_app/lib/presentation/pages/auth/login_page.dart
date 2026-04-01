@@ -144,7 +144,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         if (response is WeChatAuthResponse) {
           print('[WeChatLogin] - code: ${response.code}');
           print('[WeChatLogin] - isSuccessful: ${response.isSuccessful}');
+
           if (response.isSuccessful && response.code != null) {
+            print('[WeChatLogin] 准备发送授权码到后端: ${response.code}');
             try {
               // 微信 App 登录
               final result = await _authRepository.weixinAppLogin(
