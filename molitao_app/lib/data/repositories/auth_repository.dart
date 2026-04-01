@@ -113,9 +113,18 @@ class AuthRepository {
   /// 微信 App 登录
   Future<LoginResult> weixinAppLogin(String code) async {
     try {
+      _debugLog('[AuthRepository] ===== 微信App登录请求 =====');
+      _debugLog('[AuthRepository] authCode: $code');
+      _debugLog(
+        '[AuthRepository] endpoint: ${ApiEndpoints.authenticateWeixinApp}',
+      );
+
       final response = await _apiClient.dio.post(
         ApiEndpoints.authenticateWeixinApp,
-        data: {'code': code},
+        data: {
+          'authCode': code, // ✅ 修复：使用 authCode 而不是 code
+          'platform': 'android', // 平台标识
+        },
       );
 
       _debugLog('[AuthRepository] 微信App登录响应: ${jsonEncode(response.data)}');
