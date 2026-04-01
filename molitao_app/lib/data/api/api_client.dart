@@ -11,7 +11,7 @@ class ApiClient {
   ApiClient._internal() {
     final baseUrl = String.fromEnvironment(
       'API_BASE_URL',
-      defaultValue: 'https://www.molitao.top',
+      defaultValue: 'http://192.168.2.125:12580',
     );
 
     _dio = Dio(

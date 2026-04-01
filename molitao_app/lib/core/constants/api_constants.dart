@@ -1,6 +1,6 @@
 class ApiConstants {
   // Base URL
-  static const String baseUrl = 'https://www.molitao.top';
+  static const String baseUrl = 'http://192.168.2.125:12580';
 
   // Headers
   static const String tenantHeader = 'Abp.Tenantid';
