@@ -136,7 +136,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       subscriber = (WeChatResponse response) async {
         _wechatService.removeSubscriber(subscriber);
 
+        print('[WeChatLogin] Response received:');
+        print('[WeChatLogin] - type: ${response.runtimeType}');
+        print('[WeChatLogin] - errCode: ${response.errCode}');
+        print('[WeChatLogin] - errStr: ${response.errStr}');
+
         if (response is WeChatAuthResponse) {
+          print('[WeChatLogin] - code: ${response.code}');
+          print('[WeChatLogin] - isSuccessful: ${response.isSuccessful}');
           if (response.isSuccessful && response.code != null) {
             try {
               // 微信 App 登录
