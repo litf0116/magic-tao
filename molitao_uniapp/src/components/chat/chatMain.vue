@@ -610,7 +610,28 @@ function showOtherTypesMessagePanel() {
 function sendImageMessage2() {
     upload(1).then((res) => {
         // console.log('sendImageMessage2', res)
-        emit('onSend', { type: ChatMessageType.Image, data: res })
+        // 获取图片尺寸信息并附加到 payload
+        const imageUrl = res.url
+        if (imageUrl) {
+            const fullUrl = imageUrl.startsWith('http')
+                ? imageUrl
+                : `${import.meta.env.VITE_APP_UPYUN_IMG_URL}${imageUrl}`
+            uni.getImageInfo({
+                src: fullUrl,
+                success: (info) => {
+                    emit('onSend', {
+                        type: ChatMessageType.Image,
+                        data: { ...res, width: info.width, height: info.height },
+                    })
+                },
+                fail: () => {
+                    // 获取尺寸失败时仍然发送，使用默认尺寸
+                    emit('onSend', { type: ChatMessageType.Image, data: res })
+                },
+            })
+        } else {
+            emit('onSend', { type: ChatMessageType.Image, data: res })
+        }
         otherTypesMessagePanelVisible.value = false
     })
 }

@@ -8,7 +8,7 @@ import 'package:web_socket_channel/status.dart' as status;
 /// 与 UniApp 实现保持一致，使用 /ws/pre-connect 端点
 class WebSocketService {
   // HTTP 基础 URL
-  static const String _httpBaseUrl = 'http://192.168.10.35:12580';
+  static const String _httpBaseUrl = 'http://192.168.2.125:12580';
 
   // 重连延迟（秒）
   static const int _reconnectDelaySeconds = 5;
