@@ -454,9 +454,12 @@ class ChatStore extends StateNotifier<ChatState> {
         );
         final existing = updatedChatMap[key] ?? [];
 
+        // 后端返回 OrderByDescending (最新在前)，转为 ASC (最老在前，最新在底)
+        final reversedResult = result.reversed.toList();
+
         if (existing.isNotEmpty && !reload) {
           // 合并历史消息
-          final merged = [...result, ...existing];
+          final merged = [...reversedResult, ...existing];
           // 去重并按时间排序
           final uniqueMap = <String, ChatMessage>{};
           for (final msg in merged) {
@@ -468,7 +471,7 @@ class ChatStore extends StateNotifier<ChatState> {
             ..sort((a, b) => (a.time ?? 0).compareTo(b.time ?? 0));
           updatedChatMap[key] = sorted;
         } else {
-          updatedChatMap[key] = result;
+          updatedChatMap[key] = reversedResult;
         }
 
         state = state.copyWith(chatMap: updatedChatMap);
@@ -509,8 +512,11 @@ class ChatStore extends StateNotifier<ChatState> {
         );
         final existing = updatedChatMap[key] ?? [];
 
+        // 后端返回 OrderByDescending (最新在前)，转为 ASC (最老在前，最新在底)
+        final reversedResult = result.reversed.toList();
+
         if (existing.isNotEmpty && !reload) {
-          final merged = [...result, ...existing];
+          final merged = [...reversedResult, ...existing];
           final uniqueMap = <String, ChatMessage>{};
           for (final msg in merged) {
             if (msg.id != null) {
@@ -521,7 +527,7 @@ class ChatStore extends StateNotifier<ChatState> {
             ..sort((a, b) => (a.time ?? 0).compareTo(b.time ?? 0));
           updatedChatMap[key] = sorted;
         } else {
-          updatedChatMap[key] = result;
+          updatedChatMap[key] = reversedResult;
         }
 
         state = state.copyWith(chatMap: updatedChatMap);

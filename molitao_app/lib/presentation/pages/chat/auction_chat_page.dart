@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -32,6 +33,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   bool _showAuctionList = false;
   bool _showUnreadNotification = false;
   bool _isUploadingImage = false;
+  bool _isLoadingMessages = false;
 
   // 动画控制器
   late AnimationController _auctionListAnimationController;
@@ -90,7 +92,9 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
       await ref.read(chatStoreProvider.notifier).joinChannel(_channel);
 
       // 加载历史消息
+      setState(() => _isLoadingMessages = true);
       await ref.read(chatStoreProvider.notifier).getGroupHistory(_channel);
+      setState(() => _isLoadingMessages = false);
 
       // 滚动到底部
       _scrollToBottom();
@@ -125,14 +129,18 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         // 第二次: rebuild 后的下一帧，列表已渲染完毕
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (_scrollController.hasClients &&
-              _scrollController.position.maxScrollExtent > 0) {
-            _scrollController.animateTo(
-              _scrollController.position.maxScrollExtent,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOut,
-            );
-          }
+          // 再延迟确保列表尺寸计算完毕
+          Future.delayed(const Duration(milliseconds: 50), () {
+            if (_scrollController.hasClients) {
+              final extent = _scrollController.position.maxScrollExtent;
+              print('[AuctionChat] 滚动到底部: maxScrollExtent=$extent');
+              _scrollController.animateTo(
+                extent,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+              );
+            }
+          });
         });
       });
     }
@@ -349,7 +357,41 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
           if (_showAuctionList) _buildAuctionListPanel(auctionState),
           // 加载遮罩
           if (_isUploadingImage) _buildLoadingOverlay(),
+          if (_isLoadingMessages) _buildMessageLoadingOverlay(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMessageLoadingOverlay() {
+    return Container(
+      color: Colors.black.withOpacity(0.3),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(
+                width: 32,
+                height: 32,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFF4835A)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                '正在加载消息...',
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
