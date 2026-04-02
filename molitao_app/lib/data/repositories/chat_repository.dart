@@ -14,6 +14,7 @@ class ChatRepository {
     int? from,
     String? fromName,
     String? avatar,
+    Map<String, dynamic>? payload,
   }) async {
     try {
       // 构建 ChatMessage 对象，与 UniApp 保持一致
@@ -24,7 +25,7 @@ class ChatRepository {
         'fromName': fromName,
         'avatar': avatar,
         'msg': message,
-        'payload': null,
+        'payload': payload,
       };
 
       await _apiClient.dio.post(
@@ -44,6 +45,7 @@ class ChatRepository {
     int? from,
     String? fromName,
     String? avatar,
+    Map<String, dynamic>? payload,
   }) async {
     try {
       // 构建 ChatMessage 对象，与 UniApp 保持一致
@@ -54,7 +56,7 @@ class ChatRepository {
         'fromName': fromName,
         'avatar': avatar,
         'msg': message,
-        'payload': null,
+        'payload': payload,
       };
 
       await _apiClient.dio.post(

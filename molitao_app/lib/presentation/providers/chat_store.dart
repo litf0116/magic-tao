@@ -378,7 +378,7 @@ class ChatStore extends StateNotifier<ChatState> {
     required String channel,
     required String message,
     ChatMessageType type = ChatMessageType.text,
-    dynamic payload,
+    Map<String, dynamic>? payload,
   }) async {
     try {
       // 获取当前用户信息
@@ -392,6 +392,7 @@ class ChatStore extends StateNotifier<ChatState> {
         from: user?.id?.toInt() ?? state.websocketId,
         fromName: user?.fullName ?? user?.userName,
         avatar: user?.headImgUrl,
+        payload: payload,
       );
       return true;
     } catch (e) {
@@ -405,7 +406,7 @@ class ChatStore extends StateNotifier<ChatState> {
     required int toUserId,
     required String message,
     ChatMessageType type = ChatMessageType.text,
-    dynamic payload,
+    Map<String, dynamic>? payload,
   }) async {
     try {
       // 获取当前用户信息
@@ -419,6 +420,7 @@ class ChatStore extends StateNotifier<ChatState> {
         from: user?.id?.toInt() ?? state.websocketId,
         fromName: user?.fullName ?? user?.userName,
         avatar: user?.headImgUrl,
+        payload: payload,
       );
       return true;
     } catch (e) {

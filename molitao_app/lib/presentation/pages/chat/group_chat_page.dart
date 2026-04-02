@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../providers/chat_store.dart';
 import '../../providers/user_provider.dart';
 import '../../../data/models/chat_message_model.dart';
+import '../../../data/services/upload_service.dart';
 import '../../widgets/chat/messages/message_widget.dart';
 import '../../widgets/chat/chat_input_area.dart';
 
@@ -28,6 +30,8 @@ class GroupChatPage extends ConsumerStatefulWidget {
 class _GroupChatPageState extends ConsumerState<GroupChatPage> {
   final ScrollController _scrollController = ScrollController();
   final ImagePicker _imagePicker = ImagePicker();
+  final UploadService _uploadService = UploadService();
+  bool _isUploadingImage = false;
 
   @override
   void initState() {
@@ -118,15 +122,19 @@ class _GroupChatPageState extends ConsumerState<GroupChatPage> {
 
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
-      // 等待下一帧渲染完成后再滚动，确保消息已添加到列表
+      // 第一次: 确保 UI rebuild 完成
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_scrollController.hasClients) {
-          _scrollController.animateTo(
-            _scrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-          );
-        }
+        // 第二次: rebuild 后的下一帧，列表已渲染完毕
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_scrollController.hasClients &&
+              _scrollController.position.maxScrollExtent > 0) {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          }
+        });
       });
     }
   }
@@ -152,17 +160,64 @@ class _GroupChatPageState extends ConsumerState<GroupChatPage> {
       );
 
       if (image != null) {
-        await ref
-            .read(chatStoreProvider.notifier)
-            .sendChannelMsg(
-              channel: widget.channel,
-              message: image.path,
-              type: ChatMessageType.image,
-            );
-        _scrollToBottom();
+        // 获取当前用户 ID
+        final userState = ref.read(userProvider);
+        final userId = userState.user?.id;
+
+        // 显示上传中状态
+        setState(() {
+          _isUploadingImage = true;
+        });
+
+        try {
+          // 上传图片
+          final imageUrl = await _uploadService.uploadImage(
+            image.path,
+            userId: userId?.toString(),
+          );
+
+          if (imageUrl != null) {
+            // 获取图片尺寸
+            final file = File(image.path);
+            final bytes = await file.readAsBytes();
+            final decodedImage = await decodeImageFromList(bytes);
+            final width = decodedImage.width;
+            final height = decodedImage.height;
+
+            // 构建 payload，与 UniApp 保持一致
+            final payload = {'url': imageUrl, 'width': width, 'height': height};
+
+            // 发送图片消息
+            await ref
+                .read(chatStoreProvider.notifier)
+                .sendChannelMsg(
+                  channel: widget.channel,
+                  message: imageUrl,
+                  type: ChatMessageType.image,
+                  payload: payload,
+                );
+            _scrollToBottom();
+          } else {
+            if (mounted) {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('图片上传失败，请重试')));
+            }
+          }
+        } finally {
+          // 恢复上传状态
+          if (mounted) {
+            setState(() {
+              _isUploadingImage = false;
+            });
+          }
+        }
       }
     } catch (e) {
       if (mounted) {
+        setState(() {
+          _isUploadingImage = false;
+        });
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('选择图片失败: $e')));
@@ -192,18 +247,60 @@ class _GroupChatPageState extends ConsumerState<GroupChatPage> {
           ),
         ],
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: Container(
-              color: const Color(0xFFFAF1F0),
-              child: messages.isEmpty
-                  ? _buildEmptyState()
-                  : _buildMessageList(messages),
-            ),
+          Column(
+            children: [
+              Expanded(
+                child: Container(
+                  color: const Color(0xFFFAF1F0),
+                  child: messages.isEmpty
+                      ? _buildEmptyState()
+                      : _buildMessageList(messages),
+                ),
+              ),
+              ChatInputArea(
+                onSendText: _onSendText,
+                onSelectImage: _onPickImage,
+              ),
+            ],
           ),
-          ChatInputArea(onSendText: _onSendText, onSelectImage: _onPickImage),
+          // 加载遮罩
+          if (_isUploadingImage) _buildLoadingOverlay(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingOverlay() {
+    return Container(
+      color: Colors.black.withOpacity(0.3),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(
+                width: 32,
+                height: 32,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFF4835A)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                '正在发送图片...',
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

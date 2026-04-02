@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -120,15 +121,19 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
 
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
-      // 等待下一帧渲染完成后再滚动，确保消息已添加到列表
+      // 第一次: 确保 UI rebuild 完成
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_scrollController.hasClients) {
-          _scrollController.animateTo(
-            _scrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-          );
-        }
+        // 第二次: rebuild 后的下一帧，列表已渲染完毕
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_scrollController.hasClients &&
+              _scrollController.position.maxScrollExtent > 0) {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          }
+        });
       });
     }
   }
@@ -170,13 +175,24 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
           );
 
           if (imageUrl != null) {
-            // 发送图片 URL
+            // 获取图片尺寸
+            final file = File(image.path);
+            final bytes = await file.readAsBytes();
+            final decodedImage = await decodeImageFromList(bytes);
+            final width = decodedImage.width;
+            final height = decodedImage.height;
+
+            // 构建 payload，与 UniApp 保持一致
+            final payload = {'url': imageUrl, 'width': width, 'height': height};
+
+            // 发送图片消息
             await ref
                 .read(chatStoreProvider.notifier)
                 .sendChannelMsg(
                   channel: _channel,
                   message: imageUrl,
                   type: ChatMessageType.image,
+                  payload: payload,
                 );
             _scrollToBottom();
           } else {
@@ -331,7 +347,42 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
           if (_showUnreadNotification)
             _buildNewMessageButton(chatState.unreadCount),
           if (_showAuctionList) _buildAuctionListPanel(auctionState),
+          // 加载遮罩
+          if (_isUploadingImage) _buildLoadingOverlay(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingOverlay() {
+    return Container(
+      color: Colors.black.withOpacity(0.3),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(
+                width: 32,
+                height: 32,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFF4835A)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                '正在发送图片...',
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
