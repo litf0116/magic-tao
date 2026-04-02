@@ -178,9 +178,7 @@ const route = useRoute()
 // PC 端暂不支持的系统频道 ID（-10: 系统公告, -11: 新手版主群聊）
 const HIDDEN_CHANNEL_IDS = [-10, -11]
 
-const filteredChatList = computed(() =>
-    chatStore.chatList.filter((item) => !HIDDEN_CHANNEL_IDS.includes(item.id))
-)
+const filteredChatList = computed(() => chatStore.chatList.filter((item) => !HIDDEN_CHANNEL_IDS.includes(item.id)))
 
 const showViewer = ref(false)
 const viewerIndex = ref(0)

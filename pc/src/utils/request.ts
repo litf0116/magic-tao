@@ -42,7 +42,10 @@ service.interceptors.response.use(
     },
     (err: {
         response: {
-            data: { error: { validationErrors: any[]; details?: any; code?: number; message: any }, unAuthorizedRequest?: boolean }
+            data: {
+                error: { validationErrors: any[]; details?: any; code?: number; message: any }
+                unAuthorizedRequest?: boolean
+            }
             status: number
         }
     }) => {
@@ -170,7 +173,10 @@ export function useRequest(config = baseConfig) {
         },
         (err: {
             response: {
-                data: { error: { validationErrors: any[]; details?: any; code?: number; message: any }, unAuthorizedRequest?: boolean }
+                data: {
+                    error: { validationErrors: any[]; details?: any; code?: number; message: any }
+                    unAuthorizedRequest?: boolean
+                }
                 status: number
             }
         }) => {

@@ -13,7 +13,7 @@
                 <el-tab-pane label="iOS" name="ios" />
             </el-tabs>
 
-            <el-table :data="list" v-loading="loading">
+            <el-table v-loading="loading" :data="list">
                 <el-table-column type="index" width="50" align="center" />
                 <el-table-column label="版本号" prop="versionName" width="120" />
                 <el-table-column label="版本码" prop="versionCode" width="80" />
@@ -44,9 +44,7 @@
                         <el-button type="primary" size="small" link @click="toggleActive(row)">
                             {{ row.isActive ? '设为历史' : '激活' }}
                         </el-button>
-                        <el-button type="danger" size="small" link @click="handleDelete(row)">
-                            删除
-                        </el-button>
+                        <el-button type="danger" size="small" link @click="handleDelete(row)"> 删除 </el-button>
                     </template>
                 </el-table-column>
             </el-table>
@@ -101,7 +99,7 @@
                 </el-form-item>
             </el-form>
             <template #footer>
-                <el-button @click="uploadVisible = false" :disabled="uploading">取消</el-button>
+                <el-button :disabled="uploading" @click="uploadVisible = false">取消</el-button>
                 <el-button type="primary" :loading="uploading" @click="handleUpload">发布</el-button>
             </template>
         </el-dialog>
@@ -266,9 +264,7 @@ async function handleUpload() {
 
 async function toggleActive(row: any) {
     try {
-        await ElMessageBox.confirm(
-            row.isActive ? '确定将此版本设为历史版本？' : '确定激活此版本？'
-        )
+        await ElMessageBox.confirm(row.isActive ? '确定将此版本设为历史版本？' : '确定激活此版本？')
         await api.appRelease.toggle(row.id)
         ElMessage.success('操作成功')
         loadData()
