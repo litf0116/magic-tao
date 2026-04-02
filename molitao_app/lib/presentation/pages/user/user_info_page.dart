@@ -92,19 +92,38 @@ class _UserInfoPageState extends ConsumerState<UserInfoPage> {
       final userState = ref.read(userProvider);
       final userId = userState.user?.id?.toString();
 
+      print('[UserInfoPage] 开始上传头像: filePath=$filePath, userId=$userId');
+
       final imageUrl = await _uploadService.uploadImage(
         filePath,
         userId: userId,
       );
 
+      print('[UserInfoPage] 上传结果: imageUrl=$imageUrl');
+
       if (imageUrl != null) {
+        // 添加时间戳参数强制刷新图片缓存
+        final cacheBustingUrl =
+            '$imageUrl?t=${DateTime.now().millisecondsSinceEpoch}';
+
         setState(() {
-          _headImgUrl = imageUrl;
+          _headImgUrl = cacheBustingUrl;
           _tempAvatarPath = null;
           _isUploading = false;
         });
+
+        // 立即更新 userProvider，让其他页面也能看到新头像
+        final currentUser = userState.user;
+        if (currentUser != null) {
+          print('[UserInfoPage] 更新 userProvider: headImgUrl=$cacheBustingUrl');
+          ref
+              .read(userProvider.notifier)
+              .updateUser(currentUser.copyWith(headImgUrl: cacheBustingUrl));
+        }
+
         _showSnackBar('头像上传成功');
       } else {
+        print('[UserInfoPage] 上传失败: imageUrl 为 null');
         setState(() {
           _tempAvatarPath = null;
           _isUploading = false;
@@ -112,6 +131,7 @@ class _UserInfoPageState extends ConsumerState<UserInfoPage> {
         _showSnackBar('头像上传失败');
       }
     } catch (e) {
+      print('[UserInfoPage] 上传异常: $e');
       setState(() {
         _tempAvatarPath = null;
         _isUploading = false;
@@ -136,6 +156,8 @@ class _UserInfoPageState extends ConsumerState<UserInfoPage> {
       }
 
       // 构建更新后的用户数据
+      // 注意：isActive 和 depositBalance 是敏感字段，不应由客户端设置
+      // 后端会忽略这些字段，保持原有值
       final updatedUserDto = UserDto(
         id: currentUser.id,
         userName: currentUser.userName,
