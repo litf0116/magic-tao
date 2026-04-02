@@ -3,7 +3,7 @@
         <!-- 保证金提示条 -->
         <div v-if="isDepositInsufficient" class="deposit-warning">
             <div class="flex items-center gap-2">
-                <span class="text-[#856404]">⚠️ 新用户参与竞拍需要缴纳保证金 (50 元)</span>
+                <span class="text-[#856404]">参与竞拍需缴纳保证金 (50 元)</span>
             </div>
             <el-button type="warning" size="small" @click="goToDepositPayment">立即缴纳</el-button>
         </div>
@@ -27,6 +27,7 @@
 import { ChatMessageType } from '@/api/appService'
 import chatMain from '@/components/Chat/chatMain.vue'
 import AuctionList from '@/components/Chat/AuctionList.vue'
+import { ElMessage } from 'element-plus'
 
 const chatStore = useChatStore()
 const userStore = useUserStore()
@@ -80,6 +81,15 @@ async function loadHistoryMessage(force = false) {
 
 //LINK[epic=消息发送] - 拍卖消息发送逻辑
 function send(e: { type: ChatMessageType; data: string | object }) {
+    // 检查保证金是否充足
+    const deposit = userStore.user.depositBalance || 0
+    const userLevel = userStore.user.userLevel || 0
+    if (userLevel === 0 && deposit < 50) {
+        ElMessage.warning('新用户参与竞拍需要缴纳保证金 (50 元)')
+        goToDepositPayment()
+        return
+    }
+
     if (e.type === ChatMessageType.Image) {
         chatStore.sendChannelMsg('[图片]', '', ChatMessageType.Image, e.data).then(() => {})
     } else if (e.type === ChatMessageType.Text) {
