@@ -13,19 +13,32 @@
                 <div class="hint">含手续费 1 元，实际到账 50 元魔力值</div>
             </div>
 
-            <!-- 二维码 -->
-            <div class="qrcode-section">
-                <!-- QrcodeDisplay 组件占位符 -->
-                <div class="qrcode-placeholder">
-                    <p>二维码加载中...</p>
-                </div>
+            <!-- 二维码区域 -->
+            <div v-if="paymentState === 'paying'" class="qrcode-section">
+                <QrcodeDisplay :code-url="codeUrl" :size="256" />
                 <div class="hint">使用微信扫描二维码支付</div>
             </div>
 
-            <!-- 状态 -->
-            <div class="status-section">
-                <!-- StatusChecker 组件占位符 -->
-                <p>🔄 支付中...</p>
+            <!-- 加载状态 -->
+            <div v-else-if="paymentState === 'loading'" class="status-section">
+                <p>🔄 生成支付二维码中...</p>
+            </div>
+
+            <!-- 支付成功 -->
+            <div v-else-if="paymentState === 'success'" class="status-section success">
+                <p>✅ 支付成功！保证金已到账</p>
+            </div>
+
+            <!-- 支付超时 -->
+            <div v-else-if="paymentState === 'timeout'" class="status-section timeout">
+                <p>⏰ 支付超时，请重新支付</p>
+                <el-button type="primary" class="retry-btn" @click="retryPayment">重新支付</el-button>
+            </div>
+
+            <!-- 支付错误 -->
+            <div v-else-if="paymentState === 'error'" class="status-section error">
+                <p>❌ {{ errorMessage || '支付遇到问题，请重试' }}</p>
+                <el-button type="primary" class="retry-btn" @click="retryPayment">重新支付</el-button>
             </div>
 
             <!-- 提示 -->
@@ -41,10 +54,170 @@
 </template>
 
 <script setup lang="ts">
-// TODO: Task 8 实现完整逻辑
-// 后续将引入 QrcodeDisplay 和 StatusChecker 组件
-// import QrcodeDisplay from '@/components/QrcodeDisplay/index.vue'
-// import StatusChecker from '@/components/StatusChecker/index.vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { useUserStore } from '@/stores/userStore'
+import { payApi } from '@/api/pay'
+import QrcodeDisplay from '@/components/Payment/QrcodeDisplay.vue'
+
+// 状态管理
+const paymentState = ref<'loading' | 'paying' | 'success' | 'timeout' | 'error'>('loading')
+const codeUrl = ref<string>('')
+const outTradeNo = ref<string>('')
+const errorMessage = ref<string>('')
+const elapsedSeconds = ref<number>(0)
+const initialDepositBalance = ref<number>(0)
+
+// 定时器引用
+let pollingTimer: number | null = null
+
+// 常量定义
+const POLL_INTERVAL = 3000 // 3秒轮询一次
+const MAX_WAIT_TIME = 300000 // 5分钟最大等待时间 (毫秒)
+const DEPOSIT_AMOUNT = 51
+const EXPECTED_INCREASE = 50
+
+// 路由和用户存储
+const router = useRouter()
+const route = useRoute()
+const userStore = useUserStore()
+
+// 计算实际超时时间（支持调试模式）
+const getTimeoutTime = () => {
+    const debugTimeout = route.query.debug_timeout
+    if (debugTimeout) {
+        const seconds = parseInt(debugTimeout as string)
+        return isNaN(seconds) ? MAX_WAIT_TIME : seconds * 1000
+    }
+    return MAX_WAIT_TIME
+}
+
+// 停止轮询
+const stopPolling = () => {
+    if (pollingTimer !== null) {
+        clearInterval(pollingTimer)
+        pollingTimer = null
+    }
+}
+
+// 处理支付成功
+const handleSuccess = () => {
+    stopPolling()
+    paymentState.value = 'success'
+    ElMessage.success('支付成功！保证金已到账')
+
+    // 3秒后跳转到个人中心
+    setTimeout(() => {
+        router.push('/my')
+    }, 3000)
+}
+
+// 处理支付超时
+const handleTimeout = () => {
+    stopPolling()
+    paymentState.value = 'timeout'
+    ElMessage.warning('支付超时，请重新支付')
+}
+
+// 处理支付错误
+const handleError = (msg: string) => {
+    stopPolling()
+    paymentState.value = 'error'
+    errorMessage.value = msg
+    ElMessage.error(msg)
+}
+
+// 轮询支付状态
+const pollPaymentStatus = async () => {
+    try {
+        // 获取最新的用户信息
+        const res = await userStore.getUserInfo()
+        const latestBalance = res.user?.depositBalance || 0
+
+        // 检查余额是否增加（支付成功标志）
+        if (latestBalance >= initialDepositBalance.value + EXPECTED_INCREASE) {
+            handleSuccess()
+            return
+        }
+
+        // 更新已用时间
+        elapsedSeconds.value += 3
+        const timeoutTime = getTimeoutTime()
+
+        // 检查是否超时
+        if (elapsedSeconds.value * 1000 >= timeoutTime) {
+            handleTimeout()
+            return
+        }
+    } catch (error) {
+        console.error('轮询支付状态失败:', error)
+        // 发生错误时不中断轮询，继续尝试
+    }
+}
+
+// 开始轮询
+const startPolling = () => {
+    // 清除可能存在的旧定时器
+    stopPolling()
+
+    // 重置计时器
+    elapsedSeconds.value = 0
+
+    // 开始轮询
+    pollingTimer = setInterval(() => {
+        pollPaymentStatus()
+    }, POLL_INTERVAL) as unknown as number
+}
+
+// 重新支付
+const retryPayment = async () => {
+    try {
+        // 重置状态
+        paymentState.value = 'loading'
+        errorMessage.value = ''
+
+        // 重新初始化支付
+        await initPayment()
+    } catch (error) {
+        console.error('重新支付失败:', error)
+        handleError('重新支付失败，请稍后再试')
+    }
+}
+
+// 初始化支付
+const initPayment = async () => {
+    try {
+        // 获取初始余额
+        const userInfo = await userStore.getUserInfo()
+        initialDepositBalance.value = userInfo.user?.depositBalance || 0
+
+        // 调用支付API获取二维码
+        const response = await payApi.payDepositNative(DEPOSIT_AMOUNT)
+
+        // 更新状态
+        codeUrl.value = response.code_url
+        outTradeNo.value = response.outTradeNo
+        paymentState.value = 'paying'
+
+        // 开始轮询
+        startPolling()
+    } catch (error: any) {
+        console.error('初始化支付失败:', error)
+        const errorMsg = error.message || '初始化支付失败，请重试'
+        handleError(errorMsg)
+    }
+}
+
+// 组件挂载时初始化
+onMounted(() => {
+    initPayment()
+})
+
+// 组件卸载时清理定时器
+onUnmounted(() => {
+    stopPolling()
+})
 </script>
 
 <style scoped>
@@ -146,6 +319,28 @@
     margin: 0;
     font-size: 14px;
     color: #1890ff;
+}
+
+.status-section.success {
+    background: #f6ffed;
+    border: 1px solid #b7eb8f;
+    color: #52c41a;
+}
+
+.status-section.timeout {
+    background: #fff2f0;
+    border: 1px solid #ffccc7;
+    color: #ff4d4f;
+}
+
+.status-section.error {
+    background: #fff2f0;
+    border: 1px solid #ffccc7;
+    color: #ff4d4f;
+}
+
+.retry-btn {
+    margin-top: 16px;
 }
 
 .tips-section {
