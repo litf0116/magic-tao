@@ -11,7 +11,7 @@ namespace TtWork.Project.Applications.Core.Users.Dto
     //Mapped to/from User in CustomDtoMapper
     [AutoMapTo(typeof(User))]
     [AutoMapFrom(typeof(User))]
-    public class UserEditDto : EntityDto<long>, IPassivable
+    public class UserEditDto : EntityDto<long>
     {
         /// <summary>
         /// Set null to create a new user. Set user's Id to update a user
