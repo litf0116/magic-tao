@@ -144,6 +144,63 @@ public class ClientAppService(
     }
 
     /// <summary>
+    /// 保证金 Native 支付（PC 端扫码支付）
+    /// </summary>
+    /// <param name="amount">支付金额，如果不指定则使用默认保证金金额</param>
+    /// <returns>包含 code_url 和订单号的对象</returns>
+    /// <exception cref="UserFriendlyException"></exception>
+    [HttpGet]
+    [AbpAuthorize]
+    public async Task<object> PayDepositNative(decimal? amount = null)
+    {
+        var app = await mediator.Send(new QueryApp());
+        var appid = app.GetValue("appid");
+        var mchid = app.GetValue("mchId");
+        // 获取 wwwroot 完整路径
+        string wwwrootPath = _env.WebRootPath;
+        // 组合文件路径
+        string certPath = Path.Combine(wwwrootPath, app.GetValue("certPath").TrimStart('/', '\\'));
+
+        var finalAmount = amount ?? AppConsts.保证金;
+        var payOrder = new PayOrder();
+        payOrder.CreateDepositPay(finalAmount, AbpSession.UserId!.Value, "", app.Name, appid, mchid,
+            AbpSession.TenantId!.Value);
+        await payOrderRepository.InsertAsync(payOrder);
+        try
+        {
+            await CurrentUnitOfWork.SaveChangesAsync();
+
+            var result = await v3PayApi.CreateNativeOrderAsync(new CreateNativeOrderRequest()
+            {
+                AppId = appid,
+                MchId = mchid,
+                Description = "保证金支付",
+                OutTradeNo = payOrder.OutTradeNo,
+                Attach = (new { payOrderId = payOrder.Id, name = "保证金支付" }).ToJsonString(false, false),
+                NotifyUrl = app.GetValue("notifyUrl"),
+                Amount = new CreateOrderAmountModel
+                {
+                    Total = payOrder.Total,
+                    Currency = "CNY"
+                },
+            }, certPath);
+
+            return new
+            {
+                code_url = result.CodeUrl,
+                outTradeNo = payOrder.OutTradeNo,
+                amount = finalAmount
+            };
+        }
+        catch (Exception e)
+        {
+            var err = $"[保证金 Native 支付]支付发生错误:{e.Message}";
+            logger.LogError(e, err);
+            throw new UserFriendlyException(err);
+        }
+    }
+
+    /// <summary>
     /// 支付退款
     /// </summary>
     /// <param name="outTradeNo"></param>

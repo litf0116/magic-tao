@@ -19,6 +19,7 @@ namespace Tt.HttpClient.Weixin;
 public interface IV3PayApi {
     public Task<CreateH5OrderResponse> CreateH5OrderAsync(CreateOrderRequest request, string certPath);
     public Task<CreateOrderResponse> CreateJsOrderAsync(CreateOrderRequest request, string certPath);
+    public Task<CreateNativeOrderResponse> CreateNativeOrderAsync(CreateNativeOrderRequest request, string certPath);
 
     public Task<GetJsSdkWeChatPayParametersResult> GetJsSdkWeChatPayParametersAsync(
         GetJsSdkWeChatPayParametersInput input, string certPath);
@@ -63,6 +64,7 @@ public class V3PayApi(
 
     public const string CreateH5OrderUrl = "https://api.mch.weixin.qq.com/v3/pay/transactions/h5";
     public const string CreateOrderUrl = "https://api.mch.weixin.qq.com/v3/pay/transactions/jsapi";
+    public const string CreateNativeOrderUrl = "https://api.mch.weixin.qq.com/v3/pay/transactions/native";
     public const string CertificatesUrl = "https://api.mch.weixin.qq.com/v3/certificates";
 
     public Task<CreateH5OrderResponse> CreateH5OrderAsync(CreateOrderRequest request, string certPath) {
@@ -71,6 +73,10 @@ public class V3PayApi(
 
     public Task<CreateOrderResponse> CreateJsOrderAsync(CreateOrderRequest request, string certPath) {
         return RequestAsync<CreateOrderResponse>(HttpMethod.Post, CreateOrderUrl, request, request.MchId, certPath);
+    }
+
+    public Task<CreateNativeOrderResponse> CreateNativeOrderAsync(CreateNativeOrderRequest request, string certPath) {
+        return RequestAsync<CreateNativeOrderResponse>(HttpMethod.Post, CreateNativeOrderUrl, request, request.MchId, certPath);
     }
 
     public virtual Task<GetPlatformCertificatesResponse> GetPlatformCertificatesAsync(string mchId, string certPath) {
