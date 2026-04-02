@@ -77,15 +77,7 @@ export const asyncRouter: RouteRecordRaw[] = [
     chatRoute,
     authRoute,
     adminRoute,
-    {
-        path: '/deposit-payment',
-        name: 'DepositPayment',
-        component: () => import('@/views/payment/DepositPayment.vue'),
-        meta: {
-            title: '保证金支付',
-            hidden: true,
-        },
-    },
+
     {
         path: '/.*',
         redirect: '/404',

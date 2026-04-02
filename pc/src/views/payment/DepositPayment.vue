@@ -1,6 +1,14 @@
 <template>
-    <div class="payment-container">
+    <div class="payment-wrapper">
         <div class="payment-card">
+            <!-- 返回按钮 -->
+            <div class="back-button">
+                <el-button text @click="goBack">
+                    <i class="i-carbon:arrow-left mr-2"></i>
+                    返回拍卖行
+                </el-button>
+            </div>
+
             <!-- 标题 -->
             <div class="header">
                 <h1 class="title">保证金支付</h1>
@@ -82,6 +90,11 @@ const EXPECTED_INCREASE = 50
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+
+// 返回拍卖行
+const goBack = () => {
+    router.push('/chat/auction/auction')
+}
 
 // 计算实际超时时间（支持调试模式）
 const getTimeoutTime = () => {
@@ -221,13 +234,13 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.payment-container {
-    min-height: 100vh;
-    background: #f5f5f5;
-    padding: 40px 20px;
+.payment-wrapper {
+    width: 100%;
+    height: 100%;
     display: flex;
     justify-content: center;
     align-items: flex-start;
+    padding: 20px;
 }
 
 .payment-card {
@@ -237,7 +250,14 @@ onUnmounted(() => {
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     padding: 32px;
-    margin-top: 20px;
+    position: relative;
+}
+
+.back-button {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 10;
 }
 
 .header {
