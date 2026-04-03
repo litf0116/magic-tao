@@ -11,15 +11,26 @@ class ChatRepository {
     required String channel,
     required String message,
     ChatMessageType? type,
+    int? from,
+    String? fromName,
+    String? avatar,
+    Map<String, dynamic>? payload,
   }) async {
     try {
+      // 构建 ChatMessage 对象，与 UniApp 保持一致
+      final chatMessage = {
+        'type': type != null ? _chatMessageTypeToString(type) : 'Text',
+        'chan': channel,
+        'from': from,
+        'fromName': fromName,
+        'avatar': avatar,
+        'msg': message,
+        'payload': payload,
+      };
+
       await _apiClient.dio.post(
         ApiEndpoints.sendChannelMsg,
-        data: {
-          'channel': channel,
-          'message': message,
-          'type': type != null ? _chatMessageTypeToString(type) : 'Text',
-        },
+        data: {'from': from ?? 0, 'chan': channel, 'message': chatMessage},
       );
       return true;
     } on DioException catch (e) {
@@ -31,15 +42,26 @@ class ChatRepository {
     required int toUserId,
     required String message,
     ChatMessageType? type,
+    int? from,
+    String? fromName,
+    String? avatar,
+    Map<String, dynamic>? payload,
   }) async {
     try {
+      // 构建 ChatMessage 对象，与 UniApp 保持一致
+      final chatMessage = {
+        'type': type != null ? _chatMessageTypeToString(type) : 'Text',
+        'to': toUserId,
+        'from': from,
+        'fromName': fromName,
+        'avatar': avatar,
+        'msg': message,
+        'payload': payload,
+      };
+
       await _apiClient.dio.post(
         ApiEndpoints.sendMsg,
-        data: {
-          'to': toUserId,
-          'message': message,
-          'type': type != null ? _chatMessageTypeToString(type) : 'Text',
-        },
+        data: {'from': from ?? 0, 'to': toUserId, 'message': chatMessage},
       );
       return true;
     } on DioException catch (e) {
@@ -47,12 +69,48 @@ class ChatRepository {
     }
   }
 
-  Future<bool> preConnect() async {
+  Future<Map<String, dynamic>?> preConnect() async {
     try {
-      await _apiClient.dio.post(ApiEndpoints.preConnect);
-      return true;
+      final response = await _apiClient.dio.post(ApiEndpoints.preConnect);
+      return response.data as Map<String, dynamic>?;
     } on DioException catch (e) {
       throw Exception('Failed to pre-connect: ${e.message}');
+    }
+  }
+
+  /// 获取频道历史消息 - 与 UniApp getChanHistory 一致
+  Future<List<ChatMessage>> getChannelHistory({
+    required String channel,
+    required int lastTime,
+  }) async {
+    try {
+      final response = await _apiClient.dio.get(
+        ApiEndpoints.getChanHistory,
+        queryParameters: {'chan': channel, 'lastTime': lastTime},
+      );
+
+      final items = response.data['items'] as List? ?? [];
+      return items.map((json) => ChatMessage.fromJson(json)).toList();
+    } on DioException catch (e) {
+      throw Exception('Failed to get channel history: ${e.message}');
+    }
+  }
+
+  /// 获取私聊历史消息 - 与 UniApp getPrivateHistory 一致
+  Future<List<ChatMessage>> getPrivateHistory({
+    required int userId,
+    required int lastTime,
+  }) async {
+    try {
+      final response = await _apiClient.dio.get(
+        ApiEndpoints.getPrivateHistory,
+        queryParameters: {'id': userId, 'lastTime': lastTime},
+      );
+
+      final items = response.data['items'] as List? ?? [];
+      return items.map((json) => ChatMessage.fromJson(json)).toList();
+    } on DioException catch (e) {
+      throw Exception('Failed to get private history: ${e.message}');
     }
   }
 

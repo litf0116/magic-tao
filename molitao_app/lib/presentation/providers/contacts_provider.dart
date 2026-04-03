@@ -86,12 +86,17 @@ class ContactsNotifier extends StateNotifier<ContactsState> {
 
   Future<List<FriendItem>> _loadFriendsList() async {
     try {
-      final response = await ApiClient().dio.get(ApiEndpoints.getUserFriends);
+      // Get accepted friends (status = true)
+      final response = await ApiClient().dio.get(
+        ApiEndpoints.getUserFriends,
+        queryParameters: {'status': true},
+      );
 
-      if (response.data != null && response.data is List) {
-        return (response.data as List)
-            .map((json) => FriendItem.fromJson(json))
-            .toList();
+      if (response.data != null) {
+        // 响应格式: {"items": [...]}
+        final items =
+            response.data['items'] as List? ?? response.data as List? ?? [];
+        return items.map((json) => FriendItem.fromJson(json)).toList();
       }
       return [];
     } catch (e) {
@@ -102,16 +107,17 @@ class ContactsNotifier extends StateNotifier<ContactsState> {
 
   Future<List<FriendItem>> _loadFriendRequests() async {
     try {
-      // Get pending friend requests (status = 0 means pending)
+      // Get pending friend requests (status = false means pending)
       final response = await ApiClient().dio.get(
         ApiEndpoints.getUserFriends,
-        queryParameters: {'status': 0},
+        queryParameters: {'status': false},
       );
 
-      if (response.data != null && response.data is List) {
-        return (response.data as List)
-            .map((json) => FriendItem.fromJson(json))
-            .toList();
+      if (response.data != null) {
+        // 响应格式: {"items": [...]}
+        final items =
+            response.data['items'] as List? ?? response.data as List? ?? [];
+        return items.map((json) => FriendItem.fromJson(json)).toList();
       }
       return [];
     } catch (e) {

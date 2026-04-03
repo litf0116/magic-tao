@@ -53,6 +53,30 @@ class ChatListItem {
     };
   }
 
+  ChatListItem copyWith({
+    int? id,
+    String? name,
+    ChatListItemType? type,
+    int? time,
+    String? avatar,
+    String? lastMsg,
+    int? unread,
+    int? order,
+    ChatMessage? msg,
+  }) {
+    return ChatListItem(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      type: type ?? this.type,
+      time: time ?? this.time,
+      avatar: avatar ?? this.avatar,
+      lastMsg: lastMsg ?? this.lastMsg,
+      unread: unread ?? this.unread,
+      order: order ?? this.order,
+      msg: msg ?? this.msg,
+    );
+  }
+
   static ChatListItemType _parseChatListItemType(dynamic value) {
     if (value == null) return ChatListItemType.user; // default
     if (value is int) {

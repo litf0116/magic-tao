@@ -85,9 +85,7 @@
             "type": "page",
             "layout": "main",
             "style": {
-                "navigationBarTitleText": "个人中心",
-                "navigationBarBackgroundColor": "#f6f6f6",
-                "navigationBarTextStyle": "black"
+                "navigationBarTitleText": "个人中心"
             }
         },
         {

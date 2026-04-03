@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../services/storage_service.dart';
+import '../services/navigation_service.dart';
 
 class AuthInterceptor extends Interceptor {
   @override
@@ -23,13 +24,10 @@ class AuthInterceptor extends Interceptor {
     if (response.data is Map<String, dynamic>) {
       final data = response.data as Map<String, dynamic>;
 
-      // ABP 标准响应格式: { success, result, error }
       if (data.containsKey('success') && data.containsKey('result')) {
         if (data['success'] == true) {
-          // 成功：解包 result，统一数组格式
           response.data = _normalizeResult(data['result']);
         } else if (data['error'] != null) {
-          // 失败：转换为异常
           final error = data['error'] as Map<String, dynamic>;
           throw DioException(
             requestOptions: response.requestOptions,
@@ -40,14 +38,12 @@ class AuthInterceptor extends Interceptor {
         }
       }
     } else if (response.data is List) {
-      // 直接数组：统一包装
       response.data = {'items': response.data};
     }
 
     super.onResponse(response, handler);
   }
 
-  /// 标准化结果：数组包装为 { items: [...] }
   dynamic _normalizeResult(dynamic result) {
     if (result is List) {
       return {'items': result};
@@ -56,9 +52,10 @@ class AuthInterceptor extends Interceptor {
   }
 
   @override
-  void onError(DioException err, ErrorInterceptorHandler handler) {
+  void onError(DioException err, ErrorInterceptorHandler handler) async {
     if (err.response?.statusCode == 401) {
-      // TODO: 跳转登录页
+      await StorageService().clearToken();
+      NavigationService.instance.navigateToLogin();
     }
     super.onError(err, handler);
   }

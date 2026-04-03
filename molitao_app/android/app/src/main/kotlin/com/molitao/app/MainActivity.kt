@@ -1,4 +1,4 @@
-package com.molitao.molitao_app
+package com.molitao.app
 
 import io.flutter.embedding.android.FlutterActivity
 

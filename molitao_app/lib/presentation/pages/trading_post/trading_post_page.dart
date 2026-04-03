@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:molitao_app/presentation/providers/trading_post_provider.dart';
 import 'package:molitao_app/data/models/post_model.dart';
-import 'package:molitao_app/data/models/announce_model.dart';
 import 'package:go_router/go_router.dart';
 
 class TradingPostPage extends ConsumerWidget {
-  const TradingPostPage({Key? key}) : super(key: key);
+  const TradingPostPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -62,8 +61,8 @@ class TradingPostPage extends ConsumerWidget {
                         return _buildCategoryChip(
                           context,
                           category.title ?? '',
-                          state.selectedCategoryId == category.id,
-                          () => notifier.selectCategory(category.id),
+                          state.selectedCategoryId == category.categoryId,
+                          () => notifier.selectCategory(category.categoryId),
                         );
                       },
                     ),
@@ -177,20 +176,27 @@ class TradingPostPage extends ConsumerWidget {
                                           notifier.switchToHotWord(word),
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                          vertical: 6,
+                                          horizontal: 8,
+                                          vertical: 4,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: Colors.grey[200],
+                                          color:
+                                              state.selectedHotWordId == word.id
+                                              ? const Color(0xff007aff)
+                                              : const Color(0xffe2e2e2),
                                           borderRadius: BorderRadius.circular(
-                                            16,
+                                            15,
                                           ),
                                         ),
                                         child: Text(
                                           word.title ?? '',
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 12,
-                                            color: Colors.black87,
+                                            color:
+                                                state.selectedHotWordId ==
+                                                    word.id
+                                                ? Colors.white
+                                                : const Color(0xff666666),
                                           ),
                                         ),
                                       ),
@@ -223,9 +229,9 @@ class TradingPostPage extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          ...state.pinnedPosts
-                              .map((post) => _buildPostItem(post, context))
-                              .toList(),
+                          ...state.pinnedPosts.map(
+                            (post) => _buildPostItem(post, context),
+                          ),
                         ],
                       ),
                     ),
@@ -245,10 +251,10 @@ class TradingPostPage extends ConsumerWidget {
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(
-                          0xfff4835a,
-                        ), // Primary color
+                          0xff007aff,
+                        ), // Blue color like UniApp
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -293,13 +299,16 @@ class TradingPostPage extends ConsumerWidget {
                       child: Center(child: Text('没有更多数据')),
                     ),
                   ),
+
+                // Bottom spacer to prevent content being hidden by tabbar
+                const SliverToBoxAdapter(child: SizedBox(height: 80)),
               ],
             ),
 
             // Loading overlay
             if (state.isLoading)
               Container(
-                color: Colors.white.withOpacity(0.7),
+                color: Colors.white.withValues(alpha: 0.7),
                 child: const Center(child: CircularProgressIndicator()),
               ),
           ],
@@ -314,22 +323,22 @@ class TradingPostPage extends ConsumerWidget {
     bool isSelected,
     VoidCallback onTap,
   ) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: isSelected,
-        selectedColor: const Color(0xfff4835a), // Primary color
-        backgroundColor: Colors.grey[200],
-        onSelected: (_) => onTap(),
-        labelStyle: TextStyle(
-          color: isSelected ? Colors.white : Colors.black87,
-          fontSize: 14,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 6),
+        margin: const EdgeInsets.symmetric(horizontal: 5),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xff007aff) : const Color(0xfff5f5f5),
+          borderRadius: BorderRadius.circular(15),
         ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(
-            color: isSelected ? const Color(0xfff4835a) : Colors.transparent,
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? Colors.white : const Color(0xff666666),
+              fontSize: 14,
+            ),
           ),
         ),
       ),
@@ -337,92 +346,107 @@ class TradingPostPage extends ConsumerWidget {
   }
 
   Widget _buildPostItem(PostModel post, BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: const Offset(0, 1),
+    return InkWell(
+      onTap: () =>
+          context.push('/trading-post/detail/${post.postId ?? post.id}'),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: const BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: Color(0xffdadada), width: 0.5),
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Post title
-          Text(
-            post.title ?? '',
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-
-          const SizedBox(height: 8),
-
-          // Post meta info
-          Row(
-            children: [
-              if (post.categoryName != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xfff4835a).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(
-                      color: const Color(0xfff4835a).withOpacity(0.3),
-                    ),
-                  ),
-                  child: Text(
-                    post.categoryName!,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Left side: title and meta
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Post title
+                  Text(
+                    post.title ?? '',
                     style: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xfff4835a),
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xff333333),
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-
-              const Spacer(),
-
-              if (post.userName != null)
-                Text(
-                  post.userName!,
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-
-              const SizedBox(width: 8),
-
-              if (post.creationTime != null)
-                Text(
-                  _formatDateTime(post.creationTime!),
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-            ],
-          ),
-
-          // Avatar
-          if (post.imageUrl != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  post.imageUrl!,
-                  height: 100,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
+                  const SizedBox(height: 6),
+                  // Post meta info
+                  Row(
+                    children: [
+                      if (post.categoryName != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xffe6f7ff),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                          child: Text(
+                            post.categoryName!,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xff1890ff),
+                            ),
+                          ),
+                        ),
+                      const SizedBox(width: 8),
+                      if (post.userName != null)
+                        Expanded(
+                          child: Text(
+                            post.userName!,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xff999999),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      if (post.creationTime != null)
+                        Text(
+                          _formatDateTime(post.creationTime!),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xff999999),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
               ),
             ),
-        ],
+            // Right side: avatar
+            if (post.userAvatar != null)
+              Padding(
+                padding: const EdgeInsets.only(left: 12),
+                child: ClipOval(
+                  child: Image.network(
+                    post.userAvatar!,
+                    width: 30,
+                    height: 30,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      width: 30,
+                      height: 30,
+                      color: Colors.grey[300],
+                      child: const Icon(
+                        Icons.person,
+                        size: 18,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

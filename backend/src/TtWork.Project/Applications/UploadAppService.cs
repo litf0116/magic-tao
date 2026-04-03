@@ -44,6 +44,10 @@ namespace TtWork.Project.Applications {
         [DontWrapResult]
         [HttpGet]
         public async Task<object> GetSignature(string data, string policy) {
+            if (string.IsNullOrEmpty(data)) {
+                throw new UserFriendlyException("上传签名参数data不能为空");
+            }
+
             var password = GetMd5(await _settingManager.GetSettingValueAsync(OssSetting.Upyun.Password));
 
             var hmac = new HMACSHA1(Encoding.UTF8.GetBytes(password));

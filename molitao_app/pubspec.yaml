@@ -47,6 +47,21 @@ dependencies:
   # 微信登录/支付
   fluwx: ^5.7.5
 
+  # 音频播放
+  audioplayers: ^6.1.0
+
+  # HTML 渲染
+  flutter_html: ^3.0.0-beta.2
+
+  # URL 深度链接
+  url_launcher: ^6.3.1
+
+  # 本地路径
+  path_provider: ^2.1.5
+
+  # 加密
+  crypto: ^3.0.6
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -63,3 +78,5 @@ flutter:
   assets:
     - assets/images/
     - assets/images/tab/
+    - assets/images/local/
+    - assets/sounds/

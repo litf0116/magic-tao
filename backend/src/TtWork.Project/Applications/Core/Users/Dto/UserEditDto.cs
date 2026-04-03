@@ -11,7 +11,7 @@ namespace TtWork.Project.Applications.Core.Users.Dto
     //Mapped to/from User in CustomDtoMapper
     [AutoMapTo(typeof(User))]
     [AutoMapFrom(typeof(User))]
-    public class UserEditDto : EntityDto<long>, IPassivable
+    public class UserEditDto : EntityDto<long>
     {
         /// <summary>
         /// Set null to create a new user. Set user's Id to update a user
@@ -44,7 +44,10 @@ namespace TtWork.Project.Applications.Core.Users.Dto
         [DisableAuditing]
         public string Password { get; set; }
 
-        public bool IsActive { get; set; } = true;
+        /// <summary>
+        /// 用户状态（客户端不可修改，后端忽略此字段）
+        /// </summary>
+        public bool? IsActive { get; set; }
 
         /// <summary>
         /// QQ
@@ -57,9 +60,10 @@ namespace TtWork.Project.Applications.Core.Users.Dto
         /// </summary>
         [StringLength(AbpUserBase.MaxPhoneNumberLength)]
         public string Wx { get; set; }
+
         /// <summary>
-        /// 保证金
+        /// 保证金（客户端不可修改，后端忽略此字段）
         /// </summary>
-        public decimal DepositBalance { get; set; }
+        public decimal? DepositBalance { get; set; }
     }
 }

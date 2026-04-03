@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../providers/contacts_provider.dart';
+import '../../mixins/auth_guard_mixin.dart';
 
 class ContactsPage extends ConsumerStatefulWidget {
   const ContactsPage({super.key});
@@ -11,12 +12,14 @@ class ContactsPage extends ConsumerStatefulWidget {
   ConsumerState<ContactsPage> createState() => _ContactsPageState();
 }
 
-class _ContactsPageState extends ConsumerState<ContactsPage> {
+class _ContactsPageState extends ConsumerState<ContactsPage>
+    with AuthGuardMixin {
   final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    // AuthGuardMixin will check login status in initState
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(contactsProvider.notifier).loadFriends();
     });

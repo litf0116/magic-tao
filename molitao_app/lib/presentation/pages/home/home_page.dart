@@ -1,12 +1,14 @@
 import 'dart:async';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
-import '../../providers/home_provider.dart';
-import '../../../data/models/cms_article_model.dart';
-import '../../../data/models/advertising_space_model.dart';
+
 import '../../../core/utils/image_url_converter.dart';
+import '../../../data/models/advertising_space_model.dart';
+import '../../../data/models/cms_article_model.dart';
+import '../../providers/home_provider.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -114,222 +116,161 @@ class _HomePageState extends ConsumerState<HomePage> {
     final homeState = ref.watch(homeProvider);
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
-      body: RefreshIndicator(
-        onRefresh: () => ref.read(homeProvider.notifier).refreshHomeData(),
-        child: CustomScrollView(
-          slivers: [
-            // Header with logo
-            SliverAppBar(
-              backgroundColor: const Color(0xFFf4835a),
-              expandedHeight: 160,
-              pinned: true,
-              flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  decoration: const BoxDecoration(
-                    image: DecorationImage(
-                      image: CachedNetworkImageProvider(
-                        'https://cdn.molitao.top/20250330/04j40l4ynlbh3v3h4bgfe7j2pxiqjg8d.png',
-                      ),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 20),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: CachedNetworkImage(
-                          imageUrl:
-                              'https://cdn.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png',
-                          width: 231, // 462rpx converted to dp
-                          height: 106, // 212rpx converted to dp
-                          fit: BoxFit.contain,
-                          placeholder: (context, url) => Container(
-                            width: 231,
-                            height: 106,
-                            color: Colors.grey[200],
-                            child: const Icon(Icons.image, size: 30),
-                          ),
-                          errorWidget: (context, url, error) => Container(
-                            width: 231,
-                            height: 106,
-                            color: Colors.grey[200],
-                            child: const Icon(Icons.broken_image, size: 30),
-                          ),
+      appBar: AppBar(
+        title: const Text('魔力淘'),
+        backgroundColor: const Color(0xFFf4835a),
+        foregroundColor: Colors.white,
+        centerTitle: true,
+        elevation: 0,
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/local/banner_1.png'),
+            fit: BoxFit.cover,
+            alignment: Alignment.topCenter,
+          ),
+        ),
+        child: RefreshIndicator(
+          onRefresh: () => ref.read(homeProvider.notifier).refreshHomeData(),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                // Header with background image (offset upward to match UniApp)
+                Stack(
+                  children: [
+                    // Header 背景图片
+                    Container(
+                      height: 160,
+                      width: double.infinity,
+                      decoration: const BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage('assets/images/local/banner_2.png'),
+                          fit: BoxFit.cover,
+                          alignment: Alignment(0, -0.3), // 向上偏移
                         ),
                       ),
                     ),
-                  ),
-                ),
-              ),
-            ),
-
-            // Main content
-            SliverToBoxAdapter(
-              child: Center(
-                child: Container(
-                  margin: const EdgeInsets.only(top: 12),
-                  width: MediaQuery.of(context).size.width * 0.9,
-                  child: Stack(
-                    children: [
-                      // Background image container
-                      Container(
-                        decoration: const BoxDecoration(
-                          image: DecorationImage(
-                            image: CachedNetworkImageProvider(
-                              'https://cdn.molitao.top/molitao/2025-03-30/upload_qxgt8fo3iymdi0heth3rnqipc83rzawn.png',
-                            ),
-                            fit: BoxFit.fill,
-                            repeat: ImageRepeat.repeatY,
+                    Positioned(
+                      bottom: 10,
+                      left: 0,
+                      right: 0,
+                      child: Center(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.asset(
+                            'assets/images/local/banner_3.png',
+                            width: 231,
+                            height: 106,
+                            fit: BoxFit.contain,
                           ),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const SizedBox(height: 9), // Top decoration height
-                            // Content area
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  // Trading post and auction banners
-                                  Column(
-                                    children: [
-                                      GestureDetector(
-                                        onTap: () =>
-                                            context.push('/trading-post'),
-                                        child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                          child: Image.asset(
-                                            'assets/images/jyz.png',
-                                            width: double.infinity,
-                                            height: 135,
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      GestureDetector(
-                                        onTap: () => context.push('/auction'),
-                                        child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                          child: Image.asset(
-                                            'assets/images/pmh.png',
-                                            width: double.infinity,
-                                            height: 135,
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                      ),
+                    ),
+                  ],
+                ),
 
-                                  const SizedBox(height: 8),
+                // Main content
+                Center(
+                  child: Container(
+                    margin: const EdgeInsets.only(top: 12),
+                    width: MediaQuery.of(context).size.width * 0.9,
+                    decoration: const BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage('assets/images/local/logo.png'),
+                        fit: BoxFit.fill,
+                        repeat: ImageRepeat.repeatY,
+                      ),
+                    ),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Trading post banner
+                        GestureDetector(
+                          onTap: () => context.go('/trading-post'),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.asset(
+                              'assets/images/jyz.png',
+                              height: 135,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        // Auction banner
+                        GestureDetector(
+                          onTap: () => context.push('/chat/auction'),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.asset(
+                              'assets/images/pmh.png',
+                              height: 135,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
 
-                                  // Article swiper
-                                  if (homeState.articles.isNotEmpty)
-                                    _ArticleSwiper(
-                                      articles: homeState.articles,
-                                    ),
+                        // Article swiper
+                        if (homeState.articles.isNotEmpty)
+                          _ArticleSwiper(articles: homeState.articles),
 
-                                  // Advertising space grid
-                                  if (homeState.advertisingSpaces.isNotEmpty)
-                                    Container(
-                                      margin: const EdgeInsets.symmetric(
-                                        vertical: 8,
-                                      ),
-                                      child: Column(
-                                        children: _buildAdRows(
-                                          homeState.advertisingSpaces,
-                                        ),
-                                      ),
-                                    ),
-
-                                  if (homeState.advertisingSpaces.isEmpty &&
-                                      !homeState.isLoading)
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 16,
-                                      ),
-                                      alignment: Alignment.center,
-                                      child: const Text(
-                                        '暂无广告位信息',
-                                        style: TextStyle(
-                                          color: Colors.grey,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ),
-
-                                  if (homeState.isLoading &&
-                                      homeState.articles.isEmpty &&
-                                      homeState.advertisingSpaces.isEmpty)
-                                    const Padding(
-                                      padding: EdgeInsets.all(16),
-                                      child: Center(
-                                        child: CircularProgressIndicator(),
-                                      ),
-                                    ),
-
-                                  if (homeState.errorMessage != null)
-                                    Container(
-                                      padding: const EdgeInsets.all(16),
-                                      child: Text(
-                                        '加载失败: ${homeState.errorMessage}',
-                                        style: const TextStyle(
-                                          color: Colors.red,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ),
-                                ],
+                        // Advertising space grid
+                        if (homeState.advertisingSpaces.isNotEmpty)
+                          Container(
+                            margin: const EdgeInsets.symmetric(vertical: 8),
+                            child: Column(
+                              children: _buildAdRows(
+                                homeState.advertisingSpaces,
                               ),
                             ),
-                            const SizedBox(
-                              height: 9,
-                            ), // Bottom decoration height
-                          ],
-                        ),
-                      ),
-                      // Top decoration
-                      Positioned(
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        child: Image.network(
-                          'https://cdn.molitao.top/molitao/2025-03-30/upload_iw2aq9rsovog4lr3v036irwm90nyos20.png',
-                          height: 9,
-                          fit: BoxFit.fill,
-                        ),
-                      ),
-                      // Bottom decoration
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        child: Image.network(
-                          'https://cdn.molitao.top/molitao/2025-03-30/upload_to45oxex09l2uu1ltntj09n6z1x4y0df.png',
-                          height: 9,
-                          fit: BoxFit.fill,
-                        ),
-                      ),
-                    ],
+                          ),
+
+                        if (homeState.advertisingSpaces.isEmpty &&
+                            !homeState.isLoading)
+                          Container(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            alignment: Alignment.center,
+                            child: const Text(
+                              '暂无广告位信息',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+
+                        if (homeState.isLoading &&
+                            homeState.articles.isEmpty &&
+                            homeState.advertisingSpaces.isEmpty)
+                          const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Center(child: CircularProgressIndicator()),
+                          ),
+
+                        if (homeState.errorMessage != null)
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            child: Text(
+                              '加载失败: ${homeState.errorMessage}',
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ),
 
-            // Bottom padding to match UniApp
-            const SliverToBoxAdapter(child: SizedBox(height: 80)),
-          ],
+                // Bottom padding to match UniApp
+                const SizedBox(height: 80),
+              ],
+            ),
+          ),
         ),
       ),
     );

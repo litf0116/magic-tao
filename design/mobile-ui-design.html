@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>魔力淘 App - 移动端 UI 设计</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #F4835a;
+            --primary-light: #ff7144;
+            --primary-dark: #e06a3a;
+            --success-color: #52c41a;
+            --warning-color: #fa8c16;
+            --info-color: #1890ff;
+            --bg-color: #f6f6f6;
+            --text-color: #333333;
+            --text-secondary: #999999;
+            --border-color: #e5e5e5;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: #1a1a2e;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .page-title {
+            text-align: center;
+            color: #fff;
+            font-size: 28px;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #aaa;
+            font-size: 14px;
+            margin-bottom: 40px;
+        }
+
+        /* 设备容器 */
+        .devices-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 40px;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        .device-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .device-name {
+            color: #fff;
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        /* 手机设备模拟 */
+        .phone-device {
+            width: 375px;
+            height: 812px;
+            background: var(--bg-color);
+            border-radius: 40px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 0 12px #2d2d44, 0 0 0 14px #1a1a2e;
+            position: relative;
+        }
+
+        /* 状态栏 */
+        .status-bar {
+            height: 44px;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .status-bar.transparent {
+            background: transparent;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+
+        .status-bar.light {
+            background: white;
+            color: #333;
+        }
+
+        .status-icons {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        /* 导航栏 */
+        .nav-bar {
+            height: 44px;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 17px;
+            font-weight: 600;
+            position: relative;
+        }
+
+        .nav-bar.light {
+            background: white;
+            color: #333;
+        }
+
+        .nav-back {
+            position: absolute;
+            left: 15px;
+            font-size: 20px;
+        }
+
+        .nav-action {
+            position: absolute;
+            right: 15px;
+            font-size: 14px;
+        }
+
+        /* 内容区域 */
+        .content-area {
+            height: calc(812px - 44px - 44px - 83px);
+            overflow-y: auto;
+            background: var(--bg-color);
+        }
+
+        .content-area::-webkit-scrollbar {
+            display: none;
+        }
+
+        .content-area.no-tab {
+            height: calc(812px - 44px - 44px);
+        }
+
+        .content-area.white {
+            background: white;
+        }
+
+        /* 底部 TabBar */
+        .tab-bar {
+            height: 83px;
+            background: white;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            padding-top: 8px;
+        }
+
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-secondary);
+            font-size: 10px;
+        }
+
+        .tab-item.active {
+            color: var(--primary-color);
+        }
+
+        .tab-icon {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        /* ========== 首页样式 ========== */
+        .home-header {
+            height: 160px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            position: relative;
+            overflow: hidden;
+        }
+
+        .home-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="30" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="60" r="40" fill="rgba(255,255,255,0.05)"/></svg>');
+        }
+
+        .home-logo {
+            text-align: center;
+            padding-top: 30px;
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        .home-logo-sub {
+            font-size: 12px;
+            font-weight: normal;
+            margin-top: 5px;
+            opacity: 0.9;
+        }
+
+        .entry-cards {
+            display: flex;
+            gap: 10px;
+            padding: 15px;
+            margin-top: -30px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .entry-card {
+            flex: 1;
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .entry-card-icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+
+        .entry-card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .entry-card-desc {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-color);
+            padding: 15px 15px 10px;
+        }
+
+        .banner-container {
+            padding: 0 15px;
+        }
+
+        .banner {
+            height: 150px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+        }
+
+        .banner-2 {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+        }
+
+        .ad-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            padding: 0 15px 15px;
+        }
+
+        .ad-item {
+            height: 120px;
+            background: linear-gradient(135deg, #a8edea, #fed6e3);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 12px;
+        }
+
+        /* ========== 秒杀场样式 ========== */
+        .auction-header {
+            background: var(--primary-color);
+            padding: 10px 15px;
+        }
+
+        .auction-notice {
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            padding: 8px 15px;
+            color: white;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .auction-notice-icon {
+            font-size: 16px;
+        }
+
+        .auction-notice-text {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .chat-area {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .chat-message {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .chat-content {
+            flex: 1;
+        }
+
+        .chat-name {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .chat-bubble {
+            background: white;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.5;
+            display: inline-block;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .chat-bubble.bid {
+            background: #fff7e6;
+            border-left: 3px solid var(--warning-color);
+        }
+
+        .chat-bubble.deal {
+            background: #f6ffed;
+            border-left: 3px solid var(--success-color);
+        }
+
+        .chat-bubble.system {
+            background: #f0f0f0;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .auction-float-btn {
+            position: absolute;
+            right: 10px;
+            background: var(--primary-color);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px 0 0 8px;
+            font-size: 12px;
+            font-weight: 500;
+            box-shadow: 0 2px 10px rgba(244, 131, 90, 0.3);
+        }
+
+        .auction-float-btn.top {
+            top: 120px;
+        }
+
+        .auction-float-btn.bottom {
+            top: 170px;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .auction-bid-btn {
+            position: absolute;
+            right: 10px;
+            bottom: 150px;
+            background: #ff4d4f;
+            color: white;
+            padding: 12px 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(255, 77, 79, 0.3);
+        }
+
+        .bid-label {
+            font-size: 10px;
+            opacity: 0.9;
+        }
+
+        .bid-text {
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 2px;
+        }
+
+        .auction-input-area {
+            background: white;
+            padding: 10px 15px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .auction-input {
+            flex: 1;
+            height: 36px;
+            background: var(--bg-color);
+            border: none;
+            border-radius: 18px;
+            padding: 0 15px;
+            font-size: 14px;
+        }
+
+        .send-btn {
+            width: 60px;
+            height: 36px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 18px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* ========== 会话列表样式 ========== */
+        .chat-list-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: white;
+            border-bottom: 1px solid var(--border-color);
+            gap: 12px;
+        }
+
+        .chat-item-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            position: relative;
+        }
+
+        .chat-item-avatar.system {
+            background: var(--success-color);
+        }
+
+        .chat-item-avatar.auction {
+            background: var(--warning-color);
+        }
+
+        .unread-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff4d4f;
+            color: white;
+            font-size: 10px;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 5px;
+        }
+
+        .chat-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .chat-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .chat-item-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .chat-item-time {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .chat-item-preview {
+            font-size: 14px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .search-bar {
+            padding: 10px 15px;
+            background: white;
+        }
+
+        .search-input-wrapper {
+            background: var(--bg-color);
+            border-radius: 20px;
+            padding: 8px 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-icon {
+            color: var(--text-secondary);
+            font-size: 16px;
+        }
+
+        .search-input {
+            flex: 1;
+            border: none;
+            background: none;
+            font-size: 14px;
+            outline: none;
+        }
+
+        /* ========== 个人中心样式 ========== */
+        .user-card {
+            background: white;
+            margin: 15px;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .user-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .user-id {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .user-stats {
+            display: flex;
+            justify-content: space-around;
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .menu-section {
+            background: white;
+            margin: 15px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: 12px 15px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-color);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-header::before {
+            content: '';
+            width: 3px;
+            height: 14px;
+            background: var(--primary-color);
+            border-radius: 2px;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            padding: 15px;
+            gap: 10px;
+        }
+
+        .menu-item {
+            text-align: center;
+            padding: 10px;
+        }
+
+        .menu-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--bg-color);
+            border-radius: 50%;
+            margin: 0 auto 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .menu-text {
+            font-size: 12px;
+            color: var(--text-color);
+        }
+
+        .logout-btn {
+            margin: 15px;
+            padding: 12px;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* ========== 交易站样式 ========== */
+        .trading-header {
+            background: white;
+            padding: 10px 15px;
+        }
+
+        .category-scroll {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            margin-bottom: 10px;
+        }
+
+        .category-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        .category-tag {
+            padding: 6px 16px;
+            background: var(--bg-color);
+            border-radius: 20px;
+            font-size: 13px;
+            white-space: nowrap;
+            color: var(--text-secondary);
+        }
+
+        .category-tag.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .hot-words {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .hot-word {
+            padding: 4px 10px;
+            background: #fff7e6;
+            color: var(--warning-color);
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        .post-list {
+            padding: 15px;
+        }
+
+        .post-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .post-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .post-title {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-color);
+            margin-bottom: 8px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .post-title.top {
+            color: var(--primary-color);
+        }
+
+        .post-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .post-category {
+            background: #e6f7ff;
+            color: var(--info-color);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        .post-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--bg-color);
+            flex-shrink: 0;
+        }
+
+        .fab-btn {
+            position: absolute;
+            right: 15px;
+            bottom: 100px;
+            width: 50px;
+            height: 50px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            box-shadow: 0 4px 15px rgba(244, 131, 90, 0.4);
+        }
+
+        /* ========== 登录页样式 ========== */
+        .login-container {
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 80px 30px;
+        }
+
+        .login-logo {
+            font-size: 40px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .login-subtitle {
+            color: rgba(255,255,255,0.9);
+            font-size: 14px;
+            margin-bottom: 60px;
+        }
+
+        .login-card {
+            width: 100%;
+            background: white;
+            border-radius: 16px;
+            padding: 30px 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .login-methods {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .login-method {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border-bottom: 2px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .login-method.active {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .login-input {
+            width: 100%;
+            height: 48px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0 15px;
+            font-size: 14px;
+            margin-bottom: 15px;
+            outline: none;
+        }
+
+        .login-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .login-submit {
+            width: 100%;
+            height: 48px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-size: 16px;
+            font-weight: 500;
+            margin-top: 10px;
+        }
+
+        .login-divider {
+            display: flex;
+            align-items: center;
+            margin: 25px 0;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .login-divider::before,
+        .login-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-color);
+        }
+
+        .login-divider::before {
+            margin-right: 15px;
+        }
+
+        .login-divider::after {
+            margin-left: 15px;
+        }
+
+        .social-login {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        .social-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--bg-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .social-icon.wechat {
+            background: #07c160;
+            color: white;
+        }
+
+        /* 响应式 */
+        @media (max-width: 1400px) {
+            .devices-container {
+                gap: 30px;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .phone-device {
+                width: 320px;
+                height: 693px;
+            }
+            .content-area {
+                height: calc(693px - 44px - 44px - 83px);
+            }
+            .content-area.no-tab {
+                height: calc(693px - 44px - 44px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1 class="page-title">魔力淘 App 移动端 UI 设计</h1>
+    <p class="subtitle">基于 UniApp 功能模块分析 · 主题色 #F4835a · 6 个核心页面</p>
+
+    <div class="devices-container">
+        <!-- 设备1: 首页 -->
+        <div class="device-wrapper">
+            <div class="device-name">首页</div>
+            <div class="phone-device">
+                <div class="status-bar">
+                    <span>9:41</span>
+                    <div class="status-icons">
+                        <span>📶</span>
+                        <span>🔋</span>
+                    </div>
+                </div>
+                <div class="content-area">
+                    <div class="home-header">
+                        <div class="home-logo">
+                            魔力淘
+                            <div class="home-logo-sub">MOLITAO</div>
+                        </div>
+                    </div>
+                    <div class="entry-cards">
+                        <div class="entry-card">
+                            <div class="entry-card-icon">🏪</div>
+                            <div class="entry-card-title">交易站</div>
+                            <div class="entry-card-desc">买卖二手好物</div>
+                        </div>
+                        <div class="entry-card">
+                            <div class="entry-card-icon">🔥</div>
+                            <div class="entry-card-title">秒杀场</div>
+                            <div class="entry-card-desc">实时竞拍抢购</div>
+                        </div>
+                    </div>
+                    <div class="section-title">🔥 热门推荐</div>
+                    <div class="banner-container">
+                        <div class="banner">🎉 新用户首充送福利</div>
+                    </div>
+                    <div class="section-title">📢 广告位</div>
+                    <div class="ad-grid">
+                        <div class="ad-item">广告位 1</div>
+                        <div class="ad-item">广告位 2</div>
+                        <div class="ad-item">广告位 3</div>
+                        <div class="ad-item">广告位 4</div>
+                    </div>
+                </div>
+                <div class="tab-bar">
+                    <div class="tab-item active">
+                        <div class="tab-icon">🏠</div>
+                        <span>首页</span>
+                    </div>
+                    <div class="tab-item">
+                        <div class="tab-icon">💬</div>
+                        <span>会话</span>
+                    </div>
+                    <div class="tab-item">
+                        <div class="tab-icon">👥</div>
+                        <span>通讯录</span>
+                    </div>
+                    <div class="tab-item">
+                        <div class="tab-icon">👤</div>
+                        <span>我的</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 设备2: 秒杀场 -->
+        <div class="device-wrapper">
+            <div class="device-name">秒杀场</div>
+            <div class="phone-device">
+                <div class="status-bar">
+                    <span>9:41</span>
+                    <div class="status-icons">
+                        <span>📶</span>
+                        <span>🔋</span>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    <span class="nav-back">←</span>
+                    秒杀场
+                    <span class="nav-action">榜单</span>
+                </div>
+                <div class="auction-header">
+                    <div class="auction-notice">
+                        <span class="auction-notice-icon">📢</span>
+                        <span class="auction-notice-text">重要公告：新用户参与秒杀需缴纳魔力值...</span>
+                    </div>
+                </div>
+                <div class="content-area no-tab" style="height: calc(812px - 44px - 44px - 60px - 56px); position: relative;">
+                    <div class="auction-float-btn top">新消息 3</div>
+                    <div class="auction-float-btn bottom">
+                        <div style="font-size: 10px; opacity: 0.9;">秒杀榜</div>
+                        <div style="font-size: 14px; font-weight: bold;">🏆</div>
+                    </div>
+                    <div class="auction-bid-btn">
+                        <div class="bid-label">秒杀中</div>
+                        <div class="bid-text">出价</div>
+                    </div>
+                    <div class="chat-area">
+                        <div class="chat-message">
+                            <div class="chat-avatar">系</div>
+                            <div class="chat-content">
+                                <div class="chat-name">系统公告</div>
+                                <div class="chat-bubble system">欢迎来到秒杀场，请注意遵守交易规则</div>
+                            </div>
+                        </div>
+                        <div class="chat-message">
+                            <div class="chat-avatar" style="background: #666;">张</div>
+                            <div class="chat-content">
+                                <div class="chat-name">张三</div>
+                                <div class="chat-bubble">这个看起来不错</div>
+                            </div>
+                        </div>
+                        <div class="chat-message">
+                            <div class="chat-avatar" style="background: #1890ff;">李</div>
+                            <div class="chat-content">
+                                <div class="chat-name">李四</div>
+                                <div class="chat-bubble bid">💰 出价：¥128</div>
+                            </div>
+                        </div>
+                        <div class="chat-message">
+                            <div class="chat-avatar" style="background: #ff4d4f;">王</div>
+                            <div class="chat-content">
+                                <div class="chat-name">王五</div>
+                                <div class="chat-bubble bid">💰 出价：¥135</div>
+                            </div>
+                        </div>
+                        <div class="chat-message">
+                            <div class="chat-avatar system">系</div>
+                            <div class="chat-content">
+                                <div class="chat-name">系统消息</div>
+                                <div class="chat-bubble deal">🎉 恭喜 王五 以 ¥135 成交！</div>
+                            </div>
+                        </div>
+                        <div class="chat-message">
+                            <div class="chat-avatar" style="background: #52c41a;">赵</div>
+                            <div class="chat-content">
+                                <div class="chat-name">赵六</div>
+                                <div class="chat-bubble">下一个什么时候开始</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="auction-input-area">
+                    <input type="text" class="auction-input" placeholder="说点什么...">
+                    <button class="send-btn">发送</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 设备3: 会话列表 -->
+        <div class="device-wrapper">
+            <div class="device-name">会话列表</div>
+            <div class="phone-device">
+                <div class="status-bar">
+                    <span>9:41</span>
+                    <div class="status-icons">
+                        <span>📶</span>
+                        <span>🔋</span>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    会话
+                </div>
+                <div class="content-area">
+                    <div class="chat-list-item">
+                        <div class="chat-item-avatar auction">
+                            秒
+                            <div class="unread-badge">5</div>
+                        </div>
+                        <div class="chat-item-info">
+                            <div class="chat-item-header">
+                                <span class="chat-item-name">秒杀场</span>
+                                <span class="chat-item-time">刚刚</span>
+                            </div>
+                            <div class="chat-item-preview">王五: 💰 出价 ¥135</div>
+                        </div>
+                    </div>
+                    <div class="chat-list-item">
+                        <div class="chat-item-avatar system">
+                            公
+                        </div>
+                        <div class="chat-item-info">
+                            <div class="chat-item-header">
+                                <span class="chat-item-name">系统公告</span>
+                                <span class="chat-item-time">10:30</span>
+                            </div>
+                            <div class="chat-item-preview">平台重要通知公告</div>
+                        </div>
+                    </div>
+                    <div class="chat-list-item">
+                        <div class="chat-item-avatar system">
+                            新
+                        </div>
+                        <div class="chat-item-info">
+                            <div class="chat-item-header">
+                                <span class="chat-item-name">新手版主群聊</span>
+                                <span class="chat-item-time">09:15</span>
+                            </div>
+                            <div class="chat-item-preview">欢迎新人加入~</div>
+                        </div>
+                    </div>
+                    <div class="chat-list-item">
+                        <div class="chat-item-avatar" style="background: #1890ff;">
+                            张
+                            <div class="unread-badge">2</div>
+                        </div>
+                        <div class="chat-item-info">
+                            <div class="chat-item-header">
+                                <span class="chat-item-name">张三</span>
+                                <span class="chat-item-time">昨天</span>
+                            </div>
+                            <div class="chat-item-preview">好的，明天见</div>
+                        </div>
+                    </div>
+                    <div class="chat-list-item">
+                        <div class="chat-item-avatar" style="background: #722ed1;">
+                            李
+                        </div>
+                        <div class="chat-item-info">
+                            <div class="chat-item-header">
+                                <span class="chat-item-name">李四</span>
+                                <span class="chat-item-time">周一</span>
+                            </div>
+                            <div class="chat-item-preview">交易愉快！</div>
+                        </div>
+                    </div>
+                    <div class="chat-list-item">
+                        <div class="chat-item-avatar" style="background: #13c2c2;">
+                            组
+                        </div>
+                        <div class="chat-item-info">
+                            <div class="chat-item-header">
+                                <span class="chat-item-name">交易交流群</span>
+                                <span class="chat-item-time">上周</span>
+                            </div>
+                            <div class="chat-item-preview">有人出这个吗？</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-bar">
+                    <div class="tab-item">
+                        <div class="tab-icon">🏠</div>
+                        <span>首页</span>
+                    </div>
+                    <div class="tab-item active">
+                        <div class="tab-icon">💬</div>
+                        <span>会话</span>
+                    </div>
+                    <div class="tab-item">
+                        <div class="tab-icon">👥</div>
+                        <span>通讯录</span>
+                    </div>
+                    <div class="tab-item">
+                        <div class="tab-icon">👤</div>
+                        <span>我的</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 设备4: 个人中心 -->
+        <div class="device-wrapper">
+            <div class="device-name">个人中心</div>
+            <div class="phone-device">
+                <div class="status-bar light">
+                    <span>9:41</span>
+                    <div class="status-icons">
+                        <span>📶</span>
+                        <span>🔋</span>
+                    </div>
+                </div>
+                <div class="nav-bar light">
+                    个人中心
+                    <span class="nav-action">⚙️</span>
+                </div>
+                <div class="content-area white">
+                    <div class="user-card">
+                        <div class="user-header">
+                            <div class="user-avatar">👤</div>
+                            <div class="user-info">
+                                <div class="user-name">魔力淘用户</div>
+                                <div class="user-id">ID: 12345</div>
+                            </div>
+                        </div>
+                        <div class="user-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">128</div>
+                                <div class="stat-label">好友</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">51</div>
+                                <div class="stat-label">魔力值</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">¥0</div>
+                                <div class="stat-label">余额</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="menu-section">
+                        <div class="section-header">工作台</div>
+                        <div class="menu-grid">
+                            <div class="menu-item">
+                                <div class="menu-icon">💰</div>
+                                <div class="menu-text">魔力值充值</div>
+                            </div>
+                            <div class="menu-item">
+                                <div class="menu-icon">📤</div>
+                                <div class="menu-text">魔力值退还</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="menu-section">
+                        <div class="section-header">买家中心</div>
+                        <div class="menu-grid">
+                            <div class="menu-item">
+                                <div class="menu-icon">🎯</div>
+                                <div class="menu-text">出价中</div>
+                            </div>
+                            <div class="menu-item">
+                                <div class="menu-icon">📦</div>
+                                <div class="menu-text">待收货</div>
+                            </div>
+                            <div class="menu-item">
+                                <div class="menu-icon">✅</div>
+                                <div class="menu-text">已成交</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="menu-section">
+                        <div class="section-header">卖家中心</div>
+                        <div class="menu-grid">
+                            <div class="menu-item">
+                                <div class="menu-icon">🏷️</div>
+                                <div class="menu-text">我要卖</div>
+                            </div>
+                            <div class="menu-item">
+                                <div class="menu-icon">🚚</div>
+                                <div class="menu-text">待发货</div>
+                            </div>
+                            <div class="menu-item">
+                                <div class="menu-icon">📋</div>
+                                <div class="menu-text">订单</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="logout-btn">退出登录</div>
+                </div>
+                <div class="tab-bar">
+                    <div class="tab-item">
+                        <div class="tab-icon">🏠</div>
+                        <span>首页</span>
+                    </div>
+                    <div class="tab-item">
+                        <div class="tab-icon">💬</div>
+                        <span>会话</span>
+                    </div>
+                    <div class="tab-item">
+                        <div class="tab-icon">👥</div>
+                        <span>通讯录</span>
+                    </div>
+                    <div class="tab-item active">
+                        <div class="tab-icon">👤</div>
+                        <span>我的</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 设备5: 交易站 -->
+        <div class="device-wrapper">
+            <div class="device-name">交易站</div>
+            <div class="phone-device">
+                <div class="status-bar">
+                    <span>9:41</span>
+                    <div class="status-icons">
+                        <span>📶</span>
+                        <span>🔋</span>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    交易站
+                </div>
+                <div class="content-area" style="position: relative;">
+                    <div class="trading-header">
+                        <div class="category-scroll">
+                            <div class="category-tag active">全部</div>
+                            <div class="category-tag">游戏账号</div>
+                            <div class="category-tag">装备道具</div>
+                            <div class="category-tag">游戏币</div>
+                            <div class="category-tag">代练服务</div>
+                        </div>
+                        <div class="search-bar" style="padding: 0;">
+                            <div class="search-input-wrapper">
+                                <span class="search-icon">🔍</span>
+                                <input type="text" class="search-input" placeholder="搜索关键词...">
+                            </div>
+                        </div>
+                        <div class="hot-words">
+                            <div class="hot-word">梦幻西游</div>
+                            <div class="hot-word">大话西游</div>
+                            <div class="hot-word">问道</div>
+                            <div class="hot-word">账号出售</div>
+                        </div>
+                    </div>
+                    <div class="post-list">
+                        <div class="post-card">
+                            <div class="post-info">
+                                <div class="post-title top">【置顶】交易注意事项，新手必看！</div>
+                                <div class="post-meta">
+                                    <span class="post-category">公告</span>
+                                    <span>官方</span>
+                                    <span>03-31</span>
+                                </div>
+                            </div>
+                            <div class="post-avatar"></div>
+                        </div>
+                        <div class="post-card">
+                            <div class="post-info">
+                                <div class="post-title">出 175 级神天兵账号，满修满技能</div>
+                                <div class="post-meta">
+                                    <span class="post-category">游戏账号</span>
+                                    <span>张三</span>
+                                    <span>10:30</span>
+                                </div>
+                            </div>
+                            <div class="post-avatar"></div>
+                        </div>
+                        <div class="post-card">
+                            <div class="post-info">
+                                <div class="post-title">求购高级藏宝图，有的联系我</div>
+                                <div class="post-meta">
+                                    <span class="post-category" style="background: #f6ffed; color: #52c41a;">装备道具</span>
+                                    <span>李四</span>
+                                    <span>09:15</span>
+                                </div>
+                            </div>
+                            <div class="post-avatar"></div>
+                        </div>
+                        <div class="post-card">
+                            <div class="post-info">
+                                <div class="post-title">大量游戏币出售，比例优惠</div>
+                                <div class="post-meta">
+                                    <span class="post-category" style="background: #fff7e6; color: #fa8c16;">游戏币</span>
+                                    <span>王五</span>
+                                    <span>昨天</span>
+                                </div>
+                            </div>
+                            <div class="post-avatar"></div>
+                        </div>
+                    </div>
+                    <div class="fab-btn">+</div>
+                </div>
+                <div class="tab-bar">
+                    <div class="tab-item">
+                        <div class="tab-icon">🏠</div>
+                        <span>首页</span>
+                    </div>
+                    <div class="tab-item">
+                        <div class="tab-icon">💬</div>
+                        <span>会话</span>
+                    </div>
+                    <div class="tab-item">
+                        <div class="tab-icon">👥</div>
+                        <span>通讯录</span>
+                    </div>
+                    <div class="tab-item">
+                        <div class="tab-icon">👤</div>
+                        <span>我的</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 设备6: 登录页 -->
+        <div class="device-wrapper">
+            <div class="device-name">登录页</div>
+            <div class="phone-device">
+                <div class="status-bar transparent">
+                    <span>9:41</span>
+                    <div class="status-icons">
+                        <span>📶</span>
+                        <span>🔋</span>
+                    </div>
+                </div>
+                <div class="login-container">
+                    <div class="login-logo">魔力淘</div>
+                    <div class="login-subtitle">安全可靠的二手交易平台</div>
+                    <div class="login-card">
+                        <div class="login-methods">
+                            <div class="login-method active">微信登录</div>
+                            <div class="login-method">账号登录</div>
+                        </div>
+                        <input type="text" class="login-input" placeholder="请输入手机号">
+                        <input type="password" class="login-input" placeholder="请输入密码">
+                        <button class="login-submit">登录</button>
+                        <div class="login-divider">其他登录方式</div>
+                        <div class="social-login">
+                            <div class="social-icon wechat">📱</div>
+                            <div class="social-icon">📱</div>
+                            <div class="social-icon">📧</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 功能说明 -->
+    <div style="max-width: 1200px; margin: 60px auto 0; padding: 0 20px;">
+        <h2 style="color: #fff; font-size: 24px; margin-bottom: 20px; text-align: center;">功能模块说明</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+            <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 12px;">
+                <h3 style="color: var(--primary-color); font-size: 18px; margin-bottom: 10px;">🔥 秒杀场</h3>
+                <p style="color: #aaa; font-size: 14px; line-height: 1.6;">实时拍卖聊天室，支持出价竞拍、卡秒模式（三倍加价）、魔力值支付、秒杀通知订阅</p>
+            </div>
+            <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 12px;">
+                <h3 style="color: var(--primary-color); font-size: 18px; margin-bottom: 10px;">💬 即时通讯</h3>
+                <p style="color: #aaa; font-size: 14px; line-height: 1.6;">私聊、群聊、系统频道（公告/新手群）、实时消息推送、表情包管理</p>
+            </div>
+            <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 12px;">
+                <h3 style="color: var(--primary-color); font-size: 18px; margin-bottom: 10px;">🏪 交易站</h3>
+                <p style="color: #aaa; font-size: 14px; line-height: 1.6;">帖子发布、分类筛选、关键词搜索、热词推荐、置顶帖子</p>
+            </div>
+            <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 12px;">
+                <h3 style="color: var(--primary-color); font-size: 18px; margin-bottom: 10px;">💰 钱包系统</h3>
+                <p style="color: #aaa; font-size: 14px; line-height: 1.6;">魔力值充值（微信支付）、余额管理、提现申请、流水明细</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 设计规范 -->
+    <div style="max-width: 1200px; margin: 40px auto; padding: 0 20px;">
+        <h2 style="color: #fff; font-size: 24px; margin-bottom: 20px; text-align: center;">设计规范</h2>
+        <div style="background: rgba(255,255,255,0.1); padding: 30px; border-radius: 12px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px;">
+                <div>
+                    <h4 style="color: #fff; font-size: 16px; margin-bottom: 15px;">主题色</h4>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <div style="width: 50px; height: 50px; background: #F4835a; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px;">#F4835a</div>
+                        <div style="width: 50px; height: 50px; background: #ff7144; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px;">#ff7144</div>
+                        <div style="width: 50px; height: 50px; background: #52c41a; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px;">#52c41a</div>
+                        <div style="width: 50px; height: 50px; background: #fa8c16; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px;">#fa8c16</div>
+                    </div>
+                </div>
+                <div>
+                    <h4 style="color: #fff; font-size: 16px; margin-bottom: 15px;">字体规范</h4>
+                    <p style="color: #aaa; font-size: 14px;">主标题：18px bold</p>
+                    <p style="color: #aaa; font-size: 14px;">副标题：16px medium</p>
+                    <p style="color: #aaa; font-size: 14px;">正文：14px regular</p>
+                    <p style="color: #aaa; font-size: 14px;">辅助文字：12px regular</p>
+                </div>
+                <div>
+                    <h4 style="color: #fff; font-size: 16px; margin-bottom: 15px;">圆角规范</h4>
+                    <p style="color: #aaa; font-size: 14px;">大卡片：16px</p>
+                    <p style="color: #aaa; font-size: 14px;">小卡片：12px</p>
+                    <p style="color: #aaa; font-size: 14px;">按钮：8px / 24px(全圆)</p>
+                    <p style="color: #aaa; font-size: 14px;">标签：4px</p>
+                </div>
+                <div>
+                    <h4 style="color: #fff; font-size: 16px; margin-bottom: 15px;">间距规范</h4>
+                    <p style="color: #aaa; font-size: 14px;">页面边距：15px</p>
+                    <p style="color: #aaa; font-size: 14px;">卡片间距：10-15px</p>
+                    <p style="color: #aaa; font-size: 14px;">内容间距：8-12px</p>
+                    <p style="color: #aaa; font-size: 14px;">组件内边距：15-20px</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer style="text-align: center; padding: 40px 20px; color: #666; font-size: 12px;">
+        <p>魔力淘 App 移动端 UI 设计 · 基于 UniApp 功能模块分析</p>
+        <p style="margin-top: 10px;">设计时间：2026-03-31 · 主题色：#F4835a</p>
+    </footer>
+</body>
+</html>

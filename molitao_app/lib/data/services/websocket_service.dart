@@ -1,15 +1,19 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/status.dart' as status;
 
+/// WebSocket 服务
+/// 与 UniApp 实现保持一致，使用 /ws/pre-connect 端点
 class WebSocketService {
-  static const String _baseUrl = 'wss://www.molitao.top/ws';
-  static const Duration _pingInterval = Duration(seconds: 30);
-  static const Duration _reconnectDelay = Duration(seconds: 5);
+  // HTTP 基础 URL
+  static const String _httpBaseUrl = 'http://192.168.2.125:12580';
+
+  // 重连延迟（秒）
+  static const int _reconnectDelaySeconds = 5;
 
   WebSocketChannel? _channel;
-  Timer? _pingTimer;
   Timer? _reconnectTimer;
   StreamSubscription? _subscription;
 
@@ -18,29 +22,62 @@ class WebSocketService {
 
   bool _isConnected = false;
   bool _shouldReconnect = false;
-  String? _connectionId;
+  int? _websocketId;
+  String? _token;
+  Dio? _dio;
 
   Stream<Map<String, dynamic>> get messageStream =>
       _messageStreamController.stream;
 
   bool get isConnected => _isConnected;
 
-  Future<void> connect({String? connectionId}) async {
-    if (_isConnected) return;
+  /// 连接 WebSocket
+  /// 与 UniApp chatStore.connectServer() 保持一致
+  Future<void> connect({String? token}) async {
+    print('========== WebSocket connect() 被调用 ==========');
 
+    if (_isConnected) {
+      print('[WebSocket] 已经连接，跳过');
+      return;
+    }
+
+    _token = token;
     _shouldReconnect = true;
 
     try {
-      // If no connectionId provided, negotiate first
-      if (connectionId == null) {
-        _connectionId = await _negotiateConnection();
-      } else {
-        _connectionId = connectionId;
+      // 1. 调用 pre-connect 获取 WebSocket URL
+      print('[WebSocket] 步骤1: 调用 /ws/pre-connect...');
+      final preConnectResult = await _preConnect();
+      if (preConnectResult == null) {
+        print('[WebSocket] pre-connect 失败');
+        _scheduleReconnect();
+        return;
       }
 
-      // Connect to WebSocket with connectionId
-      final urlWithParams = '$_baseUrl?connectionId=$_connectionId';
-      _channel = WebSocketChannel.connect(Uri.parse(urlWithParams));
+      // 后端返回的数据结构是 {result: {server: "...", websocketId: ...}}
+      // 或者是 {result: {code: 0, server: "...", websocketId: ...}}
+      final result = preConnectResult['result'] as Map<String, dynamic>?;
+      final serverUrl =
+          result?['server'] as String? ?? preConnectResult['server'] as String?;
+      _websocketId =
+          (result?['websocketId'] ?? preConnectResult['websocketId']) as int?;
+
+      if (serverUrl == null || serverUrl.isEmpty) {
+        print('[WebSocket] 未获取到 server URL');
+        _scheduleReconnect();
+        return;
+      }
+
+      // 直接使用后端返回的 WebSocket 服务器地址
+      final correctedServerUrl = serverUrl;
+
+      print('[WebSocket] 获取到 server: $serverUrl');
+      print('[WebSocket] 修正后 server: $correctedServerUrl');
+      print('[WebSocket] websocketId: $_websocketId');
+
+      // 2. 建立 WebSocket 连接
+      print('[WebSocket] 步骤2: 建立 WebSocket 连接...');
+      _channel = WebSocketChannel.connect(Uri.parse(correctedServerUrl));
 
       _subscription = _channel?.stream.listen(
         _onMessageReceived,
@@ -49,141 +86,160 @@ class WebSocketService {
       );
 
       _isConnected = true;
-
-      // Start ping timer
-      _startPingTimer();
+      print('[WebSocket] ========== 连接成功 ==========');
     } catch (e) {
-      print('WebSocket connection failed: $e');
+      print('[WebSocket] 连接失败: $e');
       if (_shouldReconnect) {
         _scheduleReconnect();
       }
     }
   }
 
-  Future<String?> _negotiateConnection() async {
-    // In a real implementation, you would make an HTTP call to negotiate
-    // For now, we'll simulate this by generating a random connection ID
-    // In practice, you'd call: POST /ws/pre-connect
-    return 'conn_${DateTime.now().millisecondsSinceEpoch}';
+  /// 调用 pre-connect 获取 WebSocket 连接信息
+  Future<Map<String, dynamic>?> _preConnect() async {
+    try {
+      _dio ??= Dio();
+
+      final preConnectUrl = '$_httpBaseUrl/ws/pre-connect';
+      print('[WebSocket] pre-connect URL: $preConnectUrl');
+
+      final response = await _dio!.post(
+        preConnectUrl,
+        options: Options(headers: {'Authorization': 'Bearer $_token'}),
+      );
+
+      print('[WebSocket] pre-connect 响应状态: ${response.statusCode}');
+      print('[WebSocket] pre-connect 响应数据: ${response.data}');
+
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data as Map<String, dynamic>;
+      }
+
+      return null;
+    } catch (e) {
+      print('[WebSocket] pre-connect 请求失败: $e');
+      return null;
+    }
   }
 
+  /// 接收消息处理
+  /// 与 UniApp chatStore.onmessage() 保持一致
   void _onMessageReceived(dynamic message) {
     try {
-      final jsonMessage = json.decode(message.toString());
-      final messageType = jsonMessage['type'] as int?;
+      final messageStr = message.toString();
+      print('[WebSocket] 收到消息: $messageStr');
 
-      switch (messageType) {
-        case 1: // Invocation
-          _handleInvocation(jsonMessage);
-          break;
-        case 6: // Ping
-          // Respond with pong if needed
-          _sendPong();
-          break;
-        case 7: // Close
-          _handleClose(jsonMessage);
-          break;
-        default:
-          // Handle unknown message types
-          _messageStreamController.add(jsonMessage);
-          break;
+      Map<String, dynamic> jsonMessage;
+
+      // 解析 JSON
+      if (messageStr.startsWith('{') || messageStr.startsWith('[')) {
+        jsonMessage = json.decode(messageStr) as Map<String, dynamic>;
+      } else {
+        print('[WebSocket] 非JSON消息，跳过');
+        return;
       }
+
+      // 检查错误消息
+      if (jsonMessage['type'] == 'Error') {
+        print('[WebSocket] 收到错误消息: ${jsonMessage['receipt']}');
+        return;
+      }
+
+      // 转换消息类型：将数值类型转换为字符串类型（与 UniApp 保持一致）
+      _convertMessageType(jsonMessage);
+
+      // 发送到消息流
+      _messageStreamController.add(jsonMessage);
     } catch (e) {
-      print('Error parsing WebSocket message: $e');
+      print('[WebSocket] 解析消息失败: $e');
     }
   }
 
-  void _handleInvocation(Map<String, dynamic> message) {
-    final target = message['target'] as String?;
-    final arguments = message['arguments'] as List<dynamic>?;
+  /// 转换消息类型
+  /// 与 UniApp chatStore.onmessage 中的 typeMap 保持一致
+  void _convertMessageType(Map<String, dynamic> msg) {
+    final type = msg['type'];
+    if (type is! int) return;
 
-    if (target != null) {
-      // Route the message based on target
-      final routedMessage = {
-        'target': target,
-        'arguments': arguments,
-        'original': message,
-      };
-      _messageStreamController.add(routedMessage);
+    const typeMap = {
+      1: 'Text',
+      2: 'Image',
+      3: 'File',
+      10: 'Receipt',
+      100: 'Welcome',
+      101: 'Goodbye',
+      102: 'BanUser',
+      110: 'Backout',
+      1000: 'AuctionStart',
+      1002: 'AuctionBid',
+      1010: 'AuctionEnd',
+      1011: 'AuctionDeal',
+      2000: 'KasecStatusChanged',
+      '-1': 'Error',
+    };
+
+    if (typeMap.containsKey(type)) {
+      msg['type'] = typeMap[type];
+      print('[WebSocket] 消息类型转换: $type -> ${typeMap[type]}');
     }
   }
 
-  void _handleClose(Map<String, dynamic> message) {
-    _isConnected = false;
-    _stopPingTimer();
-
-    if (_shouldReconnect) {
-      _scheduleReconnect();
-    }
-  }
-
+  /// 错误处理
   void _onError(dynamic error) {
-    print('WebSocket error: $error');
+    print('[WebSocket] 错误: $error');
     _isConnected = false;
-    _stopPingTimer();
 
     if (_shouldReconnect) {
       _scheduleReconnect();
     }
   }
 
+  /// 连接关闭处理
   void _onDone() {
+    print('[WebSocket] 连接已关闭');
     _isConnected = false;
-    _stopPingTimer();
 
     if (_shouldReconnect) {
       _scheduleReconnect();
     }
   }
 
-  void _startPingTimer() {
-    _pingTimer = Timer.periodic(_pingInterval, (timer) {
-      if (_isConnected) {
-        _sendPing();
-      }
-    });
-  }
-
-  void _stopPingTimer() {
-    _pingTimer?.cancel();
-    _pingTimer = null;
-  }
-
-  void _sendPing() {
-    final pingMessage = {'type': 6}; // Ping type
-    sendMessage(pingMessage);
-  }
-
-  void _sendPong() {
-    // In SignalR protocol, pongs are usually implicit
-    // But we could send a specific pong message if needed
-  }
-
+  /// 发送消息（公共接口）
   void sendMessage(Map<String, dynamic> message) {
     if (_channel != null && _isConnected) {
-      _channel?.sink.add(json.encode(message));
+      final jsonStr = json.encode(message);
+      print('[WebSocket] 发送消息: $jsonStr');
+      _channel?.sink.add(jsonStr);
+    } else {
+      print('[WebSocket] 未连接，无法发送消息');
     }
   }
 
+  /// 计划重连
   void _scheduleReconnect() {
-    _reconnectTimer = Timer(_reconnectDelay, () {
+    _reconnectTimer?.cancel();
+    _reconnectTimer = Timer(Duration(seconds: _reconnectDelaySeconds), () {
       if (_shouldReconnect) {
-        connect(connectionId: _connectionId);
+        print('[WebSocket] 尝试重连...');
+        connect(token: _token);
       }
     });
   }
 
+  /// 断开连接
   Future<void> disconnect() async {
+    print('[WebSocket] 断开连接');
     _shouldReconnect = false;
-    _stopPingTimer();
     _reconnectTimer?.cancel();
     _subscription?.cancel();
     _channel?.sink.close(status.goingAway);
     _isConnected = false;
   }
 
+  /// 销毁服务
   void dispose() {
     disconnect();
     _messageStreamController.close();
+    _dio?.close();
   }
 }

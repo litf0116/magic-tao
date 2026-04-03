@@ -1,12 +1,16 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../providers/private_chat_provider.dart';
-import '../../widgets/chat/message_bubble.dart';
-import '../../../core/widgets/chat_input_bar.dart';
+import '../../providers/chat_store.dart';
+import '../../providers/user_provider.dart';
 import '../../../data/models/chat_message_model.dart';
+import '../../../data/services/upload_service.dart';
+import '../../widgets/chat/messages/message_widget.dart';
+import '../../widgets/chat/chat_input_area.dart';
 
 /// 私聊页面
+/// 与 UniApp chatMain.vue 保持一致
 class PrivateChatPage extends ConsumerStatefulWidget {
   final int friendId;
   final String friendName;
@@ -26,12 +30,39 @@ class PrivateChatPage extends ConsumerStatefulWidget {
 class _PrivateChatPageState extends ConsumerState<PrivateChatPage> {
   final ScrollController _scrollController = ScrollController();
   final ImagePicker _imagePicker = ImagePicker();
-  bool _showMorePanel = false;
+  final UploadService _uploadService = UploadService();
+  bool _isUploadingImage = false;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+
+    // 初始化 - 与 UniApp onLoad 一致
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // 连接 WebSocket
+      await ref.read(chatStoreProvider.notifier).connectServer();
+
+      // 设置当前聊天
+      ref
+          .read(chatStoreProvider.notifier)
+          .setCurrentChatId(
+            widget.friendId,
+            name: widget.friendName,
+            isGroup: false,
+          );
+
+      // 标记已读
+      ref.read(chatStoreProvider.notifier).markAsRead(widget.friendId);
+
+      // 加载历史消息
+      await ref
+          .read(chatStoreProvider.notifier)
+          .getPrivateHistory(widget.friendId);
+
+      // 滚动到底部
+      _scrollToBottom();
+    });
   }
 
   @override
@@ -42,42 +73,45 @@ class _PrivateChatPageState extends ConsumerState<PrivateChatPage> {
   }
 
   void _onScroll() {
-    // 当滚动到顶部时，加载更多历史消息
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 100) {
-      // 加载更多消息
-      ref
-          .read(
-            privateChatProvider((
-              friendId: widget.friendId,
-              friendName: widget.friendName,
-              friendAvatar: widget.friendAvatar,
-            )).notifier,
-          )
-          .loadHistoryMessages();
+      final messages = ref.read(currentChatMessagesProvider);
+      final lastTime = messages.isNotEmpty ? messages.last.time : null;
+      if (lastTime != null) {
+        ref
+            .read(chatStoreProvider.notifier)
+            .getPrivateHistory(widget.friendId, lastTime: lastTime);
+      }
     }
   }
 
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
+      // 第一次: 确保 UI rebuild 完成
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        // 第二次: rebuild 后的下一帧，列表已渲染完毕
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_scrollController.hasClients &&
+              _scrollController.position.maxScrollExtent > 0) {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          }
+        });
+      });
     }
   }
 
   Future<void> _onSendText(String text) async {
-    final notifier = ref.read(
-      privateChatProvider((
-        friendId: widget.friendId,
-        friendName: widget.friendName,
-        friendAvatar: widget.friendAvatar,
-      )).notifier,
-    );
-
-    await notifier.sendTextMessage(text);
+    await ref
+        .read(chatStoreProvider.notifier)
+        .sendDirectMsg(
+          toUserId: widget.friendId,
+          message: text,
+          type: ChatMessageType.text,
+        );
     _scrollToBottom();
   }
 
@@ -91,124 +125,135 @@ class _PrivateChatPageState extends ConsumerState<PrivateChatPage> {
       );
 
       if (image != null) {
-        // TODO: 上传图片到服务器，获取 URL
-        // 这里暂时使用本地路径
-        final notifier = ref.read(
-          privateChatProvider((
-            friendId: widget.friendId,
-            friendName: widget.friendName,
-            friendAvatar: widget.friendAvatar,
-          )).notifier,
-        );
+        // 获取当前用户 ID
+        final userState = ref.read(userProvider);
+        final userId = userState.user?.id;
 
-        await notifier.sendImageMessage(image.path);
-        _scrollToBottom();
+        // 显示上传中状态
+        setState(() {
+          _isUploadingImage = true;
+        });
+
+        try {
+          // 上传图片
+          final imageUrl = await _uploadService.uploadImage(
+            image.path,
+            userId: userId?.toString(),
+          );
+
+          if (imageUrl != null) {
+            // 获取图片尺寸
+            final file = File(image.path);
+            final bytes = await file.readAsBytes();
+            final decodedImage = await decodeImageFromList(bytes);
+            final width = decodedImage.width;
+            final height = decodedImage.height;
+
+            // 构建 payload，与 UniApp 保持一致
+            final payload = {'url': imageUrl, 'width': width, 'height': height};
+
+            // 发送图片消息
+            await ref
+                .read(chatStoreProvider.notifier)
+                .sendDirectMsg(
+                  toUserId: widget.friendId,
+                  message: imageUrl,
+                  type: ChatMessageType.image,
+                  payload: payload,
+                );
+            _scrollToBottom();
+          } else {
+            if (mounted) {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('图片上传失败，请重试')));
+            }
+          }
+        } finally {
+          // 恢复上传状态
+          if (mounted) {
+            setState(() {
+              _isUploadingImage = false;
+            });
+          }
+        }
       }
     } catch (e) {
       if (mounted) {
+        setState(() {
+          _isUploadingImage = false;
+        });
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('选择图片失败: $e')));
       }
     }
-
-    setState(() {
-      _showMorePanel = false;
-    });
-  }
-
-  Future<void> _onTakePhoto() async {
-    try {
-      final XFile? image = await _imagePicker.pickImage(
-        source: ImageSource.camera,
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 85,
-      );
-
-      if (image != null) {
-        final notifier = ref.read(
-          privateChatProvider((
-            friendId: widget.friendId,
-            friendName: widget.friendName,
-            friendAvatar: widget.friendAvatar,
-          )).notifier,
-        );
-
-        await notifier.sendImageMessage(image.path);
-        _scrollToBottom();
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('拍照失败: $e')));
-      }
-    }
-
-    setState(() {
-      _showMorePanel = false;
-    });
-  }
-
-  void _toggleMorePanel() {
-    setState(() {
-      _showMorePanel = !_showMorePanel;
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final chatState = ref.watch(
-      privateChatProvider((
-        friendId: widget.friendId,
-        friendName: widget.friendName,
-        friendAvatar: widget.friendAvatar,
-      )),
-    );
+    final messages = ref.watch(currentChatMessagesProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.friendName),
-        backgroundColor: const Color(0xFFf4835a),
+        backgroundColor: const Color(0xFFF4835A),
         foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.more_vert),
-            onPressed: () {
-              // TODO: 显示好友详情
-            },
+      ),
+      body: Stack(
+        children: [
+          Column(
+            children: [
+              Expanded(
+                child: Container(
+                  color: const Color(0xFFFAF1F0),
+                  child: messages.isEmpty
+                      ? _buildEmptyState()
+                      : _buildMessageList(messages),
+                ),
+              ),
+              ChatInputArea(
+                onSendText: _onSendText,
+                onSelectImage: _onPickImage,
+              ),
+            ],
           ),
+          // 加载遮罩
+          if (_isUploadingImage) _buildLoadingOverlay(),
         ],
       ),
-      body: Column(
-        children: [
-          // 消息列表
-          Expanded(
-            child: Container(
-              color: const Color(0xFFfaf1f0),
-              child: chatState.isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : chatState.messages.isEmpty
-                  ? _buildEmptyState()
-                  : _buildMessageList(chatState.messages),
-            ),
-          ),
+    );
+  }
 
-          // 更多功能面板
-          if (_showMorePanel)
-            MoreActionsPanel(
-              onImagePick: _onPickImage,
-              onCameraPick: _onTakePhoto,
-            ),
-
-          // 输入栏
-          ChatInputBar(
-            onSendText: _onSendText,
-            onMoreTap: _toggleMorePanel,
-            placeholder: '发送消息',
+  Widget _buildLoadingOverlay() {
+    return Container(
+      color: Colors.black.withOpacity(0.3),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
           ),
-        ],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(
+                width: 32,
+                height: 32,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFF4835A)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                '正在发送图片...',
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -218,11 +263,7 @@ class _PrivateChatPageState extends ConsumerState<PrivateChatPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.chat_bubble_outline,
-            size: 64,
-            color: Colors.grey.shade400,
-          ),
+          Icon(Icons.person, size: 64, color: Colors.grey.shade400),
           const SizedBox(height: 16),
           Text(
             '暂无消息',
@@ -241,7 +282,7 @@ class _PrivateChatPageState extends ConsumerState<PrivateChatPage> {
   Widget _buildMessageList(List<ChatMessage> messages) {
     return ListView.builder(
       controller: _scrollController,
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.all(16),
       itemCount: messages.length,
       itemBuilder: (context, index) {
         final message = messages[index];
@@ -251,123 +292,100 @@ class _PrivateChatPageState extends ConsumerState<PrivateChatPage> {
   }
 
   Widget _buildMessageItem(ChatMessage message) {
-    // 判断是否是自己发送的消息
-    // TODO: 从用户状态获取当前用户 ID
-    final isSelf =
-        message.status == ChatMessageStatus.sending ||
-        message.status == ChatMessageStatus.success;
+    final isSelf = message.from != null && message.from == _getCurrentUserId();
 
-    // 根据消息类型渲染不同的消息组件
-    switch (message.type) {
-      case ChatMessageType.text:
-        return _buildTextMessage(message, isSelf);
-      case ChatMessageType.image:
-        return _buildImageMessage(message, isSelf);
-      case ChatMessageType.welcome:
-        return SystemMessageBubble(text: '${message.fromName} 加入了聊天');
-      case ChatMessageType.banUser:
-        return SystemMessageBubble(text: message.msg ?? '用户已被禁言');
-      case ChatMessageType.backout:
-        return const SystemMessageBubble(text: '消息已撤回');
-      default:
-        return _buildTextMessage(message, isSelf);
+    if (message.type == ChatMessageType.welcome ||
+        message.type == ChatMessageType.banUser ||
+        message.type == ChatMessageType.backout) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: MessageWidget(message: message),
+      );
     }
-  }
 
-  Widget _buildTextMessage(ChatMessage message, bool isSelf) {
-    return MessageWithAvatar(
-      isSelf: isSelf,
-      avatarUrl: isSelf ? null : widget.friendAvatar,
-      userName: isSelf ? null : message.fromName,
-      child: Text(
-        message.msg ?? '',
-        style: TextStyle(
-          fontSize: 15,
-          color: isSelf ? Colors.white : Colors.black87,
-        ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: isSelf
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!isSelf) ...[_buildAvatar(message), const SizedBox(width: 10)],
+          Flexible(
+            child: Column(
+              crossAxisAlignment: isSelf
+                  ? CrossAxisAlignment.end
+                  : CrossAxisAlignment.start,
+              children: [
+                MessageWidget(
+                  message: message,
+                  onTap: () => debugPrint('消息被点击: ${message.id}'),
+                ),
+              ],
+            ),
+          ),
+          if (isSelf) ...[const SizedBox(width: 10), _buildAvatar(message)],
+        ],
       ),
     );
   }
 
-  Widget _buildImageMessage(ChatMessage message, bool isSelf) {
-    final imageUrl =
-        message.msg ?? (message.payload is Map ? message.payload['url'] : null);
+  int? _getCurrentUserId() {
+    final userState = ref.read(userProvider);
+    return userState.user?.id;
+  }
 
-    return MessageWithAvatar(
-      isSelf: isSelf,
-      avatarUrl: isSelf ? null : widget.friendAvatar,
-      userName: isSelf ? null : message.fromName,
-      child: GestureDetector(
-        onTap: () {
-          // TODO: 查看大图
-          if (imageUrl != null) {
-            _showImagePreview(imageUrl);
-          }
-        },
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Image.network(
-            imageUrl ?? '',
-            width: 200,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                width: 200,
-                height: 150,
-                color: Colors.grey.shade300,
-                child: const Center(
-                  child: Icon(Icons.broken_image, color: Colors.grey),
-                ),
-              );
-            },
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return Container(
-                width: 200,
-                height: 150,
-                color: Colors.grey.shade200,
-                child: Center(
-                  child: CircularProgressIndicator(
-                    value: loadingProgress.expectedTotalBytes != null
-                        ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
-                        : null,
-                  ),
-                ),
-              );
-            },
+  Widget _buildAvatar(ChatMessage message) {
+    // 优先使用消息中的 avatar 字段
+    String? avatarUrl;
+    if (message.from != _getCurrentUserId() && message.avatar != null) {
+      final avatar = message.avatar!;
+      avatarUrl = avatar.startsWith('http')
+          ? avatar
+          : 'https://image.molitao.top/$avatar';
+    }
+    // 如果没有 message.avatar，使用传入的 friendAvatar 作为后备
+    avatarUrl ??= widget.friendAvatar;
+
+    if (avatarUrl == null || avatarUrl.isEmpty) {
+      // 显示默认头像（文字）
+      return Container(
+        width: 36,
+        height: 36,
+        decoration: const BoxDecoration(
+          color: Color(0xFFF4835A),
+          shape: BoxShape.circle,
+        ),
+        child: Center(
+          child: Text(
+            _getAvatarText(message.fromName ?? '用户'),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
+      );
+    }
+
+    // 显示网络头像
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        image: DecorationImage(
+          image: NetworkImage(avatarUrl),
+          fit: BoxFit.cover,
+        ),
       ),
     );
   }
 
-  void _showImagePreview(String imageUrl) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: EdgeInsets.zero,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            GestureDetector(
-              onTap: () => Navigator.of(context).pop(),
-              child: InteractiveViewer(
-                child: Image.network(imageUrl, fit: BoxFit.contain),
-              ),
-            ),
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 8,
-              right: 8,
-              child: IconButton(
-                icon: const Icon(Icons.close, color: Colors.white),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  String _getAvatarText(String name) {
+    if (name.isEmpty) return '用';
+    return name.length > 2 ? name.substring(0, 2) : name;
   }
 }

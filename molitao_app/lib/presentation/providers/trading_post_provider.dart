@@ -19,6 +19,7 @@ class TradingPostState {
   final String? errorMessage;
   final int? selectedCategoryId;
   final String searchKeywords;
+  final int? selectedHotWordId;
 
   TradingPostState({
     this.posts = const [],
@@ -34,6 +35,7 @@ class TradingPostState {
     this.errorMessage,
     this.selectedCategoryId,
     this.searchKeywords = '',
+    this.selectedHotWordId,
   });
 
   TradingPostState copyWith({
@@ -49,7 +51,10 @@ class TradingPostState {
     bool? hasMore,
     String? errorMessage,
     int? selectedCategoryId,
+    bool clearSelectedCategoryId = false,
     String? searchKeywords,
+    int? selectedHotWordId,
+    bool clearSelectedHotWordId = false,
   }) {
     return TradingPostState(
       posts: posts ?? this.posts,
@@ -63,8 +68,13 @@ class TradingPostState {
       currentPage: currentPage ?? this.currentPage,
       hasMore: hasMore ?? this.hasMore,
       errorMessage: errorMessage ?? this.errorMessage,
-      selectedCategoryId: selectedCategoryId ?? this.selectedCategoryId,
+      selectedCategoryId: clearSelectedCategoryId
+          ? null
+          : (selectedCategoryId ?? this.selectedCategoryId),
       searchKeywords: searchKeywords ?? this.searchKeywords,
+      selectedHotWordId: clearSelectedHotWordId
+          ? null
+          : (selectedHotWordId ?? this.selectedHotWordId),
     );
   }
 }
@@ -221,7 +231,10 @@ class TradingPostNotifier extends StateNotifier<TradingPostState> {
   }
 
   Future<void> selectCategory(int? categoryId) async {
-    state = state.copyWith(selectedCategoryId: categoryId);
+    state = state.copyWith(
+      selectedCategoryId: categoryId,
+      clearSelectedCategoryId: categoryId == null,
+    );
     await refresh();
   }
 
@@ -246,7 +259,10 @@ class TradingPostNotifier extends StateNotifier<TradingPostState> {
   }
 
   Future<void> switchToHotWord(CmsArticleDto hotWord) async {
-    state = state.copyWith(searchKeywords: hotWord.title ?? '');
+    state = state.copyWith(
+      searchKeywords: hotWord.title ?? '',
+      selectedHotWordId: hotWord.id,
+    );
     await searchPosts();
   }
 }

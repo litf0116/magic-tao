@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class StorageService {
@@ -5,6 +6,7 @@ class StorageService {
 
   static const String _tokenKey = 'access_token';
   static const String _userKey = 'user_data';
+  static const String _rememberedUsernameKey = 'remembered_username';
 
   // Token management
   Future<String?> getToken() async {
@@ -25,10 +27,7 @@ class StorageService {
   // User data management
   Future<void> setUserData(Map<String, dynamic> userData) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-      _userKey,
-      Map<String, dynamic>.from(userData).toString(),
-    );
+    await prefs.setString(_userKey, jsonEncode(userData));
   }
 
   Future<Map<String, dynamic>?> getUserData() async {
@@ -36,8 +35,7 @@ class StorageService {
     final userDataStr = prefs.getString(_userKey);
     if (userDataStr != null) {
       try {
-        // This is a simplified approach - in a real app you'd want to properly serialize/deserialize
-        return <String, dynamic>{};
+        return jsonDecode(userDataStr) as Map<String, dynamic>;
       } catch (e) {
         return null;
       }
@@ -79,5 +77,16 @@ class StorageService {
   Future<void> clearAll() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
+  }
+
+  // Remember username for login
+  Future<void> setRememberedUsername(String username) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_rememberedUsernameKey, username);
+  }
+
+  Future<String?> getRememberedUsername() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_rememberedUsernameKey);
   }
 }
