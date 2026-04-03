@@ -107,6 +107,12 @@ API 示例
 | 文档 | 业务模块 | 状态 | 最后更新 |
 |------|---------|------|---------|
 | [支付测试规范](payment/PAYMENT-TEST-SPEC.md) | 支付 | ✅ 已完成 | 2026-04-03 |
+| [竞拍流程测试](auction/BID-TEST-SPEC.md) | 竞拍 | ✅ 核心流程已通过 | 2026-04-04 |
+| [用户模块测试](user/USER-MODULE-TEST-SPEC.md) | 用户 | ✅ 已测试 | 2026-04-04 |
+| [聊天模块测试](chat/CHAT-MODULE-TEST-SPEC.md) | 聊天 | ✅ 已测试 | 2026-04-04 |
+| [内容/广告模块测试](content/CONTENT-MODULE-TEST-SPEC.md) | 内容/广告 | ✅ 已测试 | 2026-04-04 |
+| [钱包模块测试](payment/WALLET-MODULE-TEST-SPEC.md) | 支付/钱包 | ✅ 已测试 | 2026-04-04 |
+| [问题记录清单](ISSUES-LOG.md) | 全局 | ✅ 11个问题已记录 | 2026-04-04 |
 
 ## 待创建的测试文档
 

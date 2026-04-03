@@ -1,10 +1,182 @@
 # 问题记录清单
 
-> 本文件记录系统功能测试中发现的所有问题，待后续决定如何处理。
+> 本文件记录系统功能测试中发现的所有问题及修复状态。
 > 
 > **测试时间**: 2026-04-04
 > **测试人员**: AI Agent
 > **测试用户**: feifei (ID: 7509)
+
+---
+
+## ✅ 已修复问题 (8个)
+
+### ISSUE-001: GetMySuccessList 返回空响应 ✅ 已修复
+
+**修复内容**: `AuctionItemAppService.cs:1301` — `HasFlag` → `==`
+**验证结果**: TotalCount=2, Items=2 (ID=4100, ID=17393)
+
+### ISSUE-002: GetPublicListAnonymous totalCount 为 null ✅ 已修复
+
+**修复内容**: 
+- `IAuctionItemCacheService.cs` — 返回类型 `ListResultDto` → `PagedResultDto`
+- `AuctionItemCacheManager.cs` — `GetAuctionListFromDatabaseAsync` 添加 `CountAsync` 查询总数
+- `AuctionItemAppService.cs` — `GetPublicListAnonymous` 返回类型改为 `PagedResultDto`
+**验证结果**: totalCount=119, Items=3
+
+### ISSUE-003: 广告位 GetTypeList 不接受字符串参数 ✅ 已修复
+
+**修复内容**: `AdvertisingSpaceAppService.cs:56` — 参数类型 `int` → `string`，内部 `int.TryParse` 兼容
+**验证结果**: 传 `"home"` 返回正常数据
+
+### ISSUE-004: GetLatest 公告返回 null ✅ 已修复
+
+**修复内容**: `AnnounceAppService.cs:33-38` — `EntityDto<long>` → `EntityDto<long?>`，CategoryId 改为可选
+**验证结果**: 返回最新公告（"【魔力淘】二阶段改动通知..."）
+
+### ISSUE-005: ChatEmoji 返回0条但数据库有143条 ✅ 已修复
+
+**修复内容**: `ChatEmojiAppService.cs:27-34` — 移除 `input.UserId = AbpSession.UserId!.Value` 强制过滤
+**验证结果**: Items=100, TotalCount=121
+
+### ISSUE-006: BidHistory/GetAll 需要 Administration 权限 ✅ 已修复
+
+**修复内容**: `BidHistoryAppService.cs` — 新增 `GetMyBidHistory` 接口，直接查询当前用户出价历史，绕过基类权限检查
+**验证结果**: TotalCount=3, Items=3 (普通用户可正常访问)
+
+### ISSUE-010: GetUserFriendCount 返回原始数字而非对象 ✅ 已修复
+
+**修复内容**: `UserFriendAppService.cs:65-71` — 返回类型 `int` → `object { count }`，同时优化查询从 `ToListAsync().Count` → `CountAsync`
+**验证结果**: 返回 `{"count": 0}` 对象格式
+
+### ISSUE-011: 2370条未支付订单堆积 ✅ 已修复
+
+**修复内容**: 
+- 新建 `CleanExpiredPayOrderJob.cs` — 清理超过24小时未支付的订单（状态设为"取消"）
+- `AbpApplicationModule.cs` — 注册 Hangfire 定时任务 `clean-expired-pay-orders`，每日执行
+**验证结果**: Hangfire RecurringJobScheduler 已启动，定时任务已注册
+
+---
+
+## 🟡 中等问题 (2个，待处理)
+
+### ISSUE-006: BidHistory/GetAll 需要 Administration 权限
+
+**模块**: 拍卖
+**严重级别**: 🟡 中等
+
+**现象**:
+- 普通用户调用返回权限错误: "At least one of these permissions must be granted"
+- 前端可能需要展示出价历史给普通用户
+
+**修复建议**: 添加一个无需管理员权限的接口供普通用户查询自己的出价历史
+
+---
+
+### ISSUE-011: 2370条未支付订单堆积
+
+**模块**: 支付
+**严重级别**: 🟡 中等
+
+**现象**:
+- 未支付订单: 2,370条 (占比87.7%)
+- 已支付订单: 332条
+
+**修复建议**: 添加 Hangfire 定时任务，清理超过24小时未支付的订单
+
+---
+
+## 🟢 低优先级 (3个，非代码问题)
+
+### ISSUE-007: GetCurrentUser 返回数据格式不一致
+
+**模块**: 用户
+**严重级别**: 🟢 低
+
+**现象**:
+- 返回结构为 `{headImgUrl, user: {...}, roles: null, memberedOrganizationUnits: []}`
+- 外层有 headImgUrl 字段，内部 user 对象也有 headImgUrl
+- roles 返回 null
+
+**说明**: 这是 ABP 框架 SessionAppService 的默认返回格式，不影响功能使用。
+
+---
+
+### ISSUE-008: 数据库无 Status=2 (拍卖中) 的商品
+
+**模块**: 拍卖
+**严重级别**: 🟢 低
+
+**现象**:
+- 数据库 T_AuctionItem 表中 Status 只有 1(上架) 和 4(已成交)
+- Status=2(拍卖中) 的记录数为 0
+
+**说明**: 这是正常状态。拍卖结束后商品自动变为已成交，没有正在进行的拍卖时 Status=2 为0是正常的。
+
+---
+
+### ISSUE-009: 广告位 Title 字段全部为空
+
+**模块**: 广告
+**严重级别**: 🟢 低
+
+**现象**:
+- 所有6条广告记录的 Title 字段都为空字符串
+
+**说明**: 数据录入问题，需要在管理后台补充填写 Title 字段。
+
+---
+
+## 📊 测试统计
+
+| 模块 | 测试API数 | 通过 | 异常 | 通过率 |
+|------|----------|------|------|--------|
+| 用户模块 | 6 | 4 | 2 | 67% |
+| 拍卖模块 | 8 | 5 | 3 | 63% |
+| 聊天模块 | 5 | 4 | 1 | 80% |
+| 支付模块 | 4 | 4 | 0 | 100% |
+| 内容模块 | 5 | 3 | 2 | 60% |
+| 广告模块 | 3 | 2 | 1 | 67% |
+| 版本管理 | 2 | 2 | 0 | 100% |
+| 竞拍资格 | 3 | 3 | 0 | 100% |
+| **总计** | **36** | **27** | **9** | **75%** |
+
+---
+
+## 🔧 修复汇总
+
+| 问题 | 根因 | 修复方案 | 状态 |
+|------|------|---------|------|
+| ISSUE-001 | `HasFlag` 用于非 `[Flags]` 枚举，EF Core 无法翻译SQL | `HasFlag` → `==` | ✅ 已修复 |
+| ISSUE-002 | 返回类型 `ListResultDto` 没有 `totalCount` 字段 | 改为 `PagedResultDto` + 添加 CountAsync | ✅ 已修复 |
+| ISSUE-003 | 前后端 type 参数类型不一致 (int vs string) | 参数改为 string，内部 int.TryParse | ✅ 已修复 |
+| ISSUE-004 | `GetLatest` 需要 CategoryId 参数但前端可能未传 | CategoryId 改为可选 (long?) | ✅ 已修复 |
+| ISSUE-005 | `GetAllAsync` 强制过滤 `CreatorUserId = 当前用户` | 移除强制用户过滤 | ✅ 已修复 |
+| ISSUE-006 | GetAll 权限设置为 Administration | 新增 GetMyBidHistory 接口绕过权限 | ✅ 已修复 |
+| ISSUE-007 | ABP SessionAppService 默认格式 | 框架行为，不影响功能 | ⏭️ 无需修复 |
+| ISSUE-008 | 拍卖结束后自动变为已成交 | 正常业务状态 | ⏭️ 无需修复 |
+| ISSUE-009 | 管理后台未填写 Title 字段 | 数据录入问题 | ⏭️ 无需修复 |
+| ISSUE-010 | 返回类型 `int` 而非对象 | 改为 `object { count }` | ✅ 已修复 |
+| ISSUE-011 | 缺少定时清理任务 | 新建 CleanExpiredPayOrderJob + Hangfire 每日执行 | ✅ 已修复 |
+
+---
+
+## 📋 修复验证结果
+
+| 测试项 | 修复前 | 修复后 |
+|-------|--------|--------|
+| GetMySuccessList | 0字节空响应 | ✅ TotalCount=2, Items=2 |
+| GetPublicListAnonymous totalCount | null | ✅ totalCount=119 |
+| AdvertisingSpace GetTypeList("home") | Validation error | ✅ 正常返回 |
+| Announce GetLatest (无参数) | null | ✅ 返回最新公告 |
+| ChatEmoji GetAll | Items=0 | ✅ Items=100, TotalCount=121 |
+| BidHistory GetMyBidHistory | 权限不足 | ✅ TotalCount=3, Items=3 |
+| GetUserFriendCount | 返回原始数字 0 | ✅ 返回对象 {"count": 0} |
+| 未支付订单清理 | 无定时任务 | ✅ Hangfire 每日执行 |
+
+---
+
+**最后更新**: 2026-04-04
+**修复状态**: 8/11 已修复，3/11 非代码问题（无需修复）
 
 ---
 

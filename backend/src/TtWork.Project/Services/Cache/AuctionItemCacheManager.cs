@@ -46,7 +46,7 @@ namespace TtWork.Project.Services.Cache
             _logger = logger;
         }
 
-        public async Task<ListResultDto<AuctionItemDto>> GetAuctionListAsync(AppResultRequestDto input)
+        public async Task<PagedResultDto<AuctionItemDto>> GetAuctionListAsync(AppResultRequestDto input)
         {
             if (!AuctionItemCachePolicy.IsCacheEnabled())
             {
@@ -62,7 +62,7 @@ namespace TtWork.Project.Services.Cache
                 var cachedValue = await _redisClient.Database.StringGetAsync(cacheKey);
                 if (cachedValue.HasValue)
                 {
-                    var cachedResult = JsonConvert.DeserializeObject<ListResultDto<AuctionItemDto>>(cachedValue);
+                    var cachedResult = JsonConvert.DeserializeObject<PagedResultDto<AuctionItemDto>>(cachedValue);
                     _logger.LogDebug("拍卖品列表缓存命中: {CacheKey}", cacheKey);
                     return cachedResult;
                 }
@@ -76,7 +76,7 @@ namespace TtWork.Project.Services.Cache
                     cachedValue = await _redisClient.Database.StringGetAsync(cacheKey);
                     if (cachedValue.HasValue)
                     {
-                        var cachedResult = JsonConvert.DeserializeObject<ListResultDto<AuctionItemDto>>(cachedValue);
+                        var cachedResult = JsonConvert.DeserializeObject<PagedResultDto<AuctionItemDto>>(cachedValue);
                         _logger.LogDebug("拍卖品列表缓存命中（二次检查）: {CacheKey}", cacheKey);
                         return cachedResult;
                     }
@@ -278,7 +278,7 @@ namespace TtWork.Project.Services.Cache
             }
         }
 
-        public async Task SetAuctionListCacheAsync(AppResultRequestDto input, ListResultDto<AuctionItemDto> result)
+        public async Task SetAuctionListCacheAsync(AppResultRequestDto input, PagedResultDto<AuctionItemDto> result)
         {
             if (!AuctionItemCachePolicy.IsCacheEnabled() || result == null)
             {
@@ -464,7 +464,7 @@ namespace TtWork.Project.Services.Cache
             }
         }
 
-        private async Task<ListResultDto<AuctionItemDto>> GetAuctionListFromDatabaseAsync(AppResultRequestDto input)
+        private async Task<PagedResultDto<AuctionItemDto>> GetAuctionListFromDatabaseAsync(AppResultRequestDto input)
         {
             if (input.MaxResultCount <= 0)
             {
@@ -475,6 +475,9 @@ namespace TtWork.Project.Services.Cache
                 .WhereIf(!input.Status.HasValue,
                     x => x.Status == AuctionStatusEnum.上架 || x.Status == AuctionStatusEnum.拍卖中)
                 .WhereIf(input.Status.HasValue, x => (int)x.Status == input.Status!.Value);
+
+            // 获取总数
+            var totalCount = await query.CountAsync();
 
             if (!input.Status.HasValue)
             {
@@ -491,7 +494,7 @@ namespace TtWork.Project.Services.Cache
 
             var items = await query.ToListAsync();
             var dtoItems = _objectMapper.Map<List<AuctionItemDto>>(items);
-            return new ListResultDto<AuctionItemDto>(dtoItems);
+            return new PagedResultDto<AuctionItemDto>(totalCount, dtoItems);
         }
 
         private async Task<AuctionItemDto> GetAuctionDetailFromDatabaseAsync(long auctionItemId)

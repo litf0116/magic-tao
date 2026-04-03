@@ -1241,7 +1241,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     [AllowAnonymous]
     [DisableAuditing]
     [HttpGet("api/AuctionItem/GetPublicListAnonymous")]
-    public async Task<ListResultDto<AuctionItemDto>> GetPublicListAnonymous(AppResultRequestDto input)
+    public async Task<PagedResultDto<AuctionItemDto>> GetPublicListAnonymous(AppResultRequestDto input)
     {
         var sw = System.Diagnostics.Stopwatch.StartNew();
         
@@ -1298,7 +1298,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     protected override IQueryable<AuctionItem> CreateFilteredQuery(AppResultRequestDto input)
     {
         return base.CreateFilteredQuery(input)
-                .WhereIf(input.Status.HasValue, x => x.Status.HasFlag((AuctionStatusEnum)input.Status))
+                .WhereIf(input.Status.HasValue, x => x.Status == (AuctionStatusEnum)input.Status)
                 .WhereIf(!string.IsNullOrEmpty(input.Keyword), x => x.Name.Contains(input.Keyword))
                 .WhereIf(input.UserId.HasValue, x => x.DealUserId == input.UserId.Value) //成功拍得
             ;
