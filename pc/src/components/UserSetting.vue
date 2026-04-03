@@ -25,10 +25,15 @@
                 </tt-upload>
 
                 <div style="width: 75%; text-align: center">
-                    保证金：{{ form.depositBalance }}
-                    <el-button style="margin-left: 20px" type="primary" @click="withdrawDialogVisible = true">
-                        提现
-                    </el-button>
+                    保证金：¥{{ form.depositBalance }}
+                    <div style="margin-top: 10px">
+                        <el-button type="success" @click="rechargeDialogVisible = true">
+                            充值
+                        </el-button>
+                        <el-button type="primary" @click="withdrawDialogVisible = true">
+                            提现
+                        </el-button>
+                    </div>
                 </div>
             </el-form-item>
 
@@ -63,6 +68,12 @@
     <withdrawDialog v-model:show="withdrawDialogVisible" title="提示" :show-cancel="false" @confirm="handleConfirm">
         <div>平台提现功能尚未完善，保证金退款，请加管理员老淡QQ：383875411，微信：18845639111，私信扫码退款。</div>
     </withdrawDialog>
+
+    <!-- 保证金充值弹窗 -->
+    <DepositRechargeDialog
+        v-model="rechargeDialogVisible"
+        @success="handleRechargeSuccess"
+    />
 </template>
 
 <script setup lang="ts">
@@ -70,6 +81,7 @@ import TtUpload from '@/components/tt-upload/index.vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { UserEditDto } from '@/api/appService'
 import withdrawDialog from '@/components/CustomModal.vue'
+import DepositRechargeDialog from '@/components/DepositRechargeDialog.vue'
 import api from '@/api'
 const userStore = useUserStore()
 const ruleFormRef = ref<FormInstance>()
@@ -140,6 +152,15 @@ const show = (e: boolean) => {
 const withdrawDialogVisible = ref(false)
 const handleConfirm = () => {
     withdrawDialogVisible.value = false
+}
+
+// 充值弹窗
+const rechargeDialogVisible = ref(false)
+const handleRechargeSuccess = () => {
+    // 充值成功，刷新用户信息
+    api.user.getCurrentUser().then((res) => {
+        if (res.user) form.value = { ...res.user! }
+    })
 }
 
 defineExpose({
