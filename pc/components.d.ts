@@ -25,6 +25,7 @@ declare module 'vue' {
     ContextMenu: typeof import('./src/components/ContextMenu/index.vue')['default']
     CreateGroupDislog: typeof import('./src/components/Chat/createGroupDislog.vue')['default']
     CustomModal: typeof import('./src/components/CustomModal.vue')['default']
+    DepositRechargeDialog: typeof import('./src/components/DepositRechargeDialog.vue')['default']
     EditAnnounce: typeof import('./src/components/Chat/editAnnounce.vue')['default']
     EditAuctionItem: typeof import('./src/components/Chat/editAuctionItem.vue')['default']
     Footer: typeof import('./src/components/Footer.vue')['default']
