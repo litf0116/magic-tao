@@ -198,26 +198,30 @@ const startPolling = () => {
 // 检查支付状态
 const checkPaymentStatus = async () => {
     try {
-        // 方式1: 查询用户信息检查余额变化
+        // 方式1: 查询订单状态（更可靠）
+        if (orderNo.value) {
+            const orderStatus = await payApi.getOrderStatus(orderNo.value)
+            if (orderStatus.status === '已支付') {
+                handleSuccess()
+                return
+            }
+            if (orderStatus.status === '取消' || orderStatus.status === 'NOT_FOUND') {
+                state.value = 'timeout'
+                clearAllTimers()
+                return
+            }
+        }
+
+        // 方式2: 余额变化检测（兜底）
         const userInfo = await userStore.getUserInfo()
         const currentBalance = userInfo.user?.depositBalance || 0
 
-        // 如果余额增加50元，说明支付成功
         if (currentBalance >= initialBalance.value + 50) {
             handleSuccess()
             return
         }
-
-        // 方式2: 如果后端支持，查询订单状态（更可靠）
-        // TODO: 等待后端接口
-        // const orderStatus = await api.deposit.getOrderStatus(orderNo.value)
-        // if (orderStatus === 'PAID') {
-        //     handleSuccess()
-        //     return
-        // }
     } catch (error) {
         console.error('检查支付状态失败:', error)
-        // 不中断轮询，继续尝试
     }
 }
 

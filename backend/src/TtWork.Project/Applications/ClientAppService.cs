@@ -39,6 +39,7 @@ using TtWork.HttpClient.Weixin.Security.PlatformCertificate;
 using TtWork.Lib.Extensions;
 using TtWork.Project.Domains;
 using TtWork.Project.Domains.Pays;
+using TtWork.Project.Applications.Pays.Dto;
 using static TtWork.HttpClient.Weixin.Models.RefundOrderRequest;
 using SKIT.FlurlHttpClient.Wechat.TenpayV3.Models;
 using SKIT.FlurlHttpClient.Wechat.TenpayV3.Utilities;
@@ -198,6 +199,60 @@ public class ClientAppService(
             logger.LogError(e, err);
             throw new UserFriendlyException(err);
         }
+    }
+
+    /// <summary>
+    /// 查询支付订单状态
+    /// </summary>
+    /// <param name="outTradeNo">订单号</param>
+    /// <returns>订单状态信息</returns>
+    [HttpGet]
+    [AbpAuthorize]
+    public async Task<PayOrderStatusDto> GetPayOrderStatus(string outTradeNo)
+    {
+        if (outTradeNo.IsNullOrWhiteSpace())
+        {
+            throw new UserFriendlyException("订单号不能为空");
+        }
+
+        var payOrder = await payOrderRepository.FirstOrDefaultAsync(x =>
+            x.OutTradeNo == outTradeNo &&
+            x.CreatorUserId == AbpSession.UserId.Value
+        );
+
+        if (payOrder == null)
+        {
+            return new PayOrderStatusDto
+            {
+                Status = "NOT_FOUND",
+                Message = "订单不存在"
+            };
+        }
+
+        return new PayOrderStatusDto
+        {
+            OrderId = payOrder.Id.ToString(),
+            OutTradeNo = payOrder.OutTradeNo,
+            Status = payOrder.State.ToString(),
+            Amount = payOrder.Total / 100m,
+            PaidTime = payOrder.SuccessPayTime,
+            TradeNo = payOrder.IsSuccessPay ? "TRADE_SUCCESS" : null,
+            Message = GetStatusMessage(payOrder.State)
+        };
+    }
+
+    private string GetStatusMessage(PayState state)
+    {
+        return state switch
+        {
+            PayState.未支付 => "等待支付",
+            PayState.已支付 => "支付成功",
+            PayState.取消 => "订单已取消",
+            PayState.退款中 => "退款处理中",
+            PayState.已退款 => "已退款",
+            PayState.部分退款 => "部分退款",
+            _ => "未知状态"
+        };
     }
 
     /// <summary>
