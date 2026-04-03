@@ -24,6 +24,7 @@ README2.md
 # APK files
 *.apk
 .gstack/
+.planning/
 
 # UniApp Android build
 molitao_uniapp/android/
