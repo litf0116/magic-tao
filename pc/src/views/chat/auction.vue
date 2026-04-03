@@ -1,5 +1,5 @@
 <template>
-    <div class="flex h-screen overflow-hidden bg-[#F3F3F3]">
+    <div class="flex w-full h-full overflow-hidden bg-[#F3F3F3]">
         <div class="chat-container">
             <div class="px-4 z-10 h-65px bg-[#E5D9D9] text-[#82615F] flex items-center">
                 <div class="font-700 text-18px">拍卖行</div>
@@ -84,3 +84,9 @@ function send(e: { type: ChatMessageType; data: string | object }) {
     }
 }
 </script>
+
+<style>
+.chat-container {
+    @apply flex-1 flex flex-col max-h-700px h-full flex flex-col relative;
+}
+</style>
