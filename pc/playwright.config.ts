@@ -1,4 +1,8 @@
 import { defineConfig, devices } from '@playwright/test'
+import path from 'path'
+
+const backendDir = path.resolve(__dirname, '../backend')
+const backendHost = path.join(backendDir, 'src/TtWork.Project.Web.Host')
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -7,6 +11,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: [['html', { outputFolder: 'playwright-report' }], ['list']],
+  globalSetup: './tests/e2e/global-setup.ts',
   use: {
     baseURL: process.env.BASE_URL || 'http://localhost:4201',
     trace: 'on-first-retry',

@@ -29,7 +29,7 @@ export default {
 
         // 计算图片URL
         const imgUrl = computed(() => {
-            if (!payloadData.value.url) return ''
+            if (!payloadData.value || !payloadData.value.url) return ''
             if (payloadData.value.url.startsWith('http')) return payloadData.value.url + '!w300'
             return `${import.meta.env.VITE_APP_UPYUN_IMG_URL}${payloadData.value.url}!w300`
         })
