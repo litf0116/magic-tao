@@ -23,12 +23,8 @@
         <div v-else-if="state === 'paying'" class="qrcode-section">
             <div class="qrcode-wrapper">
                 <QrcodeDisplay :code-url="qrCodeUrl" :size="220" />
-                <div v-if="countdown > 0" class="countdown">
-                    ⏱️ 有效期剩余 {{ formatCountdown(countdown) }}
-                </div>
-                <div v-else class="countdown expired">
-                    二维码已过期
-                </div>
+                <div v-if="countdown > 0" class="countdown">⏱️ 有效期剩余 {{ formatCountdown(countdown) }}</div>
+                <div v-else class="countdown expired">二维码已过期</div>
             </div>
             <div class="qrcode-hint">
                 <p>请使用微信扫一扫完成支付</p>
@@ -44,34 +40,21 @@
         <div v-else-if="state === 'timeout'" class="status-section timeout">
             <el-icon><i-ep-clock /></el-icon>
             <span>二维码已过期</span>
-            <el-button type="primary" size="small" @click="refreshQrCode">
-                刷新二维码
-            </el-button>
+            <el-button type="primary" size="small" @click="refreshQrCode"> 刷新二维码 </el-button>
         </div>
 
         <div v-else-if="state === 'error'" class="status-section error">
             <el-icon><i-ep-circle-close /></el-icon>
             <span>{{ errorMsg || '生成二维码失败' }}</span>
-            <el-button type="primary" size="small" @click="refreshQrCode">
-                重试
-            </el-button>
+            <el-button type="primary" size="small" @click="refreshQrCode"> 重试 </el-button>
         </div>
 
         <!-- 操作按钮 -->
         <template #footer>
             <div class="dialog-footer">
-                <el-button v-if="state === 'paying'" @click="handleClose">
-                    取消支付
-                </el-button>
-                <el-button v-else @click="handleClose">
-                    关闭
-                </el-button>
-                <el-button
-                    v-if="state === 'paying'"
-                    type="primary"
-                    :loading="checking"
-                    @click="manualCheck"
-                >
+                <el-button v-if="state === 'paying'" @click="handleClose"> 取消支付 </el-button>
+                <el-button v-else @click="handleClose"> 关闭 </el-button>
+                <el-button v-if="state === 'paying'" type="primary" :loading="checking" @click="manualCheck">
                     我已支付
                 </el-button>
             </div>
@@ -95,7 +78,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     'update:modelValue': [value: boolean]
-    'success': []
+    success: []
 }>()
 
 const userStore = useUserStore()
@@ -119,7 +102,7 @@ let countdownTimer: number | null = null
 // 可见性
 const visible = computed({
     get: () => props.modelValue,
-    set: (val) => emit('update:modelValue', val)
+    set: (val) => emit('update:modelValue', val),
 })
 
 // 监听弹窗显示

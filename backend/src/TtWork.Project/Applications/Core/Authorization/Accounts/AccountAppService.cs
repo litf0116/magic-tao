@@ -11,6 +11,7 @@ using TtWork.Abp;
 using TtWork.Abp.Applications.Dtos;
 using TtWork.Abp.Authorization.Users;
 using TtWork.Abp.Definitions;
+using TtWork.Project.Applications.Core.Authorization.Accounts.Dto;
 using TtWork.Project.Applications.Authorization.Accounts.Dto;
 using TtWork.Project.Authorization.Accounts.Dto;
 
@@ -75,11 +76,11 @@ namespace TtWork.Project.Applications.Core.Authorization.Accounts {
         }
 
         [HttpPost]
-        public async Task<bool> ChangePassword(string currentPassword, string newPassword) {
+        public async Task<bool> ChangePassword([FromBody] ChangePasswordInput input) {
             var user = await GetCurrentUserAsync();
 
-            if (await UserManager.CheckPasswordAsync(user, currentPassword)) {
-                CheckErrors(await UserManager.ChangePasswordAsync(user, newPassword));
+            if (await UserManager.CheckPasswordAsync(user, input.CurrentPassword)) {
+                CheckErrors(await UserManager.ChangePasswordAsync(user, input.NewPassword));
                 await CurrentUnitOfWork.SaveChangesAsync();
                 return true;
             }
@@ -96,6 +97,7 @@ namespace TtWork.Project.Applications.Core.Authorization.Accounts {
             return true;
         }
 
+        [HttpGet]
         public async Task<bool> CanUsePasswordLogin() {
             var user = await GetCurrentUserAsync();
             return !string.IsNullOrEmpty(user.Password);

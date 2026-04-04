@@ -19,6 +19,12 @@ export default defineConfig(({ command, mode }) => {
                     target: 'http://127.0.0.1:12580',
                     changeOrigin: true,
                     secure: false
+                },
+                '/ws': {
+                    target: 'http://127.0.0.1:12580',
+                    changeOrigin: true,
+                    secure: false,
+                    ws: true
                 }
             }
         },

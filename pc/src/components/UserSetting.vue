@@ -27,12 +27,8 @@
                 <div style="width: 75%; text-align: center">
                     保证金：¥{{ form.depositBalance }}
                     <div style="margin-top: 10px">
-                        <el-button type="success" @click="rechargeDialogVisible = true">
-                            充值
-                        </el-button>
-                        <el-button type="primary" @click="withdrawDialogVisible = true">
-                            提现
-                        </el-button>
+                        <el-button type="success" @click="rechargeDialogVisible = true"> 充值 </el-button>
+                        <el-button type="primary" @click="withdrawDialogVisible = true"> 提现 </el-button>
                     </div>
                 </div>
             </el-form-item>
@@ -70,10 +66,7 @@
     </withdrawDialog>
 
     <!-- 保证金充值弹窗 -->
-    <DepositRechargeDialog
-        v-model="rechargeDialogVisible"
-        @success="handleRechargeSuccess"
-    />
+    <DepositRechargeDialog v-model="rechargeDialogVisible" @success="handleRechargeSuccess" />
 </template>
 
 <script setup lang="ts">

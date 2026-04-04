@@ -1,6 +1,7 @@
 <template>
     <el-input
-        v-model="text"
+        :model-value="modelValue"
+        @update:model-value="$emit('update:modelValue', $event)"
         type="textarea"
         :max="700"
         :rows="3"
@@ -12,15 +13,23 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
 import { ElInput } from 'element-plus'
 import cache from '@/utils/cache'
 import base64 from '@/utils/base64'
 import api from '@/api'
 import axios from 'axios'
 
-const emit = defineEmits(['focus', 'fileUploaded', 'onPressEnter'])
+const props = defineProps<{
+    modelValue?: string
+}>()
 
-const text = defineModel<string>()
+const emit = defineEmits<{
+    (e: 'update:modelValue', value: string): void
+    (e: 'focus'): void
+    (e: 'fileUploaded', data: { url: string; data: any }): void
+    (e: 'onPressEnter', event: KeyboardEvent): void
+}>()
 
 const signature = ref('')
 const imgUrl = import.meta.env.VITE_APP_UPYUN_IMG_URL

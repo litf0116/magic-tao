@@ -1,0 +1,33 @@
+{
+    "testDate": "2026-04-04 03:47:06",
+    "baseUrl": "http://127.0.0.1:12580",
+    "summary": {
+        "total": 20,
+        "passed": 17,
+        "failed": 3,
+        "skipped": 0,
+        "passRate": "85%"
+    },
+    "tests": [
+        {"name": "后端服务检查", "status": "PASS", "detail": "HTTP 200"},
+        {"name": "TC-001: 管理员登录", "status": "PASS", "detail": "userId=2, expire=604800s"},
+        {"name": "TC-001b: 普通用户登录", "status": "PASS", "detail": "userId=7509"},
+        {"name": "TC-002: 获取登录信息", "status": "PASS", "detail": "user=admin, id=2"},
+        {"name": "TC-010a: 获取用户详情", "status": "PASS", "detail": "user=admin"},
+        {"name": "TC-003: 获取拍卖列表", "status": "PASS", "detail": "count=10"},
+        {"name": "TC-003b: 获取拍卖中列表", "status": "PASS", "detail": "count=119"},
+        {"name": "TC-004: 开始拍卖", "status": "PASS", "detail": "auctionId=17318, status=拍卖中"},
+        {"name": "TC-005: 用户出价", "status": "FAIL", "detail": "error=[Validation error]"},
+        {"name": "TC-006: 结束拍卖", "status": "PASS", "detail": "status=上架, dealUser=None, dealPrice="},
+        {"name": "TC-007: 获取用户统计", "status": "PASS", "detail": "获取成功"},
+        {"name": "TC-007b: 获取余额明细", "status": "PASS", "detail": "count=0"},
+        {"name": "TC-008: 获取聊天列表", "status": "PASS", "detail": "count=2"},
+        {"name": "TC-008b: 获取表情列表", "status": "PASS", "detail": "count=100"},
+        {"name": "TC-009: 获取最新公告", "status": "FAIL", "detail": "无公告或解析失败"},
+        {"name": "TC-009b: 获取文章列表", "status": "PASS", "detail": "count=3"},
+        {"name": "TC-009c: 获取广告位", "status": "PASS", "detail": "count=1"},
+        {"name": "TC-010: 获取用户列表", "status": "PASS", "detail": "totalCount=7510"},
+        {"name": "TC-010b: 检查密码登录", "status": "FAIL", "detail": "解析失败"},
+        {"name": "TC-010c: 获取好友列表", "status": "PASS", "detail": "count=0"}
+    ]
+}

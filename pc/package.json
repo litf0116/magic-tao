@@ -9,7 +9,11 @@
         "deply": "scp -r dist/* root@8.130.178.251:/www/wwwroot/www.molitao.top/wwwroot",
         "preview": "vite preview",
         "lint:fix": "eslint src --ext .ts,.vue --fix",
-        "api": "node ./swagger/codegen.v3.js"
+        "api": "node ./swagger/codegen.v3.js",
+        "test:e2e": "npx playwright test",
+        "test:e2e:ui": "npx playwright test --ui",
+        "test:e2e:headed": "npx playwright test --headed",
+        "test:e2e:report": "npx playwright show-report"
     },
     "dependencies": {
         "@element-plus/icons-vue": "^2.3.1",
@@ -52,6 +56,7 @@
         "@iconify-json/icon-park-outline": "^1.1.15",
         "@iconify-json/mdi": "^1.1.66",
         "@iconify-json/ph": "^1.1.12",
+        "@playwright/test": "^1.59.1",
         "@typescript-eslint/eslint-plugin": "^5.62.0",
         "@typescript-eslint/parser": "^5.62.0",
         "@unocss/transformer-directives": "^0.59.4",
