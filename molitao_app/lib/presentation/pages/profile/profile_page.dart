@@ -4,7 +4,11 @@ import 'package:go_router/go_router.dart';
 import '../../../domain/entities/my_count_entity.dart';
 import '../../../data/api/api_client.dart';
 import '../../../data/api/api_endpoints.dart';
+import '../../../data/repositories/payment_repository.dart';
 import '../../providers/user_provider.dart';
+
+/// 魔豆充值金额选项
+const List<double> _depositAmounts = [51, 100, 200, 500];
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
@@ -430,36 +434,36 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   }
 
   void _payDeposit(BuildContext context) {
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('提示'),
-          content: const Text('充值功能马上上线！'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('好的'),
-            ),
-          ],
+        return _DepositBottomSheet(
+          onDepositSuccess: () {
+            // 刷新用户数据
+            _loadMyCount();
+          },
         );
       },
     );
   }
 
   void _cashOut(BuildContext context) {
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('提示'),
-          content: const Text('提现功能马上上线！'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('好的'),
-            ),
-          ],
+        return _WithdrawalBottomSheet(
+          onWithdrawSuccess: () {
+            // 刷新用户数据
+            _loadMyCount();
+          },
         );
       },
     );
@@ -492,5 +496,377 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
   void _logout(WidgetRef ref) {
     ref.read(userProvider.notifier).logout();
+  }
+}
+
+/// 充值魔力值底部弹窗
+class _DepositBottomSheet extends StatefulWidget {
+  final VoidCallback? onDepositSuccess;
+
+  const _DepositBottomSheet({this.onDepositSuccess});
+
+  @override
+  State<_DepositBottomSheet> createState() => _DepositBottomSheetState();
+}
+
+class _DepositBottomSheetState extends State<_DepositBottomSheet> {
+  final PaymentRepository _paymentRepository = PaymentRepository();
+  double? _selectedAmount;
+  final TextEditingController _customAmountController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _customAmountController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleDeposit() async {
+    if (_selectedAmount == null && _customAmountController.text.isEmpty) {
+      _showMessage('请选择或输入充值金额');
+      return;
+    }
+
+    final amount =
+        _selectedAmount ?? double.tryParse(_customAmountController.text);
+    if (amount == null || amount <= 0) {
+      _showMessage('请输入有效金额');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      // TODO: Flutter App 需要先获取 openid 才能调用支付
+      // 目前显示"功能马上上线"
+      _showMessage('充值功能正在配置中，即将上线！');
+      Navigator.of(context).pop();
+    } catch (e) {
+      _showMessage('充值失败: ${e.toString()}');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 标题栏
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  '充值魔力值',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              '选择充值金额',
+              style: TextStyle(color: Colors.grey, fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+
+            // 金额选项
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: _depositAmounts.map((amount) {
+                final isSelected = _selectedAmount == amount;
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _selectedAmount = amount;
+                      _customAmountController.clear();
+                    });
+                  },
+                  child: Container(
+                    width: 80,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? const Color(0xfff4835a)
+                          : Colors.grey[100],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isSelected
+                            ? const Color(0xfff4835a)
+                            : Colors.grey[300]!,
+                      ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '¥$amount',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isSelected ? Colors.white : Colors.black,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 16),
+
+            // 自定义金额
+            TextField(
+              controller: _customAmountController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: InputDecoration(
+                labelText: '自定义金额',
+                hintText: '输入其他金额',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                suffixText: '元',
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _selectedAmount = null;
+                });
+              },
+            ),
+            const SizedBox(height: 24),
+
+            // 支付按钮
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _handleDeposit,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xfff4835a),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        ),
+                      )
+                    : const Text('确认充值', style: TextStyle(fontSize: 16)),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Center(
+              child: Text(
+                '支付方式：微信支付',
+                style: TextStyle(color: Colors.grey, fontSize: 12),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 提现底部弹窗
+class _WithdrawalBottomSheet extends StatefulWidget {
+  final VoidCallback? onWithdrawSuccess;
+
+  const _WithdrawalBottomSheet({this.onWithdrawSuccess});
+
+  @override
+  State<_WithdrawalBottomSheet> createState() => _WithdrawalBottomSheetState();
+}
+
+class _WithdrawalBottomSheetState extends State<_WithdrawalBottomSheet> {
+  final PaymentRepository _paymentRepository = PaymentRepository();
+  final TextEditingController _amountController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleWithdraw() async {
+    final amountText = _amountController.text.trim();
+    if (amountText.isEmpty) {
+      _showMessage('请输入提现金额');
+      return;
+    }
+
+    final amount = double.tryParse(amountText);
+    if (amount == null || amount <= 0) {
+      _showMessage('请输入有效金额');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      // TODO: 提现功能需要商户配置完成后才能使用
+      _showMessage('提现功能正在配置中，即将上线！');
+      Navigator.of(context).pop();
+    } catch (e) {
+      _showMessage('提现失败: ${e.toString()}');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 标题栏
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  '提现',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              '平台提现功能尚未完善，魔力值退还请联系管理员',
+              style: TextStyle(color: Colors.grey, fontSize: 12),
+            ),
+            const SizedBox(height: 16),
+
+            // 联系方式
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange[50],
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.orange[100]!),
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '联系管理员老淡',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 4),
+                  Text('QQ：383875411'),
+                  Text('微信：18845639111'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // 金额输入（预留）
+            TextField(
+              controller: _amountController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              enabled: false, //暂时禁用，等待功能上线
+              decoration: InputDecoration(
+                labelText: '提现金额',
+                hintText: '功能上线后可输入',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                suffixText: '元',
+                filled: true,
+                fillColor: Colors.grey[100],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // 提示信息
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.blue, size: 20),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '提现申请提交后，需管理员审核处理',
+                      style: TextStyle(color: Colors.blue, fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // 提交按钮
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _handleWithdraw,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.grey[400], // 灰色表示暂时不可用
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text('功能即将上线', style: TextStyle(fontSize: 16)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
