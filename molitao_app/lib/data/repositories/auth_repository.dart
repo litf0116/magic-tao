@@ -81,35 +81,6 @@ class AuthRepository {
     }
   }
 
-  /// 微信小程序登录
-  Future<LoginResult> weixinMiniLogin(String code) async {
-    try {
-      final response = await _apiClient.dio.post(
-        ApiEndpoints.weixinMiniAuthenticate,
-        data: {'code': code},
-      );
-
-      _debugLog('[AuthRepository] 微信小程序登录响应: ${jsonEncode(response.data)}');
-
-      if (response.data != null) {
-        final data = response.data as Map<String, dynamic>;
-        final accessToken = data['accessToken'] as String?;
-        final user = data['user'] != null
-            ? UserDto.fromJson(data['user'] as Map<String, dynamic>)
-            : null;
-
-        if (accessToken != null) {
-          await _storageService.setToken(accessToken);
-        }
-
-        return LoginResult(accessToken: accessToken, user: user);
-      }
-      return const LoginResult();
-    } on DioException catch (e) {
-      throw Exception('微信小程序登录失败: ${e.message}');
-    }
-  }
-
   /// 微信 App 登录
   Future<LoginResult> weixinAppLogin(String code) async {
     try {
@@ -199,42 +170,6 @@ class AuthRepository {
       await _storageService.clearToken();
       await _storageService.clearUserData();
       return true;
-    }
-  }
-
-  Future<String?> getQrLoginUrl(String state) async {
-    try {
-      final response = await _apiClient.dio.get(
-        '${ApiEndpoints.pubQrLogin}?state=$state',
-      );
-      return response.data?['qrUrl'];
-    } on DioException catch (e) {
-      throw Exception('获取二维码失败: ${e.message}');
-    }
-  }
-
-  Future<LoginResult?> getQrToken(String key) async {
-    try {
-      final response = await _apiClient.dio.get(
-        '${ApiEndpoints.qrToken}?key=$key',
-      );
-
-      if (response.data != null) {
-        final data = response.data as Map<String, dynamic>;
-        final accessToken = data['accessToken'] as String?;
-        final user = data['user'] != null
-            ? UserDto.fromJson(data['user'] as Map<String, dynamic>)
-            : null;
-
-        if (accessToken != null) {
-          await _storageService.setToken(accessToken);
-        }
-
-        return LoginResult(accessToken: accessToken, user: user);
-      }
-      return null;
-    } on DioException catch (e) {
-      throw Exception('获取二维码登录结果失败: ${e.message}');
     }
   }
 }

@@ -1,15 +1,9 @@
 class ApiEndpoints {
   // TokenAuth
   static const String authenticate = '/api/TokenAuth/Authenticate';
-  static const String weixinMiniAuthenticate =
-      '/api/TokenAuth/WeixinMiniAuthenticate';
   static const String authenticateWeixinApp =
       '/api/TokenAuth/AuthenticateWeixinApp';
-  static const String weixinMiniPhoneAuthenticate =
-      '/api/TokenAuth/WeixinMiniPhoneAuthenticate';
   static const String logout = '/api/TokenAuth/Logout';
-  static const String pubQrLogin = '/api/TokenAuth/PubQrLogin';
-  static const String qrToken = '/api/TokenAuth/QrToken';
 
   // User
   static const String getUser = '/api/services/app/User/Get';
