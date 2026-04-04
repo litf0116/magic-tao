@@ -435,11 +435,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('提示'),
-          content: const Text('微信支付功能正在开发中，敬请期待！'),
+          content: const Text('充值功能马上上线！'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('确定'),
+              child: const Text('好的'),
             ),
           ],
         );
@@ -453,11 +453,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('提示'),
-          content: const Text('提现功能尚未开放，敬请期待！'),
+          content: const Text('提现功能马上上线！'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('确定'),
+              child: const Text('好的'),
             ),
           ],
         );
