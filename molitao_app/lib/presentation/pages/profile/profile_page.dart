@@ -7,8 +7,8 @@ import '../../../data/api/api_endpoints.dart';
 import '../../../data/repositories/payment_repository.dart';
 import '../../providers/user_provider.dart';
 
-/// 魔豆充值金额选项
-const List<double> _depositAmounts = [51, 100, 200, 500];
+/// 魔力值保证金固定金额
+const double _depositAmount = 51;
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
@@ -511,29 +511,9 @@ class _DepositBottomSheet extends StatefulWidget {
 
 class _DepositBottomSheetState extends State<_DepositBottomSheet> {
   final PaymentRepository _paymentRepository = PaymentRepository();
-  double? _selectedAmount;
-  final TextEditingController _customAmountController = TextEditingController();
   bool _isLoading = false;
 
-  @override
-  void dispose() {
-    _customAmountController.dispose();
-    super.dispose();
-  }
-
   Future<void> _handleDeposit() async {
-    if (_selectedAmount == null && _customAmountController.text.isEmpty) {
-      _showMessage('请选择或输入充值金额');
-      return;
-    }
-
-    final amount =
-        _selectedAmount ?? double.tryParse(_customAmountController.text);
-    if (amount == null || amount <= 0) {
-      _showMessage('请输入有效金额');
-      return;
-    }
-
     setState(() => _isLoading = true);
 
     try {
@@ -584,73 +564,37 @@ class _DepositBottomSheetState extends State<_DepositBottomSheet> {
             ),
             const SizedBox(height: 8),
             const Text(
-              '选择充值金额',
+              '魔力值保证金',
               style: TextStyle(color: Colors.grey, fontSize: 14),
             ),
             const SizedBox(height: 16),
 
-            // 金额选项
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: _depositAmounts.map((amount) {
-                final isSelected = _selectedAmount == amount;
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedAmount = amount;
-                      _customAmountController.clear();
-                    });
-                  },
-                  child: Container(
-                    width: 80,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? const Color(0xfff4835a)
-                          : Colors.grey[100],
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: isSelected
-                            ? const Color(0xfff4835a)
-                            : Colors.grey[300]!,
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        '¥$amount',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: isSelected ? Colors.white : Colors.black,
-                        ),
-                      ),
+            // 固定金额显示
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey[200]!),
+              ),
+              child: Column(
+                children: [
+                  const Text(
+                    '¥$_depositAmount',
+                    style: TextStyle(
+                      fontSize: 36,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xfff4835a),
                     ),
                   ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 16),
-
-            // 自定义金额
-            TextField(
-              controller: _customAmountController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
+                  const SizedBox(height: 4),
+                  Text(
+                    '保证金金额',
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  ),
+                ],
               ),
-              decoration: InputDecoration(
-                labelText: '自定义金额',
-                hintText: '输入其他金额',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                suffixText: '元',
-              ),
-              onChanged: (value) {
-                setState(() {
-                  _selectedAmount = null;
-                });
-              },
             ),
             const SizedBox(height: 24),
 
