@@ -13,7 +13,7 @@ export default defineConfig({
   reporter: [['html', { outputFolder: 'playwright-report' }], ['list']],
   globalSetup: './tests/e2e/global-setup.ts',
   use: {
-    baseURL: process.env.BASE_URL || 'http://localhost:4201',
+    baseURL: process.env.BASE_URL || 'http://localhost:4200',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',

@@ -20,12 +20,12 @@ import { ChatMessageType } from '@/api/appService'
 import chatMain from '@/components/Chat/chatMain.vue'
 import AuctionList from '@/components/Chat/AuctionList.vue'
 import { ElMessage } from 'element-plus'
+import { GetUserLevelInfo } from '@/api/groupChatLevel'
 
 const chatStore = useChatStore()
 const userStore = useUserStore()
 const router = useRouter()
 
-// 跳转到支付页面
 const goToDepositPayment = () => {
     router.push('/chat/deposit-payment')
 }
@@ -64,24 +64,27 @@ async function loadHistoryMessage(force = false) {
     })
 }
 
-//LINK[epic=消息发送] - 拍卖消息发送逻辑
-function send(e: { type: ChatMessageType; data: string | object }) {
-    // 检查保证金是否充足
+async function checkDepositAndSend(e: { type: ChatMessageType; data: string | object }) {
     const deposit = userStore.user.depositBalance || 0
-    const userLevel = userStore.user.userLevel || 0
+    const levelResponse = await GetUserLevelInfo(userStore.user.id!)
+    const userLevel = levelResponse?.data?.levelSettings?.level ?? 0
+    
     if (userLevel === 0 && deposit < 50) {
         ElMessage.warning('新用户参与竞拍需要缴纳保证金 (50 元)')
         goToDepositPayment()
-        return
+        return false
     }
-
+    
     if (e.type === ChatMessageType.Image) {
-        chatStore.sendChannelMsg('[图片]', '', ChatMessageType.Image, e.data).then(() => {})
+        chatStore.sendChannelMsg('[图片]', '', ChatMessageType.Image, e.data)
     } else if (e.type === ChatMessageType.Text) {
-        chatStore.sendChannelMsg(e.data as string, '', ChatMessageType.Text).then(() => {
-            //
-        })
+        chatStore.sendChannelMsg(e.data as string, '', ChatMessageType.Text)
     }
+    return true
+}
+
+function send(e: { type: ChatMessageType; data: string | object }) {
+    checkDepositAndSend(e)
 }
 </script>
 
