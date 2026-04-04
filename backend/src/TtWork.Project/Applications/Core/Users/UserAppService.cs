@@ -532,7 +532,7 @@ namespace TtWork.Project.Applications.Core.Users
 
         protected override UserDto MapToEntityDto(User user)
         {
-            var roleIds = user.Roles.Select(x => x.RoleId).ToArray();
+            var roleIds = user.Roles != null ? user.Roles.Select(x => x.RoleId).ToArray() : new int[] { };
 
             var roles = _roleManager.Roles.Where(r => roleIds.Contains(r.Id)).Select(r => r.NormalizedName);
 

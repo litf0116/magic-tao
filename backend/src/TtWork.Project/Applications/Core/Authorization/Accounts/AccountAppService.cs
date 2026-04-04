@@ -65,7 +65,7 @@ namespace TtWork.Project.Applications.Core.Authorization.Accounts {
         }
 
         [HttpPost]
-        public async Task<bool> EnablePasswordLogin(string newPassword) {
+        public async Task<bool> EnablePasswordLogin([FromBody] string newPassword) {
             var user = await GetCurrentUserAsync();
 
             user.Password = _passwordHasher.HashPassword(user, newPassword);
@@ -91,7 +91,8 @@ namespace TtWork.Project.Applications.Core.Authorization.Accounts {
         [HttpPost]
         public async Task<bool> DisablePasswordLogin() {
             var user = await GetCurrentUserAsync();
-            user.Password = null;
+            // Database column doesn't allow null, use empty string instead
+            user.Password = string.Empty;
             await UserManager.UpdateAsync(user);
             await CurrentUnitOfWork.SaveChangesAsync();
             return true;

@@ -176,12 +176,29 @@ namespace TtWork.Project.EntityFrameworkCore {
         public class UlidToStringConverter(ConverterMappingHints mappingHints = null) :
             ValueConverter<Ulid, string>(
                 convertToProviderExpression: x => x.ToString(),
-                convertFromProviderExpression: x => Ulid.Parse(x),
+                convertFromProviderExpression: x => ParseUlidSafely(x),
                 mappingHints: defaultHints.With(mappingHints)
             ) {
             private static readonly ConverterMappingHints defaultHints = new(size: 26);
 
             public UlidToStringConverter() : this(null) {
+            }
+
+            private static Ulid ParseUlidSafely(string value) {
+                if (string.IsNullOrEmpty(value))
+                    return default;
+
+                // Handle non-standard Ulid lengths by padding
+                if (value.Length < 26)
+                    value = value.PadLeft(26, '0');
+                else if (value.Length > 26)
+                    value = value.Substring(0, 26);
+
+                try {
+                    return Ulid.Parse(value);
+                } catch {
+                    return default;
+                }
             }
         }
     }

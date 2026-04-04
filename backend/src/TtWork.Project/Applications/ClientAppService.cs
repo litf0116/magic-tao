@@ -369,14 +369,14 @@ public class ClientAppService(
     public async Task PayWithdrawal(WithdrawalData parameter)
     {
         var userId = _abpSession.UserId;
-        if (userId != parameter.UserId)
+        if (userId == null)
         {
-            throw new UserFriendlyException($"当前用户信息错误，请稍后重试！");
+            throw new UserFriendlyException($"请先登录！");
         }
 
         //获取用户信息
         var user = await userRepository.GetAll().AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == AbpSession.UserId!.Value);
+            .FirstOrDefaultAsync(x => x.Id == userId.Value);
         if (user == null)
         {
             throw new UserFriendlyException($"当前用户不存在！");
@@ -387,14 +387,10 @@ public class ClientAppService(
             throw new UserFriendlyException($"当前用户余额不足，无法提现！");
         }
 
-        //扣除余额
-        //var cnt = await userRepository.GetAll().Where(x => x.Id == user.Id).ExecuteUpdateAsync(setter =>
-        //     setter.SetProperty(b => b.Balance, b => b.Balance - parameter.Amount));
-        //
         await _sqlSugar.Insertable(new WithdrawalAmountEntity
         {
             Amount = parameter.Amount,
-            UserId = parameter.UserId,
+            UserId = (int)userId.Value,
             Status = 1,
             WithdrawalTime = DateTime.Now
         }).ExecuteCommandAsync();
