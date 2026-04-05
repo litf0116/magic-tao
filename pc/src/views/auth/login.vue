@@ -57,11 +57,14 @@
             </template>
         </div>
     </div>
+
+    <ProfileCompletionGuide ref="profileGuideRef" />
 </template>
 
-<script lang="ts" setup>
+<script setup lang="ts">
 import api from '@/api'
 import { ElMessage } from 'element-plus'
+import ProfileCompletionGuide from '@/components/ProfileCompletionGuide.vue'
 
 const userStore = useUserStore()
 const chatStore = useChatStore()
@@ -80,6 +83,8 @@ let interVal: number | undefined = undefined
 
 let expiredTimer: number | undefined = undefined
 
+const profileGuideRef = ref()
+
 onMounted(() => {
     init()
 })
@@ -95,14 +100,17 @@ function init() {
             }, 60_000) // 1 minute
 
             interVal = setInterval(() => {
-                api.tokenAuth.qrToken({ key: res }).then(async (res) => {
-                    if (res) {
+                api.tokenAuth.qrToken({ key: res }).then(async (qrRes) => {
+                    if (qrRes && qrRes.accessToken) {
                         clearTimeout(expiredTimer)
-                        await userStore.SET_TOKEN(res)
+                        await userStore.SET_TOKEN(qrRes.accessToken)
                         await userStore.getUserInfo()
                         clearInterval(interVal)
-                        if (route.query.redirect) window.location.href = '/index.html#' + route.query.redirect
-                        else window.location.href = '/index.html'
+                        if (qrRes.needProfileCompletion) {
+                            profileGuideRef.value?.show(qrRes.userId)
+                        } else {
+                            navigateToHome()
+                        }
                     }
                 })
             }, 2000)
@@ -138,8 +146,7 @@ async function login() {
             //  console.log('login result ', token)
             await userStore.getUserInfo()
             clearInterval(interVal)
-            if (route.query.redirect) window.location.href = '/index.html#' + route.query.redirect
-            else window.location.href = '/index.html'
+            navigateToHome()
         },
         async (error: any) => {
             loading.value = false
@@ -152,6 +159,11 @@ async function login() {
             })
         }
     )
+}
+
+function navigateToHome() {
+    if (route.query.redirect) window.location.href = '/index.html#' + route.query.redirect
+    else window.location.href = '/index.html'
 }
 
 onUnmounted(() => {

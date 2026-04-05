@@ -102,10 +102,14 @@ namespace TtWork.Project.Web.Controllers
 
         [HttpGet]
         [DisableAuditing]
-        public async Task<string> QrToken(string key)
+        public async Task<QrLoginResult> QrToken(string key)
         {
             var data = await redisClient.Database.StringGetAsync(QrTokenKey + key);
-            return data.HasValue ? data : "";
+            if (data.HasValue)
+            {
+                return Newtonsoft.Json.JsonConvert.DeserializeObject<QrLoginResult>(data);
+            }
+            return new QrLoginResult();
         }
 
         /// <summary>
@@ -160,7 +164,13 @@ namespace TtWork.Project.Web.Controllers
                             { AuthProvider = authUserInfo.Provider, ProviderKey = authUserInfo.ProviderKey };
                         var (externalUser, loginResult) = await ExternalLogin(model, authUserInfo);
                         var jwtResult = await ExternalAuthenticateResultModel(loginResult, externalUser, model);
-                        await redisClient.Database.StringSetAsync(QrTokenKey + state, jwtResult.AccessToken,
+                        var qrResult = new QrLoginResult
+                        {
+                            AccessToken = jwtResult.AccessToken,
+                            NeedProfileCompletion = jwtResult.NeedProfileCompletion,
+                            UserId = jwtResult.UserId
+                        };
+                        await redisClient.Database.StringSetAsync(QrTokenKey + state, Newtonsoft.Json.JsonConvert.SerializeObject(qrResult),
                             TimeSpan.FromHours(1));
                     }
                     catch (Exception e)
@@ -670,13 +680,19 @@ namespace TtWork.Project.Web.Controllers
             // externalUser.PhoneNumber = loginResult.User.PhoneNumber;
             // externalUser.Id = loginResult.User.Id;
 
+            var user = loginResult.User;
+            var needProfileCompletion = string.IsNullOrEmpty(user.PhoneNumber)
+                                       && !user.SkipProfileCompletion;
+
             return new ExternalAuthenticateResultModel
             {
                 AccessToken = accessToken,
                 EncryptedAccessToken = GetEncrpyedAccessToken(accessToken),
                 ExpireInSeconds = (int)tokenAuthConfiguration.Expiration.TotalSeconds,
                 RefreshToken = refreshToken.key,
-                Extension = externalUser.Extension
+                Extension = externalUser.Extension,
+                NeedProfileCompletion = needProfileCompletion,
+                UserId = user.Id
                 // User = externalUser,
                 // RoleNames = roles.ToArray()
             };

@@ -629,6 +629,49 @@ namespace TtWork.Project.Applications.Core.Users
             return true;
         }
 
+        /// <summary>
+        /// 跳过完善个人信息引导
+        /// </summary>
+        public async Task SkipProfileCompletion()
+        {
+            var userId = _abpSession.UserId.Value;
+            var user = await _userManager.GetUserByIdAsync(userId);
+            user.SkipProfileCompletion = true;
+            await CurrentUnitOfWork.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// 完善个人信息（绑定手机号、设置用户名和密码）
+        /// </summary>
+        public async Task CompleteProfile(CompleteProfileInput input)
+        {
+            var userId = _abpSession.UserId.Value;
+            var user = await _userManager.GetUserByIdAsync(userId);
+
+            // 检查用户名是否已被使用
+            var existingUserName = await _userManager.Users
+                .FirstOrDefaultAsync(x => x.UserName == input.UserName && x.Id != userId);
+            if (existingUserName != null)
+            {
+                throw new UserFriendlyException("该用户名已被使用，请选择其他用户名");
+            }
+
+            // 检查手机号是否已被其他用户使用
+            var existingPhone = await _userManager.Users
+                .FirstOrDefaultAsync(x => x.PhoneNumber == input.PhoneNumber && x.Id != userId);
+            if (existingPhone != null)
+            {
+                throw new UserFriendlyException("该手机号已被其他账号绑定，请使用其他手机号");
+            }
+
+            // 更新用户信息
+            user.PhoneNumber = input.PhoneNumber;
+            user.UserName = input.UserName;
+            user.Password = _passwordHasher.HashPassword(user, input.Password);
+
+            await CurrentUnitOfWork.SaveChangesAsync();
+        }
+
 
         private string GetTenancyNameOrNull()
         {
