@@ -75,7 +75,6 @@ const codeUrl = ref<string>('')
 const outTradeNo = ref<string>('')
 const errorMessage = ref<string>('')
 const elapsedSeconds = ref<number>(0)
-const initialDepositBalance = ref<number>(0)
 
 // 定时器引用
 let pollingTimer: number | null = null
@@ -84,7 +83,6 @@ let pollingTimer: number | null = null
 const POLL_INTERVAL = 3000 // 3秒轮询一次
 const MAX_WAIT_TIME = 300000 // 5分钟最大等待时间 (毫秒)
 const DEPOSIT_AMOUNT = 51
-const EXPECTED_INCREASE = 50
 
 // 路由和用户存储
 const router = useRouter()
@@ -144,21 +142,21 @@ const handleError = (msg: string) => {
 // 轮询支付状态
 const pollPaymentStatus = async () => {
     try {
-        // 获取最新的用户信息
-        const res = await userStore.getUserInfo()
-        const latestBalance = res.user?.depositBalance || 0
+        // 调用API查询订单状态
+        const res = await payApi.getOrderStatus(outTradeNo.value)
 
-        // 检查余额是否增加（支付成功标志）
-        if (latestBalance >= initialDepositBalance.value + EXPECTED_INCREASE) {
+        // 检查支付是否成功
+        if (res.status === '已支付') {
+            // 如果支付成功，更新用户信息
+            await userStore.getUserInfo()
             handleSuccess()
             return
         }
 
-        // 更新已用时间
+        // 检查是否超时
         elapsedSeconds.value += 3
         const timeoutTime = getTimeoutTime()
 
-        // 检查是否超时
         if (elapsedSeconds.value * 1000 >= timeoutTime) {
             handleTimeout()
             return
@@ -201,10 +199,6 @@ const retryPayment = async () => {
 // 初始化支付
 const initPayment = async () => {
     try {
-        // 获取初始余额
-        const userInfo = await userStore.getUserInfo()
-        initialDepositBalance.value = userInfo.user?.depositBalance || 0
-
         // 调用支付API获取二维码
         const response = await payApi.payDepositNative(DEPOSIT_AMOUNT)
 

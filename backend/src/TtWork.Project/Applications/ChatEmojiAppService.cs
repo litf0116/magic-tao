@@ -27,6 +27,7 @@ public class ChatEmojiAppService(
     public override async Task<PagedResultDto<ChatEmojiDto>> GetAllAsync(AppResultRequestDto input) {
         input.Sorting ??= "creationTime desc";
         input.MaxResultCount = 100;
+        input.UserId = AbpSession.UserId!.Value;
         return await base.GetAllAsync(input);
     }
 

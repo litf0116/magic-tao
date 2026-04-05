@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Abp.BackgroundJobs;
 using Abp.Dependency;
 using Abp.Domain.Repositories;
 using Abp.Domain.Uow;
 using Hangfire;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Serilog;
@@ -79,23 +81,39 @@ public class TenPayNotifyJob(
                 }
                 else if (payOrder.HostType == OrderType.保证金)
                 {
-                    // 用户保证金支付 需要扣除1元的手续费
-                    decimal finalAmount = payOrder.Total - 100; // 扣除1元手续费
-                    if (finalAmount < 0)
+                    var reasonStr = $"保证金支付:{payOrder.OutTradeNo}";
+                    var existingLog = await userDepositLogRepository.GetAll()
+                        .Where(x => x.CreatorUserId == payOrder.CreatorUserId && x.IsSuccess)
+                        .Where(x => x.Reason != null && x.Reason.Contains(payOrder.OutTradeNo))
+                        .FirstOrDefaultAsync();
+
+                    if (existingLog != null)
                     {
-                        finalAmount = 0; // 确保不小于0
-                        Log.Warning("用户保证金支付金额小于1元，已调整为0元。OutTradeNo: {OutTradeNo}", payOrder.OutTradeNo);
+                        Log.Information("[TenPayNotifyJob]该订单已有保证金处理记录，跳过: {OutTradeNo}", payOrder.OutTradeNo);
                     }
-
-                    var log = new UserDepositLog(BalanceLogType.支付, finalAmount / 100m)
+                    else
                     {
-                        CreatorUserId = payOrder.CreatorUserId,
-                        TenantId = payOrder.TenantId,
-                    };
-                    await userDepositLogRepository.InsertAsync(log);
-                    await unitOfWorkManager.Current.SaveChangesAsync();
+                        decimal finalAmount;
+                        if (payOrder.Total <= 100)
+                        {
+                            finalAmount = payOrder.Total;
+                        }
+                        else
+                        {
+                            finalAmount = payOrder.Total - 100;
+                        }
 
-                    BackgroundJob.Enqueue<UserDepositJob>(b => b.ExecuteAsync(log));
+                        var log = new UserDepositLog(BalanceLogType.支付, finalAmount / 100m)
+                        {
+                            CreatorUserId = payOrder.CreatorUserId,
+                            TenantId = payOrder.TenantId,
+                            Reason = reasonStr
+                        };
+                        await userDepositLogRepository.InsertAsync(log);
+                        await unitOfWorkManager.Current.SaveChangesAsync();
+
+                        BackgroundJob.Enqueue<UserDepositJob>(b => b.ExecuteAsync(log));
+                    }
                 }
 
                 try

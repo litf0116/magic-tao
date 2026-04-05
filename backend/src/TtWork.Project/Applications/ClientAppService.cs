@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Abp.Authorization;
+using Abp.BackgroundJobs;
 using Abp.Configuration;
 using Abp.Dependency;
 using Abp.Domain.Repositories;
@@ -13,6 +14,7 @@ using Abp.Json;
 using Abp.Runtime.Session;
 using Abp.UI;
 using FreeIM;
+using Hangfire;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -49,6 +51,7 @@ using TtWork.Project.Caches;
 using TtWork.Project.Core;
 using TtWork.Project.Core.Session;
 using TtWork.Project.Core.Utils;
+using TtWork.Project.Jobs;
 
 namespace TtWork.Project.Applications;
 
@@ -65,6 +68,7 @@ public class ClientAppService(
     IMediator mediator,
     ChatUserCache chatUserCache,
     IRepository<PayOrder, Ulid> payOrderRepository,
+    IRepository<UserDepositLog, Ulid> userDepositLogRepository,
     IAbpSession _abpSession,
     ISqlSugarClient _sqlSugar,
     IV3PayApi v3PayApi,
@@ -258,8 +262,46 @@ public class ClientAppService(
             }
             else if (wechatResult.TradeState == "SUCCESS")
             {
-                payOrder.SuccessPay(wechatResult.TransactionId, wechatResult.SuccessTime);
-                await CurrentUnitOfWork.SaveChangesAsync();
+                if (payOrder.HostType == OrderType.保证金 && payOrder.IsSuccessPay)
+                {
+                    logger.LogInformation("[GetPayOrderStatus]该订单已处理过，跳过: {OutTradeNo}", outTradeNo);
+                }
+                else
+                {
+                    payOrder.SuccessPay(wechatResult.TransactionId, wechatResult.SuccessTime);
+                    await CurrentUnitOfWork.SaveChangesAsync();
+
+                    if (payOrder.HostType == OrderType.保证金)
+                    {
+                        var existingLog = await userDepositLogRepository.GetAll()
+                            .Where(x => x.CreatorUserId == payOrder.CreatorUserId && x.IsSuccess)
+                            .Where(x => x.Reason != null && x.Reason.Contains(outTradeNo))
+                            .FirstOrDefaultAsync();
+
+                        if (existingLog != null)
+                        {
+                            logger.LogInformation("[GetPayOrderStatus]该订单已有保证金处理记录，跳过: {OutTradeNo}", outTradeNo);
+                        }
+                        else
+                        {
+                            decimal finalAmount = payOrder.Total <= 100
+                                ? payOrder.Total
+                                : payOrder.Total - 100;
+
+                            var depositLog = new UserDepositLog(BalanceLogType.支付, finalAmount / 100m)
+                            {
+                                CreatorUserId = payOrder.CreatorUserId,
+                                TenantId = payOrder.TenantId,
+                                Reason = $"保证金支付:{outTradeNo}"
+                            };
+                            await userDepositLogRepository.InsertAsync(depositLog);
+                            await CurrentUnitOfWork.SaveChangesAsync();
+
+                            BackgroundJob.Enqueue<UserDepositJob>(b => b.ExecuteAsync(depositLog));
+                            logger.LogInformation("[GetPayOrderStatus]保证金订单支付成功，触发UserDepositJob: {OutTradeNo}", outTradeNo);
+                        }
+                    }
+                }
             }
         }
 
