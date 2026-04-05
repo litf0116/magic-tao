@@ -1,5 +1,5 @@
 <template>
-    <div class="flex w-full h-full overflow-hidden bg-[#F3F3F3]">
+    <div class="flex-1 flex">
         <div class="chat-container">
             <div class="px-4 z-10 h-65px bg-[#E5D9D9] text-[#82615F] flex items-center">
                 <div class="font-700 text-18px">拍卖行</div>
@@ -68,13 +68,13 @@ async function checkDepositAndSend(e: { type: ChatMessageType; data: string | ob
     const deposit = userStore.user.depositBalance || 0
     const levelResponse = await GetUserLevelInfo(userStore.user.id!)
     const userLevel = levelResponse?.data?.levelSettings?.level ?? 0
-    
+
     if (userLevel === 0 && deposit < 50) {
         ElMessage.warning('新用户参与竞拍需要缴纳保证金 (50 元)')
         goToDepositPayment()
         return false
     }
-    
+
     if (e.type === ChatMessageType.Image) {
         chatStore.sendChannelMsg('[图片]', '', ChatMessageType.Image, e.data)
     } else if (e.type === ChatMessageType.Text) {
