@@ -39,6 +39,7 @@ declare module 'vue' {
     NextButton: typeof import('./src/components/MyButton/NextButton.vue')['default']
     OrderQueryFilter: typeof import('./src/components/paged-table/orderQueryFilter.vue')['default']
     PagedTable: typeof import('./src/components/paged-table/index.vue')['default']
+    ProfileCompletionGuide: typeof import('./src/components/ProfileCompletionGuide.vue')['default']
     QrcodeDisplay: typeof import('./src/components/Payment/QrcodeDisplay.vue')['default']
     QueryFilter: typeof import('./src/components/paged-table/queryFilter.vue')['default']
     RichTextDisplay: typeof import('./src/components/Chat/RichTextDisplay.vue')['default']
