@@ -100,14 +100,14 @@ function init() {
             }, 60_000) // 1 minute
 
             interVal = setInterval(() => {
-                api.tokenAuth.qrToken({ key: res }).then(async (qrRes) => {
-                    if (qrRes && qrRes.accessToken) {
+                api.tokenAuth.qrToken({ key: res }).then(async (accessToken) => {
+                    if (accessToken) {
                         clearTimeout(expiredTimer)
-                        await userStore.SET_TOKEN(qrRes.accessToken)
+                        await userStore.SET_TOKEN(accessToken)
                         await userStore.getUserInfo()
                         clearInterval(interVal)
-                        if (qrRes.needProfileCompletion) {
-                            profileGuideRef.value?.show(qrRes.userId)
+                        if (userStore.user.needProfileCompletion) {
+                            profileGuideRef.value?.show(userStore.user.id)
                         } else {
                             navigateToHome()
                         }

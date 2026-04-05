@@ -56,5 +56,10 @@ namespace TtWork.Abp.Applications.Dtos
         /// 保证金
         /// </summary>
         public decimal DepositBalance { get; set; }
+        
+        /// <summary>
+        /// 是否跳过完善个人信息引导
+        /// </summary>
+        public bool SkipProfileCompletion { get; set; }
     }
 }

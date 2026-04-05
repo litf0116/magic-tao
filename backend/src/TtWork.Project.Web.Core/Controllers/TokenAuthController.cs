@@ -102,14 +102,10 @@ namespace TtWork.Project.Web.Controllers
 
         [HttpGet]
         [DisableAuditing]
-        public async Task<QrLoginResult> QrToken(string key)
+        public async Task<string> QrToken(string key)
         {
             var data = await redisClient.Database.StringGetAsync(QrTokenKey + key);
-            if (data.HasValue)
-            {
-                return Newtonsoft.Json.JsonConvert.DeserializeObject<QrLoginResult>(data);
-            }
-            return new QrLoginResult();
+            return data.HasValue ? data : "";
         }
 
         /// <summary>
@@ -164,13 +160,7 @@ namespace TtWork.Project.Web.Controllers
                             { AuthProvider = authUserInfo.Provider, ProviderKey = authUserInfo.ProviderKey };
                         var (externalUser, loginResult) = await ExternalLogin(model, authUserInfo);
                         var jwtResult = await ExternalAuthenticateResultModel(loginResult, externalUser, model);
-                        var qrResult = new QrLoginResult
-                        {
-                            AccessToken = jwtResult.AccessToken,
-                            NeedProfileCompletion = jwtResult.NeedProfileCompletion,
-                            UserId = jwtResult.UserId
-                        };
-                        await redisClient.Database.StringSetAsync(QrTokenKey + state, Newtonsoft.Json.JsonConvert.SerializeObject(qrResult),
+                        await redisClient.Database.StringSetAsync(QrTokenKey + state, jwtResult.AccessToken,
                             TimeSpan.FromHours(1));
                     }
                     catch (Exception e)

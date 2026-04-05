@@ -3389,11 +3389,11 @@ export class TokenAuthService {
             key?: string
         } = {} as any,
         options: IRequestOptions = {}
-    ): Promise<QrLoginResult> {
+    ): Promise<string> {
         return new Promise((resolve, reject) => {
             let url = basePath + '/api/TokenAuth/QrToken'
 
-            const configs: IRequestConfig = getConfigs('get', 'application/json', url, options)
+            const configs: IRequestConfig = getConfigs('get', 'text/plain', url, options)
             configs.params = { key: params['key'] }
 
             /** 适配ios13，get请求不允许带body */
