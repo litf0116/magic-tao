@@ -6,7 +6,7 @@ class WeChatService {
   WeChatService._internal();
 
   static const String _appId = 'wxbfbe7d50ed28ed41';
-  static const String _universalLink = 'http://192.168.2.125:12580/wechat/';
+  static const String _universalLink = 'https://www.molitao.top/wechat/';
 
   final Fluwx _fluwx = Fluwx();
   bool _isInitialized = false;
