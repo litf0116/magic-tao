@@ -24,7 +24,7 @@ export const payApi = {
                 method: 'get',
                 url,
                 params: {
-                    amount: amount ?? 51,
+                    amount: amount ?? 0.01,
                 },
             }
 

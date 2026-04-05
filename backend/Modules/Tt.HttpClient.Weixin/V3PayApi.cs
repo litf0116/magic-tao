@@ -25,6 +25,8 @@ public interface IV3PayApi {
         GetJsSdkWeChatPayParametersInput input, string certPath);
 
     public Task<GetPlatformCertificatesResponse> GetPlatformCertificatesAsync(string mchId, string certPath);
+
+    public Task<QueryOrderResponse> QueryOrderAsync(string mchId, string outTradeNo, string certPath);
 }
 
 public class V3PayApi(
@@ -66,6 +68,7 @@ public class V3PayApi(
     public const string CreateOrderUrl = "https://api.mch.weixin.qq.com/v3/pay/transactions/jsapi";
     public const string CreateNativeOrderUrl = "https://api.mch.weixin.qq.com/v3/pay/transactions/native";
     public const string CertificatesUrl = "https://api.mch.weixin.qq.com/v3/certificates";
+    public const string QueryOrderBaseUrl = "https://api.mch.weixin.qq.com/v3/pay/transactions/out-trade-no";
 
     public Task<CreateH5OrderResponse> CreateH5OrderAsync(CreateOrderRequest request, string certPath) {
         return RequestAsync<CreateH5OrderResponse>(HttpMethod.Post, CreateH5OrderUrl, request, request.MchId, certPath);
@@ -81,6 +84,11 @@ public class V3PayApi(
 
     public virtual Task<GetPlatformCertificatesResponse> GetPlatformCertificatesAsync(string mchId, string certPath) {
         return RequestAsync<GetPlatformCertificatesResponse>(HttpMethod.Get, CertificatesUrl, null, mchId, certPath);
+    }
+
+    public Task<QueryOrderResponse> QueryOrderAsync(string mchId, string outTradeNo, string certPath) {
+        var url = $"{QueryOrderBaseUrl}/{outTradeNo}?mchid={mchId}";
+        return RequestAsync<QueryOrderResponse>(HttpMethod.Get, url, null, mchId, certPath);
     }
 
     public Task<TResponse> RequestAsync<TResponse>(HttpMethod method, string url, object body, string mchId = null,
@@ -144,9 +152,11 @@ public class V3PayApi(
             };
         }
 
-        return method == HttpMethod.Get
-            ? new HttpRequestMessage(HttpMethod.Get, $"{url}?{body}")
-            : new HttpRequestMessage(HttpMethod.Get, url);
+        if (method == HttpMethod.Get && !string.IsNullOrEmpty(body)) {
+            return new HttpRequestMessage(HttpMethod.Get, $"{url}?{body}");
+        }
+
+        return new HttpRequestMessage(method, url);
     }
 
     protected virtual async Task LogFailureResponseAsync(HttpResponseMessage responseMessage) {

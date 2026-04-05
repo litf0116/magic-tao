@@ -133,7 +133,7 @@ const initPayment = async () => {
         initialBalance.value = userInfo.user?.depositBalance || 0
 
         // 获取支付二维码
-        const response = await payApi.payDepositNative(51)
+        const response = await payApi.payDepositNative(0.01)
         qrCodeUrl.value = response.code_url
         orderNo.value = response.outTradeNo || Date.now().toString()
 
@@ -181,7 +181,6 @@ const startPolling = () => {
 // 检查支付状态
 const checkPaymentStatus = async () => {
     try {
-        // 方式1: 查询订单状态（更可靠）
         if (orderNo.value) {
             const orderStatus = await payApi.getOrderStatus(orderNo.value)
             if (orderStatus.status === '已支付') {
@@ -193,15 +192,6 @@ const checkPaymentStatus = async () => {
                 clearAllTimers()
                 return
             }
-        }
-
-        // 方式2: 余额变化检测（兜底）
-        const userInfo = await userStore.getUserInfo()
-        const currentBalance = userInfo.user?.depositBalance || 0
-
-        if (currentBalance >= initialBalance.value + 50) {
-            handleSuccess()
-            return
         }
     } catch (error) {
         console.error('检查支付状态失败:', error)

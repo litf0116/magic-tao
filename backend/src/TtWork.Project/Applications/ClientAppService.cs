@@ -154,7 +154,7 @@ public class ClientAppService(
     [AbpAuthorize]
     public async Task<object> PayDepositNative(decimal? amount = null)
     {
-        var app = await mediator.Send(new QueryApp());
+        var app = await mediator.Send(new QueryApp("uniapp", false));
         var appid = app.GetValue("appid");
         var mchid = app.GetValue("mchId");
         // 获取 wwwroot 完整路径
@@ -185,6 +185,20 @@ public class ClientAppService(
                     Currency = "CNY"
                 },
             }, certPath);
+
+            if (!string.IsNullOrEmpty(result.Code))
+            {
+                var errMsg = $"[保证金 Native 支付]微信支付返回错误：{result.Code} - {result.Message}";
+                logger.LogError(errMsg);
+                throw new UserFriendlyException(errMsg);
+            }
+
+            if (string.IsNullOrEmpty(result.CodeUrl))
+            {
+                var errMsg = "[保证金 Native 支付]微信支付返回成功但 code_url 为空";
+                logger.LogError(errMsg);
+                throw new UserFriendlyException(errMsg);
+            }
 
             return new
             {
@@ -227,6 +241,26 @@ public class ClientAppService(
                 Status = "NOT_FOUND",
                 Message = "订单不存在"
             };
+        }
+
+        if (payOrder.State != PayState.已支付)
+        {
+            var app = await mediator.Send(new QueryApp(payOrder.AppName, false));
+            var mchid = app.GetValue("mchId");
+            string wwwrootPath = _env.WebRootPath;
+            string certPath = Path.Combine(wwwrootPath, app.GetValue("certPath").TrimStart('/', '\\'));
+
+            var wechatResult = await v3PayApi.QueryOrderAsync(mchid, outTradeNo, certPath);
+
+            if (!string.IsNullOrEmpty(wechatResult.Code))
+            {
+                logger.LogError($"[查询订单状态]微信返回错误：{wechatResult.Code} - {wechatResult.Message}");
+            }
+            else if (wechatResult.TradeState == "SUCCESS")
+            {
+                payOrder.SuccessPay(wechatResult.TransactionId, wechatResult.SuccessTime);
+                await CurrentUnitOfWork.SaveChangesAsync();
+            }
         }
 
         return new PayOrderStatusDto
