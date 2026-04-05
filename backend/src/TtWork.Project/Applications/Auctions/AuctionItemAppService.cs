@@ -406,7 +406,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 }
 
                 // 检查商品状态
-                if (find.Status.HasFlag(AuctionStatusEnum.已成交))
+                if (find.Status == AuctionStatusEnum.已成交)
                 {
                     _logger.LogWarning("定时任务回调：商品已成交，无需处理，ID: {AuctionItemId}", auctionItem.Id);
                     return;
@@ -930,7 +930,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             }
 
             // 检查商品状态
-            if (find.Status.HasFlag(AuctionStatusEnum.已成交))
+            if (find.Status == AuctionStatusEnum.已成交)
             {
                 var existingResult = ObjectMapper.Map<AuctionItemDto>(find);
                 existingResult.ToUserMsg = "已成交商品不能再次拍卖";
@@ -1184,7 +1184,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             throw new UserFriendlyException("当前商品已在拍卖中");
         }
 
-        if (find.Status.HasFlag(AuctionStatusEnum.已成交))
+        if (find.Status == AuctionStatusEnum.已成交)
             throw new UserFriendlyException(1, "已成交商品不能再次拍卖");
 
         find.StartAuction();
@@ -1310,7 +1310,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     public async Task<object> DateAnlayse(AppResultRequestDto input)
     {
         var query = await Repository.GetAll()
-            .WhereIf(input.Status.HasValue, x => x.Status.HasFlag(AuctionStatusEnum.已成交))
+            .WhereIf(input.Status.HasValue, x => x.Status == AuctionStatusEnum.已成交)
             .WhereIf(input.From.HasValue, x => x.CreationTime >= input.From)
             .WhereIf(input.To.HasValue, x => x.CreationTime <= input.From)
             .GroupBy(row => new
@@ -1334,7 +1334,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     public async Task<object> DateAnlayse2(AppResultRequestDto input)
     {
         var query = await Repository.GetAll()
-            .WhereIf(input.Status.HasValue, x => x.Status.HasFlag(AuctionStatusEnum.已成交))
+            .WhereIf(input.Status.HasValue, x => x.Status == AuctionStatusEnum.已成交)
             .WhereIf(input.From.HasValue, x => x.CreationTime >= input.From)
             .WhereIf(input.To.HasValue, x => x.CreationTime <= input.From)
             .GroupBy(row => new
