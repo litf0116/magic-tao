@@ -1,10 +1,10 @@
 <template>
     <el-input
         :model-value="modelValue"
-        @update:model-value="$emit('update:modelValue', $event)"
         type="textarea"
         :max="700"
         :rows="3"
+        @update:model-value="$emit('update:modelValue', $event)"
         @keyup.enter.prevent="emit('onPressEnter', $event)"
         @focus="focus"
         @paste.native.capture="pasting"

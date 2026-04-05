@@ -112,6 +112,7 @@
         <auction-item-detail ref="detailRef" @onEdit="edit" />
         <withdrawalApprovaltem ref="withdrawalApprovaRef" @on-saved="auctionStore.getList()" />
         <addMsgConfiguration ref="addMsgRef" />
+        <DepositRechargeDialog v-model="showDepositDialog" @success="handleDepositSuccess" />
     </div>
 </template>
 
@@ -132,6 +133,7 @@ import type { UserLevelInfo } from '@/api/groupChatLevel'
 import api from '@/api'
 import type { UserDto } from '@/api/appService'
 import { calculateMinBidPrice } from '@/utils/auction'
+import DepositRechargeDialog from '@/components/DepositRechargeDialog.vue'
 
 let ps: PerfectScrollbar | null = null
 
@@ -150,6 +152,7 @@ import { ElRadioGroup, ElRadioButton, ElButton } from 'element-plus'
 import { convertImageUrl } from '@/utils/imageUrlConverter'
 
 const activeName = ref('1')
+const showDepositDialog = ref(false)
 
 const waitList = computed(() => {
     return auctionStore.list.filter((item) => item.status === '上架')
@@ -244,6 +247,13 @@ function getListHeight() {
     return onAuctionItem.value ? '354px' : '624px'
 }
 
+function handleDepositSuccess() {
+    ElMessage.success('保证金已到账，可以继续出价')
+    setTimeout(() => {
+        bid()
+    }, 500)
+}
+
 // getItemIndex 函数已移除，序号现在存储在 item.displayIndex 中
 
 //LINK - 结束竞拍
@@ -313,20 +323,9 @@ async function bid() {
             userLevelInfo: levelInfo?.userLevel,
         })
 
-        // 新用户且保证金不足的情况
         if (userLevel === 0 && deposit < 50) {
             console.log('新用户保证金不足:', { userLevel, deposit })
-            ElMessageBox.alert(
-                `<div>
-                    新用户参与拍卖，需要缴纳51元（50元保证金+1元提现手续费）。<br/>
-                    <b>网站无法直接缴纳保证金，请扫码进入微信小程序缴纳。</b>
-                    <div style="margin:10px 0;">
-                        <img src="/images/miniapp_qrcode.png" style="width:150px;" />
-                    </div>
-                </div>`,
-                '出价须知',
-                { dangerouslyUseHTMLString: true }
-            )
+            showDepositDialog.value = true
             return
         }
 

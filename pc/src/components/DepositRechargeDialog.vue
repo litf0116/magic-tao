@@ -133,7 +133,7 @@ const initPayment = async () => {
         initialBalance.value = userInfo.user?.depositBalance || 0
 
         // 获取支付二维码
-        const response = await payApi.payDepositNative(0.01)
+        const response = await payApi.payDepositNative(51)
         qrCodeUrl.value = response.code_url
         orderNo.value = response.outTradeNo || Date.now().toString()
 
