@@ -6305,6 +6305,16 @@ export interface UserLoginInfoDto {
      * 保证金
      */
     depositBalance: number
+
+    /**
+     * 是否需要完善个人信息
+     */
+    needProfileCompletion?: boolean
+
+    /**
+     * 是否跳过个人信息完善
+     */
+    skipProfileCompletion?: boolean
 }
 
 export interface UserRoleDto {

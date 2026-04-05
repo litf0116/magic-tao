@@ -104,7 +104,7 @@ function init() {
                     if (accessToken) {
                         clearTimeout(expiredTimer)
                         await userStore.SET_TOKEN(accessToken)
-                        await userStore.getUserInfo()
+                      const  await userStore.getUserInfo()
                         clearInterval(interVal)
                         if (userStore.user.needProfileCompletion) {
                             profileGuideRef.value?.show(userStore.user.id)
