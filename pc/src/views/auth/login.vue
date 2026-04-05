@@ -38,10 +38,10 @@
                     />
                 </div>
                 <div class="mt-6">
-                    <el-input v-model="form.username" placeholder="请输入用户名" />
+                    <el-input v-model="form.username" placeholder="请输入用户名"/>
                 </div>
                 <div class="mt-6">
-                    <el-input v-model="form.password" type="password" placeholder="请输入密码" />
+                    <el-input v-model="form.password" type="password" placeholder="请输入密码"/>
                 </div>
                 <div class="mt-6">
                     <el-button
@@ -50,7 +50,8 @@
                         type="primary"
                         :disabled="submitDisabled"
                         @click="login"
-                        >登录</el-button
+                    >登录
+                    </el-button
                     >
                 </div>
                 <div class="text-blue-400 text-sm mt-6 cursor-pointer" @click="loginType = 1">使用扫码登录</div>
@@ -58,12 +59,12 @@
         </div>
     </div>
 
-    <ProfileCompletionGuide ref="profileGuideRef" />
+    <ProfileCompletionGuide ref="profileGuideRef"/>
 </template>
 
 <script setup lang="ts">
 import api from '@/api'
-import { ElMessage } from 'element-plus'
+import {ElMessage} from 'element-plus'
 import ProfileCompletionGuide from '@/components/ProfileCompletionGuide.vue'
 
 const userStore = useUserStore()
@@ -100,14 +101,14 @@ function init() {
             }, 60_000) // 1 minute
 
             interVal = setInterval(() => {
-                api.tokenAuth.qrToken({ key: res }).then(async (accessToken) => {
+                api.tokenAuth.qrToken({key: res}).then(async (accessToken) => {
                     if (accessToken) {
                         clearTimeout(expiredTimer)
                         await userStore.SET_TOKEN(accessToken)
-                      const  await userStore.getUserInfo()
+                        const res = await userStore.getUserInfo()
                         clearInterval(interVal)
-                        if (userStore.user.needProfileCompletion) {
-                            profileGuideRef.value?.show(userStore.user.id)
+                        if (res?.user?.needProfileCompletion) {
+                            profileGuideRef.value?.show(res.user.id)
                         } else {
                             navigateToHome()
                         }
