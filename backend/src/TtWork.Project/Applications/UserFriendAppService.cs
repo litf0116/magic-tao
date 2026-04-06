@@ -62,12 +62,11 @@ public class UserFriendAppService(
     /// <returns></returns>
     [HttpGet]
     [DisableAuditing]
-    public async Task<int> GetUserFriendCount()
+    public async Task<object> GetUserFriendCount()
     {
         var userId = AbpSession.UserId!.Value;
-        var list = await repository.GetAll().AsNoTracking().Where(x => x.UserId == userId && x.Status == false)
-            .ToListAsync();
-        return list.Count;
+        var count = await repository.GetAll().AsNoTracking().CountAsync(x => x.UserId == userId && x.Status == false);
+        return new { count };
     }
 
     [HttpGet]

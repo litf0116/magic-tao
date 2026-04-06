@@ -41,6 +41,11 @@ namespace TtWork.Abp.Authorization.Users {
         [Column(TypeName = "decimal(18, 2)")]
         public decimal DepositBalance { get; set; }
 
+        /// <summary>
+        /// 是否跳过完善个人信息引导
+        /// </summary>
+        public bool SkipProfileCompletion { get; set; } = false;
+
 
         public static string CreateRandomPassword() {
             return Guid.NewGuid().ToString("N").Truncate(16);

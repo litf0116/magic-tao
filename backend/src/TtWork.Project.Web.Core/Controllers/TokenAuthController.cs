@@ -115,7 +115,7 @@ namespace TtWork.Project.Web.Controllers
         [HttpGet]
         public async Task<string> PubQrLogin(string state)
         {
-            var app = await mediator.Send(new QueryApp());
+            var app = await mediator.Send(new QueryApp("pub"));
             var (appid, appSec) = (app.GetValue("appid"), app.GetValue("appsec"));
             var token = await weixinManger.GetAccessTokenAsync(appid, appSec);
             try
@@ -383,14 +383,19 @@ namespace TtWork.Project.Web.Controllers
         {
             try
             {
+                Logger.Info($"[WeixinMiniAuthenticate] Request: {loginModel.ToJsonString()}");
+                
                 var app = await mediator.Send(new QueryApp());
                 var authUserInfo =
                     await externalAuthManager.GetUserInfo(Consts.LoginProvider.WeChatMiniOpenid,
                         loginModel.ToJsonString(), app.GetValue("appid"), app.GetValue("appsec"));
+                Logger.Info($"[WeixinMiniAuthenticate] AuthUserInfo: Provider={authUserInfo.Provider}, ProviderKey={authUserInfo.ProviderKey}, UnionId={authUserInfo.UnionId}, Name={authUserInfo.Name}");
+                
                 ExternalAuthenticateModel model = new()
                     { AuthProvider = authUserInfo.Provider, ProviderKey = authUserInfo.ProviderKey };
 
                 var (externalUser, loginResult) = await ExternalLogin(model, authUserInfo);
+                Logger.Info($"[WeixinMiniAuthenticate] LoginResult: Result={loginResult.Result}, UserId={loginResult.User?.Id}");
 
                 return await ExternalAuthenticateResultModel(loginResult, externalUser, model);
             }
@@ -428,6 +433,167 @@ namespace TtWork.Project.Web.Controllers
                 Logger.Error(e.Message, e);
                 if (e is UserFriendlyException) throw new UserFriendlyException(e.Message);
                 throw new UserFriendlyException("登录失败,请重新登录");
+            }
+        }
+
+        [HttpPost]
+        public async Task<ExternalAuthenticateResultModel> AuthenticateWeixinApp(
+            [FromBody] WeixinAppAuthenticateModel loginModel)
+        {
+            try
+            {
+                var app = await mediator.Send(new QueryApp("app"));
+                
+                string openid, unionid, accessToken;
+
+                if (!string.IsNullOrEmpty(loginModel.AccessToken) && !string.IsNullOrEmpty(loginModel.Openid))
+                {
+                    openid = loginModel.Openid;
+                    unionid = loginModel.Unionid;
+                    accessToken = loginModel.AccessToken;
+                    Logger.Info($"[AuthenticateWeixinApp] New way - openid={openid}, unionid={unionid}, accessToken={accessToken.Substring(0, 20)}...");
+                }
+                else
+                {
+                    Logger.Info($"[AuthenticateWeixinApp] Old way - code={loginModel.AuthCode}");
+                    var weixinResult = await weixinApi.GetOpenPlatformAccessTokenAsync(
+                        app.GetValue("appid"),
+                        app.GetValue("appsec"),
+                        loginModel.AuthCode
+                    );
+                    openid = weixinResult.openid;
+                    unionid = weixinResult.unionid;
+                    accessToken = weixinResult.access_token;
+                    Logger.Info($"[AuthenticateWeixinApp] Old way result - openid={openid}, unionid={unionid}");
+                }
+
+                Logger.Info($"[AuthenticateWeixinApp] Final values - openid={openid}, unionid={(string.IsNullOrEmpty(unionid) ? "NULL/EMPTY" : unionid)}");
+
+                var authUserInfo = new ExternalAuthUserInfo
+                {
+                    ProviderKey = openid,
+                    ProviderName = Consts.LoginProvider.WeChatApp,
+                    UserName = openid,
+                    Name = $"玩家{new Random().Next(10000, 99999)}",
+                    Surname = $"玩家{new Random().Next(10000, 99999)}",
+                    EmailAddress = $"{openid}@molitao.top",
+                    HeadImgUrl = "https://cdn.wujiangapp.com.cn/PicGo/202411061606451.png",
+                    UserLogins = new Dictionary<string, string>
+                    {
+                        [Consts.LoginProvider.WeChatApp] = openid
+                    }
+                };
+
+                if (!string.IsNullOrEmpty(unionid))
+                {
+                    authUserInfo.UnionId = unionid;
+                    authUserInfo.UserLogins[Consts.LoginProvider.WeChatUnionId] = unionid;
+                }
+
+                AbpLoginResult<Tenant, User> loginResult;
+
+                if (!string.IsNullOrEmpty(unionid))
+                {
+                    loginResult = await logInManager.LoginAsync(
+                        new UserLoginInfo(Consts.LoginProvider.WeChatUnionId, unionid, Consts.LoginProvider.WeChatUnionId),
+                        GetTenancyNameOrNull());
+
+                    if (loginResult.Result == AbpLoginResultType.Success)
+                    {
+                        Logger.Info($"[AuthenticateWeixinApp] User found by unionid, linking openid");
+                        var existingLogins = await userLoginRepository.GetAllListAsync(x => x.UserId == loginResult.User.Id);
+                        if (!existingLogins.Any(x => x.LoginProvider == Consts.LoginProvider.WeChatApp && x.ProviderKey == openid))
+                        {
+                            await TryAddUserLogin(new UserLogin(loginResult.User.TenantId, loginResult.User.Id, Consts.LoginProvider.WeChatApp, openid));
+                        }
+                        
+                        await UpdateUserInfoFromWeixin(loginResult.User, accessToken, openid);
+                        
+                        return await ExternalAuthenticateResultModel(loginResult, authUserInfo, new ExternalAuthenticateModel
+                        {
+                            AuthProvider = Consts.LoginProvider.WeChatApp,
+                            ProviderKey = openid
+                        });
+                    }
+                    
+                    Logger.Info($"[AuthenticateWeixinApp] User not found by unionid, trying openid (may be old mini program user without unionid)");
+                }
+
+                loginResult = await logInManager.LoginAsync(
+                    new UserLoginInfo(Consts.LoginProvider.WeChatApp, openid, Consts.LoginProvider.WeChatApp),
+                    GetTenancyNameOrNull());
+
+                if (loginResult.Result == AbpLoginResultType.Success)
+                {
+                    Logger.Info($"[AuthenticateWeixinApp] User found by openid, linking unionid if available");
+                    if (!string.IsNullOrEmpty(unionid))
+                    {
+                        var existingLogins = await userLoginRepository.GetAllListAsync(x => x.UserId == loginResult.User.Id);
+                        if (!existingLogins.Any(x => x.LoginProvider == Consts.LoginProvider.WeChatUnionId && x.ProviderKey == unionid))
+                        {
+                            await TryAddUserLogin(new UserLogin(loginResult.User.TenantId, loginResult.User.Id, Consts.LoginProvider.WeChatUnionId, unionid));
+                            Logger.Info($"[AuthenticateWeixinApp] Unionid linked to existing user");
+                        }
+                    }
+                    
+                    await UpdateUserInfoFromWeixin(loginResult.User, accessToken, openid);
+                    
+                    return await ExternalAuthenticateResultModel(loginResult, authUserInfo, new ExternalAuthenticateModel
+                    {
+                        AuthProvider = Consts.LoginProvider.WeChatApp,
+                        ProviderKey = openid
+                    });
+                }
+
+                if (!string.IsNullOrEmpty(unionid))
+                {
+                    Logger.Warn($"[AuthenticateWeixinApp] User not found by unionid or openid. May be old mini program user without unionid. Rejecting to prevent duplicate accounts.");
+                    throw new UserFriendlyException("检测到您已使用小程序账号登录，为了保护您的账号资产，请先打开小程序完成登录验证，之后即可使用APP直接登录。");
+                }
+
+                Logger.Info($"[AuthenticateWeixinApp] New user, creating account");
+                var newUser = await RegisterExternalUserAsync(authUserInfo);
+                loginResult = await logInManager.LoginAsync(
+                    new UserLoginInfo(Consts.LoginProvider.WeChatApp, openid, Consts.LoginProvider.WeChatApp),
+                    GetTenancyNameOrNull());
+                await UpdateUserInfoFromWeixin(loginResult.User, accessToken, openid);
+                
+                return await ExternalAuthenticateResultModel(loginResult, authUserInfo, new ExternalAuthenticateModel
+                {
+                    AuthProvider = Consts.LoginProvider.WeChatApp,
+                    ProviderKey = openid
+                });
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e.Message, e);
+                if (e is UserFriendlyException) throw new UserFriendlyException(e.Message);
+                throw new UserFriendlyException("微信登录失败,请重试");
+            }
+        }
+
+        private async Task UpdateUserInfoFromWeixin(User user, string accessToken, string openid)
+        {
+            try
+            {
+                var wxUserInfo = await weixinApi.SnsUserInfo(accessToken, openid);
+                if (wxUserInfo != null && !string.IsNullOrEmpty(wxUserInfo.nickname))
+                {
+                    Logger.Info($"[AuthenticateWeixinApp] Updating user info - nickname={wxUserInfo.nickname}, headimgurl={wxUserInfo.headimgurl}");
+                    
+                    user.Name = wxUserInfo.nickname;
+                    user.Surname = wxUserInfo.nickname;
+                    user.HeadImgUrl = wxUserInfo.headimgurl;
+                    
+                    await userManager.UpdateAsync(user);
+                    await CurrentUnitOfWork.SaveChangesAsync();
+                    
+                    Logger.Info($"[AuthenticateWeixinApp] User info updated successfully");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn($"[AuthenticateWeixinApp] Failed to update user info: {ex.Message}");
             }
         }
 
@@ -504,13 +670,19 @@ namespace TtWork.Project.Web.Controllers
             // externalUser.PhoneNumber = loginResult.User.PhoneNumber;
             // externalUser.Id = loginResult.User.Id;
 
+            var user = loginResult.User;
+            var needProfileCompletion = string.IsNullOrEmpty(user.PhoneNumber)
+                                       && !user.SkipProfileCompletion;
+
             return new ExternalAuthenticateResultModel
             {
                 AccessToken = accessToken,
                 EncryptedAccessToken = GetEncrpyedAccessToken(accessToken),
                 ExpireInSeconds = (int)tokenAuthConfiguration.Expiration.TotalSeconds,
                 RefreshToken = refreshToken.key,
-                Extension = externalUser.Extension
+                Extension = externalUser.Extension,
+                NeedProfileCompletion = needProfileCompletion,
+                UserId = user.Id
                 // User = externalUser,
                 // RoleNames = roles.ToArray()
             };

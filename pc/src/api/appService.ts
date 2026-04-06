@@ -3393,7 +3393,7 @@ export class TokenAuthService {
         return new Promise((resolve, reject) => {
             let url = basePath + '/api/TokenAuth/QrToken'
 
-            const configs: IRequestConfig = getConfigs('get', 'application/json', url, options)
+            const configs: IRequestConfig = getConfigs('get', 'text/plain', url, options)
             configs.params = { key: params['key'] }
 
             /** 适配ios13，get请求不允许带body */
@@ -3913,6 +3913,40 @@ export class UserService {
             }
 
             /** 适配ios13，get请求不允许带body */
+
+            axios(configs, resolve, reject)
+        })
+    }
+    /**
+     * 跳过完善个人信息引导
+     */
+    static skipProfileCompletion(options: IRequestOptions = {}): Promise<any> {
+        return new Promise((resolve, reject) => {
+            let url = basePath + '/api/services/app/User/SkipProfileCompletion'
+
+            const configs: IRequestConfig = getConfigs('post', 'application/json', url, options)
+
+            axios(configs, resolve, reject)
+        })
+    }
+    /**
+     * 完善个人信息
+     */
+    static completeProfile(
+        params: {
+            /** requestBody */
+            body?: CompleteProfileInput
+        } = {} as any,
+        options: IRequestOptions = {}
+    ): Promise<any> {
+        return new Promise((resolve, reject) => {
+            let url = basePath + '/api/services/app/User/CompleteProfile'
+
+            const configs: IRequestConfig = getConfigs('post', 'application/json', url, options)
+
+            let data = params.body
+
+            configs.data = data
 
             axios(configs, resolve, reject)
         })
@@ -6271,6 +6305,16 @@ export interface UserLoginInfoDto {
      * 保证金
      */
     depositBalance: number
+
+    /**
+     * 是否需要完善个人信息
+     */
+    needProfileCompletion?: boolean
+
+    /**
+     * 是否跳过个人信息完善
+     */
+    skipProfileCompletion?: boolean
 }
 
 export interface UserRoleDto {
@@ -6398,6 +6442,28 @@ export enum ChatMessageType {
     'Error' = 'Error',
     'KasecStatusChanged' = 'KasecStatusChanged',
     'System' = "System",
+}
+
+export interface CompleteProfileInput {
+    /** 手机号 */
+    phoneNumber?: string
+
+    /** 用户名 */
+    userName?: string
+
+    /** 密码 */
+    password?: string
+}
+
+export interface QrLoginResult {
+    /** JWT访问令牌 */
+    accessToken?: string
+
+    /** 是否需要完善个人信息 */
+    needProfileCompletion?: boolean
+
+    /** 用户ID */
+    userId?: number
 }
 
 export enum FromClient {

@@ -51,7 +51,7 @@ echo "✅ 日志目录已创建: $LOGS_DIR"
 
 # 步骤4: 在服务器上加载镜像
 echo "[4/5] 加载Docker镜像..."
-ssh -o StrictHostKeyChecking=no "${SERVER}" "cd ${REMOTE_DIR} && bash load-image.sh ${TAR_FILE}"
+ssh -o StrictHostKeyChecking=no "${SERVER}" "cd ${REMOTE_DIR} && bash load-image.sh ${TAR_FILE} -y"
 
 # 步骤5: 使用docker-compose重新部署
 echo "[5/5] 使用docker-compose重新部署..."

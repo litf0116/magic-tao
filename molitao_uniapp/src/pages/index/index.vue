@@ -4,11 +4,15 @@
             <view class="header">
                 <image
                     class="logo2"
-                    :src="convertImageUrl('https://cdn.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png')"
+                    :src="convertImageUrl('https://image.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png')"
                 />
             </view>
             <view class="content px-4">
-                <view v-if="showAuctionEntrance" class="flex flex-col">
+                <view class="flex flex-col">
+                    <!-- #ifndef MP-WEIXIN -->
+                    <!-- H5/APP 显示交易站入口 -->
+                    <image class="w-full h-270rpx" src="../../static/jyz.png" @tap="gotoTradingPost" />
+                    <!-- #endif -->
                     <image class="mt-1 w-full h-270rpx" src="../../static/pmh.png" @tap="Goto.auction()" />
                 </view>
                 <view class="mt-2 w-full">
@@ -22,9 +26,14 @@
                         :display-multiple-items="0"
                     ></uv-swiper>
                 </view>
-                <view class="advertisingSpace">
+                <view v-if="advertisingSpaceList.length > 0" class="advertisingSpace">
                     <div v-for="(item, index) in advertisingSpaceList" :key="index" class="advertisingSpace-item">
-                        <image class="logo2" :src="convertImageUrl(item.imageUrl, false)" />
+                        <image
+                            class="logo2"
+                            :src="convertImageUrl(item.imageUrl, false)"
+                            mode="aspectFill"
+                            @error="handleImageError(index)"
+                        />
                         <div
                             style="
                                 position: absolute;
@@ -34,9 +43,12 @@
                                 color: #fff;
                             "
                         >
-                            {{ item.title }}
+                            {{ item.title || item.name || '' }}
                         </div>
                     </div>
+                </view>
+                <view v-else class="text-center text-gray-400 py-4 text-sm">
+                    <!-- 暂无广告位信息 -->
                 </view>
             </view>
         </view>
@@ -61,6 +73,12 @@ const { navTo } = useTo()
 const showAuctionEntrance = computed(() => {
     return chatStore.chatList.some((chat) => chat.id === -1)
 })
+
+// 跳转到交易站
+const gotoTradingPost = () => {
+    emit('refreshCurrentVal', 2)
+}
+
 //广告位信息
 const advertisingSpaceList: any = ref([])
 const emit = defineEmits(['refreshCurrentVal'])
@@ -70,11 +88,29 @@ onMounted(() => {
 })
 //获取广告位列表
 const advertisingSpace = () => {
-    api.AdvertisingSpace.GetAdvertisingSpaceAll(1).then((res: any) => {
-        nextTick(() => {
-            advertisingSpaceList.value = res.items
+    api.AdvertisingSpace.GetAdvertisingSpaceAll(1)
+        .then((res: any) => {
+            console.log('广告位数据响应:', res)
+            if (res && res.items) {
+                advertisingSpaceList.value = res.items
+                console.log('广告位列表:', res.items)
+            } else if (Array.isArray(res)) {
+                advertisingSpaceList.value = res
+                console.log('广告位列表(数组):', res)
+            } else {
+                console.warn('广告位数据格式异常:', res)
+                advertisingSpaceList.value = []
+            }
         })
-    })
+        .catch((err: any) => {
+            console.error('获取广告位数据失败:', err)
+            advertisingSpaceList.value = []
+        })
+}
+
+// 处理图片加载错误
+const handleImageError = (index: number) => {
+    console.warn(`广告位图片加载失败，索引: ${index}`)
 }
 const list = computed(() => {
     return articleList.value.map((item) => {
@@ -152,7 +188,7 @@ const font = ref({ size: '2em' })
 
     .header {
         @apply w-full text-center h-[160px] flex flex-col justify-end items-center;
-        background: url(https://cdn.molitao.top/20250330/04j40l4ynlbh3v3h4bgfe7j2pxiqjg8d.png) no-repeat center -60rpx /
+        background: url(https://image.molitao.top/20250330/04j40l4ynlbh3v3h4bgfe7j2pxiqjg8d.png) no-repeat center -60rpx /
             cover;
 
         .logo2 {
@@ -162,21 +198,21 @@ const font = ref({ size: '2em' })
 
     .content {
         @apply w-full relative mt-12rpx w-[90vw];
-        background: url(https://cdn.molitao.top/molitao/2025-03-30/upload_qxgt8fo3iymdi0heth3rnqipc83rzawn.png) repeat-y
+        background: url(https://image.molitao.top/molitao/2025-03-30/upload_qxgt8fo3iymdi0heth3rnqipc83rzawn.png) repeat-y
             center center / 100% 100%;
     }
 
     .content::before {
         content: '';
         @apply block absolute w-full h-18rpx -top-18rpx left-0 right-0;
-        background: url(https://cdn.molitao.top/molitao/2025-03-30/upload_iw2aq9rsovog4lr3v036irwm90nyos20.png)
+        background: url(https://image.molitao.top/molitao/2025-03-30/upload_iw2aq9rsovog4lr3v036irwm90nyos20.png)
             no-repeat center center / 100% 100%;
     }
 
     .content::after {
         content: '';
         @apply block absolute w-full h-18rpx -bottom-18rpx left-0 right-0;
-        background: url(https://cdn.molitao.top/molitao/2025-03-30/upload_to45oxex09l2uu1ltntj09n6z1x4y0df.png)
+        background: url(https://image.molitao.top/molitao/2025-03-30/upload_to45oxex09l2uu1ltntj09n6z1x4y0df.png)
             no-repeat center center / 100% 100%;
     }
 }

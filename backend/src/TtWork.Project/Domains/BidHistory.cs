@@ -45,7 +45,6 @@ public class BidHistoryValidator : AbstractValidator<BidHistoryCreateDto> {
     public BidHistoryValidator() {
         RuleFor(x => x.AuctionItemId).GreaterThan(0);
         RuleFor(x => x.BidPrice).GreaterThan(0);
-        RuleFor(x => x.BidUserName).NotEmpty();
-        RuleFor(x => x.BidUserAvatar).NotEmpty();
+        // BidUserName and BidUserAvatar are set server-side from user cache, not required from client
     }
 }

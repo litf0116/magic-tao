@@ -10,7 +10,6 @@ import {
     ChatMessageType,
 } from '../composables/types'
 import { useStorageRef } from '@/composables/useStorageRef'
-import { useAuctionStore } from './auctionStore'
 import { convertImageUrl } from '@/utils/imageUrlConverter'
 
 // 测试友好：导出一个纯函数，方便单元测试历史合并逻辑
@@ -172,9 +171,8 @@ export const useChatStore = defineStore('chatStore', () => {
         })
     }
 
-    const auctionStore = useAuctionStore()
-
     const onmessage = function (msg: ChatMessage) {
+        const auctionStore = useAuctionStore()
         // 转换消息类型：将数值类型转换为字符串类型
         if (typeof msg.type === 'number') {
             const typeMap: { [key: number]: ChatMessageType } = {
@@ -401,9 +399,9 @@ export const useChatStore = defineStore('chatStore', () => {
                     addAuctionDealUser(msg.payload, 'AuctionDeal', dealTime)
                 }
 
-                // 接收者（中拍用户）：为拍卖师创建聊天会话
+                // 接收者（中标用户）：为秒杀师创建聊天会话
                 if (msg.to === userStore.user.id) {
-                    // 中拍用户需要看到拍卖师（msg.from），而不是自己
+                    // 中标用户需要看到秒杀师（msg.from），而不是自己
                     const existingChat = chatList.value.find((item) => item.id === msg.from)
                     if (!existingChat) {
                         chatList.value = [
@@ -653,7 +651,7 @@ export const useChatStore = defineStore('chatStore', () => {
                 payload: payload,
             }
 
-            await api.ws
+            return api.ws
                 .sendChannelMsg({
                     from: websocketId.value,
                     chan: chan,
@@ -661,6 +659,9 @@ export const useChatStore = defineStore('chatStore', () => {
                 })
                 .then((res) => {
                     return resolve(res)
+                })
+                .catch((err) => {
+                    return resolve(null)
                 })
         })
     }
@@ -719,7 +720,7 @@ export const useChatStore = defineStore('chatStore', () => {
     }
 
     const getUserAvatar = (id: number) => {
-        return convertImageUrl('https://cdn.molitao.top/avater.png')
+        return convertImageUrl('https://image.molitao.top/avater.png')
     }
 
     const getUserFriends = (status = true) => {
@@ -822,7 +823,7 @@ export const useChatStore = defineStore('chatStore', () => {
             type: ChatListItemType.user,
             time: msgTime || auctionResult.time || new Date().getTime(),
             lastMsg: lastMsg,
-            avatar: convertImageUrl(dealUserAvatar || 'https://cdn.molitao.top/avater.png'),
+            avatar: convertImageUrl(dealUserAvatar || 'https://image.molitao.top/avater.png'),
             unread: 0,
             order: 0,
             msg: {

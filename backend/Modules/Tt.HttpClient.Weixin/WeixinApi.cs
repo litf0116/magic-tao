@@ -284,6 +284,29 @@ namespace TtWork.HttpClient.Weixin {
 
             return result.TryConvert<BaseWeChatReulst>();
         }
+
+        public async Task<OAuth2Result> GetOpenPlatformAccessTokenAsync(string appid, string secret, string code) {
+            var url = $"https://api.weixin.qq.com/sns/oauth2/access_token?appid={appid}&secret={secret}&code={code}&grant_type=authorization_code";
+            logger.LogInformation("请求微信开放平台 OAuth2 接口: {Url}", url);
+
+            var response = await client.GetAsync(url);
+            var result = await response.Content.ReadAsStringAsync();
+
+            logger.LogInformation("微信开放平台 OAuth2 响应: {Result}", result);
+
+            var oauthResult = result.TryConvert<OAuth2Result>();
+
+            if (oauthResult == null || !string.IsNullOrEmpty(oauthResult.errmsg)) {
+                logger.LogError("微信开放平台 OAuth2 认证失败: {ErrorCode} - {ErrorMessage}",
+                    oauthResult?.errcode, oauthResult?.errmsg);
+                throw new Exception($"微信开放平台认证失败: {oauthResult?.errmsg}");
+            }
+
+            logger.LogInformation("微信开放平台 OAuth2 认证成功: OpenId={OpenId}, UnionId={UnionId}",
+                oauthResult.openid, oauthResult.unionid);
+
+            return oauthResult;
+        }
     }
 
     public class GetQrCodeResult {
@@ -308,6 +331,12 @@ namespace TtWork.HttpClient.Weixin {
         public string openid { get; set; }
 
         public string scope { get; set; }
+
+        public string unionid { get; set; }
+
+        public int errcode { get; set; }
+
+        public string errmsg { get; set; }
     }
 
     public class MediaCheckResult : BaseWeChatReulst {

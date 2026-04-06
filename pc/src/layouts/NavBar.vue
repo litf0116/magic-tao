@@ -8,7 +8,7 @@
             ></div>
             <Breadcrumbs />
         </div>
-        <div class="flex justify-center items-center h-full cursor-pointer">
+        <div class="flex justify-center items-center h-full gap-4">
             <!-- BEGIN: Account Menu -->
             <el-dropdown v-if="userStore.isLogin" class="h-full" :hide-on-click="true" @command="handleCommand">
                 <div class="el-dropdown-link flex items-center">
@@ -19,6 +19,13 @@
                 </div>
                 <template #dropdown>
                     <el-dropdown-menu>
+                        <div class="px-4 py-2 text-sm text-gray-600 border-b">
+                            保证金余额：¥{{ userStore.user.depositBalance || 0 }}
+                        </div>
+                        <el-dropdown-item :command="Command.depositPayment">
+                            <span class="i-mdi:wallet-plus mr-2"></span>
+                            保证金充值
+                        </el-dropdown-item>
                         <el-dropdown-item :command="Command.changePassword">修改密码</el-dropdown-item>
                         <el-dropdown-item divided :command="Command.logout">退出登录</el-dropdown-item>
                     </el-dropdown-menu>
@@ -40,7 +47,12 @@ const toLogin = () => {
     router.push('/auth/login')
 }
 
+const goToDepositPayment = () => {
+    router.push('/deposit-payment')
+}
+
 enum Command {
+    'depositPayment',
     'changePassword',
     'logout',
 }
@@ -52,6 +64,9 @@ const logout = async () => {
 
 const handleCommand = (command: Command) => {
     switch (command) {
+        case Command.depositPayment:
+            goToDepositPayment()
+            break
         case Command.logout:
             logout()
             break
@@ -59,7 +74,7 @@ const handleCommand = (command: Command) => {
             console.log(Command.changePassword)
             break
         default:
-            const _exhaustiveCheck: never = command // 如果Command没有case全,这里会报错
+            const _exhaustiveCheck: never = command
             console.log(_exhaustiveCheck)
     }
 }

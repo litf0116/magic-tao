@@ -23,6 +23,8 @@ README2.md
 
 # APK files
 *.apk
+.gstack/
+.planning/
 
 # UniApp Android build
 molitao_uniapp/android/
@@ -38,6 +40,9 @@ docs/*.apk
 *.wps
 
 # Root level scattered files (not in subdirectories)
-/*.png
-/*.jpg
-/*.jpeg
+/*..png
+/*..jpg
+/*..jpeg
+
+# Credentials config
+credentials.conf

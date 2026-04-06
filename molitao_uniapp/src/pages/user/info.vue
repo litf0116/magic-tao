@@ -111,13 +111,14 @@ const isUploading = computed(() => {
 })
 
 function submit() {
-    // 智能头像处理：新用户需要上传头像，老用户可以保留或更换头像
+    // 智能头像处理：已有头像则不需要上传新头像
+    // 只有在完全没有头像的情况下才要求上传
     if (!form.value.headImgUrl && !fileList1.value.length) {
         return Tips.info('请上传头像')
     }
 
-    // 如果上传了新头像，验证上传状态和URL格式
-    if (fileList1.value.length > 0) {
+    // 只有在用户确实上传了新头像时才验证上传状态
+    if (fileList1.value.length > 0 && !form.value.headImgUrl) {
         const fileItem = fileList1.value[0]
 
         // 检查上传状态
@@ -126,8 +127,8 @@ function submit() {
             return
         }
 
-        // 检查URL格式，必须是CDN地址
-        if (!fileItem.url || !fileItem.url.startsWith('http://image.molitao.top')) {
+        // 检查URL格式，必须是有效的HTTP/HTTPS地址
+        if (!fileItem.url || !/^https?:\/\//.test(fileItem.url)) {
             Tips.info('头像上传未完成，请重新上传')
             return
         }

@@ -32,8 +32,23 @@ public class UserDepositJob(
         using (unitOfWorkManager.Current.DisableFilter(AbpDataFilters.MayHaveTenant, AbpDataFilters.MustHaveTenant)) {
             var entity = await userDepositLogRepository.GetAll().AsNoTracking().Where(x => x.Id == log.Id).FirstOrDefaultAsync();
             if (entity.IsSuccess) {
-                logger.LogWarning($"[UserBalanceJob]用户:{log.CreatorUserId}保证金操作已经成功,无需重复操作{log.Id}");
+                logger.LogWarning($"[UserDepositJob]用户:{log.CreatorUserId}保证金操作已经成功,无需重复操作{log.Id}");
                 return;
+            }
+
+            if (!string.IsNullOrEmpty(entity.Reason) && entity.Reason.Contains("保证金支付:"))
+            {
+                var outTradeNo = entity.Reason.Replace("保证金支付:", "");
+                var existingSuccessLog = await userDepositLogRepository.GetAll()
+                    .Where(x => x.Id != log.Id && x.IsSuccess)
+                    .Where(x => x.Reason != null && x.Reason.Contains(outTradeNo))
+                    .FirstOrDefaultAsync();
+
+                if (existingSuccessLog != null)
+                {
+                    logger.LogWarning($"[UserDepositJob]该订单已有其他成功记录，跳过: {outTradeNo}");
+                    return;
+                }
             }
 
             var doAmount = log.Type switch {

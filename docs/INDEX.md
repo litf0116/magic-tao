@@ -63,6 +63,7 @@
 | **auction-optimization.md** | `/pc/docs/auction-optimization.md` | PC 端拍卖优化实现 |
 | **BID_ELIGIBILITY_SERVICE_USAGE.md** | `/docs/BID_ELIGIBILITY_SERVICE_USAGE.md` | 出价资格服务使用指南 |
 | **min-bid-price-util.md** | `/docs/min-bid-price-util.md` | 最低出价价格工具 |
+| **auction-api-testing-guide.md** | `/docs/auction-api-testing-guide.md` | 🌟 拍卖 API 测试指南 | 
 
 ### 💾 技术实现文档
 
@@ -140,4 +141,4 @@
 
 ---
 
-**最后更新**: 2025-01-14
+**最后更新**: 2026-04-05

@@ -18,6 +18,11 @@ namespace TtWork.Lib.Redis
 
         void DeleteKeysWithPartten(string pattern);
         Task DeleteKeysWithParttenAsync(string pattern);
+
+        bool AcquireLock(string key, TimeSpan expiry);
+        Task<bool> AcquireLockAsync(string key, TimeSpan expiry);
+        void ReleaseLock(string key);
+        Task ReleaseLockAsync(string key);
     }
 
     public class RedisClient : IRedisClient, IDisposable
@@ -70,6 +75,58 @@ namespace TtWork.Lib.Redis
             catch (Exception ex)
             {
                 _logger.LogError(ex, "删除模式匹配的键失败: {Pattern}", pattern);
+            }
+        }
+
+        public bool AcquireLock(string key, TimeSpan expiry)
+        {
+            try
+            {
+                var lockValue = Guid.NewGuid().ToString();
+                return Database.StringSet(key, lockValue, expiry, When.NotExists);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "获取锁失败: {Key}", key);
+                return false;
+            }
+        }
+
+        public async Task<bool> AcquireLockAsync(string key, TimeSpan expiry)
+        {
+            try
+            {
+                var lockValue = Guid.NewGuid().ToString();
+                return await Database.StringSetAsync(key, lockValue, expiry, When.NotExists);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "获取锁失败: {Key}", key);
+                return false;
+            }
+        }
+
+        public void ReleaseLock(string key)
+        {
+            try
+            {
+                Database.KeyDelete(key);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "释放锁失败: {Key}", key);
+            }
+        }
+
+        public async Task ReleaseLockAsync(string key)
+        {
+            try
+            {
+                await Database.KeyDeleteAsync(key);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "释放锁失败: {Key}", key);
             }
         }
 

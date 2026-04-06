@@ -15,5 +15,9 @@ namespace TtWork.Project.Applications.Sessions.Dto {
         public string HeadImgUrl { get; set; }
 
         public string PhoneNumber { get; set; }
+
+        public bool NeedProfileCompletion { get; set; }
+
+        public bool SkipProfileCompletion { get; set; }
     }
 }

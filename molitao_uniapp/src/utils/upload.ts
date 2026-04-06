@@ -1,26 +1,22 @@
 import Upyun from './upyun-wxapp-sdk.js'
+
+// H5 开发模式下使用相对路径，其他模式使用配置的后端地址
+let baseApi = import.meta.env.VITE_APP_BASE_API || ''
+// #ifdef H5
+if (import.meta.env.DEV) {
+    baseApi = ''
+}
+// #endif
+
 const upyun = new Upyun.Upyun({
     bucket: 'molitao',
     operator: 'molitao',
     domainHost: 'http://image.molitao.top',
-    getSignatureUrl: import.meta.env.VITE_APP_BASE_API + '/api/services/app/Upload/GetSignature',
+    getSignatureUrl: baseApi + '/api/services/app/Upload/GetSignature',
 })
 
 export function uploadImage(file) {
     return new Promise((resolve, reject) => {
-        // 验证文件类型
-        const fileName = file.toString()
-        const fileExtension = fileName.split('.').pop()?.toLowerCase()
-        const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp']
-
-        if (!fileExtension || !allowedExtensions.includes(fileExtension)) {
-            uni.showToast({
-                title: '只支持 JPG、PNG、GIF、WEBP 格式的图片!',
-                icon: 'none',
-            })
-            return reject('只支持 JPG、PNG、GIF、WEBP 格式的图片!')
-        }
-
         const imageSrc = file
         // 使用时间戳+随机字符串作为路径，避免unionid/openid为空导致undefined
         const timestamp = Date.now()
@@ -61,20 +57,6 @@ export function upload(count = 1) {
             //成功
             success: (res) => {
                 const imageSrc = res!.tempFilePaths![0]
-
-                // 验证文件类型
-                const fileName = imageSrc.toString()
-                const fileExtension = fileName.split('.').pop()?.toLowerCase()
-                const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp']
-
-                if (!fileExtension || !allowedExtensions.includes(fileExtension)) {
-                    uni.showToast({
-                        title: '只支持 JPG、PNG、GIF、WEBP 格式的图片!',
-                        icon: 'none',
-                    })
-                    return reject('只支持 JPG、PNG、GIF、WEBP 格式的图片!')
-                }
-
                 upyun.upload({
                     localPath: imageSrc,
                     success: (res: any) => {

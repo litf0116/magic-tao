@@ -11,28 +11,30 @@ namespace TtWork.Project.Applications.Core.Users.Dto {
     /// </summary>
     [AutoMapTo(typeof(User))]
     public class CreateUserDto {
-        /// <summary>
-        /// 用户名
-        /// </summary>
         [Required]
         [StringLength(AbpUserBase.MaxUserNameLength)]
         public string UserName { get; set; }
 
-        /// <summary>
-        /// 邮箱
-        /// </summary>
+        [Required]
+        [StringLength(64)]
+        public string Name { get; set; }
+
+        [StringLength(64)]
+        public string Surname { get; set; }
+
         [Required]
         [EmailAddress]
         [StringLength(AbpUserBase.MaxEmailAddressLength)]
         public string EmailAddress { get; set; }
 
+        [StringLength(32)]
+        public string PhoneNumber { get; set; }
 
-        /// <summary>
-        /// 密码
-        /// </summary>
         [Required]
         [StringLength(AbpUserBase.MaxPlainPasswordLength)]
         [DisableAuditing]
         public string Password { get; set; }
+
+        public bool IsActive { get; set; } = true;
     }
 }

@@ -39,33 +39,61 @@ const errorPrompt = (err: any) => {
 const httpsPromisify = <T>(fn: (opt: any) => void) => {
     return function (options: any | undefined) {
         return new Promise<T>((resolve, reject) => {
-            options!.success = ({ data }: any) => {
-                uni.hideLoading()
-                uni.hideNavigationBarLoading()
+            options!.success = ({ data, statusCode }: any) => {
+                try {
+                    uni.hideLoading()
+                    // #ifndef H5
+                    uni.hideNavigationBarLoading()
+                    // #endif
+                } catch (error) {
+                    // 忽略隐藏加载状态时的错误
+                }
+                console.log('[API Response]', options!.url, { data, statusCode })
                 if (data.success) {
                     resolve(data.result)
                 } else {
-                    if (data.unAuthorizedRequest) {
-                        uni.navigateTo({
-                            url: '/pages/index/login',
-                        })
+                    // 处理 401 未授权
+                    if (statusCode === 401 || data.unAuthorizedRequest) {
+                        handleUnauthorized()
                         return
                     }
                     // 处理 HTTP 404 等错误，data.error 可能不存在
                     const err = data.error
+                    console.log('[API Error]', options!.url, { err, data })
                     errorPrompt(err)
                     reject(err?.details || err?.message || '请求失败')
                     return
                 }
             }
             options!.fail = (err: any) => {
-                uni.hideLoading()
-                uni.hideNavigationBarLoading()
+                try {
+                    uni.hideLoading()
+                    // #ifndef H5
+                    uni.hideNavigationBarLoading()
+                    // #endif
+                } catch (error) {
+                    // 忽略隐藏加载状态时的错误
+                }
                 return reject(err)
             }
             fn(options)
         })
     }
+}
+
+const handleUnauthorized = () => {
+    const pages = getCurrentPages()
+    const currentPage = pages[pages.length - 1]
+    const currentPath = currentPage?.route || ''
+
+    // 如果已经在登录页，不跳转
+    if (currentPath.includes('login')) {
+        return
+    }
+
+    uni.navigateTo({
+        url: '/pages/index/login',
+    })
 }
 
 export default {

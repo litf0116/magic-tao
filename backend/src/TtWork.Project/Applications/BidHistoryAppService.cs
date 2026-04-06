@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Abp.Application.Services.Dto;
@@ -29,9 +30,22 @@ public class BidHistoryAppService : AbpAsyncCrudAppService<BidHistory, BidHistor
     public override Task<BidHistoryDto> CreateAsync(BidHistoryDto input) => throw new Exception("NOT SUPPORTED");
     public override Task DeleteAsync(EntityDto<long> input) => throw new Exception("NOT SUPPORTED");
 
+    [HttpGet]
+    [AbpAuthorize]
+    public async Task<PagedResultDto<BidHistoryDto>> GetMyBidHistory(AppResultRequestDto input) {
+        input.MaxResultCount = input.MaxResultCount <= 0 ? 20 : input.MaxResultCount;
+        var query = Repository.GetAll()
+            .Where(x => x.CreatorUserId == AbpSession.UserId)
+            .OrderByDescending(x => x.Id)
+            .Take(input.MaxResultCount);
+        var items = await query.ToListAsync();
+        return new PagedResultDto<BidHistoryDto>(items.Count, ObjectMapper.Map<List<BidHistoryDto>>(items));
+    }
+
     protected override IQueryable<BidHistory> CreateFilteredQuery(AppResultRequestDto input) {
         return base.CreateFilteredQuery(input)
-            .WhereIf(input.Pid.HasValue, x => x.AuctionItemId == input.Pid.Value);
+            .WhereIf(input.Pid.HasValue, x => x.AuctionItemId == input.Pid.Value)
+            .WhereIf(input.UserId.HasValue, x => x.CreatorUserId == input.UserId.Value);
     }
     
     [HttpGet]

@@ -38,10 +38,10 @@
                     />
                 </div>
                 <div class="mt-6">
-                    <el-input v-model="form.username" placeholder="请输入用户名" />
+                    <el-input v-model="form.username" placeholder="请输入用户名"/>
                 </div>
                 <div class="mt-6">
-                    <el-input v-model="form.password" type="password" placeholder="请输入密码" />
+                    <el-input v-model="form.password" type="password" placeholder="请输入密码"/>
                 </div>
                 <div class="mt-6">
                     <el-button
@@ -50,18 +50,22 @@
                         type="primary"
                         :disabled="submitDisabled"
                         @click="login"
-                        >登录</el-button
+                    >登录
+                    </el-button
                     >
                 </div>
                 <div class="text-blue-400 text-sm mt-6 cursor-pointer" @click="loginType = 1">使用扫码登录</div>
             </template>
         </div>
     </div>
+
+    <ProfileCompletionGuide ref="profileGuideRef"/>
 </template>
 
-<script lang="ts" setup>
+<script setup lang="ts">
 import api from '@/api'
-import { ElMessage } from 'element-plus'
+import {ElMessage} from 'element-plus'
+import ProfileCompletionGuide from '@/components/ProfileCompletionGuide.vue'
 
 const userStore = useUserStore()
 const chatStore = useChatStore()
@@ -80,6 +84,8 @@ let interVal: number | undefined = undefined
 
 let expiredTimer: number | undefined = undefined
 
+const profileGuideRef = ref()
+
 onMounted(() => {
     init()
 })
@@ -95,14 +101,17 @@ function init() {
             }, 60_000) // 1 minute
 
             interVal = setInterval(() => {
-                api.tokenAuth.qrToken({ key: res }).then(async (res) => {
-                    if (res) {
+                api.tokenAuth.qrToken({key: res}).then(async (accessToken) => {
+                    if (accessToken) {
                         clearTimeout(expiredTimer)
-                        await userStore.SET_TOKEN(res)
-                        await userStore.getUserInfo()
+                        await userStore.SET_TOKEN(accessToken)
+                        const res = await userStore.getUserInfo()
                         clearInterval(interVal)
-                        if (route.query.redirect) window.location.href = '/index.html#' + route.query.redirect
-                        else window.location.href = '/index.html'
+                        if (res?.user?.needProfileCompletion) {
+                            profileGuideRef.value?.show(res.user.id)
+                        } else {
+                            navigateToHome()
+                        }
                     }
                 })
             }, 2000)
@@ -138,8 +147,7 @@ async function login() {
             //  console.log('login result ', token)
             await userStore.getUserInfo()
             clearInterval(interVal)
-            if (route.query.redirect) window.location.href = '/index.html#' + route.query.redirect
-            else window.location.href = '/index.html'
+            navigateToHome()
         },
         async (error: any) => {
             loading.value = false
@@ -152,6 +160,11 @@ async function login() {
             })
         }
     )
+}
+
+function navigateToHome() {
+    if (route.query.redirect) window.location.href = '/index.html#' + route.query.redirect
+    else window.location.href = '/index.html'
 }
 
 onUnmounted(() => {

@@ -55,6 +55,7 @@ using TtWork.Abp;
 using TtWork.Project.Web.Host.HealthChecks;
 using TtWork.Lib;
 using TtWork.Project.Web.Host.Services;
+using TtWork.Project.Services.Push;
 
 namespace TtWork.Project.Web.Host.Startup
 {
@@ -79,6 +80,7 @@ namespace TtWork.Project.Web.Host.Startup
                 cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
             services.Configure<RedisOptions>(_appConfiguration.GetSection("Redis"));
+            services.Configure<JPushSettings>(_appConfiguration.GetSection("JPush"));
 
             // 注册 IDistributedCache 实现（基于现有的 IRedisClient）
             services.AddSingleton<IDistributedCache, RedisDistributedCache>();
@@ -138,14 +140,27 @@ namespace TtWork.Project.Web.Host.Startup
             {
                 options.AddPolicy(DefaultCorsPolicyName, builder =>
                 {
+                    var origins = orgs
+                        .Split(",", StringSplitOptions.RemoveEmptyEntries)
+                        .ToArray();
+
                     builder
-                        .WithOrigins(
-                            (orgs)
-                            .Split(",", StringSplitOptions.RemoveEmptyEntries)
-                            // .Select(o => o.RemovePostFix("/"))
-                            .ToArray()
-                        )
+                        .WithOrigins(origins)
                         .SetIsOriginAllowedToAllowWildcardSubdomains()
+                        .SetIsOriginAllowed(origin =>
+                        {
+                            // 开发环境允许任意 localhost 端口
+                            if (_hostingEnvironment.IsDevelopment())
+                            {
+                                var uri = new Uri(origin);
+                                if (uri.Host == "localhost" || uri.Host == "127.0.0.1")
+                                {
+                                    return true;
+                                }
+                            }
+                            // 检查是否在配置的 origins 列表中
+                            return origins.Any(o => o.Equals(origin, StringComparison.OrdinalIgnoreCase));
+                        })
                         .AllowAnyHeader()
                         .AllowAnyMethod()
                         .AllowCredentials();
@@ -277,7 +292,7 @@ namespace TtWork.Project.Web.Host.Startup
 
 #if DEBUG
                 Redis = new FreeRedis.RedisClient("127.0.0.1:6379,poolsize=10,syncTimeout=5000,abortConnect=false"),
-                Servers = ["127.0.0.1:6001"]
+                Servers = ["192.168.10.35:6001"]
 #else
                 Redis = new FreeRedis.RedisClient(
                   "8.130.178.251:6379,poolsize=10,password=7yD3Ddd34,syncTimeout=5000,abortConnect=false"),

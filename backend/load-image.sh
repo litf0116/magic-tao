@@ -13,6 +13,12 @@ echo "=========================================="
 TAR_FILE="molitao-backend-latest.tar"
 IMAGE_NAME="litengfei0302/molitao-backend:latest"
 
+# 如果提供了参数，使用参数作为tar文件名
+if [ $# -gt 0 ]; then
+    TAR_FILE="$1"
+    echo "使用指定的tar文件: $TAR_FILE"
+fi
+
 # 检查tar文件是否存在
 if [ ! -f "$TAR_FILE" ]; then
     echo "❌ 错误: tar文件不存在: $TAR_FILE"
@@ -26,18 +32,6 @@ if [ ! -f "$TAR_FILE" ]; then
     exit 1
 fi
 
-# 如果提供了参数，使用参数作为tar文件名
-if [ $# -gt 0 ]; then
-    TAR_FILE="$1"
-    echo "使用指定的tar文件: $TAR_FILE"
-fi
-
-# 再次检查文件是否存在
-if [ ! -f "$TAR_FILE" ]; then
-    echo "❌ 错误: 指定的tar文件不存在: $TAR_FILE"
-    exit 1
-fi
-
 echo "步骤1: 检查现有镜像..."
 echo "正在查找现有的molitao相关镜像..."
 
@@ -47,11 +41,20 @@ if [ -n "$EXISTING_IMAGES" ]; then
     echo "发现以下相关镜像:"
     echo "$EXISTING_IMAGES"
     echo ""
-    read -p "是否要删除现有镜像并重新加载? (y/N): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        echo "正在删除现有镜像..."
+    # 非交互模式：自动删除现有镜像
+    if [ "$AUTO_REMOVE" = "true" ] || [ "$2" = "-y" ] || [ "$2" = "--yes" ]; then
+        echo "自动模式：删除现有镜像..."
         docker images | grep -E "(molitao|litengfei0302)" | awk '{print $3}' | xargs -r docker rmi -f || true
+    elif [ -t 0 ]; then
+        # 仅在交互式终端时提示
+        read -p "是否要删除现有镜像并重新加载? (y/N): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            echo "正在删除现有镜像..."
+            docker images | grep -E "(molitao|litengfei0302)" | awk '{print $3}' | xargs -r docker rmi -f || true
+        fi
+    else
+        echo "非交互模式：跳过删除现有镜像"
     fi
 else
     echo "未发现现有的相关镜像"

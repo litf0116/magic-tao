@@ -61,5 +61,11 @@ export default {
             meta: { title: '账户' },
             component: () => import('@/views/chat/account.vue'),
         },
+        {
+            path: 'deposit-payment',
+            name: 'DepositPayment',
+            meta: { title: '保证金支付', hidden: true },
+            component: () => import('@/views/payment/DepositPayment.vue'),
+        },
     ],
 } as RouteRecordRaw

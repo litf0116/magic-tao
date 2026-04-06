@@ -7,6 +7,7 @@ import { uniqBy, orderBy } from 'lodash'
 import { useEventBus } from '@vueuse/core'
 import { useAuctionStore } from '@/stores/auctionStore'
 import { convertImageUrl, convertObjectImageUrls, convertObjectImageUrlsArray } from '@/utils/imageUrlConverter'
+import { Tips } from '@/composables'
 
 export const onmessageKey = Symbol('onmessageKey')
 
@@ -631,6 +632,11 @@ export const useChatStore = defineStore('chat', () => {
                 .then((res) => {
                     return resolve(res)
                 })
+                .catch((err) => {
+                    Tips.error('消息发送失败，请检查网络连接')
+                    console.error('sendChannelMsg error:', err)
+                    resolve(null)
+                })
         })
     }
 
@@ -689,6 +695,11 @@ export const useChatStore = defineStore('chat', () => {
                     }
 
                     return resolve(res)
+                })
+                .catch((err) => {
+                    Tips.error('私信发送失败，请检查网络连接')
+                    console.error('sendMsg error:', err)
+                    resolve(null)
                 })
         })
     }
