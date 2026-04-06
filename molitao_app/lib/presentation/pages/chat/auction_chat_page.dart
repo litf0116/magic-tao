@@ -631,7 +631,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
     return ListView.builder(
       controller: _scrollController,
       // 底部预留输入框高度（56px）+ 额外空间，避免消息被遮挡
-      padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 80),
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 16),
       itemCount: messages.length,
       itemBuilder: (context, index) {
         final message = messages[index];
