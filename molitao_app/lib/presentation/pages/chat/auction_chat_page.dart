@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -788,6 +789,9 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   }
 
   void _showAuctionDetail(AuctionItemDto item) {
+    // 提取 description 中的图片 URL 列表（用于预览）
+    final imageUrls = _extractImageUrls(item.description);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -799,83 +803,40 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
         minChildSize: 0.3,
         maxChildSize: 0.9,
         expand: false,
-        builder: (context, scrollController) => Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      item.name ?? '拍品详情',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFFFF7144),
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              if (item.imageUrl != null && item.imageUrl!.isNotEmpty)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: CachedNetworkImage(
-                    imageUrl: item.imageUrl!,
-                    width: double.infinity,
-                    height: 200,
-                    fit: BoxFit.cover,
-                    placeholder: (_, __) => Container(
-                      height: 200,
-                      color: Colors.grey.shade200,
-                      child: const Center(
-                        child: SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+        builder: (context, scrollController) => SingleChildScrollView(
+          controller: scrollController,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 标题栏
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        item.name ?? '拍品详情',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFFFF7144),
                         ),
                       ),
                     ),
-                    errorWidget: (_, __, ___) => Container(
-                      height: 200,
-                      color: Colors.grey.shade200,
-                      child: const Center(
-                        child: Icon(Icons.image, size: 48, color: Colors.grey),
-                      ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
                     ),
-                  ),
+                  ],
                 ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  const Text('当前价格: ', style: TextStyle(fontSize: 14)),
-                  Text(
-                    '¥${item.currentPrice ?? item.startingPrice ?? 0}',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFFF4D4F),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              // 状态标签和开拍通知按钮
-              Row(
-                children: [
-                  _buildStatusBadge(item.status),
-                  const Spacer(),
-                  // 待拍卖状态显示开拍通知按钮
-                  if (item.status == AuctionStatusEnum.listed)
-                    ElevatedButton(
+                const SizedBox(height: 16),
+                // 开拍通知按钮（待拍卖状态）
+                if (item.status == AuctionStatusEnum.listed)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: ElevatedButton(
                       onPressed: () => _subscribeNotification(item.id),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF4CAF50),
@@ -890,11 +851,164 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                       ),
                       child: const Text('开拍通知'),
                     ),
-                ],
-              ),
-            ],
+                  ),
+                // 商品内容区域
+                _buildAuctionContent(item, imageUrls),
+              ],
+            ),
           ),
         ),
+      ),
+    );
+  }
+
+  /// 从 description HTML 中提取图片 URL 列表
+  List<String> _extractImageUrls(String? description) {
+    if (description == null || description.isEmpty) return [];
+
+    final urls = <String>[];
+
+    // 提取 data-url 属性
+    final dataUrlRegex = RegExp(
+      r'<img[^>]+data-url=["\x27"]([^"\x27"]+)["\x27"]',
+    );
+    final dataUrlMatches = dataUrlRegex.allMatches(description);
+    for (final match in dataUrlMatches) {
+      urls.add(match.group(1)!);
+    }
+
+    // 如果没有 data-url，提取 src 属性
+    if (urls.isEmpty) {
+      final srcRegex = RegExp(r'<img[^>]+src=["\x27"]([^"\x27"]+)["\x27"]');
+      final srcMatches = srcRegex.allMatches(description);
+      for (final match in srcMatches) {
+        final url = match.group(1)!;
+        // 移除缩略图参数 !w300
+        final cleanUrl = url.replaceAll(RegExp(r'!w300$'), '');
+        urls.add(cleanUrl);
+      }
+    }
+
+    return urls;
+  }
+
+  /// 构建拍品内容（参考 UniApp getStartContent）
+  Widget _buildAuctionContent(AuctionItemDto item, List<String> imageUrls) {
+    final description = item.description;
+
+    // 如果没有 description，显示 imageUrl
+    if (description == null || description.trim().isEmpty) {
+      final imageUrl = item.imageUrl;
+      if (imageUrl != null && imageUrl.isNotEmpty) {
+        return GestureDetector(
+          onTap: () => _previewImages([imageUrl]),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: CachedNetworkImage(
+              imageUrl: imageUrl,
+              width: double.infinity,
+              height: 200,
+              fit: BoxFit.cover,
+              placeholder: (_, __) => Container(
+                height: 200,
+                color: Colors.grey.shade200,
+                child: const Center(
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+              ),
+              errorWidget: (_, __, ___) => Container(
+                height: 200,
+                color: Colors.grey.shade200,
+                child: const Center(
+                  child: Icon(Icons.image, size: 48, color: Colors.grey),
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+      return const SizedBox.shrink();
+    }
+
+    // 渲染 description HTML
+    return GestureDetector(
+      onTap: () {
+        // 点击内容区域预览图片
+        if (imageUrls.isNotEmpty) {
+          _previewImages(imageUrls);
+        }
+      },
+      child: Html(
+        data: description,
+        style: {
+          "body": Style(margin: Margins.zero, padding: HtmlPaddings.zero),
+          "img": Style(width: Width(double.infinity)),
+          "div": Style(fontSize: FontSize(14), color: Colors.black87),
+          "span": Style(fontSize: FontSize(14), color: Colors.black87),
+        },
+        extensions: [
+          TagExtension(
+            tagsToExtend: {"img"},
+            builder: (extensionContext) {
+              // 优先使用 data-url，其次使用 src
+              final dataUrl = extensionContext.attributes['data-url'];
+              final src = extensionContext.attributes['src'];
+              var imageUrl = dataUrl ?? src;
+
+              if (imageUrl == null) return const SizedBox.shrink();
+
+              // 移除缩略图参数 !w300
+              imageUrl = imageUrl.replaceAll(RegExp(r'!w300$'), '');
+
+              return GestureDetector(
+                onTap: () {
+                  if (imageUrls.isNotEmpty) {
+                    _previewImages(imageUrls);
+                  } else if (imageUrl != null) {
+                    _previewImages([imageUrl]);
+                  }
+                },
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: CachedNetworkImage(
+                    imageUrl: imageUrl,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    placeholder: (_, __) => Container(
+                      height: 150,
+                      color: Colors.grey.shade200,
+                      child: const Center(
+                        child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    ),
+                    errorWidget: (_, __, ___) => const SizedBox.shrink(),
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 预览图片
+  void _previewImages(List<String> urls) {
+    if (urls.isEmpty) return;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            _ImagePreviewPage(imageUrls: urls, initialIndex: 0),
       ),
     );
   }
@@ -1334,6 +1448,79 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// 图片预览页面
+class _ImagePreviewPage extends StatefulWidget {
+  final List<String> imageUrls;
+  final int initialIndex;
+
+  const _ImagePreviewPage({required this.imageUrls, this.initialIndex = 0});
+
+  @override
+  State<_ImagePreviewPage> createState() => _ImagePreviewPageState();
+}
+
+class _ImagePreviewPageState extends State<_ImagePreviewPage> {
+  late PageController _pageController;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        title: Text('${_currentIndex + 1} / ${widget.imageUrls.length}'),
+      ),
+      body: PageView.builder(
+        controller: _pageController,
+        itemCount: widget.imageUrls.length,
+        onPageChanged: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        itemBuilder: (context, index) {
+          return InteractiveViewer(
+            child: Center(
+              child: CachedNetworkImage(
+                imageUrl: widget.imageUrls[index],
+                fit: BoxFit.contain,
+                placeholder: (_, __) => const Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                ),
+                errorWidget: (_, __, ___) => const Center(
+                  child: Icon(
+                    Icons.broken_image,
+                    color: Colors.white,
+                    size: 64,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
