@@ -109,13 +109,20 @@ class ImageMessage extends StatelessWidget {
   String? _getImageUrl() {
     try {
       final payload = _parsePayload();
-      if (payload == null) return null;
+      if (payload == null) {
+        print('[ImageMessage] _getImageUrl: payload is null');
+        return null;
+      }
 
       String? url = payload['url'] as String?;
-      if (url == null) return null;
+      if (url == null) {
+        print('[ImageMessage] _getImageUrl: url is null, payload=$payload');
+        return null;
+      }
 
       // 清理 URL
       url = url.trim();
+      print('[ImageMessage] _getImageUrl: original url=$url');
 
       // 处理 file:// 协议（无效的本地文件协议）
       if (url.startsWith('file://')) {
@@ -136,8 +143,11 @@ class ImageMessage extends StatelessWidget {
       }
 
       // 添加缩略图参数
-      return '$url!w300';
+      final result = '$url!w300';
+      print('[ImageMessage] _getImageUrl: final url=$result');
+      return result;
     } catch (e) {
+      print('[ImageMessage] _getImageUrl: exception=$e');
       return null;
     }
   }
@@ -179,23 +189,34 @@ class ImageMessage extends StatelessWidget {
 
   /// 解析 payload
   Map<String, dynamic>? _parsePayload() {
+    print(
+      '[ImageMessage] _parsePayload: message.payload type=${message.payload.runtimeType}, value=${message.payload}',
+    );
+
     if (message.payload == null) return null;
 
     if (message.payload is Map<String, dynamic>) {
+      print('[ImageMessage] _parsePayload: payload is Map');
       return message.payload as Map<String, dynamic>;
     }
 
     if (message.payload is String) {
       try {
+        print(
+          '[ImageMessage] _parsePayload: payload is String, original=${message.payload}',
+        );
         // 尝试解析 JSON 字符串
         final decoded = Uri.decodeComponent(message.payload as String);
+        print('[ImageMessage] _parsePayload: decoded=$decoded');
         // 简单处理，实际应用中可能需要 json.decode
         return {'url': decoded};
       } catch (e) {
+        print('[ImageMessage] _parsePayload: parse error=$e');
         return null;
       }
     }
 
+    print('[ImageMessage] _parsePayload: unknown payload type');
     return null;
   }
 
