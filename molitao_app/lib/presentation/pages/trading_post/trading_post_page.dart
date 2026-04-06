@@ -29,7 +29,10 @@ class TradingPostPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('交易站'),
+        title: const Text(
+          '交易站',
+          style: TextStyle(fontSize: 20, color: Colors.white),
+        ),
         backgroundColor: const Color(0xfff4835a), // Primary color #f4835a
         foregroundColor: Colors.white,
       ),

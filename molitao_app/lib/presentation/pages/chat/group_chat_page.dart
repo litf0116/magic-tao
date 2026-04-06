@@ -231,7 +231,10 @@ class _GroupChatPageState extends ConsumerState<GroupChatPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.channelName),
+        title: Text(
+          widget.channelName,
+          style: const TextStyle(fontSize: 20, color: Colors.white),
+        ),
         backgroundColor: const Color(0xFFF4835A),
         foregroundColor: Colors.white,
         actions: [

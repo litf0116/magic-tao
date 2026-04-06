@@ -11,7 +11,10 @@ class BalanceLogPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('余额日志'),
+        title: const Text(
+          '余额日志',
+          style: TextStyle(fontSize: 20, color: Colors.white),
+        ),
         backgroundColor: const Color(0xFFf4835a),
         foregroundColor: Colors.white,
       ),

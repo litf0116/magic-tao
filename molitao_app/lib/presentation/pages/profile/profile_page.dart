@@ -70,7 +70,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('个人中心'),
+        title: const Text(
+          '个人中心',
+          style: TextStyle(fontSize: 20, color: Colors.white),
+        ),
         backgroundColor: const Color(0xfff4835a),
         foregroundColor: Colors.white,
       ),

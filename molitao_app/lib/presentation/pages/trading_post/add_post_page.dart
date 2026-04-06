@@ -187,7 +187,10 @@ class _AddPostPageState extends ConsumerState<AddPostPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? '修改帖子' : '发布帖子'),
+        title: Text(
+          _isEditing ? '修改帖子' : '发布帖子',
+          style: const TextStyle(fontSize: 20, color: Colors.white),
+        ),
         backgroundColor: const Color(0xFFf4835a),
         foregroundColor: Colors.white,
         actions: [

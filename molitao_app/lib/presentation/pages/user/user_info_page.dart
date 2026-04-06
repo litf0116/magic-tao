@@ -208,7 +208,10 @@ class _UserInfoPageState extends ConsumerState<UserInfoPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('个人信息'),
+        title: const Text(
+          '个人信息',
+          style: TextStyle(fontSize: 20, color: Colors.white),
+        ),
         backgroundColor: const Color(0xfff4835a),
         foregroundColor: Colors.white,
         actions: [

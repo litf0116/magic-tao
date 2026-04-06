@@ -64,7 +64,10 @@ class _AuctionSuccessListPageState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('已成交'),
+        title: const Text(
+          '已成交',
+          style: TextStyle(fontSize: 20, color: Colors.white),
+        ),
         backgroundColor: const Color(0xfff4835a),
         foregroundColor: Colors.white,
       ),

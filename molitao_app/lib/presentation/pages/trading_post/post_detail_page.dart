@@ -17,7 +17,10 @@ class PostDetailPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('帖子详情'),
+        title: const Text(
+          '帖子详情',
+          style: TextStyle(fontSize: 20, color: Colors.white),
+        ),
         backgroundColor: const Color(0xFFf4835a),
         foregroundColor: Colors.white,
         actions: state.post != null

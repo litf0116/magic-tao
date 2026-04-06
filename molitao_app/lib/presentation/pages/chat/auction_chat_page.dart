@@ -405,7 +405,10 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(_channelName),
+        title: Text(
+          _channelName,
+          style: const TextStyle(fontSize: 20, color: Colors.white),
+        ),
         backgroundColor: const Color(0xFFF4835A),
         foregroundColor: Colors.white,
       ),
@@ -791,6 +794,9 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   void _showAuctionDetail(AuctionItemDto item) {
     // 提取 description 中的图片 URL 列表（用于预览）
     final imageUrls = _extractImageUrls(item.description);
+
+    // 关闭键盘，防止关闭 modal 后键盘弹出
+    FocusScope.of(context).unfocus();
 
     showModalBottomSheet(
       context: context,
@@ -1536,7 +1542,10 @@ class _ImagePreviewPageState extends State<_ImagePreviewPage> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
-        title: Text('${_currentIndex + 1} / ${widget.imageUrls.length}'),
+        title: Text(
+          '${_currentIndex + 1} / ${widget.imageUrls.length}',
+          style: const TextStyle(fontSize: 20, color: Colors.white),
+        ),
       ),
       body: PageView.builder(
         controller: _pageController,

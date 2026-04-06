@@ -37,7 +37,10 @@ class _ContactsPageState extends ConsumerState<ContactsPage>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('通讯录'),
+        title: const Text(
+          '通讯录',
+          style: TextStyle(fontSize: 20, color: Colors.white),
+        ),
         backgroundColor: const Color(0xFFf4835a),
         foregroundColor: Colors.white,
       ),

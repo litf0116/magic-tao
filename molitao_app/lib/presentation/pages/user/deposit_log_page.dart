@@ -7,7 +7,10 @@ class DepositLogPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('魔力值记录'),
+        title: const Text(
+          '魔力值记录',
+          style: TextStyle(fontSize: 20, color: Colors.white),
+        ),
         backgroundColor: const Color(0xfff4835a),
         foregroundColor: Colors.white,
       ),

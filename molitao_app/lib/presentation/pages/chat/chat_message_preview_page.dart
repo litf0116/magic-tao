@@ -19,7 +19,10 @@ class _ChatMessagePreviewPageState extends State<ChatMessagePreviewPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('消息组件预览'),
+        title: const Text(
+          '消息组件预览',
+          style: TextStyle(fontSize: 20, color: Colors.white),
+        ),
         backgroundColor: const Color(0xFFF4835A),
         foregroundColor: Colors.white,
       ),

@@ -196,7 +196,10 @@ class _PrivateChatPageState extends ConsumerState<PrivateChatPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.friendName),
+        title: Text(
+          widget.friendName,
+          style: const TextStyle(fontSize: 20, color: Colors.white),
+        ),
         backgroundColor: const Color(0xFFF4835A),
         foregroundColor: Colors.white,
       ),
