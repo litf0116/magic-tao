@@ -892,13 +892,40 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
     return urls;
   }
 
+  /// 转换图片 URL 为完整地址
+  String? _convertImageUrl(String? url) {
+    if (url == null || url.isEmpty) return null;
+
+    // 清理 URL
+    url = url.trim();
+
+    // 处理 file:// 协议（无效的本地文件协议）
+    if (url.startsWith('file://')) {
+      // 提取路径部分，假设是相对路径
+      url = url.replaceFirst('file://', '');
+      if (!url.startsWith('/')) {
+        url = '/$url';
+      }
+    }
+
+    // 处理绝对路径（以 / 开头）
+    if (url.startsWith('/')) {
+      return 'https://image.molitao.top$url';
+    } else if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      // 处理相对路径
+      return 'https://image.molitao.top/$url';
+    }
+
+    return url;
+  }
+
   /// 构建拍品内容（参考 UniApp getStartContent）
   Widget _buildAuctionContent(AuctionItemDto item, List<String> imageUrls) {
     final description = item.description;
 
     // 如果没有 description，显示 imageUrl
     if (description == null || description.trim().isEmpty) {
-      final imageUrl = item.imageUrl;
+      final imageUrl = _convertImageUrl(item.imageUrl);
       if (imageUrl != null && imageUrl.isNotEmpty) {
         return GestureDetector(
           onTap: () => _previewImages([imageUrl]),
@@ -957,12 +984,33 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
               // 优先使用 data-url，其次使用 src
               final dataUrl = extensionContext.attributes['data-url'];
               final src = extensionContext.attributes['src'];
-              var imageUrl = dataUrl ?? src;
+              String? imageUrl = dataUrl ?? src;
 
               if (imageUrl == null) return const SizedBox.shrink();
 
+              // 清理 URL
+              imageUrl = imageUrl.trim();
+
               // 移除缩略图参数 !w300
               imageUrl = imageUrl.replaceAll(RegExp(r'!w300$'), '');
+
+              // 处理 file:// 协议（无效的本地文件协议）
+              if (imageUrl.startsWith('file://')) {
+                // 提取路径部分，假设是相对路径
+                imageUrl = imageUrl.replaceFirst('file://', '');
+                if (!imageUrl.startsWith('/')) {
+                  imageUrl = '/$imageUrl';
+                }
+              }
+
+              // 处理绝对路径（以 / 开头）
+              if (imageUrl.startsWith('/')) {
+                imageUrl = 'https://image.molitao.top$imageUrl';
+              } else if (!imageUrl.startsWith('http://') &&
+                  !imageUrl.startsWith('https://')) {
+                // 处理相对路径
+                imageUrl = 'https://image.molitao.top/$imageUrl';
+              }
 
               return GestureDetector(
                 onTap: () {

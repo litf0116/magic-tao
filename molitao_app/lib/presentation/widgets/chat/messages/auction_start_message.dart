@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:molitao_app/data/models/chat_message_model.dart';
@@ -104,19 +105,52 @@ class AuctionStartMessage extends StatelessWidget {
                           final dataUrl =
                               extensionContext.attributes['data-url'];
                           final src = extensionContext.attributes['src'];
-                          final imageUrl = dataUrl ?? src;
+                          String? imageUrl = dataUrl ?? src;
 
                           if (imageUrl == null) return const SizedBox.shrink();
 
+                          // 清理 URL
+                          imageUrl = imageUrl.trim();
+
+                          // 处理 file:// 协议（无效的本地文件协议）
+                          if (imageUrl.startsWith('file://')) {
+                            // 提取路径部分，假设是相对路径
+                            imageUrl = imageUrl.replaceFirst('file://', '');
+                            if (!imageUrl.startsWith('/')) {
+                              imageUrl = '/$imageUrl';
+                            }
+                          }
+
+                          // 处理绝对路径（以 / 开头）
+                          if (imageUrl.startsWith('/')) {
+                            imageUrl = 'https://image.molitao.top$imageUrl';
+                          } else if (!imageUrl.startsWith('http://') &&
+                              !imageUrl.startsWith('https://')) {
+                            // 处理相对路径
+                            imageUrl = 'https://image.molitao.top/$imageUrl';
+                          }
+
                           return ClipRRect(
                             borderRadius: BorderRadius.circular(4),
-                            child: Image.network(
-                              imageUrl,
+                            child: CachedNetworkImage(
+                              imageUrl: imageUrl,
                               width: double.infinity,
                               fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return const SizedBox.shrink();
-                              },
+                              placeholder: (_, __) => Container(
+                                height: 150,
+                                color: Colors.grey.shade200,
+                                child: const Center(
+                                  child: SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              errorWidget: (_, __, ___) =>
+                                  const SizedBox.shrink(),
                             ),
                           );
                         },

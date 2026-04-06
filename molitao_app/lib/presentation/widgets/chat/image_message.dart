@@ -114,8 +114,24 @@ class ImageMessage extends StatelessWidget {
       String? url = payload['url'] as String?;
       if (url == null) return null;
 
-      // 处理相对路径
-      if (!url.startsWith('http')) {
+      // 清理 URL
+      url = url.trim();
+
+      // 处理 file:// 协议（无效的本地文件协议）
+      if (url.startsWith('file://')) {
+        // 提取路径部分，假设是相对路径
+        url = url.replaceFirst('file://', '');
+        // 如果不是以 / 开头，添加 /
+        if (!url.startsWith('/')) {
+          url = '/$url';
+        }
+      }
+
+      // 处理绝对路径（以 / 开头）
+      if (url.startsWith('/')) {
+        url = 'https://image.molitao.top$url';
+      } else if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        // 处理相对路径
         url = 'https://image.molitao.top/$url';
       }
 
@@ -135,7 +151,24 @@ class ImageMessage extends StatelessWidget {
       String? url = payload['url'] as String?;
       if (url == null) return null;
 
-      if (!url.startsWith('http')) {
+      // 清理 URL
+      url = url.trim();
+
+      // 处理 file:// 协议（无效的本地文件协议）
+      if (url.startsWith('file://')) {
+        // 提取路径部分，假设是相对路径
+        url = url.replaceFirst('file://', '');
+        // 如果不是以 / 开头，添加 /
+        if (!url.startsWith('/')) {
+          url = '/$url';
+        }
+      }
+
+      // 处理绝对路径（以 / 开头）
+      if (url.startsWith('/')) {
+        url = 'https://image.molitao.top$url';
+      } else if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        // 处理相对路径
         url = 'https://image.molitao.top/$url';
       }
       return url;
