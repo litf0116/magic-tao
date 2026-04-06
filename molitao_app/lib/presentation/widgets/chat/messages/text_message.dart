@@ -17,7 +17,8 @@ class TextMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = message.msg ?? '';
+    // 移除文本末尾的换行符，避免渲染时出现空行
+    final text = (message.msg ?? '').replaceAll(RegExp(r'\n+$'), '');
 
     // 调试输出
     print(

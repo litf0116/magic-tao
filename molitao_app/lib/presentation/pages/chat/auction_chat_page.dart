@@ -35,6 +35,10 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   bool _isUploadingImage = false;
   bool _isLoadingMessages = false;
 
+  // 历史消息加载状态
+  bool _isLoadingHistory = false;
+  bool _hasMoreHistory = true;
+
   // 动画控制器
   late AnimationController _auctionListAnimationController;
   late AnimationController _unreadAnimationController;
@@ -98,6 +102,26 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
 
       // 滚动到底部
       _scrollToBottom();
+
+      // 监听消息变化，自动滚动到底部（只在初始化时注册一次）
+      ref.listenManual<List<ChatMessage>>(currentChatMessagesProvider, (
+        previous,
+        next,
+      ) {
+        print('[AuctionChat] ========== ref.listen 触发 (initState) ==========');
+        print('[AuctionChat] previous.length = ${previous?.length}');
+        print('[AuctionChat] next.length = ${next.length}');
+        print('[AuctionChat] _isLoadingHistory = $_isLoadingHistory');
+
+        // 消息数量增加且不在加载历史消息，说明有新消息
+        if (next.length > previous!.length && !_isLoadingHistory) {
+          print('[AuctionChat] ✅ 检测到新消息，准备滚动到底部');
+          // 直接调用 _scrollToBottom，内部已有 addPostFrameCallback
+          _scrollToBottom();
+        } else {
+          print('[AuctionChat] ❌ 不满足滚动条件');
+        }
+      });
     });
   }
 
@@ -111,38 +135,90 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 100) {
+    // 检测顶部加载历史消息
+    if (_scrollController.position.pixels <= 0 &&
+        !_isLoadingHistory &&
+        _hasMoreHistory) {
       final messages = ref.read(currentChatMessagesProvider);
-      final lastTime = messages.isNotEmpty ? messages.last.time : null;
-      if (lastTime != null) {
-        ref
-            .read(chatStoreProvider.notifier)
-            .getGroupHistory(_channel, lastTime: lastTime);
+      if (messages.isNotEmpty) {
+        final firstTime = messages.first.time;
+        if (firstTime != null) {
+          setState(() {
+            _isLoadingHistory = true;
+          });
+
+          ref
+              .read(chatStoreProvider.notifier)
+              .getGroupHistory(_channel, lastTime: firstTime)
+              .then((_) {
+                if (mounted) {
+                  setState(() {
+                    _isLoadingHistory = false;
+                    // 如果返回的消息少于预期，说明没有更多历史消息
+                  });
+                }
+              })
+              .catchError((error) {
+                if (mounted) {
+                  setState(() {
+                    _isLoadingHistory = false;
+                  });
+                }
+              });
+        }
       }
     }
   }
 
   void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      // 第一次: 确保 UI rebuild 完成
+    print('[AuctionChat] _scrollToBottom() 被调用');
+    print(
+      '[AuctionChat] _scrollController.hasClients = ${_scrollController.hasClients}',
+    );
+
+    if (!_scrollController.hasClients) {
+      print('[AuctionChat] ❌ _scrollController.hasClients = false，跳过滚动');
+      return;
+    }
+
+    try {
+      // 使用 addPostFrameCallback 确保在当前帧渲染完成后执行
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        // 第二次: rebuild 后的下一帧，列表已渲染完毕
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          // 再延迟确保列表尺寸计算完毕
-          Future.delayed(const Duration(milliseconds: 50), () {
-            if (_scrollController.hasClients) {
-              final extent = _scrollController.position.maxScrollExtent;
-              print('[AuctionChat] 滚动到底部: maxScrollExtent=$extent');
-              _scrollController.animateTo(
-                extent,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeOut,
-              );
-            }
-          });
-        });
+        print('[AuctionChat] addPostFrameCallback 触发');
+
+        try {
+          if (!_scrollController.hasClients) {
+            print('[AuctionChat] ❌ callback: hasClients = false，无法滚动');
+            return;
+          }
+
+          final currentPixels = _scrollController.position.pixels;
+          final extent = _scrollController.position.maxScrollExtent;
+          final viewportDimension =
+              _scrollController.position.viewportDimension;
+
+          print('[AuctionChat] ========== 滚动位置信息 ==========');
+          print('[AuctionChat] 当前位置 pixels = $currentPixels');
+          print('[AuctionChat] 最大滚动位置 maxScrollExtent = $extent');
+          print('[AuctionChat] 视口高度 viewportDimension = $viewportDimension');
+          print('[AuctionChat] 是否需要滚动 = ${currentPixels < extent}');
+          print('[AuctionChat] =====================================');
+
+          _scrollController.animateTo(
+            extent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+          print('[AuctionChat] ✅ 已调用 animateTo 滚动到 $extent');
+        } catch (e, stackTrace) {
+          print('[AuctionChat] ❌ callback 执行异常: $e');
+          print('[AuctionChat] StackTrace: $stackTrace');
+        }
       });
+      print('[AuctionChat] addPostFrameCallback 已注册');
+    } catch (e, stackTrace) {
+      print('[AuctionChat] ❌ 注册 addPostFrameCallback 异常: $e');
+      print('[AuctionChat] StackTrace: $stackTrace');
     }
   }
 
@@ -554,7 +630,8 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   Widget _buildMessageList(List<ChatMessage> messages) {
     return ListView.builder(
       controller: _scrollController,
-      padding: const EdgeInsets.all(16),
+      // 底部预留输入框高度（56px）+ 额外空间，避免消息被遮挡
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 80),
       itemCount: messages.length,
       itemBuilder: (context, index) {
         final message = messages[index];
