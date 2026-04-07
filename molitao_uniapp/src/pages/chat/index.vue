@@ -1,6 +1,20 @@
 <template>
     <scroll-view class="conversations" scroll-y="true">
-        <view v-if="chatStore.chatList.length">
+        <!-- 未登录时显示游客提示 -->
+        <view v-if="!isLoggedIn" class="guest-container">
+            <view class="guest-content">
+                <view class="guest-icon-text">
+                    <text>💬</text>
+                </view>
+                <text class="guest-title">登录后查看会话消息</text>
+                <text class="guest-desc">与好友聊天、参与群组讨论</text>
+                <view class="guest-btn" @tap="goLogin">
+                    <text>立即登录</text>
+                </view>
+            </view>
+        </view>
+        <!-- 已登录时显示会话列表 -->
+        <view v-else-if="chatStore.chatList.length">
             <view
                 v-for="(x, key) in orderBy(chatStore.chatList, ['order'], ['desc'])"
                 :key="key"
@@ -106,7 +120,7 @@
 
 <script setup lang="ts">
 import { onLoad, onShow, onUnload } from '@dcloudio/uni-app'
-import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
+import { ref, reactive, onMounted, onBeforeUnmount, computed } from 'vue'
 import { Goto } from '@/composables/goto'
 import { orderBy } from 'lodash'
 import { getImgUrl } from '@/composables'
@@ -116,10 +130,20 @@ import type { ChatListItem, ChatMessage } from '@/composables/types'
 const chatStore: any = useChatStore()
 const userStore = useUserStore()
 
+// 登录状态
+const isLoggedIn = computed(() => !!userStore.token)
+
+// 跳转登录页（用户主动选择）
+const goLogin = () => {
+    uni.navigateTo({
+        url: '/pages/index/login',
+    })
+}
+
 //初始化
 const init = () => {
+    // 移除强制登录检查，改为游客浏览模式
     if (!userStore.token) {
-        userStore.needLogin()
         return
     }
     chatStore.getChatList()
@@ -210,57 +234,106 @@ defineExpose({
     flex-direction: column;
     box-sizing: border-box;
     height: 100%;
+}
 
-    .scroll-item {
-        height: 152rpx;
-        display: flex;
-        align-items: center;
-        padding-left: 32rpx;
-    }
+// 游客空状态样式
+.guest-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60rpx 40rpx;
+}
 
-    .scroll-item .head-icon {
-        width: 100rpx;
-        height: 100rpx;
-        margin-right: 28rpx;
-    }
+.guest-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
 
-    .scroll-item_info {
-        height: 151rpx;
-        width: 590rpx;
-        padding-right: 32rpx;
-        box-sizing: border-box;
-        border-bottom: 1px solid #efefef;
-    }
+.guest-icon-text {
+    width: 200rpx;
+    height: 200rpx;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 120rpx;
+    margin-bottom: 40rpx;
+}
 
-    .scroll-item_info .item-info-top {
-        padding-top: 20rpx;
-        height: 60rpx;
-        line-height: 60rpx;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
+.guest-title {
+    font-size: 36rpx;
+    color: #333;
+    font-weight: 500;
+    margin-bottom: 20rpx;
+}
 
-    .item-info-top_name {
-        font-size: 34rpx;
-    }
+.guest-desc {
+    font-size: 28rpx;
+    color: #999;
+    margin-bottom: 60rpx;
+}
 
-    .item-info-top_time {
-        font-size: 26rpx;
-        color: rgba(179, 179, 179, 0.8);
-        font-family: Source Han Sans CN;
-    }
+.guest-btn {
+    background: #f4835a;
+    color: #fff;
+    padding: 24rpx 80rpx;
+    border-radius: 48rpx;
+    font-size: 32rpx;
+}
 
-    .item-info-bottom {
-        height: 40rpx;
-        line-height: 40rpx;
-        overflow: hidden;
-    }
+.scroll-item {
+    height: 152rpx;
+    display: flex;
+    align-items: center;
+    padding-left: 32rpx;
+}
 
-    .item-info-bottom-item {
-        display: flex;
-        justify-content: space-between;
-    }
+.scroll-item .head-icon {
+    width: 100rpx;
+    height: 100rpx;
+    margin-right: 28rpx;
+}
+
+.scroll-item_info {
+    height: 151rpx;
+    width: 590rpx;
+    padding-right: 32rpx;
+    box-sizing: border-box;
+    border-bottom: 1px solid #efefef;
+}
+
+.scroll-item_info .item-info-top {
+    padding-top: 20rpx;
+    height: 60rpx;
+    line-height: 60rpx;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.item-info-top_name {
+    font-size: 34rpx;
+}
+
+.item-info-top_time {
+    font-size: 26rpx;
+    color: rgba(179, 179, 179, 0.8);
+    font-family: Source Han Sans CN;
+}
+
+.item-info-bottom {
+    height: 40rpx;
+    line-height: 40rpx;
+    overflow: hidden;
+}
+
+.item-info-bottom-item {
+    display: flex;
+    justify-content: space-between;
 }
 
 .item-info-bottom .item-info-top_content {

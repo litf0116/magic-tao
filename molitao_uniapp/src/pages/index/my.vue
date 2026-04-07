@@ -182,7 +182,8 @@ function handleUserClick() {
 }
 
 onMounted(async () => {
-    await userStore.checkLogin(true, false)
+    // 移除强制登录检查，改为用户主动选择登录
+    // 个人中心页面可以在用户点击头像/昵称区域时再提示登录
     if (userStore.user.id) {
         getMyCount()
     }
