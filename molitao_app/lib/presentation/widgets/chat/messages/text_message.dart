@@ -11,9 +11,14 @@ import 'package:molitao_app/utils/emoji_decoder.dart';
 class TextMessage extends StatelessWidget {
   final ChatMessage message;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
 
-  const TextMessage({Key? key, required this.message, this.onTap})
-    : super(key: key);
+  const TextMessage({
+    Key? key,
+    required this.message,
+    this.onTap,
+    this.onLongPress,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +32,7 @@ class TextMessage extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap,
+      onLongPress: onLongPress,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         constraints: const BoxConstraints(maxWidth: 280),

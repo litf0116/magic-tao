@@ -14,6 +14,11 @@ class FriendRepository {
       );
       return true;
     } on DioException catch (e) {
+      // 尝试从响应中提取业务错误消息
+      final errorMessage = e.response?.data?['error']?['message'];
+      if (errorMessage != null) {
+        throw Exception(errorMessage);
+      }
       throw Exception('Failed to add friend: ${e.message}');
     }
   }

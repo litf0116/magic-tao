@@ -9,7 +9,9 @@ import 'package:molitao_app/data/models/user_model.dart';
 import 'package:molitao_app/data/services/upload_service.dart';
 
 class UserInfoPage extends ConsumerStatefulWidget {
-  const UserInfoPage({super.key});
+  final int? userId;
+
+  const UserInfoPage({super.key, this.userId});
 
   @override
   ConsumerState<UserInfoPage> createState() => _UserInfoPageState();

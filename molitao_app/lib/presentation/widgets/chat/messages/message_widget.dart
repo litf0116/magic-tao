@@ -15,17 +15,30 @@ import 'package:molitao_app/presentation/widgets/chat/messages/welcome_message.d
 class MessageWidget extends StatelessWidget {
   final ChatMessage message;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
 
-  const MessageWidget({Key? key, required this.message, this.onTap})
-    : super(key: key);
+  const MessageWidget({
+    Key? key,
+    required this.message,
+    this.onTap,
+    this.onLongPress,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     switch (message.type) {
       case ChatMessageType.text:
-        return TextMessage(message: message, onTap: onTap);
+        return TextMessage(
+          message: message,
+          onTap: onTap,
+          onLongPress: onLongPress,
+        );
       case ChatMessageType.image:
-        return ImageMessage(message: message, onTap: onTap);
+        return ImageMessage(
+          message: message,
+          onTap: onTap,
+          onLongPress: onLongPress,
+        );
       case ChatMessageType.auctionBid:
         return AuctionBidMessage(message: message, onTap: onTap);
       case ChatMessageType.auctionStart:
@@ -65,6 +78,7 @@ class MessageWidget extends StatelessWidget {
             sequenceNumber: message.sequenceNumber,
           ),
           onTap: onTap,
+          onLongPress: onLongPress,
         );
     }
   }

@@ -4,10 +4,13 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../data/models/auction_item_model.dart';
 import '../../../data/models/chat_message_model.dart';
+import '../../../data/repositories/chat_repository.dart';
+import '../../../data/repositories/friend_repository.dart';
 import '../../../data/services/upload_service.dart';
 import '../../providers/auction_provider.dart';
 import '../../providers/chat_store.dart';
@@ -664,7 +667,10 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
             : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (!isSelf) ...[_buildAvatar(message), const SizedBox(width: 10)],
+          if (!isSelf) ...[
+            _buildAvatar(message, onTap: () => _onAvatarTap(message)),
+            const SizedBox(width: 10),
+          ],
           Flexible(
             child: Column(
               crossAxisAlignment: isSelf
@@ -676,11 +682,15 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                 MessageWidget(
                   message: message,
                   onTap: () => _onMessageTap(message),
+                  onLongPress: () => _onMessageLongPress(message),
                 ),
               ],
             ),
           ),
-          if (isSelf) ...[const SizedBox(width: 10), _buildAvatar(message)],
+          if (isSelf) ...[
+            const SizedBox(width: 10),
+            _buildAvatar(message, onTap: () => _onAvatarTap(message)),
+          ],
         ],
       ),
     );
@@ -694,6 +704,206 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
         message.type == ChatMessageType.auctionEnd ||
         message.type == ChatMessageType.auctionDeal) {
       _showAuctionDetailFromMessage(message);
+    }
+  }
+
+  /// 处理头像点击事件
+  void _onAvatarTap(ChatMessage message) {
+    _showMessageActionSheet(message, isAvatarTap: true);
+  }
+
+  /// 处理消息长按事件
+  void _onMessageLongPress(ChatMessage message) {
+    _showMessageActionSheet(message, isAvatarTap: false);
+  }
+
+  /// 显示消息操作菜单
+  void _showMessageActionSheet(
+    ChatMessage message, {
+    bool isAvatarTap = false,
+  }) {
+    final currentUserId = _getCurrentUserId();
+    final isSelf = message.from == currentUserId;
+    final isImage = message.type == ChatMessageType.image;
+    final isAdmin = ref.read(userProvider.notifier).isAdmin;
+    final senderIsAdmin = message.fromAdmin ?? false;
+
+    // 关闭键盘
+    FocusScope.of(context).unfocus();
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 图片消息：收藏至表情
+            if (isImage && !isSelf) ...[
+              ListTile(
+                leading: const Icon(Icons.favorite_border),
+                title: const Text('收藏至表情'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _addToFavorites(message);
+                },
+              ),
+              const Divider(height: 1),
+            ],
+            // 撤销（仅自己的消息）
+            if (isSelf) ...[
+              ListTile(
+                leading: const Icon(Icons.undo),
+                title: const Text('撤销'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _backoutMessage(message);
+                },
+              ),
+              const Divider(height: 1),
+            ],
+            // 加为好友（不是自己的消息）
+            if (!isSelf) ...[
+              ListTile(
+                leading: const Icon(Icons.person_add),
+                title: const Text('加为好友'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _addFriend(message);
+                },
+              ),
+              const Divider(height: 1),
+            ],
+            // 私聊（管理员或发送者是管理员，且不是自己）
+            if ((isAdmin || senderIsAdmin) && !isSelf) ...[
+              ListTile(
+                leading: const Icon(Icons.chat_bubble_outline),
+                title: const Text('私聊'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _startPrivateChat(message);
+                },
+              ),
+              const Divider(height: 1),
+            ],
+            // 查看资料（不是自己的消息）
+            if (!isSelf) ...[
+              ListTile(
+                leading: const Icon(Icons.person),
+                title: const Text('查看资料'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _viewUserInfo(message);
+                },
+              ),
+              const Divider(height: 1),
+            ],
+            // 取消
+            ListTile(
+              leading: const Icon(Icons.close),
+              title: const Text('取消'),
+              onTap: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 显示顶部 SnackBar 消息
+  void _showTopSnackBar(
+    BuildContext context,
+    String message, {
+    bool isError = false,
+  }) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: const TextStyle(color: Colors.white)),
+        backgroundColor: isError
+            ? const Color(0xFFF44336)
+            : const Color(0xFF4CAF50),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        margin: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: MediaQuery.of(context).padding.top + 50,
+          bottom: MediaQuery.of(context).padding.bottom + 80,
+        ),
+        duration: Duration(seconds: isError ? 3 : 2),
+      ),
+    );
+  }
+
+  /// 添加好友
+  Future<void> _addFriend(ChatMessage message) async {
+    if (message.from == null) return;
+
+    try {
+      final friendRepository = FriendRepository();
+      await friendRepository.addFriend(message.from!);
+      if (mounted) {
+        _showTopSnackBar(context, '已发送好友申请');
+      }
+    } catch (e) {
+      if (mounted) {
+        final errorText = e.toString().replaceAll('Exception: ', '');
+        _showTopSnackBar(context, errorText, isError: true);
+      }
+    }
+  }
+
+  /// 发起私聊
+  void _startPrivateChat(ChatMessage message) {
+    if (message.from == null) return;
+    final friendId = message.from!;
+    final friendName = message.fromName ?? '用户';
+    final friendAvatar = message.avatar;
+    context.push(
+      '/chat/private/$friendId?name=$friendName${friendAvatar != null ? '&avatar=$friendAvatar' : ''}',
+    );
+  }
+
+  /// 查看用户资料
+  void _viewUserInfo(ChatMessage message) {
+    if (message.from == null) return;
+    // TODO: 需要实现查看用户资料页面，目前显示消息提示
+    // context.push('/user-info', extra: {'userId': message.from});
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('查看 ${message.fromName ?? '用户'} 的资料')),
+    );
+  }
+
+  /// 撤回消息
+  Future<void> _backoutMessage(ChatMessage message) async {
+    if (message.id == null) return;
+
+    try {
+      final chatRepository = ChatRepository();
+      await chatRepository.backoutMessage(message.id!);
+      // 从本地消息列表移除
+      ref.read(chatStoreProvider.notifier).removeMessage(message.id!);
+      if (mounted) {
+        _showTopSnackBar(context, '已撤回');
+      }
+    } catch (e) {
+      if (mounted) {
+        final errorText = e.toString().replaceAll('Exception: ', '');
+        _showTopSnackBar(context, errorText, isError: true);
+      }
+    }
+  }
+
+  /// 收藏至表情（图片消息）
+  Future<void> _addToFavorites(ChatMessage message) async {
+    // TODO: 实现收藏至表情功能
+    // 需要参考 UniApp 的 emojiStore.addToEmoji
+    if (mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('收藏功能开发中')));
     }
   }
 
@@ -715,7 +925,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
     return userState.user?.id;
   }
 
-  Widget _buildAvatar(ChatMessage message) {
+  Widget _buildAvatar(ChatMessage message, {VoidCallback? onTap}) {
     // 优先使用消息中的 avatar 字段
     String? avatarUrl;
     if (message.avatar != null) {
@@ -725,9 +935,11 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
           : 'https://image.molitao.top/$avatar';
     }
 
+    Widget avatarWidget;
+
     if (avatarUrl == null || avatarUrl.isEmpty) {
       // 显示默认头像（颜色块 + 文字）
-      return Container(
+      avatarWidget = Container(
         width: 36,
         height: 36,
         decoration: BoxDecoration(
@@ -745,20 +957,22 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
           ),
         ),
       );
+    } else {
+      // 显示网络头像
+      avatarWidget = Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          image: DecorationImage(
+            image: NetworkImage(avatarUrl),
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
     }
 
-    // 显示网络头像
-    return Container(
-      width: 36,
-      height: 36,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        image: DecorationImage(
-          image: NetworkImage(avatarUrl),
-          fit: BoxFit.cover,
-        ),
-      ),
-    );
+    return GestureDetector(onTap: onTap, child: avatarWidget);
   }
 
   Widget _buildUserName(ChatMessage message) {

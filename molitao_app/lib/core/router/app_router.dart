@@ -134,7 +134,11 @@ GoRouter _createRouter(AuthNotifier authNotifier) {
                   GoRoute(
                     path: 'user-info',
                     name: 'user-info',
-                    builder: (context, state) => const UserInfoPage(),
+                    builder: (context, state) {
+                      final extra = state.extra as Map<String, dynamic>?;
+                      final userId = extra?['userId'] as int?;
+                      return UserInfoPage(userId: userId);
+                    },
                   ),
                   GoRoute(
                     path: 'balance-log',
