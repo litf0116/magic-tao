@@ -14,7 +14,7 @@ namespace TtWork.Project.Core.Configuration
             {
                 new SettingDefinition(
                     AppSettings.VersionControl.LatestStableVersion,
-                    "20260224@1.1.21",
+                    "20260407@1.2.0",
                     scopes: SettingScopes.Application,
                     isVisibleToClients: false
                 )
