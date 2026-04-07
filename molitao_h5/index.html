@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8" />
+        <script>
+            var coverSupport =
+                "CSS" in window &&
+                typeof CSS.supports === "function" &&
+                (CSS.supports("top: env(a)") || CSS.supports("top: constant(a)"))
+            document.write(
+                '<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0' +
+                    (coverSupport ? ", viewport-fit=cover" : "") +
+                    '" />'
+            )
+        </script>
+        <title>魔力淘</title>
+        <meta name="theme-color" content="#f4835a" />
+        <!-- PWA Icons -->
+        <link rel="icon" type="image/png" sizes="192x192" href="./static/icons/icon-192x192.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="./static/icons/icon-512x512.png" />
+        <!-- Apple Touch Icons -->
+        <link rel="apple-touch-icon" sizes="180x180" href="./static/icons/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="192x192" href="./static/icons/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="512x512" href="./static/icons/icon-512x512.png" />
+        <!-- PWA Meta Tags -->
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="魔力淘" />
+        <!--preload-links-->
+        <!--app-context-->
+    </head>
+    <body>
+        <div id="app"><!--app-html--></div>
+        <script type="module" src="/src/main.ts"></script>
+        <script>
+            const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            if ('serviceWorker' in navigator && !isDev && window.location.protocol === 'https:') {
+                window.addEventListener('load', function() {
+                    navigator.serviceWorker.register('./sw.js')
+                        .then(function(registration) {
+                            console.log('[SW] Service Worker 注册成功:', registration.scope);
+                        })
+                        .catch(function(error) {
+                            console.error('[SW] Service Worker 注册失败:', error);
+                        });
+                });
+            } else if ('serviceWorker' in navigator && !isDev && window.location.hostname === 'localhost') {
+                window.addEventListener('load', function() {
+                    navigator.serviceWorker.register('./sw.js')
+                        .then(function(registration) {
+                            console.log('[SW] Service Worker 注册成功 (localhost):', registration.scope);
+                        })
+                        .catch(function(error) {
+                            console.error('[SW] Service Worker 注册失败:', error);
+                        });
+                });
+            } else if (isDev) {
+                console.log('[SW] 开发模式跳过 Service Worker');
+            }
+        </script>
+    </body>
+</html>

@@ -1,0 +1,129 @@
+@font-face {
+    font-family: "iconfont"; /* project id 2295296 */
+    font-weight: normal;
+    font-style: normal;
+    src: url("//at.alicdn.com/t/c/font_2295296_q7zr1bz0y28.ttf?t=1690204809746") format("truetype");
+}
+
+.icon {
+    font-family: "iconfont" !important;
+    font-size: 32rpx;
+    font-style: normal;
+    -webkit-font-smoothing: antialiased;
+    -webkit-text-stroke-width: 0.2px;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-call:before {
+    content: "\e739";
+}
+
+.icon-success:before {
+    content: "\e6a4";
+}
+
+.icon-fail:before {
+    content: "\e73c";
+}
+
+.icon-customer:before {
+    content: "\e63e";
+}
+
+.icon-customerHeart:before {
+    content: "\e60e";
+}
+
+.icon-dot:before {
+    content: "\e601";
+}
+
+.icon-title:before {
+    content: "\e66b";
+}
+
+.icon-back:before {
+    content: "\e613";
+}
+
+.icon-home:before {
+    content: "\e600";
+}
+
+.icon-close:before {
+    content: "\e6e0";
+}
+
+.icon-share:before {
+    content: "\e663";
+}
+
+.icon-read-more:before {
+    content: "\e60d";
+}
+.icon-vote:before {
+    content: "\e628";
+}
+.icon-tuijian:before {
+    content: "\e63f";
+}
+
+.icon-jiangpin:before {
+    content: "\e698";
+}
+
+.icon-detailed:before {
+    content: "\e607";
+}
+.icon-xiaochengxuma:before {
+    content: "\e69f";
+}
+
+.icon-express:before {
+    content: "\e693";
+}
+
+.icon-add:before {
+    content: "\e608";
+}
+.icon-add-image:before {
+    content: "\e71c";
+}
+
+.icon-checkbox-circle:before {
+    content: "\e61c";
+}
+.icon-checkbox-circle-fill:before {
+    content: "\e81b";
+}
+
+.icon-location-fill:before {
+    content: "\e650";
+}
+.icon-qr:before {
+    content: "\e61e";
+}
+.icon-daifukuan:before {
+    content: "\e616";
+}
+.icon-daishouhuo:before {
+    content: "\e618";
+}
+.icon-xiugai:before {
+    content: "\e61b";
+}
+.icon-daifahuo:before {
+    content: "\e61d";
+}
+.icon-shouhou1:before {
+    content: "\e61f";
+}
+.icon-shouhou2:before {
+    content: "\e620";
+}
+.icon-pingjia1:before {
+    content: "\e621";
+}
+.icon-dianpuguanli:before {
+    content: "\1012f";
+}

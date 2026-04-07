@@ -1,0 +1,34 @@
+.titleWord {
+    padding: 15px 30px 10px;
+    font-size: 32rpx;
+    font-family: PingFangSC-Semibold, PingFang SC;
+    font-weight: 600;
+    color: #fff;
+}
+
+.card {
+    @apply px-2 py-3 bg-white overflow-hidden;
+}
+.zoom-in {
+    @apply transform transition ease-in-out duration-300;
+}
+
+.zoom-in:active {
+    @apply scale-110;
+}
+
+.tag_AuctionManager {
+    @apply text-white bg-gradient-to-r from-red-500 via-pink-500 to-yellow-500 rounded px-2 text-sm;
+}
+
+.tag_Manager {
+    @apply text-white bg-gradient-to-r from-blue-500 to-green-500 rounded px-2 text-sm;
+}
+
+.tag_Admin {
+    @apply text-white bg-dark rounded px-2 text-sm;
+}
+
+.tag_AudtionUser {
+    @apply text-white bg-green-500 rounded px-2 text-sm;
+}
