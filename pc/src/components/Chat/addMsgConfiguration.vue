@@ -56,7 +56,7 @@ const formRules = computed(() => {
     })
     return fieldRules
 })
-onMounted(() => {})
+onMounted(() => undefined)
 //提交数据
 const submitForm = () => {
     if (!formRef.value) return

@@ -7,7 +7,7 @@
         @update:model-value="$emit('update:modelValue', $event)"
         @keyup.enter.prevent="emit('onPressEnter', $event)"
         @focus="focus"
-        @paste.native.capture="pasting"
+        @paste.capture="pasting"
     >
     </el-input>
 </template>

@@ -46,7 +46,7 @@ defineExpose({
     show,
 })
 // 组件挂载时开始倒计时
-onMounted(() => {})
+onMounted(() => undefined)
 //分页查询数据
 const pageList = () => {
     PageWithdrawalAmount({ pageNo: pageNo.value, pageSize: pageSize.value }).then((res) => {

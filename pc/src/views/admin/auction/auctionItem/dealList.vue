@@ -44,7 +44,7 @@ const _api = api.auctionItem
 
 const tableRef = ref<InstanceType<typeof PagedTable>>(null)
 const editRef = ref<InstanceType<typeof Edit>>(null)
-onMounted(() => {})
+onMounted(() => undefined)
 
 function fetchData(params: any) {
     params = {

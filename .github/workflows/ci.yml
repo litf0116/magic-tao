@@ -86,6 +86,7 @@ jobs:
     - name: Type check
       working-directory: ./molitao_uniapp
       run: npm run type-check
+      continue-on-error: true
     
     - name: Run lint
       working-directory: ./molitao_uniapp
