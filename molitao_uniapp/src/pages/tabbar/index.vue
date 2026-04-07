@@ -268,11 +268,29 @@ const toIndex = (index) => {
         uni.setNavigationBarColor({ frontColor: '#ffffff', backgroundColor: '#F4835a' })
     }
 
+    // 会话列表 - index 1
     if (current.value == 1) {
         setTimeout(() => {
             chatRef.value?.init()
         }, 300)
     }
+
+    // 通讯录 - 小程序 index 2，APP/H5 index 3
+    // #ifdef MP-WEIXIN
+    if (current.value == 2) {
+        setTimeout(() => {
+            contactsRef.value?.init()
+        }, 300)
+    }
+    // #endif
+
+    // #ifndef MP-WEIXIN
+    if (current.value == 3) {
+        setTimeout(() => {
+            contactsRef.value?.init()
+        }, 300)
+    }
+    // #endif
 }
 
 const getUserFriendCount = () => {

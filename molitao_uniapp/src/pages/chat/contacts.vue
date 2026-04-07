@@ -90,6 +90,7 @@ import api from '@/utils/api'
 import { getImgUrl } from '@/composables'
 // 创建子组件的引用
 const chatStore = useChatStore()
+const userStore = useUserStore()
 const filterText = ref('')
 const refresh = ref(false)
 const profile = ref({
@@ -99,8 +100,17 @@ const profile = ref({
 
 var emit = defineEmits(['refreshCurrentVal'])
 
-onMounted(() => {
+//初始化
+const init = () => {
+    if (!userStore.token) {
+        userStore.needLogin()
+        return
+    }
     fetchFriends()
+}
+
+onMounted(() => {
+    init()
 })
 //下拉刷新
 const onRefresh = async () => {
@@ -135,6 +145,10 @@ function agree(id: number, s: boolean) {
         emit('refreshCurrentVal')
     })
 }
+
+defineExpose({
+    init,
+})
 </script>
 
 <style lang="scss" scoped>

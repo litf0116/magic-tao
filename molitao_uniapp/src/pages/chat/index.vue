@@ -115,11 +115,11 @@ import type { ChatListItem, ChatMessage } from '@/composables/types'
 
 const chatStore: any = useChatStore()
 const userStore = useUserStore()
+
 //初始化
 const init = () => {
-    if (userStore.token == '') {
-        const url = '/pages/index/login'
-        uni.navigateTo({ url })
+    if (!userStore.token) {
+        userStore.needLogin()
         return
     }
     chatStore.getChatList()

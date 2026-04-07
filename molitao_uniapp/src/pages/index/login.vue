@@ -17,13 +17,22 @@
                     <text class="welcome-desc">登录后享受更多精彩服务</text>
                 </view>
 
-                <view class="wx-login-btn" :class="{ disabled: isLoading }" @tap="handleWxLogin">
+                <view class="wx-login-btn" :class="{ disabled: isLoading || !agreePrivacy }" @tap="handleWxLogin">
                     <text class="wx-login-text">微信一键登录</text>
                 </view>
 
                 <view class="agreement">
-                    <text class="agreement-text">登录即表示同意</text>
-                    <text class="agreement-link" @tap="toAgreement">《用户协议》</text>
+                    <view class="checkbox-wrap" @tap="togglePrivacy">
+                        <view class="checkbox" :class="{ checked: agreePrivacy }">
+                            <text v-if="agreePrivacy" class="check-icon">✓</text>
+                        </view>
+                        <text class="agreement-text">
+                            我已阅读并同意
+                            <text class="agreement-link" @tap.stop="toAgreement">《用户协议》</text>
+                            和
+                            <text class="agreement-link" @tap.stop="toPrivacy">《隐私政策》</text>
+                        </text>
+                    </view>
                 </view>
             </view>
             <!-- #endif -->
@@ -60,8 +69,22 @@
                     <text class="forgot-link" @tap="toForgotPassword">忘记密码？</text>
                 </view>
 
-                <view class="login-btn" :class="{ disabled: isLoading }" @tap="handleLogin">
+                <view class="login-btn" :class="{ disabled: isLoading || !agreePrivacy }" @tap="handleLogin">
                     <text class="login-btn-text">{{ isLoading ? '登录中' : '登录' }}</text>
+                </view>
+
+                <view class="agreement">
+                    <view class="checkbox-wrap" @tap="togglePrivacy">
+                        <view class="checkbox" :class="{ checked: agreePrivacy }">
+                            <text v-if="agreePrivacy" class="check-icon">✓</text>
+                        </view>
+                        <text class="agreement-text">
+                            我已阅读并同意
+                            <text class="agreement-link" @tap.stop="toAgreement">《用户协议》</text>
+                            和
+                            <text class="agreement-link" @tap.stop="toPrivacy">《隐私政策》</text>
+                        </text>
+                    </view>
                 </view>
 
                 <view class="divider">
@@ -128,8 +151,22 @@
                         <text class="forgot-link" @tap="toForgotPassword">忘记密码？</text>
                     </view>
 
-                    <view class="login-btn" :class="{ disabled: isLoading }" @tap="handleLogin">
+                    <view class="login-btn" :class="{ disabled: isLoading || !agreePrivacy }" @tap="handleLogin">
                         <text class="login-btn-text">{{ isLoading ? '登录中' : '登录' }}</text>
+                    </view>
+
+                    <view class="agreement">
+                        <view class="checkbox-wrap" @tap="togglePrivacy">
+                            <view class="checkbox" :class="{ checked: agreePrivacy }">
+                                <text v-if="agreePrivacy" class="check-icon">✓</text>
+                            </view>
+                            <text class="agreement-text">
+                                我已阅读并同意
+                                <text class="agreement-link" @tap.stop="toAgreement">《用户协议》</text>
+                                和
+                                <text class="agreement-link" @tap.stop="toPrivacy">《隐私政策》</text>
+                            </text>
+                        </view>
                     </view>
                 </view>
 
@@ -151,10 +188,6 @@
             </view>
             <!-- #endif -->
         </view>
-
-        <view class="footer">
-            <text class="footer-text">登录即表示同意《用户协议》和《隐私政策》</text>
-        </view>
     </view>
 </template>
 
@@ -171,7 +204,24 @@ const qrcodeState = ref('')
 const qrcodeTimer = ref<any>(null)
 const qrcodeExpireTimer = ref<any>(null)
 
+// 隐私政策同意状态
+const agreePrivacy = ref(false)
+
 const { toHome, toForgotPassword } = useTo()
+
+// 检查隐私政策同意
+const checkPrivacyAgreement = () => {
+    if (!agreePrivacy.value) {
+        uni.showToast({ title: '请先阅读并同意用户协议和隐私政策', icon: 'none', duration: 2000 })
+        return false
+    }
+    return true
+}
+
+// 切换隐私政策同意状态
+const togglePrivacy = () => {
+    agreePrivacy.value = !agreePrivacy.value
+}
 
 // 登录成功后跳转处理
 const navigateAfterLogin = () => {
@@ -203,6 +253,9 @@ const form = ref({
 // 账号密码登录
 const handleLogin = async () => {
     if (isLoading.value) return
+
+    // 检查隐私政策同意
+    if (!checkPrivacyAgreement()) return
 
     if (!form.value.userNameOrEmailAddress?.trim()) {
         uni.showToast({ title: '请输入账号', icon: 'none' })
@@ -241,6 +294,9 @@ const handleLogin = async () => {
 const handleWxLogin = () => {
     if (isLoading.value) return
 
+    // 检查隐私政策同意
+    if (!checkPrivacyAgreement()) return
+
     userStore
         .wxLogin()
         .then(() => {
@@ -257,6 +313,9 @@ const handleWxLogin = () => {
 // APP 微信 OAuth 登录
 const handleWxOAuth = async () => {
     if (isLoading.value) return
+
+    // 检查隐私政策同意
+    if (!checkPrivacyAgreement()) return
 
     isLoading.value = true
     console.log('[handleWxOAuth] 开始微信登录')
@@ -359,7 +418,11 @@ const switchToQrcode = () => {
 }
 
 const toAgreement = () => {
-    // TODO: 跳转用户协议页面
+    uni.navigateTo({ url: '/pages/protocol/agreement' })
+}
+
+const toPrivacy = () => {
+    uni.navigateTo({ url: '/pages/protocol/privacy' })
 }
 
 // #ifdef H5
@@ -456,7 +519,8 @@ onUnmounted(() => {
 .agreement {
     display: flex;
     justify-content: center;
-    margin-top: 32rpx;
+    margin-top: 48rpx;
+    padding-bottom: 24rpx;
 }
 
 .agreement-text {
@@ -704,14 +768,35 @@ onUnmounted(() => {
     color: #f4835a;
 }
 
-.footer {
-    padding: 32rpx 0 48rpx;
-    text-align: center;
+/* 隐私政策勾选框 */
+.checkbox-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12rpx;
+    padding: 12rpx 0;
 }
 
-.footer-text {
+.checkbox {
+    width: 36rpx;
+    height: 36rpx;
+    border: 2rpx solid #cccccc;
+    border-radius: 6rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+
+    &.checked {
+        background: #07c160;
+        border-color: #07c160;
+    }
+}
+
+.check-icon {
+    color: #ffffff;
     font-size: 22rpx;
-    color: #bbbbbb;
+    font-weight: bold;
 }
 </style>
 

@@ -79,14 +79,14 @@ export const useChatStore = defineStore('chatStore', () => {
         return new Promise((resolve) => setTimeout(resolve, ms))
     }
 
-    function getChatList() {
-        return new Promise<void>((resolve, reject) => {
-            api.client.getChatList().then((res: any) => {
-                chatList.value = res
-                return resolve()
-            })
-            return resolve()
-        })
+    async function getChatList() {
+        try {
+            const res = await api.client.getChatList()
+            chatList.value = res
+        } catch (err) {
+            console.error('[getChatList] 获取会话列表失败:', err)
+            throw err
+        }
     }
 
     const connectServer = (reconnect = false) => {

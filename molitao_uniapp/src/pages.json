@@ -24,6 +24,48 @@
             }
         },
         {
+            "path": "pages/announce/list",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "公告"
+            }
+        },
+        {
+            "path": "pages/chat/auction",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "秒杀场"
+            }
+        },
+        {
+            "path": "pages/chat/contacts",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "联系人"
+            }
+        },
+        {
+            "path": "pages/chat/groupChat",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "群聊"
+            }
+        },
+        {
+            "path": "pages/chat/index",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "会话"
+            }
+        },
+        {
+            "path": "pages/chat/privateChat",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "私聊"
+            }
+        },
+        {
             "path": "pages/index/login",
             "type": "page",
             "layout": "main",
@@ -36,7 +78,79 @@
             "type": "page",
             "layout": "main",
             "style": {
-                "navigationBarTitleText": "个人中心"
+                "navigationBarTitleText": "个人中心",
+                "navigationBarBackgroundColor": "#f6f6f6",
+                "navigationBarTextStyle": "black"
+            }
+        },
+        {
+            "path": "pages/user/auctionSuccessList",
+            "type": "page"
+        },
+        {
+            "path": "pages/user/balanceLog",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "余额明细",
+                "enablePullDownRefresh": true
+            }
+        },
+        {
+            "path": "pages/user/depositLog",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "魔力值明细",
+                "enablePullDownRefresh": true
+            }
+        },
+        {
+            "path": "pages/user/info",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "用户信息编辑"
+            }
+        },
+        {
+            "path": "pages/user/list",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "用户列表",
+                "enablePullDownRefresh": true
+            }
+        },
+        {
+            "path": "pages/tradingPost/index",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "交易站"
+            }
+        },
+        {
+            "path": "pages/tradingPost/addPost",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "发布帖子"
+            }
+        },
+        {
+            "path": "pages/tradingPost/postDetail",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "帖子详情"
+            }
+        },
+        {
+            "path": "pages/protocol/agreement",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "用户服务协议"
+            }
+        },
+        {
+            "path": "pages/protocol/privacy",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "隐私政策"
             }
         }
     ],
@@ -45,115 +159,5 @@
         "navigationBarTitleText": "魔力淘",
         "navigationBarBackgroundColor": "#f4835a"
     },
-    // "tabBar": {
-    // 	"custom": true,
-    // 	"backgroundColor": "#ffffff",
-    // 	"selectedColor": "#F4835a",
-    // 	"color": "#999999",
-    // 	"borderStyle": "black",
-    // 	"list": [
-    // 		{
-    // 			"pagePath": "pages/index/index",
-    // 			"text": "首页"
-    // 		},
-    // 		{
-    // 			"pagePath": "pages/chat/index",
-    // 			"text": "会话列表"
-    // 		},
-    // 		{
-    // 			"pagePath": "pages/tradingPost/index",
-    // 			"text": "交易站"
-    // 		},
-    // 		{
-    // 			"pagePath": "pages/chat/contacts",
-    // 			"text": "通讯录"
-    // 		},
-    // 		{
-    // 			"pagePath": "pages/index/my",
-    // 			"text": "个人中心"
-    // 		}
-    // 	]
-    // },
-    "subPackages": [
-        {
-            "root": "pages/chat",
-            "name": "chat",
-            "pages": [
-                {
-                    "path": "auction",
-                    "style": { "navigationBarTitleText": "秒杀场" }
-                },
-                {
-                    "path": "contacts",
-                    "style": { "navigationBarTitleText": "联系人" }
-                },
-                {
-                    "path": "groupChat",
-                    "style": { "navigationBarTitleText": "群聊" }
-                },
-                {
-                    "path": "index",
-                    "style": { "navigationBarTitleText": "会话" }
-                },
-                {
-                    "path": "privateChat",
-                    "style": { "navigationBarTitleText": "私聊" }
-                }
-            ]
-        },
-        {
-            "root": "pages/tradingPost",
-            "name": "tradingPost",
-            "pages": [
-                {
-                    "path": "index",
-                    "style": { "navigationBarTitleText": "交易站" }
-                },
-                {
-                    "path": "addPost",
-                    "style": { "navigationBarTitleText": "发布帖子" }
-                },
-                {
-                    "path": "postDetail",
-                    "style": { "navigationBarTitleText": "帖子详情" }
-                }
-            ]
-        },
-        {
-            "root": "pages/user",
-            "name": "user",
-            "pages": [
-                {
-                    "path": "auctionSuccessList",
-                    "style": { "navigationBarTitleText": "成交记录" }
-                },
-                {
-                    "path": "balanceLog",
-                    "style": { "navigationBarTitleText": "余额明细", "enablePullDownRefresh": true }
-                },
-                {
-                    "path": "depositLog",
-                    "style": { "navigationBarTitleText": "魔力值明细", "enablePullDownRefresh": true }
-                },
-                {
-                    "path": "info",
-                    "style": { "navigationBarTitleText": "用户信息编辑" }
-                },
-                {
-                    "path": "list",
-                    "style": { "navigationBarTitleText": "用户列表", "enablePullDownRefresh": true }
-                }
-            ]
-        },
-        {
-            "root": "pages/announce",
-            "name": "announce",
-            "pages": [
-                {
-                    "path": "list",
-                    "style": { "navigationBarTitleText": "公告" }
-                }
-            ]
-        }
-    ]
+    "subPackages": []
 }

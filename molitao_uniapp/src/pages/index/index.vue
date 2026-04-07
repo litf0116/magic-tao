@@ -11,9 +11,19 @@
                 <view class="flex flex-col">
                     <!-- #ifndef MP-WEIXIN -->
                     <!-- H5/APP 显示交易站入口 -->
-                    <image class="w-full h-270rpx" :src="convertImageUrl('https://image.molitao.top/banners/jyz.png')" @tap="gotoTradingPost" />
+                    <image
+                        class="w-full h-270rpx"
+                        :src="convertImageUrl('https://image.molitao.top/banners/jyz.png')"
+                        @tap="gotoTradingPost"
+                    />
                     <!-- #endif -->
-                    <image class="mt-1 w-full h-270rpx" :src="convertImageUrl('https://image.molitao.top/banners/pmh.png')" @tap="Goto.auction()" />
+                    <!-- 秒杀场入口：仅当用户有权限时显示 -->
+                    <image
+                        v-if="showAuctionEntrance"
+                        class="mt-1 w-full h-270rpx"
+                        :src="convertImageUrl('https://image.molitao.top/banners/pmh.png')"
+                        @tap="Goto.auction()"
+                    />
                 </view>
                 <view class="mt-2 w-full">
                     <uv-swiper
