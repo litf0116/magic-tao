@@ -145,18 +145,7 @@ function submit() {
             return
         }
 
-        // 检查URL格式，必须是有效的HTTP/HTTPS地址
-        if (!fileItem.url || typeof fileItem.url !== 'string' || !/^https?:\/\//.test(fileItem.url)) {
-            console.error('[DEBUG submit] fileItem.url 格式错误:', {
-                url: fileItem.url,
-                type: typeof fileItem.url,
-            })
-            Tips.error('头像格式错误，请重新上传')
-            // 清空 fileList，让用户重新上传
-            fileList1.value = []
-            return
-        }
-
+        // 头像地址检查交给后端处理，前端不做限制
         form.value.headImgUrl = fileItem.url
     }
 
@@ -274,20 +263,7 @@ const afterRead = async (event: any) => {
                 })
             )
 
-            // ✅ 只验证 URL 格式（内容审核交给后端处理）
-            if (!uploadResult || typeof uploadResult !== 'string' || !/^https?:\/\//.test(uploadResult)) {
-                console.error('[afterRead] uploadResult 格式错误:', {
-                    uploadResult,
-                    type: typeof uploadResult,
-                    isValidUrl: /^https?:\/\//.test(uploadResult),
-                })
-                fileList1.value.splice(fileListLen, 1)
-                Tips.error('头像上传失败：URL格式错误，请重试')
-                fileListLen++
-                continue
-            }
-
-            // 设置上传成功状态
+            // 设置上传成功状态（头像地址检查交给后端处理）
             let item = fileList1.value[fileListLen]
             // 确保索引有效
             if (!item) {

@@ -154,16 +154,6 @@
                     "style": { "navigationBarTitleText": "公告" }
                 }
             ]
-        },
-        {
-            "root": "pages/push-demo",
-            "name": "push-demo",
-            "pages": [
-                {
-                    "path": "index",
-                    "style": { "navigationBarTitleText": "推送示例" }
-                }
-            ]
         }
     ]
 }
