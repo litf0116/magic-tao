@@ -18,6 +18,21 @@ class UserRepository {
     }
   }
 
+  Future<UserDto?> getUserById(int userId) async {
+    try {
+      final response = await _apiClient.dio.get(
+        ApiEndpoints.getUser,
+        queryParameters: {'id': userId},
+      );
+      if (response.data != null) {
+        return UserDto.fromJson(response.data);
+      }
+      return null;
+    } on DioException catch (e) {
+      throw Exception('Failed to get user: ${e.message}');
+    }
+  }
+
   Future<UserDto?> updateUser(UserDto user) async {
     try {
       final response = await _apiClient.dio.put(

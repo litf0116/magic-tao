@@ -11,12 +11,14 @@ import '../../../data/models/auction_item_model.dart';
 import '../../../data/models/chat_message_model.dart';
 import '../../../data/repositories/chat_repository.dart';
 import '../../../data/repositories/friend_repository.dart';
+import '../../../data/repositories/user_repository.dart';
 import '../../../data/services/upload_service.dart';
 import '../../providers/auction_provider.dart';
 import '../../providers/chat_store.dart';
 import '../../providers/user_provider.dart';
 import '../../widgets/chat/chat_input_area.dart';
 import '../../widgets/chat/messages/message_widget.dart';
+import '../../widgets/common/user_profile_dialog.dart';
 
 /// 拍卖聊天页面（秒杀场）
 /// 与 UniApp auction.vue 保持一致
@@ -867,13 +869,36 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   }
 
   /// 查看用户资料
-  void _viewUserInfo(ChatMessage message) {
+  Future<void> _viewUserInfo(ChatMessage message) async {
     if (message.from == null) return;
-    // TODO: 需要实现查看用户资料页面，目前显示消息提示
-    // context.push('/user-info', extra: {'userId': message.from});
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('查看 ${message.fromName ?? '用户'} 的资料')),
+
+    // 显示加载中
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
+
+    try {
+      final userRepository = UserRepository();
+      final user = await userRepository.getUserById(message.from!);
+
+      if (!mounted) return;
+
+      // 关闭加载弹窗
+      Navigator.pop(context);
+
+      if (user != null) {
+        UserProfileDialog.show(context, user);
+      } else {
+        _showTopSnackBar(context, '获取用户信息失败', isError: true);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context);
+      final errorText = e.toString().replaceAll('Exception: ', '');
+      _showTopSnackBar(context, errorText, isError: true);
+    }
   }
 
   /// 撤回消息
