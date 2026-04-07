@@ -266,7 +266,7 @@ const handleWxOAuth = async () => {
         console.log('[handleWxOAuth] 登录成功', res)
         uni.$emit('refreshView')
         uni.showToast({ title: '登录成功', icon: 'success' })
-        
+
         // 强制跳转
         setTimeout(() => {
             console.log('[handleWxOAuth] 执行跳转')

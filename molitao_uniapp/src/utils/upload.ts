@@ -1,17 +1,12 @@
 import Upyun from './upyun-wxapp-sdk.js'
 
-// H5 开发模式下使用相对路径，其他模式使用配置的后端地址
-let baseApi = import.meta.env.VITE_APP_BASE_API || ''
-// #ifdef H5
-if (import.meta.env.DEV) {
-    baseApi = ''
-}
-// #endif
+// 统一使用正式服务器地址
+const baseApi = 'https://www.molitao.top'
 
 const upyun = new Upyun.Upyun({
     bucket: 'molitao',
     operator: 'molitao',
-    domainHost: 'http://image.molitao.top',
+    domainHost: 'https://image.molitao.top',
     getSignatureUrl: baseApi + '/api/services/app/Upload/GetSignature',
 })
 

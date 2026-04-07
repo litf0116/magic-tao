@@ -198,8 +198,8 @@ const font = ref({ size: '2em' })
 
     .content {
         @apply w-full relative mt-12rpx w-[90vw];
-        background: url(https://image.molitao.top/molitao/2025-03-30/upload_qxgt8fo3iymdi0heth3rnqipc83rzawn.png) repeat-y
-            center center / 100% 100%;
+        background: url(https://image.molitao.top/molitao/2025-03-30/upload_qxgt8fo3iymdi0heth3rnqipc83rzawn.png)
+            repeat-y center center / 100% 100%;
     }
 
     .content::before {

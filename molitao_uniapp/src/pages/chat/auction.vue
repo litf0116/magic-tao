@@ -152,12 +152,15 @@ onLoad(() => {
         return
     }
 
-    chatStore.connectServer().then(async () => {
-        console.log('[Auction] connectServer success, calling init')
-        init('-1_auction')
-    }).catch((err) => {
-        console.error('[Auction] connectServer error:', err)
-    })
+    chatStore
+        .connectServer()
+        .then(async () => {
+            console.log('[Auction] connectServer success, calling init')
+            init('-1_auction')
+        })
+        .catch((err) => {
+            console.error('[Auction] connectServer error:', err)
+        })
     //获取最新公告
     api.announce.getLatest({ id: 2 }).then((res) => {
         item.value = res

@@ -29,13 +29,13 @@ public class ContentSecurityAppService : AbpController
     private static readonly string WechatAppId = "wx8178f2258942133d";
 
     private readonly WeixinManger _weixinManger;
-    private readonly WeixinApi _weixinApi;
+    private readonly IWeixinApi _weixinApi;
     private readonly ILogger<ContentSecurityAppService> _logger;
     private readonly System.Net.Http.HttpClient _httpClient;
 
     public ContentSecurityAppService(
         WeixinManger weixinManger,
-        WeixinApi weixinApi,
+        IWeixinApi weixinApi,
         ILogger<ContentSecurityAppService> logger,
         System.Net.Http.HttpClient httpClient)
     {
@@ -316,6 +316,16 @@ public class MediaSecurityCheckResult
 public class MediaCheckRequest
 {
     public string MediaUrl { get; set; }
+
+    /// <summary>
+    /// 兼容前端参数名
+    /// </summary>
+    public string url
+    {
+        get => MediaUrl;
+        set => MediaUrl = value;
+    }
+
     public int Scene { get; set; } = 1;
     public string OpenId { get; set; }
 }

@@ -65,15 +65,17 @@ const request = (
             AppName: 'uniapp',
             AppVersion: appVersion,
         },
-    }).then((res: any) => {
-        if (res && res.statusCode !== undefined) {
-            console.log('[API 响应]', { url: _url, statusCode: res.statusCode, data: res.data })
-        }
-        return res
-    }).catch((err: any) => {
-        console.error('[API 错误]', { url: _url, error: err })
-        throw err
     })
+        .then((res: any) => {
+            if (res && res.statusCode !== undefined) {
+                console.log('[API 响应]', { url: _url, statusCode: res.statusCode, data: res.data })
+            }
+            return res
+        })
+        .catch((err: any) => {
+            console.error('[API 错误]', { url: _url, error: err })
+            throw err
+        })
 }
 
 export default {
@@ -292,6 +294,6 @@ export default {
          * @param data { url: 图片URL }
          * @returns Promise<{ pass: boolean, message: string }>
          */
-        check: (data: { url: string }) => request('POST', `/api/ContentSecurity/CheckMedia`, data),
+        check: (data: { mediaUrl: string }) => request('POST', `/api/ContentSecurity/CheckMedia`, data),
     },
 }

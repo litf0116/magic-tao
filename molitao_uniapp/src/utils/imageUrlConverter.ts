@@ -1,6 +1,6 @@
 /**
  * 图片URL转换工具
- * 将 image.molitao.top 转换为 image.molitao.top
+ * 统一 CDN 域名：将 cdn.molitao.top 转换为 image.molitao.top
  */
 
 /**
@@ -11,10 +11,10 @@
 export function convertImageUrl(url: string | undefined): string {
     if (url == undefined) return ''
 
-    // https://image.molitao.top/20250919/js86cipqos8m2pyahdvusj2i1iqg1we0.png 转成 http://image.molitao.top/20250919/js86cipqos8m2pyahdvusj2i1iqg1we0.png
     if (typeof url !== 'string') return url
 
-    // 将 image.molitao.top 替换为 image.molitao.top
+    // 将 cdn.molitao.top 替换为 image.molitao.top
+    // 例如：https://cdn.molitao.top/xxx.png → https://image.molitao.top/xxx.png
     const result = url.replace(/https?:\/\/cdn\.molitao\.top/g, 'https://image.molitao.top')
     // console.log('convertImageUrl', url, '=>', result)
     return result

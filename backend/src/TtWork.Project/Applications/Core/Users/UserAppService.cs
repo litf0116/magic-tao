@@ -361,7 +361,7 @@ namespace TtWork.Project.Applications.Core.Users
                     throw new UserFriendlyException($"头像地址格式错误: {input.HeadImgUrl}");
                 }
 
-                // 检查是否为CDN地址（允许的格式）
+                // 检查是否为CDN地址（允许的格式，支持HTTP和HTTPS）
                 if (!input.HeadImgUrl.StartsWith("https://cdn.molitao.top", StringComparison.OrdinalIgnoreCase) &&
                     !input.HeadImgUrl.StartsWith("http://image.molitao.top", StringComparison.OrdinalIgnoreCase) &&
                     !input.HeadImgUrl.StartsWith("https://image.molitao.top", StringComparison.OrdinalIgnoreCase))
