@@ -77,6 +77,8 @@ namespace TtWork.Project.Web.Host.Startup
         {
             JsonExtensions.UseNewtonsoft = true;
 
+            services.AddHttpContextAccessor();
+            
             services.AddMediatR(cfg =>
                 cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 

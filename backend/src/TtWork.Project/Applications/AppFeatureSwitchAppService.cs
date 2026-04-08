@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Abp.Application.Services;
 using Abp.Authorization;
 using Abp.Configuration;
+using Abp.Dependency;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TtWork.Abp.Definitions;
@@ -14,16 +15,34 @@ namespace TtWork.Project.Applications;
 public class AppFeatureSwitchAppService : ApplicationService
 {
     private readonly ISettingManager _settingManager;
-    private readonly IHttpContextAccessor _httpContextAccessor;
 
     private static readonly string[] Features = { "ShowAuction", "ShowTradingPost" };
 
-    public AppFeatureSwitchAppService(
-        ISettingManager settingManager,
-        IHttpContextAccessor httpContextAccessor)
+    public AppFeatureSwitchAppService(ISettingManager settingManager)
     {
         _settingManager = settingManager;
-        _httpContextAccessor = httpContextAccessor;
+    }
+
+    [HttpGet]
+    [AbpAllowAnonymous]
+    public Dictionary<string, string> DebugHeaders()
+    {
+        var result = new Dictionary<string, string>();
+        
+        var httpContextAccessor = IocManager.Instance.Resolve<IHttpContextAccessor>();
+        var httpContext = httpContextAccessor?.HttpContext;
+        
+        result["HasHttpContextAccessor"] = (httpContextAccessor != null).ToString();
+        result["HasHttpContext"] = (httpContext != null).ToString();
+        
+        if (httpContext?.Request?.Headers != null)
+        {
+            result["HeaderCount"] = httpContext.Request.Headers.Count.ToString();
+            result["X-Platform"] = httpContext.Request.Headers.TryGetValue("X-Platform", out var platform) ? platform.ToString() : "not found";
+            result["X-App-Version"] = httpContext.Request.Headers.TryGetValue("X-App-Version", out var version) ? version.ToString() : "not found";
+        }
+        
+        return result;
     }
 
     [HttpGet]
@@ -73,14 +92,22 @@ public class AppFeatureSwitchAppService : ApplicationService
 
     private string GetPlatform()
     {
-        var httpContext = _httpContextAccessor.HttpContext;
-        return httpContext?.Items["X-Platform"]?.ToString() ?? string.Empty;
+        var httpContextAccessor = IocManager.Instance.Resolve<IHttpContextAccessor>();
+        if (httpContextAccessor?.HttpContext?.Request?.Headers?.TryGetValue("X-Platform", out var platformValue) == true)
+        {
+            return platformValue.ToString();
+        }
+        return string.Empty;
     }
 
     private string GetVersion()
     {
-        var httpContext = _httpContextAccessor.HttpContext;
-        return httpContext?.Items["X-App-Version"]?.ToString() ?? string.Empty;
+        var httpContextAccessor = IocManager.Instance.Resolve<IHttpContextAccessor>();
+        if (httpContextAccessor?.HttpContext?.Request?.Headers?.TryGetValue("X-App-Version", out var versionValue) == true)
+        {
+            return versionValue.ToString();
+        }
+        return string.Empty;
     }
 
     private async Task<string> GetMaxVersionForFeature(string feature, string platform)
