@@ -57,10 +57,6 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   static const int _channelId = -1;
   static const String _channelName = '秒杀场';
 
-  final WeChatService _wechatService = WeChatService();
-  WeChatResponseSubscriber? _wechatSubscriber;
-  int? _pendingSubscribeAuctionItemId;
-
   @override
   void initState() {
     super.initState();
@@ -132,9 +128,6 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
 
   @override
   void dispose() {
-    if (_wechatSubscriber != null) {
-      _wechatService.removeSubscriber(_wechatSubscriber!);
-    }
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _auctionListAnimationController.dispose();
