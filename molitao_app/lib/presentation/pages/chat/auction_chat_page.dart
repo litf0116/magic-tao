@@ -66,13 +66,6 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
     super.initState();
     _scrollController.addListener(_onScroll);
 
-    _wechatSubscriber = (response) {
-      if (response is WeChatSubscribeMsgResponse) {
-        _handleSubscribeResponse(response);
-      }
-    };
-    _wechatService.addSubscriber(_wechatSubscriber!);
-
     _auctionListAnimationController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -1352,51 +1345,16 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   }
 
   /// 订阅开拍通知
+  /// 订阅开拍通知（简化版，仅系统订阅，不调用微信订阅消息）
   Future<void> _subscribeNotification(int? auctionItemId) async {
-    if (auctionItemId == null) return;
-
-    final wechatInstalled = await _wechatService.checkWeChatInstalled();
-    if (!wechatInstalled) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('未安装微信，无法订阅通知'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-      }
+    debugPrint('[订阅通知] 开始订阅, auctionItemId=$auctionItemId');
+    if (auctionItemId == null) {
+      debugPrint('[订阅通知] auctionItemId 为空，返回');
       return;
     }
 
-    _pendingSubscribeAuctionItemId = auctionItemId;
-
-    await _wechatService.requestSubscribeMessage(
-      scene: 1,
-      reserved: auctionItemId.toString(),
-    );
-  }
-
-  void _handleSubscribeResponse(WeChatSubscribeMsgResponse response) {
-    if (_pendingSubscribeAuctionItemId == null) return;
-
-    if (response.isSuccessful) {
-      _saveSubscription(
-        _pendingSubscribeAuctionItemId!,
-        openid: response.openid,
-      );
-    } else {
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('订阅失败：${response.errStr ?? "未知错误"}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-
-    _pendingSubscribeAuctionItemId = null;
+    // 直接调用后端订阅接口
+    await _saveSubscription(auctionItemId);
   }
 
   Future<void> _saveSubscription(int auctionItemId, {String? openid}) async {

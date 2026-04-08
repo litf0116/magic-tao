@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:fluwx/fluwx.dart';
 
 class WeChatService {
@@ -76,14 +77,26 @@ class WeChatService {
     int scene = 1,
     String? reserved,
   }) async {
+    debugPrint('[WeChatService] requestSubscribeMessage 开始');
+    debugPrint('[WeChatService] _isInitialized: $_isInitialized');
+
     if (!_isInitialized) {
+      debugPrint('[WeChatService] 初始化微信 SDK...');
       await initialize();
     }
 
     final installed = await _fluwx.isWeChatInstalled;
+    debugPrint('[WeChatService] 微信是否安装: $installed');
+
     if (!installed) {
+      debugPrint('[WeChatService] 微信未安装，返回 null');
       return null;
     }
+
+    debugPrint('[WeChatService] 调用 _fluwx.open...');
+    debugPrint('[WeChatService] appId: $_appId');
+    debugPrint('[WeChatService] templateId: $auctionStartTemplateId');
+    debugPrint('[WeChatService] scene: $scene');
 
     await _fluwx.open(
       target: SubscribeMessage(
@@ -94,6 +107,7 @@ class WeChatService {
       ),
     );
 
+    debugPrint('[WeChatService] _fluwx.open 调用完成');
     return null;
   }
 
