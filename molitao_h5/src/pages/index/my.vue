@@ -200,7 +200,7 @@ function getMyCount() {
 //魔力值充值
 function payDeposit() {
     // #ifdef MP-WEIXIN
-    api.client.payDeposit({ openid: userStore.openid, amount: 51 }).then((res: any) => {
+    api.client.payDeposit({ openid: userStore.openid, amount: 51, type: 'jsapi' }).then((res: any) => {
         uni.requestPayment({
             provider: 'wxpay',
             timeStamp: `${res.timeStamp}`,
@@ -221,6 +221,18 @@ function payDeposit() {
                 Tips.info('用户取消支付')
             },
         })
+    })
+    // #endif
+
+    // #ifdef H5
+    api.client.payDeposit({ amount: 51, type: 'h5' }).then((res: any) => {
+        if (res.h5_url) {
+            window.location.href = res.h5_url
+        } else {
+            Tips.error('获取支付链接失败')
+        }
+    }).catch(() => {
+        Tips.info('用户取消支付')
     })
     // #endif
 
@@ -263,7 +275,7 @@ async function topUp() {
     }
 
     // #ifdef MP-WEIXIN
-    api.client.TopUp({ openid: userStore.openid, amount: _value }).then((res: any) => {
+    api.client.TopUp({ openid: userStore.openid, amount: _value, type: 'jsapi' }).then((res: any) => {
         uni.requestPayment({
             provider: 'wxpay',
             timeStamp: `${res.timeStamp}`,
@@ -280,6 +292,18 @@ async function topUp() {
                 Tips.info('用户取消支付')
             },
         })
+    })
+    // #endif
+
+    // #ifdef H5
+    api.client.TopUp({ amount: _value, type: 'h5' }).then((res: any) => {
+        if (res.h5_url) {
+            window.location.href = res.h5_url
+        } else {
+            Tips.error('获取支付链接失败')
+        }
+    }).catch(() => {
+        Tips.info('用户取消支付')
     })
     // #endif
 

@@ -137,6 +137,31 @@ public class ClientAppService(
 
                 return p;
             }
+
+            if (type == "h5")
+            {
+                var clientIp = GetClientIp();
+                var result = await v3PayApi.CreateH5OrderAsync(new CreateOrderRequest()
+                {
+                    AppId = appid,
+                    MchId = mchid,
+                    Description = "保证金支付",
+                    OutTradeNo = payOrder.OutTradeNo,
+                    Attach = (new { payOrderId = payOrder.Id, name = "保证金支付" }).ToJsonString(false, false),
+                    NotifyUrl = app.GetValue("notifyUrl"),
+                    Amount = new CreateOrderAmountModel
+                    {
+                        Total = payOrder.Total,
+                        Currency = "CNY"
+                    },
+                    SceneInfo = new CreateOrderRequest.CreateOrderSceneInfoModel
+                    {
+                        PayerClientIp = clientIp
+                    },
+                }, certPath);
+
+                return new { h5_url = result.H5Url, out_trade_no = payOrder.OutTradeNo };
+            }
         }
         catch (Exception e)
         {
@@ -684,6 +709,33 @@ public class ClientAppService(
             return p;
         }
 
+        if (type == "h5")
+        {
+            var clientIp = GetClientIp();
+            var h5Order = new CreateOrderRequest()
+            {
+                AppId = appid,
+                MchId = mchid,
+                Description = "用户充值",
+                OutTradeNo = payOrder.OutTradeNo,
+                Attach = (new { payOrderId = payOrder.Id, name = "用户充值" }).ToJsonString(false, false),
+                NotifyUrl = app.GetValue("notifyUrl"),
+                Amount = new CreateOrderAmountModel
+                {
+                    Total = payOrder.Total,
+                    Currency = "CNY"
+                },
+                SceneInfo = new CreateOrderRequest.CreateOrderSceneInfoModel
+                {
+                    PayerClientIp = clientIp
+                },
+            };
+
+            var result = await v3PayApi.CreateH5OrderAsync(h5Order, app.GetValue("certPath"));
+
+            return new { h5_url = result.H5Url, out_trade_no = payOrder.OutTradeNo };
+        }
+
 
         throw new UserFriendlyException($"未知的支付类型:{type}");
     }
@@ -831,6 +883,19 @@ public class ClientAppService(
                 ? channels.Where(x => x.LastMessageTime > 0).Max(x => x.LastMessageTime)
                 : 0
         };
+    }
+
+    private string GetClientIp()
+    {
+        try
+        {
+            return httpContextAccessor.HttpContext.Request.Headers["X-Real-IP"].FirstOrDefault() ??
+                   httpContextAccessor.HttpContext.Request.HttpContext.Connection.RemoteIpAddress?.ToString();
+        }
+        catch
+        {
+            return "";
+        }
     }
 }
 
