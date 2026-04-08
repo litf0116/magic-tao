@@ -64,6 +64,14 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 
 ## UniApp (Vue 3 + TypeScript)
 
+**项目定位：molitao_uniapp 仅负责微信小程序开发**
+
+- **平台范围**：仅支持微信小程序 (`mp-weixin`)，不维护 H5、App、其他小程序平台
+- **构建命令**：`npm run dev` 和 `npm run build` 默认使用 `mp-weixin` 平台
+- **条件编译**：代码中使用 `#ifdef MP-WEIXIN` 进行小程序专属逻辑处理
+- **移除的平台支持**：H5 PWA 推送、App 原生功能、其他小程序平台代码已逐步清理
+
+**开发规范**：
 - Use UniApp API (uni.*) over platform-specific APIs for cross-platform compatibility
 - Conditional compilation for platform differences: `#ifdef MP-WEIXIN`
 - Responsive units: use `rpx` for layout dimensions
