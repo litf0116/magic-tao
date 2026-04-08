@@ -15,12 +15,14 @@ namespace TtWork.Project.Applications;
 public class AppFeatureSwitchAppService : ApplicationService
 {
     private readonly ISettingManager _settingManager;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     private static readonly string[] Features = { "ShowAuction", "ShowTradingPost" };
 
-    public AppFeatureSwitchAppService(ISettingManager settingManager)
+    public AppFeatureSwitchAppService(ISettingManager settingManager, IHttpContextAccessor httpContextAccessor)
     {
         _settingManager = settingManager;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     [HttpGet]
@@ -29,10 +31,9 @@ public class AppFeatureSwitchAppService : ApplicationService
     {
         var result = new Dictionary<string, string>();
         
-        var httpContextAccessor = IocManager.Instance.Resolve<IHttpContextAccessor>();
-        var httpContext = httpContextAccessor?.HttpContext;
+        var httpContext = _httpContextAccessor?.HttpContext;
         
-        result["HasHttpContextAccessor"] = (httpContextAccessor != null).ToString();
+        result["HasHttpContextAccessor"] = (_httpContextAccessor != null).ToString();
         result["HasHttpContext"] = (httpContext != null).ToString();
         
         if (httpContext?.Request?.Headers != null)
@@ -92,8 +93,7 @@ public class AppFeatureSwitchAppService : ApplicationService
 
     private string GetPlatform()
     {
-        var httpContextAccessor = IocManager.Instance.Resolve<IHttpContextAccessor>();
-        if (httpContextAccessor?.HttpContext?.Request?.Headers?.TryGetValue("X-Platform", out var platformValue) == true)
+        if (_httpContextAccessor?.HttpContext?.Request?.Headers?.TryGetValue("X-Platform", out var platformValue) == true)
         {
             return platformValue.ToString();
         }
@@ -102,8 +102,7 @@ public class AppFeatureSwitchAppService : ApplicationService
 
     private string GetVersion()
     {
-        var httpContextAccessor = IocManager.Instance.Resolve<IHttpContextAccessor>();
-        if (httpContextAccessor?.HttpContext?.Request?.Headers?.TryGetValue("X-App-Version", out var versionValue) == true)
+        if (_httpContextAccessor?.HttpContext?.Request?.Headers?.TryGetValue("X-App-Version", out var versionValue) == true)
         {
             return versionValue.ToString();
         }
