@@ -111,11 +111,19 @@ class AuctionRepository {
     }
   }
 
-  Future<bool> subscribeStartNotification(int auctionItemId) async {
+  Future<bool> subscribeStartNotification(
+    int auctionItemId, {
+    String platform = 'app',
+    String? openid,
+  }) async {
     try {
       await _apiClient.dio.post(
         ApiEndpoints.subStartNotify,
-        data: {'auctionItemId': auctionItemId},
+        data: {
+          'auctionItemId': auctionItemId,
+          'platform': platform,
+          if (openid != null) 'openid': openid,
+        },
       );
       return true;
     } on DioException catch (e) {

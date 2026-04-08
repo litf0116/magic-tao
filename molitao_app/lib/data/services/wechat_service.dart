@@ -8,6 +8,9 @@ class WeChatService {
   static const String _appId = 'wxbfbe7d50ed28ed41';
   static const String _universalLink = 'https://www.molitao.top/wechat/';
 
+  static const String auctionStartTemplateId =
+      'aCmoAwuGevXMgA6mlq6x5pXrj7yNx5HJ6akzkHDCDPg';
+
   final Fluwx _fluwx = Fluwx();
   bool _isInitialized = false;
 
@@ -67,6 +70,31 @@ class WeChatService {
         sign: sign,
       ),
     );
+  }
+
+  Future<WeChatSubscribeMsgResponse?> requestSubscribeMessage({
+    int scene = 1,
+    String? reserved,
+  }) async {
+    if (!_isInitialized) {
+      await initialize();
+    }
+
+    final installed = await _fluwx.isWeChatInstalled;
+    if (!installed) {
+      return null;
+    }
+
+    await _fluwx.open(
+      target: SubscribeMessage(
+        appId: _appId,
+        scene: scene,
+        templateId: auctionStartTemplateId,
+        reserved: reserved,
+      ),
+    );
+
+    return null;
   }
 
   void addSubscriber(WeChatResponseSubscriber listener) {

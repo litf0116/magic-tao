@@ -176,22 +176,22 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         var title = name.Length > 16 ? name[..16] : name;
         var content = isAuction ? "拍卖即将开始，快来参与吧！" : "有人出价了，快来查看！";
 
-        // 1. 发送微信模板消息（小程序端）
-        var openIds = subscribers
+        // 1. 发送微信模板消息（小程序端）- 使用小程序模板
+        var miniprogramOpenIds = subscribers
             .Where(x => x.Platform == "miniprogram" && !string.IsNullOrEmpty(x.OpenId))
             .Select(x => x.OpenId)
             .ToArray();
 
-        if (openIds.Length > 0)
+        if (miniprogramOpenIds.Length > 0)
         {
-            _logger.LogInformation("发送微信模板消息: {Count} 个用户", openIds.Length);
+            _logger.LogInformation("发送微信模板消息(小程序): {Count} 个用户", miniprogramOpenIds.Length);
 
             await _mediator.Publish(new Events.Commands.MessageSendCommand(
                 Events.Commands.MessageType.WechatTemplate,
                 new SendWechatTemplateDetail(
                     "uniapp",
-                    openIds,
-                    "ZuYTYzw2cM0LVhF5ybH5iATMaDl6lZ82OC6cczsglEA",
+                    miniprogramOpenIds,
+                    "ZuYTYzw2cM0LVhF5ybH5iATMaDl6lZ82OC6cczsglEA", // 小程序模板ID
                     new
                     {
                         thing2 = new { value = title },
@@ -201,41 +201,74 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 )));
         }
 
-        // 2. 发送极光推送（App端）- 使用别名推送
-        var userIds = subscribers
-            .Where(x => x.Platform == "app" && x.UserId.HasValue)
-            .Select(x => $"user_{x.UserId}")
-            .Distinct()
+        // 2. 发送通知（App端）- 微信订阅消息 + 极光推送
+        var appSubscribers = subscribers
+            .Where(x => x.Platform == "app")
             .ToList();
 
-        if (userIds.Count > 0)
+        if (appSubscribers.Count > 0)
         {
-            _logger.LogInformation("发送极光推送(别名): {Count} 个用户", userIds.Count);
+            // 2.1 发送微信模板消息
+            var appOpenIds = appSubscribers
+                .Where(x => !string.IsNullOrEmpty(x.OpenId))
+                .Select(x => x.OpenId)
+                .ToArray();
 
-            try
+            if (appOpenIds.Length > 0)
             {
-                var result = await _jPushService.SendByAliasAsync(
-                    title,
-                    content,
-                    userIds,
-                    new Dictionary<string, string>
-                    {
-                        { "type", isAuction ? "auction_start" : "auction_bid" },
-                        { "auctionItemId", id.ToString() }
-                    });
+                _logger.LogInformation("发送微信模板消息(App): {Count} 个用户", appOpenIds.Length);
 
-                if (result.Success)
-                {
-                    _logger.LogInformation("极光推送发送成功: MessageId={MessageId}", result.MessageId);
-                }
-                else
-                {
-                    _logger.LogWarning("极光推送发送失败: {Error}", result.ErrorMessage);
-                }
+                await _mediator.Publish(new Events.Commands.MessageSendCommand(
+                    Events.Commands.MessageType.WechatTemplate,
+                    new SendWechatTemplateDetail(
+                        "app",
+                        appOpenIds,
+                        "aCmoAwuGevXMgA6mlq6x5pXrj7yNx5HJ6akzkHDCDPg",
+                        new
+                        {
+                            thing2 = new { value = title },
+                            thing1 = new { value = isAuction ? "开始拍卖通知" : "出价通知" },
+                        },
+                        $"pages/index/index"
+                    )));
             }
-            catch (Exception ex)
+
+            // 2.2 发送极光推送
+            var userIds = appSubscribers
+                .Where(x => x.UserId.HasValue)
+                .Select(x => $"user_{x.UserId}")
+                .Distinct()
+                .ToList();
+
+            if (userIds.Count > 0)
             {
-                _logger.LogError(ex, "极光推送发送异常");
+                _logger.LogInformation("发送极光推送(App): {Count} 个用户", userIds.Count);
+
+                try
+                {
+                    var result = await _jPushService.SendByAliasAsync(
+                        title,
+                        content,
+                        userIds,
+                        new Dictionary<string, string>
+                        {
+                            { "type", isAuction ? "auction_start" : "auction_bid" },
+                            { "auctionItemId", id.ToString() }
+                        });
+
+                    if (result.Success)
+                    {
+                        _logger.LogInformation("极光推送发送成功: MessageId={MessageId}", result.MessageId);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("极光推送发送失败: {Error}", result.ErrorMessage);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "极光推送发送异常");
+                }
             }
         }
     }

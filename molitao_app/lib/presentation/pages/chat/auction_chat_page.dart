@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluwx/fluwx.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -13,6 +14,7 @@ import '../../../data/repositories/chat_repository.dart';
 import '../../../data/repositories/friend_repository.dart';
 import '../../../data/repositories/user_repository.dart';
 import '../../../data/services/upload_service.dart';
+import '../../../data/services/wechat_service.dart';
 import '../../providers/auction_provider.dart';
 import '../../providers/chat_store.dart';
 import '../../providers/user_provider.dart';
@@ -55,12 +57,22 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   static const int _channelId = -1;
   static const String _channelName = '秒杀场';
 
+  final WeChatService _wechatService = WeChatService();
+  WeChatResponseSubscriber? _wechatSubscriber;
+  int? _pendingSubscribeAuctionItemId;
+
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
 
-    // 初始化动画
+    _wechatSubscriber = (response) {
+      if (response is WeChatSubscribeMsgResponse) {
+        _handleSubscribeResponse(response);
+      }
+    };
+    _wechatService.addSubscriber(_wechatSubscriber!);
+
     _auctionListAnimationController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -85,23 +97,17 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
           ),
         );
 
-    // 初始化 - 与 UniApp onload 一致
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // 加载拍卖列表 (今日榜单)
       ref.read(auctionProvider.notifier).loadAuctions();
 
-      // 连接 WebSocket
       await ref.read(chatStoreProvider.notifier).connectServer();
 
-      // 设置当前聊天
       ref
           .read(chatStoreProvider.notifier)
           .setCurrentChatId(_channelId, name: _channelName);
 
-      // 加入频道
       await ref.read(chatStoreProvider.notifier).joinChannel(_channel);
 
-      // 加载历史消息
       setState(() => _isLoadingMessages = true);
       await ref.read(chatStoreProvider.notifier).getGroupHistory(_channel);
       setState(() => _isLoadingMessages = false);
@@ -133,6 +139,9 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
 
   @override
   void dispose() {
+    if (_wechatSubscriber != null) {
+      _wechatService.removeSubscriber(_wechatSubscriber!);
+    }
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _auctionListAnimationController.dispose();
@@ -1346,12 +1355,57 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   Future<void> _subscribeNotification(int? auctionItemId) async {
     if (auctionItemId == null) return;
 
+    final wechatInstalled = await _wechatService.checkWeChatInstalled();
+    if (!wechatInstalled) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('未安装微信，无法订阅通知'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+      return;
+    }
+
+    _pendingSubscribeAuctionItemId = auctionItemId;
+
+    await _wechatService.requestSubscribeMessage(
+      scene: 1,
+      reserved: auctionItemId.toString(),
+    );
+  }
+
+  void _handleSubscribeResponse(WeChatSubscribeMsgResponse response) {
+    if (_pendingSubscribeAuctionItemId == null) return;
+
+    if (response.isSuccessful) {
+      _saveSubscription(
+        _pendingSubscribeAuctionItemId!,
+        openid: response.openid,
+      );
+    } else {
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('订阅失败：${response.errStr ?? "未知错误"}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+
+    _pendingSubscribeAuctionItemId = null;
+  }
+
+  Future<void> _saveSubscription(int auctionItemId, {String? openid}) async {
     final success = await ref
         .read(auctionProvider.notifier)
-        .subscribeStartNotification(auctionItemId);
+        .subscribeStartNotification(auctionItemId, openid: openid);
 
     if (mounted) {
-      Navigator.pop(context); // 关闭弹窗
+      Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(success ? '订阅成功，秒杀开始时将推送通知' : '订阅失败，请重试'),
@@ -1548,9 +1602,13 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                                 final isAuctioning =
                                     item.status == AuctionStatusEnum.auctioning;
 
-                                return Card(
+                                return Container(
                                   margin: const EdgeInsets.symmetric(
                                     vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF5F5F5),
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: ListTile(
                                     leading: ClipRRect(
@@ -1602,9 +1660,9 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
-                                    subtitle: Text(
-                                      '¥${item.currentPrice ?? item.startingPrice ?? 0}',
-                                    ),
+                                    subtitle: item.currentPrice != null
+                                        ? Text('¥${item.currentPrice}')
+                                        : null,
                                     trailing: Container(
                                       padding: const EdgeInsets.symmetric(
                                         horizontal: 8,
@@ -1612,10 +1670,8 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                                       ),
                                       decoration: BoxDecoration(
                                         color: isAuctioning
-                                            ? const Color(
-                                                0xFF4CAF50,
-                                              ) // Green for auctioning
-                                            : Colors.grey, // Gray for listed
+                                            ? const Color(0xFF4CAF50)
+                                            : Colors.grey,
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: Text(
@@ -1650,9 +1706,13 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                               itemBuilder: (context, index) {
                                 final item = auctionState.yesterdayList[index];
 
-                                return Card(
+                                return Container(
                                   margin: const EdgeInsets.symmetric(
                                     vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF5F5F5),
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: ListTile(
                                     leading: ClipRRect(
@@ -1704,18 +1764,21 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
-                                    subtitle: Text(
-                                      '¥${item.finalPrice ?? item.currentPrice ?? item.startingPrice ?? 0}',
-                                    ),
+                                    subtitle:
+                                        (item.finalPrice ??
+                                                item.currentPrice) !=
+                                            null
+                                        ? Text(
+                                            '¥${item.finalPrice ?? item.currentPrice}',
+                                          )
+                                        : null,
                                     trailing: Container(
                                       padding: const EdgeInsets.symmetric(
                                         horizontal: 8,
                                         vertical: 4,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: const Color(
-                                          0xFF4CAF50,
-                                        ), // Green for sold
+                                        color: const Color(0xFF4CAF50),
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: Text(
