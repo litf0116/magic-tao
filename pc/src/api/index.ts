@@ -23,6 +23,7 @@ import {
 } from './appService'
 
 import appRelease from './appRelease'
+import versionControl from './versionControl'
 
 serviceOptions.axios = request
 
@@ -49,6 +50,7 @@ export default {
     guid: '00000000-0000-0000-0000-000000000000',
     announce,
     appRelease,
+    versionControl,
     auctionItem,
     bidHistory,
     banedUser,

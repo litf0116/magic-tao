@@ -52,6 +52,12 @@ export default {
                     meta: { title: '版本发布' },
                     component: () => import('@/views/admin/app/list.vue'),
                 },
+                {
+                    path: 'versionControl',
+                    name: 'versionControl',
+                    meta: { title: '版本控制' },
+                    component: () => import('@/views/admin/app/versionControl.vue'),
+                },
             ],
         },
         {

@@ -5,13 +5,11 @@ using Abp.Configuration;
 using Abp.UI;
 using Abp.Runtime.Caching;
 using Microsoft.AspNetCore.Mvc;
+using TtWork.Abp.Definitions;
 using TtWork.Project.Core;
 
 namespace TtWork.Project.Applications;
 
-/// <summary>
-/// 版本控制管理服务
-/// </summary>
 [Route("api/services/app/[controller]/[action]")]
 public class VersionControlAppService : ApplicationService
 {
@@ -26,11 +24,8 @@ public class VersionControlAppService : ApplicationService
         _cacheManager = cacheManager;
     }
 
-    /// <summary>
-    /// 获取当前稳定版本号
-    /// </summary>
     [HttpGet]
-    [AbpAuthorize]
+    [AbpAllowAnonymous]
     public async Task<string> GetLatestStableVersion()
     {
         return await SettingManager.GetSettingValueAsync(
@@ -38,12 +33,8 @@ public class VersionControlAppService : ApplicationService
         );
     }
 
-    /// <summary>
-    /// 更新稳定版本号
-    /// </summary>
-    /// <param name="version">版本号 (格式: YYYYMMDD@主.次.补)</param>
     [HttpPost]
-    [AbpAuthorize]
+    [AbpAuthorize(AppPermissions.Administration)]
     public async Task UpdateLatestStableVersion(string version)
     {
         // 验证版本格式
