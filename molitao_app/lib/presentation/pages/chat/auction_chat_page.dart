@@ -4,7 +4,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluwx/fluwx.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -14,7 +13,6 @@ import '../../../data/repositories/chat_repository.dart';
 import '../../../data/repositories/friend_repository.dart';
 import '../../../data/repositories/user_repository.dart';
 import '../../../data/services/upload_service.dart';
-import '../../../data/services/wechat_service.dart';
 import '../../providers/auction_provider.dart';
 import '../../providers/chat_store.dart';
 import '../../providers/user_provider.dart';
