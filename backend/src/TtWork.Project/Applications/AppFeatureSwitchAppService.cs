@@ -1,0 +1,170 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Abp.Application.Services;
+using Abp.Authorization;
+using Abp.Configuration;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using TtWork.Abp.Definitions;
+
+namespace TtWork.Project.Applications;
+
+[Route("api/services/app/[controller]/[action]")]
+public class AppFeatureSwitchAppService : ApplicationService
+{
+    private readonly ISettingManager _settingManager;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
+    private static readonly string[] Features = { "ShowAuction", "ShowTradingPost" };
+
+    public AppFeatureSwitchAppService(
+        ISettingManager settingManager,
+        IHttpContextAccessor httpContextAccessor)
+    {
+        _settingManager = settingManager;
+        _httpContextAccessor = httpContextAccessor;
+    }
+
+    [HttpGet]
+    [AbpAllowAnonymous]
+    public async Task<AppFeatureSwitchDto> GetFeatureSwitch()
+    {
+        var platform = GetPlatform();
+        var version = GetVersion();
+
+        var result = new AppFeatureSwitchDto
+        {
+            Platform = platform,
+            Version = version,
+            Features = new Dictionary<string, bool>()
+        };
+
+        foreach (var feature in Features)
+        {
+            result.Features[feature] = false;
+        }
+
+        if (string.IsNullOrEmpty(platform) || string.IsNullOrEmpty(version))
+        {
+            return result;
+        }
+
+        try
+        {
+            var maxVersion = await GetMaxVersionForFeature("ShowAuction", platform);
+            if (!string.IsNullOrEmpty(maxVersion) && CompareVersion(version, maxVersion) <= 0)
+            {
+                result.Features["ShowAuction"] = true;
+            }
+
+            maxVersion = await GetMaxVersionForFeature("ShowTradingPost", platform);
+            if (!string.IsNullOrEmpty(maxVersion) && CompareVersion(version, maxVersion) <= 0)
+            {
+                result.Features["ShowTradingPost"] = true;
+            }
+        }
+        catch (Exception)
+        {
+        }
+
+        return result;
+    }
+
+    private string GetPlatform()
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+        return httpContext?.Items["X-Platform"]?.ToString() ?? string.Empty;
+    }
+
+    private string GetVersion()
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+        return httpContext?.Items["X-App-Version"]?.ToString() ?? string.Empty;
+    }
+
+    private async Task<string> GetMaxVersionForFeature(string feature, string platform)
+    {
+        var settingName = $"AppFeatures.{feature}.MaxVersion.{platform}";
+        return await _settingManager.GetSettingValueAsync(settingName);
+    }
+
+    private int CompareVersion(string version1, string version2)
+    {
+        var v1Parts = version1.Split('@');
+        var v2Parts = version2.Split('@');
+
+        if (v1Parts.Length < 2 || v2Parts.Length < 2)
+        {
+            return string.Compare(version1, version2, StringComparison.Ordinal);
+        }
+
+        var semVer1 = v1Parts[1];
+        var semVer2 = v2Parts[1];
+
+        var v1Nums = semVer1.Split('.');
+        var v2Nums = semVer2.Split('.');
+
+        for (int i = 0; i < Math.Max(v1Nums.Length, v2Nums.Length); i++)
+        {
+            int v1Num = i < v1Nums.Length && int.TryParse(v1Nums[i], out var n1) ? n1 : 0;
+            int v2Num = i < v2Nums.Length && int.TryParse(v2Nums[i], out var n2) ? n2 : 0;
+
+            if (v1Num > v2Num) return 1;
+            if (v1Num < v2Num) return -1;
+        }
+
+        return 0;
+    }
+
+    [HttpGet]
+    public async Task<Dictionary<string, bool>> GetFeatureConfig()
+    {
+        var platform = GetPlatform();
+        var result = new Dictionary<string, bool>();
+
+        foreach (var feature in Features)
+        {
+            var maxVersion = await GetMaxVersionForFeature(feature, platform);
+            result[feature] = !string.IsNullOrEmpty(maxVersion);
+        }
+
+        return result;
+    }
+
+    [HttpGet]
+    public async Task<Dictionary<string, string>> GetFeatureVersionConfig()
+    {
+        var platform = GetPlatform();
+        var result = new Dictionary<string, string>();
+
+        foreach (var feature in Features)
+        {
+            result[feature] = await GetMaxVersionForFeature(feature, platform);
+        }
+
+        return result;
+    }
+
+    [HttpPost]
+    [AbpAuthorize(AppPermissions.Administration)]
+    public async Task UpdateFeatureSwitch([FromBody] UpdateFeatureSwitchInput input)
+    {
+        var settingName = $"AppFeatures.{input.Feature}.MaxVersion.{input.Platform}";
+        await _settingManager.ChangeSettingForApplicationAsync(settingName, input.MaxVersion);
+    }
+}
+
+public class AppFeatureSwitchDto
+{
+    public string Platform { get; set; } = string.Empty;
+    public string Version { get; set; } = string.Empty;
+    public Dictionary<string, bool> Features { get; set; } = new();
+}
+
+public class UpdateFeatureSwitchInput
+{
+    public string Feature { get; set; } = string.Empty;
+    public string Platform { get; set; } = string.Empty;
+    public string MaxVersion { get; set; } = string.Empty;
+}

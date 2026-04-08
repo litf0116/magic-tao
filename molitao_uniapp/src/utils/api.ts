@@ -53,6 +53,15 @@ const request = (
 
     console.log('[API 请求]', { method, url: _url, data })
 
+    // 获取平台标识
+    let platform = 'h5'
+    // #ifdef MP-WEIXIN
+    platform = 'mp-weixin'
+    // #endif
+    // #ifdef APP-PLUS
+    platform = 'app-plus'
+    // #endif
+
     return getRequest({
         url: _url,
         data: data,
@@ -64,6 +73,8 @@ const request = (
             Authorization: `Bearer ${uni.getStorageSync('token') || ''}`,
             AppName: 'uniapp',
             AppVersion: appVersion,
+            'X-Platform': platform,
+            'X-App-Version': appVersion,
         },
     })
         .then((res: any) => {
@@ -289,11 +300,11 @@ export default {
 
     /** 图片内容安全审核 */
     imageAudit: {
-        /**
-         * 检查图片内容是否安全
-         * @param data { url: 图片URL }
-         * @returns Promise<{ pass: boolean, message: string }>
-         */
         check: (data: { mediaUrl: string }) => request('POST', `/api/ContentSecurity/CheckMedia`, data),
+    },
+
+    /** App 功能开关 */
+    appFeature: {
+        getFeatureSwitch: () => request('GET', `/api/services/app/AppFeature/GetFeatureSwitch`, undefined, false),
     },
 }

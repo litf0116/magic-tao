@@ -55,6 +55,7 @@ using TtWork.Abp;
 using TtWork.Project.Web.Host.HealthChecks;
 using TtWork.Lib;
 using TtWork.Project.Web.Host.Services;
+using TtWork.Project.Web.Host.Middleware;
 using TtWork.Project.Services.Push;
 
 namespace TtWork.Project.Web.Host.Startup
@@ -281,6 +282,7 @@ namespace TtWork.Project.Web.Host.Startup
             }
 
             app.UseMiddleware<RealIpMiddleware>();
+            app.UseAppFeature();
             //微信消息中间件
             // app.UseWeiXin(options: new WeiXinOptions()
             //     { Path = "/api/wx", MutilTenant = false });

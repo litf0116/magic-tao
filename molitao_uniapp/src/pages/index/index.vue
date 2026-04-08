@@ -12,6 +12,7 @@
                     <!-- #ifndef MP-WEIXIN -->
                     <!-- H5/APP 显示交易站入口 -->
                     <image
+                        v-if="appFeatureStore.getShowTradingPost()"
                         class="w-full h-270rpx"
                         :src="convertImageUrl('https://image.molitao.top/banners/jyz.png')"
                         @tap="gotoTradingPost"
@@ -77,11 +78,12 @@ import { onShow, onPullDownRefresh, onShareAppMessage, onShareTimeline, onLoad }
 const appStore = useAppStore()
 const userStore = useUserStore()
 const chatStore = useChatStore()
+const appFeatureStore = useAppFeatureStore()
 
 const { navTo } = useTo()
 
 const showAuctionEntrance = computed(() => {
-    return chatStore.chatList.some((chat) => chat.id === -1)
+    return appFeatureStore.getShowAuction()
 })
 
 // 跳转到交易站
@@ -95,6 +97,7 @@ const emit = defineEmits(['refreshCurrentVal'])
 onMounted(() => {
     fetchCmsData()
     advertisingSpace()
+    appFeatureStore.loadFeatureSwitch()
 })
 //获取广告位列表
 const advertisingSpace = () => {
