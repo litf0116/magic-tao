@@ -11,11 +11,12 @@
 				快捷登录
 			</button>
 
-			<view class="flex items-center justify-center mb-4">
-				<view class="flex items-center" @tap="togglePrivacy">
-					<view class="w-5 h-5 rounded border-2 border-gray-300 flex items-center justify-center mr-2"
-						:class="{ 'bg-green-500 border-green-500': agreePrivacy }">
-						<text v-if="agreePrivacy" class="text-white text-xs">✓</text>
+			<view class="flex items-center justify-center mb-4 px-4">
+				<view class="flex items-start" @tap="togglePrivacy">
+					<view class="w-6 h-6 rounded border-2 border-gray-600 flex items-center justify-center mr-3 flex-shrink-0 mt-0.5"
+						:class="{ 'bg-green-500 border-green-600': agreePrivacy }"
+						style="box-shadow: 0 2rpx 4rpx rgba(0,0,0,0.1);">
+						<text v-if="agreePrivacy" class="text-white text-sm font-bold">✓</text>
 					</view>
 					<text class="text-xs text-gray-500">
 						我已阅读并同意
