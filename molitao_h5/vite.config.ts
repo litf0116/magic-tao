@@ -15,12 +15,12 @@ export default defineConfig({
         host: '0.0.0.0',
         proxy: {
             '/api': {
-                target: 'https://www.molitao.top',
+                target: 'http://127.0.0.1:12580',
                 changeOrigin: true,
                 secure: true,
             },
             '/ws': {
-                target: 'wss://www.molitao.top',
+                target: 'ws://127.0.0.1:12580',
                 ws: true,
                 changeOrigin: true,
             },

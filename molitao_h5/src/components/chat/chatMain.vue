@@ -1081,7 +1081,7 @@ function getLevelStyle(userChatLevel) {
         width: 110rpx;
         height: 60rpx;
         border-radius: 10rpx;
-        background: #d02129;
+        background: #f4835a;
     }
 
     .send-btn-box .btn {
