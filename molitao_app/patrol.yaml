@@ -1,0 +1,9 @@
+android:
+  package_name: com.molitao_app
+
+ios:
+  bundle_id: com.molitao.molitaoApp
+
+test:
+  timeout: 180
+  label: true
