@@ -108,78 +108,54 @@
             </view>
             <!-- #endif -->
 
-            <!-- H5：账号密码 + 微信扫码 -->
+            <!-- H5：账号密码登录 -->
             <!-- #ifdef H5 -->
             <view class="form-card">
-                <view class="tab-row">
-                    <view class="tab-item" :class="{ active: loginMode === 'password' }" @tap="loginMode = 'password'">
-                        <text class="tab-text">账号登录</text>
-                    </view>
-                    <view class="tab-item" :class="{ active: loginMode === 'qrcode' }" @tap="switchToQrcode">
-                        <text class="tab-text">扫码登录</text>
-                    </view>
+                <view class="input-wrap">
+                    <input
+                        v-model="form.userNameOrEmailAddress"
+                        placeholder="请输入账号"
+                        class="input"
+                        placeholder-class="input-placeholder"
+                        @focus="focusField = 'account'"
+                        @blur="focusField = ''"
+                    />
+                    <view class="input-underline" :class="{ active: focusField === 'account' }"></view>
                 </view>
 
-                <!-- 账号密码登录 -->
-                <view v-if="loginMode === 'password'" class="password-form">
-                    <view class="input-wrap">
-                        <input
-                            v-model="form.userNameOrEmailAddress"
-                            placeholder="请输入账号"
-                            class="input"
-                            placeholder-class="input-placeholder"
-                            @focus="focusField = 'account'"
-                            @blur="focusField = ''"
-                        />
-                        <view class="input-underline" :class="{ active: focusField === 'account' }"></view>
-                    </view>
-
-                    <view class="input-wrap">
-                        <input
-                            v-model="form.password"
-                            placeholder="请输入密码"
-                            type="password"
-                            class="input"
-                            placeholder-class="input-placeholder"
-                            @focus="focusField = 'password'"
-                            @blur="focusField = ''"
-                        />
-                        <view class="input-underline" :class="{ active: focusField === 'password' }"></view>
-                    </view>
-
-                    <view class="action-row">
-                        <text class="forgot-link" @tap="toForgotPassword">忘记密码？</text>
-                    </view>
-
-                    <view class="login-btn" :class="{ disabled: isLoading || !agreePrivacy }" @tap="handleLogin">
-                        <text class="login-btn-text">{{ isLoading ? '登录中' : '登录' }}</text>
-                    </view>
-
-                    <view class="agreement">
-                        <view class="checkbox-wrap" @tap="togglePrivacy">
-                            <view class="checkbox" :class="{ checked: agreePrivacy }">
-                                <text v-if="agreePrivacy" class="check-icon">✓</text>
-                            </view>
-                            <text class="agreement-text">
-                                我已阅读并同意
-                                <text class="agreement-link" @tap.stop="toAgreement">《用户协议》</text>
-                                和
-                                <text class="agreement-link" @tap.stop="toPrivacy">《隐私政策》</text>
-                            </text>
-                        </view>
-                    </view>
+                <view class="input-wrap">
+                    <input
+                        v-model="form.password"
+                        placeholder="请输入密码"
+                        type="password"
+                        class="input"
+                        placeholder-class="input-placeholder"
+                        @focus="focusField = 'password'"
+                        @blur="focusField = ''"
+                    />
+                    <view class="input-underline" :class="{ active: focusField === 'password' }"></view>
                 </view>
 
-                <!-- 微信扫码登录 -->
-                <view v-if="loginMode === 'qrcode'" class="qrcode-form">
-                    <view class="qrcode-wrap">
-                        <image v-if="qrcodeUrl" :src="qrcodeUrl" class="qrcode-image" mode="aspectFit" />
-                        <view v-else class="qrcode-loading">
-                            <text class="qrcode-loading-text">二维码加载中...</text>
+                <view class="action-row">
+                    <text class="forgot-link" @tap="toForgotPassword">忘记密码？</text>
+                </view>
+
+                <view class="login-btn" :class="{ disabled: isLoading || !agreePrivacy }" @tap="handleLogin">
+                    <text class="login-btn-text">{{ isLoading ? '登录中' : '登录' }}</text>
+                </view>
+
+                <view class="agreement">
+                    <view class="checkbox-wrap" @tap="togglePrivacy">
+                        <view class="checkbox" :class="{ checked: agreePrivacy }">
+                            <text v-if="agreePrivacy" class="check-icon">✓</text>
                         </view>
+                        <text class="agreement-text">
+                            我已阅读并同意
+                            <text class="agreement-link" @tap.stop="toAgreement">《用户协议》</text>
+                            和
+                            <text class="agreement-link" @tap.stop="toPrivacy">《隐私政策》</text>
+                        </text>
                     </view>
-                    <text class="qrcode-tip">请使用微信扫码登录</text>
-                    <text class="qrcode-refresh" @tap="refreshQrcode">刷新二维码</text>
                 </view>
 
                 <view class="home-link" @tap="toHome">
@@ -198,11 +174,6 @@ import api from '@/utils/api'
 const userStore = useUserStore()
 const isLoading = ref(false)
 const focusField = ref('')
-const loginMode = ref<'password' | 'qrcode'>('password')
-const qrcodeUrl = ref('')
-const qrcodeState = ref('')
-const qrcodeTimer = ref<any>(null)
-const qrcodeExpireTimer = ref<any>(null)
 
 // 隐私政策同意状态
 const agreePrivacy = ref(false)
@@ -341,82 +312,6 @@ const handleWxOAuth = async () => {
     }
 }
 
-// H5 微信扫码登录
-const generateState = () => {
-    return 'qr_' + Date.now() + '_' + Math.random().toString(36).substring(2, 10)
-}
-
-const getWxQrcode = async () => {
-    try {
-        qrcodeState.value = generateState()
-        const url = await api.tokenAuth.pubQrLogin(qrcodeState.value)
-        qrcodeUrl.value = url
-
-        startQrcodePolling()
-        startQrcodeExpireTimer()
-    } catch (error: any) {
-        uni.showToast({ title: error?.message || '获取二维码失败', icon: 'none' })
-        qrcodeUrl.value = ''
-    }
-}
-
-const startQrcodePolling = () => {
-    stopQrcodePolling()
-    qrcodeTimer.value = setInterval(async () => {
-        try {
-            const token = await api.tokenAuth.qrToken(qrcodeState.value)
-            if (token) {
-                stopQrcodePolling()
-                stopQrcodeExpireTimer()
-
-                uni.setStorageSync('token', token)
-                uni.$emit('refreshView')
-                uni.showToast({ title: '登录成功', icon: 'success' })
-
-                setTimeout(() => {
-                    navigateAfterLogin()
-                }, 500)
-            }
-        } catch (error) {
-            // 轮询失败继续
-        }
-    }, 2000)
-}
-
-const startQrcodeExpireTimer = () => {
-    stopQrcodeExpireTimer()
-    qrcodeExpireTimer.value = setTimeout(() => {
-        stopQrcodePolling()
-        qrcodeUrl.value = ''
-        uni.showToast({ title: '二维码已过期，请刷新', icon: 'none' })
-    }, 60000)
-}
-
-const stopQrcodePolling = () => {
-    if (qrcodeTimer.value) {
-        clearInterval(qrcodeTimer.value)
-        qrcodeTimer.value = null
-    }
-}
-
-const stopQrcodeExpireTimer = () => {
-    if (qrcodeExpireTimer.value) {
-        clearTimeout(qrcodeExpireTimer.value)
-        qrcodeExpireTimer.value = null
-    }
-}
-
-const refreshQrcode = () => {
-    stopQrcodePolling()
-    stopQrcodeExpireTimer()
-    getWxQrcode()
-}
-
-const switchToQrcode = () => {
-    loginMode.value = 'qrcode'
-    getWxQrcode()
-}
-
 const toAgreement = () => {
     uni.navigateTo({ url: '/pages/protocol/agreement' })
 }
@@ -424,17 +319,6 @@ const toAgreement = () => {
 const toPrivacy = () => {
     uni.navigateTo({ url: '/pages/protocol/privacy' })
 }
-
-// #ifdef H5
-onMounted(() => {
-    // 扫码模式下已由 getWxQrcode 启动轮询
-})
-
-onUnmounted(() => {
-    stopQrcodePolling()
-    stopQrcodeExpireTimer()
-})
-// #endif
 </script>
 
 <style lang="scss" scoped>
@@ -681,91 +565,6 @@ onUnmounted(() => {
     &:active {
         color: #f4835a;
     }
-}
-
-/* H5 Tab 切换 */
-.tab-row {
-    display: flex;
-    margin-bottom: 40rpx;
-    border-bottom: 2rpx solid #f0f0f0;
-}
-
-.tab-item {
-    flex: 1;
-    height: 80rpx;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-
-    &.active {
-        .tab-text {
-            color: #f4835a;
-            font-weight: 500;
-        }
-
-        &::after {
-            content: '';
-            position: absolute;
-            left: 50%;
-            bottom: 0;
-            transform: translateX(-50%);
-            width: 48rpx;
-            height: 4rpx;
-            background: #f4835a;
-            border-radius: 2rpx;
-        }
-    }
-}
-
-.tab-text {
-    font-size: 30rpx;
-    color: #999999;
-}
-
-/* 二维码 */
-.qrcode-form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.qrcode-wrap {
-    width: 320rpx;
-    height: 320rpx;
-    background: #f6f6f6;
-    border-radius: 16rpx;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 24rpx;
-}
-
-.qrcode-image {
-    width: 280rpx;
-    height: 280rpx;
-}
-
-.qrcode-loading {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.qrcode-loading-text {
-    font-size: 26rpx;
-    color: #999999;
-}
-
-.qrcode-tip {
-    font-size: 28rpx;
-    color: #666666;
-    margin-bottom: 16rpx;
-}
-
-.qrcode-refresh {
-    font-size: 26rpx;
-    color: #f4835a;
 }
 
 /* 隐私政策勾选框 */
