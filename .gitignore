@@ -46,3 +46,9 @@ docs/*.apk
 
 # Credentials config
 credentials.conf
+
+# Playwright MCP logs
+.playwright-mcp/
+
+# Root level screenshots
+molitao-h5-homepage.png
