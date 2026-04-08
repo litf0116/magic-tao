@@ -187,6 +187,12 @@ onMounted(async () => {
     if (userStore.user.id) {
         getMyCount()
     }
+    // #ifdef H5
+    if (window.location.search.includes('from=h5pay')) {
+        getMyCount()
+        Tips.success('支付成功')
+    }
+    // #endif
     // #ifdef MP-WEIXIN
     uni.hideHomeButton()
     // #endif
@@ -227,7 +233,8 @@ function payDeposit() {
     // #ifdef H5
     api.client.payDeposit({ amount: 51, type: 'h5' }).then((res: any) => {
         if (res.h5_url) {
-            window.location.href = res.h5_url
+            const redirectUrl = encodeURIComponent(window.location.origin + '/pages/index/my?from=h5pay')
+            window.location.href = res.h5_url + '&redirect_url=' + redirectUrl
         } else {
             Tips.error('获取支付链接失败')
         }
@@ -298,7 +305,8 @@ async function topUp() {
     // #ifdef H5
     api.client.TopUp({ amount: _value, type: 'h5' }).then((res: any) => {
         if (res.h5_url) {
-            window.location.href = res.h5_url
+            const redirectUrl = encodeURIComponent(window.location.origin + '/pages/index/my?from=h5pay')
+            window.location.href = res.h5_url + '&redirect_url=' + redirectUrl
         } else {
             Tips.error('获取支付链接失败')
         }
