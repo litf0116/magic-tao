@@ -1,10 +1,13 @@
 #!/bin/bash
 # 构建并推送镜像到腾讯云 TCR
 # 使用方式: 
-#   ./scripts/build-and-push.sh              # 使用 latest
-#   ./scripts/build-and-push.sh v1.0.0       # 使用指定版本号
-#   ./scripts/build-and-push.sh 20250405      # 使用日期作为版本号
+#   ./scripts/build-and-push.sh                    # 自动生成日期时间版本号
+#   ./scripts/build-and-push.sh 20260409           # 使用指定版本号
 #   GITEE_BUILD_INDEX=123 ./scripts/build-and-push.sh  # 使用 Gitee CI 的构建号
+# 
+# 注意: 每次推送都会同时推送两个标签:
+#   - 时间版本标签: ccr.ccs.tencentyun.com/molitao/api:<版本号>
+#   - latest标签: ccr.ccs.tencentyun.com/molitao/api:latest
 
 set -e
 
@@ -62,10 +65,17 @@ send_feishu_notification() {
                 }
               },
               {
-                \"tag\": \"div\",
-                \"text\": {
-                  \"tag\": \"lark_md\",
-                  \"content\": \"**镜像**: ${FULL_IMAGE}\"
+                "tag": "div",
+                "text": {
+                  "tag": "lark_md",
+                  "content": "**时间版本**: ${FULL_IMAGE}"
+                }
+              },
+              {
+                "tag": "div",
+                "text": {
+                  "tag": "lark_md",
+                  "content": "**Latest版本**: ${FULL_IMAGE_LATEST}"
                 }
               },
               {
@@ -100,24 +110,25 @@ BUILD_TAG="${1:-}"
 GITEE_BUILD="${GITEE_BUILD_INDEX:-}"
 
 if [ -n "${GITEE_BUILD}" ]; then
-    # 如果有 Gitee CI 构建号，使用它
-    TAG="${GITEE_BUILD}"
+    # 如果有 Gitee CI 构建号，使用它作为时间版本号
+    DATE_TAG="${GITEE_BUILD}"
 elif [ -n "${BUILD_TAG}" ]; then
-    # 使用命令行传入的版本号
-    TAG="${BUILD_TAG}"
+    # 使用命令行传入的版本号作为时间版本号
+    DATE_TAG="${BUILD_TAG}"
 else
-    # 默认使用 latest
-    TAG="latest"
+    # 默认使用日期时间作为版本号
+    DATE_TAG=$(date '+%Y%m%d%H%M%S')
 fi
 
 # 完整镜像地址
-FULL_IMAGE="${REGISTRY}/${NAMESPACE}/${IMAGE_NAME}:${TAG}"
+FULL_IMAGE="${REGISTRY}/${NAMESPACE}/${IMAGE_NAME}:${DATE_TAG}"
 FULL_IMAGE_LATEST="${REGISTRY}/${NAMESPACE}/${IMAGE_NAME}:latest"
 
 echo "=========================================="
 echo "构建并推送镜像到腾讯云 TCR"
 echo "=========================================="
-echo "镜像地址: ${FULL_IMAGE}"
+echo "时间版本: ${FULL_IMAGE}"
+echo "Latest版本: ${FULL_IMAGE_LATEST}"
 echo ""
 
 # 检查配置
@@ -137,30 +148,29 @@ docker login ${REGISTRY} -u "${TENCENT_CCR_USERNAME}" --password-stdin <<< "${TE
 # 构建镜像
 echo ""
 echo "开始构建 Docker 镜像..."
-cd "${SCRIPT_DIR}/../${PROJECT_DIR}"
+cd "${SCRIPT_DIR}/../../${PROJECT_DIR}"
 docker build \
   --no-cache \
   -f ./src/TtWork.Project.Web.Host/Dockerfile \
   --build-arg HTTP_PROXY=http://192.168.3.50:10809 \
   --build-arg HTTPS_PROXY=http://192.168.3.50:10809 \
-  -t ${FULL_IMAGE} .
+  -t ${FULL_IMAGE} \
+  -t ${FULL_IMAGE_LATEST} .
 
 # 推送镜像
 echo ""
 echo "推送镜像到仓库..."
+echo "推送时间版本标签: ${FULL_IMAGE}"
 docker push ${FULL_IMAGE}
 
-# 同时推送 latest（如果不是 latest）
-if [ "${TAG}" != "latest" ]; then
-    docker tag ${FULL_IMAGE} ${FULL_IMAGE_LATEST}
-    docker push ${FULL_IMAGE_LATEST}
-    echo "同时推送了 latest 标签"
-fi
+echo "推送 latest 标签: ${FULL_IMAGE_LATEST}"
+docker push ${FULL_IMAGE_LATEST}
 
 echo ""
 echo "=========================================="
 echo "完成!"
-echo "镜像地址: ${FULL_IMAGE}"
+echo "时间版本镜像: ${FULL_IMAGE}"
+echo "Latest镜像: ${FULL_IMAGE_LATEST}"
 echo "=========================================="
 
 # 发送飞书通知
