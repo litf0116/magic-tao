@@ -245,7 +245,6 @@ const init = async (name: string) => {
 }
 
 function sub(e: AuctionItemDto) {
-    // #ifdef MP-WEIXIN
     // 小程序：使用订阅消息
     const msgId = 'ZuYTYzw2cM0LVhF5ybH5iATMaDl6lZ82OC6cczsglEA'
     uni.requestSubscribeMessage({
@@ -267,19 +266,6 @@ function sub(e: AuctionItemDto) {
             }
         },
     })
-    // #endif
-
-    // #ifdef APP-PLUS
-    // App：使用极光推送（后端自动使用当前用户ID作为别名）
-    auctionStore
-        .startNotify(e.id!, 'app')
-        .then(() => {
-            Tips.success('订阅成功，秒杀开始时将推送通知')
-        })
-        .catch((error: any) => {
-            Tips.error(error?.message || '订阅失败，请重试')
-        })
-    // #endif
 }
 
 const historyMsgs = computed(() => {
@@ -334,64 +320,15 @@ function doPayment(
     params: { amount: number; type: string; from: string },
     callback: { success: () => void; fail: () => void }
 ) {
-    // #ifdef MP-WEIXIN
-    api.client
-        .payDeposit({ openid: userStore.openid, amount: params.amount })
-        .then((res: any) => {
-            uni.requestPayment({
-                provider: 'wxpay',
-                timeStamp: `${res.timeStamp}`,
-                nonceStr: res.nonceStr,
-                package: res.package,
-                signType: res.signType,
-                paySign: res.paySign,
-                success: async (res) => {
-                    uni.removeStorageSync('depositStatus')
-
-                    try {
-                        await userStore.checkLogin(false, true)
-                    } catch (error) {
-                        // ignore
-                    }
-
-                    callback.success()
-                    Tips.success('支付成功，魔力值已到账')
-
-                    setTimeout(() => {
-                        uni.showModal({
-                            title: '支付成功',
-                            content: '魔力值已到账，是否立即出价？',
-                            showCancel: true,
-                            confirmText: '立即出价',
-                            cancelText: '稍后出价',
-                            success: (modalRes) => {
-                                if (modalRes.confirm) {
-                                    setTimeout(() => {
-                                        bid()
-                                    }, 500)
-                                }
-                            },
-                        })
-                    }, 1500)
-                },
-                fail: (err) => {
-                    uni.removeStorageSync('depositStatus')
-                    callback.fail()
-                    Tips.info('用户取消支付')
-                },
-            })
-        })
-        .catch((error) => {
-            uni.removeStorageSync('depositStatus')
-            callback.fail()
-            Tips.error('获取支付参数失败，请重试')
-        })
-    // #endif
-
-    // #ifdef APP-PLUS
-    Tips.info('App 端支付功能开发中，请使用小程序充值')
+    // 小程序端暂时引导用户去PC端充值
+    uni.showModal({
+        title: '充值提示',
+        content:
+            '小程序充值功能正在升级维护中\n\n请登录PC端完成魔力值充值：\nwww.molitao.top\n\n💡 操作步骤：\n1. 登录PC端\n2. 点击右上角用户名\n3. 选择"保证金充值"\n4. 扫码支付\n\n支持微信扫码支付哦~',
+        showCancel: false,
+        confirmText: '我知道了',
+    })
     callback.fail()
-    // #endif
 }
 
 //出价

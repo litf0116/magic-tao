@@ -199,34 +199,14 @@ function getMyCount() {
 }
 //魔力值充值
 function payDeposit() {
-    // #ifdef MP-WEIXIN
-    api.client.payDeposit({ openid: userStore.openid, amount: 51 }).then((res: any) => {
-        uni.requestPayment({
-            provider: 'wxpay',
-            timeStamp: `${res.timeStamp}`,
-            nonceStr: res.nonceStr,
-            package: res.package,
-            signType: res.signType,
-            paySign: res.paySign,
-            success: async (res) => {
-                try {
-                    await userStore.checkLogin(false, true)
-                    getMyCount()
-                } catch (error) {
-                    getMyCount()
-                }
-                Tips.success('支付成功，魔力值已到账')
-            },
-            fail: (err) => {
-                Tips.info('用户取消支付')
-            },
-        })
+    // 小程序端暂时引导用户去PC端充值
+    uni.showModal({
+        title: '充值提示',
+        content:
+            '小程序充值功能正在升级维护中\n\n请登录PC端完成魔力值充值：\nwww.molitao.top\n\n💡 操作步骤：\n1. 登录PC端\n2. 点击右上角用户名\n3. 选择"保证金充值"\n4. 扫码支付\n\n支持微信扫码支付哦~',
+        showCancel: false,
+        confirmText: '我知道了',
     })
-    // #endif
-
-    // #ifdef APP-PLUS
-    Tips.info('App 端支付功能开发中，请使用小程序充值')
-    // #endif
 }
 //保证金提交信息弹窗
 function cashOut() {
@@ -253,7 +233,6 @@ async function payWithdrawal() {
     })
 }
 async function topUp() {
-    //输入要充值的金额
     const amount = await Tips.prompt('', '余额充值', '充值请输入充值金额')
     if (!amount) return
     const _value = Number(amount)
@@ -262,7 +241,6 @@ async function topUp() {
         return
     }
 
-    // #ifdef MP-WEIXIN
     api.client.TopUp({ openid: userStore.openid, amount: _value }).then((res: any) => {
         uni.requestPayment({
             provider: 'wxpay',
@@ -281,15 +259,9 @@ async function topUp() {
             },
         })
     })
-    // #endif
-
-    // #ifdef APP-PLUS
-    Tips.info('App 端支付功能开发中，请使用小程序充值')
-    // #endif
 }
 
 function testPay() {
-    // #ifdef MP-WEIXIN
     api.testpay({ openid: userStore.openid }).then((res: any) => {
         uni.requestPayment({
             provider: 'wxpay',
@@ -306,11 +278,6 @@ function testPay() {
             },
         })
     })
-    // #endif
-
-    // #ifdef APP-PLUS
-    Tips.info('App 端支付功能开发中')
-    // #endif
 }
 
 function wait() {
