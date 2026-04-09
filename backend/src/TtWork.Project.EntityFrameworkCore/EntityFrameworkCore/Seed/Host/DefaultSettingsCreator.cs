@@ -40,6 +40,19 @@ namespace TtWork.Project.EntityFrameworkCore.Seed.Host
                 "20260224@1.1.21",
                 tenantId
             );
+
+            // Feature Switch
+            AddSettingIfNotExists(
+                TtWork.Project.Core.AppSettings.FeatureSwitch.ShowAuctionMaxVersionMpWeixin,
+                "20260401@1.1.9",
+                tenantId
+            );
+
+            AddSettingIfNotExists(
+                TtWork.Project.Core.AppSettings.FeatureSwitch.ShowTradingPostMaxVersionMpWeixin,
+                "20260401@1.1.9",
+                tenantId
+            );
         }
 
         private void AddSettingIfNotExists(string name, string value, int? tenantId = null)

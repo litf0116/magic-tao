@@ -36,6 +36,9 @@ namespace TtWork.Project.Core {
 
             // Register version control settings provider
             Configuration.Settings.Providers.Add<Configuration.VersionControlSettingProvider>();
+            
+            // Register feature switch settings provider
+            Configuration.Settings.Providers.Add<Configuration.FeatureSwitchSettingProvider>();
         }
 
         public override void Initialize() {

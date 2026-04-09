@@ -8,6 +8,7 @@ using Abp.Dependency;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TtWork.Abp.Definitions;
+using TtWork.Project.Core;
 
 namespace TtWork.Project.Applications;
 
@@ -111,8 +112,11 @@ public class AppFeatureSwitchAppService : ApplicationService
 
     private async Task<string> GetMaxVersionForFeature(string feature, string platform)
     {
-        var settingName = $"AppFeatures.{feature}.MaxVersion.{platform}";
-        return await _settingManager.GetSettingValueAsync(settingName);
+        if (feature == "ShowAuction" && platform == "mp-weixin")
+            return await _settingManager.GetSettingValueAsync(AppSettings.FeatureSwitch.ShowAuctionMaxVersionMpWeixin);
+        if (feature == "ShowTradingPost" && platform == "mp-weixin")
+            return await _settingManager.GetSettingValueAsync(AppSettings.FeatureSwitch.ShowTradingPostMaxVersionMpWeixin);
+        return string.Empty;
     }
 
     private int CompareVersion(string version1, string version2)
