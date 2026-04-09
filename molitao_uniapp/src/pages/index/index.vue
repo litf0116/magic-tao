@@ -39,17 +39,17 @@
                         </view>
                         <text class="pt-2 text-sm font-500">宠物算档器</text>
                     </view>
-                    <view class="flex flex-col flex-center zoom-in" @tap="gotoCharacterSimulator">
+                    <view class="flex flex-col flex-center" @tap="onFeatureDeveloping">
                         <view class="bg-[#f6f6f6] size-12 rounded-full flex flex-center">
-                            <view class="size-7 i-icon-park-outline:peoples"></view>
+                            <view class="size-7 i-icon-park-outline:calculator"></view>
                         </view>
-                        <text class="pt-2 text-sm font-500">人物模拟器</text>
+                        <text class="pt-2 text-sm font-500">升级计算</text>
                     </view>
                     <view class="flex flex-col flex-center" @tap="onFeatureDeveloping">
                         <view class="bg-[#f6f6f6] size-12 rounded-full flex flex-center">
-                            <view class="size-7 i-icon-park-outline:more-app"></view>
+                            <view class="size-7 i-icon-park-outline:map"></view>
                         </view>
-                        <text class="pt-2 text-sm font-500">更多功能</text>
+                        <text class="pt-2 text-sm font-500">地图导航</text>
                     </view>
                     <view class="flex flex-col flex-center" @tap="onFeatureDeveloping">
                         <view class="bg-[#f6f6f6] size-12 rounded-full flex flex-center">
@@ -128,11 +128,6 @@ const gotoTradingPost = () => {
 // 跳转到宠物算档器
 const gotoPetCalculator = () => {
     navTo('/pages/tools/petCalculator')
-}
-
-// 跳转到人物模拟器
-const gotoCharacterSimulator = () => {
-    navTo('/pages/tools/characterSimulator')
 }
 
 // 功能开发中提示
