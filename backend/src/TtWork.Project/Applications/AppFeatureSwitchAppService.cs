@@ -18,7 +18,7 @@ public class AppFeatureSwitchAppService : ApplicationService
     private readonly ISettingManager _settingManager;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    private static readonly string[] Features = { "ShowAuction", "ShowTradingPost" };
+    private static readonly string[] Features = { "ShowAuction", "ShowTradingPost", "ShowBanner" };
 
     public AppFeatureSwitchAppService(ISettingManager settingManager, IHttpContextAccessor httpContextAccessor)
     {
@@ -84,6 +84,12 @@ public class AppFeatureSwitchAppService : ApplicationService
             {
                 result.Features["ShowTradingPost"] = true;
             }
+
+            maxVersion = await GetMaxVersionForFeature("ShowBanner", platform);
+            if (!string.IsNullOrEmpty(maxVersion) && CompareVersion(version, maxVersion) <= 0)
+            {
+                result.Features["ShowBanner"] = true;
+            }
         }
         catch (Exception)
         {
@@ -116,6 +122,8 @@ public class AppFeatureSwitchAppService : ApplicationService
             return await _settingManager.GetSettingValueAsync(AppSettings.FeatureSwitch.ShowAuctionMaxVersionMpWeixin);
         if (feature == "ShowTradingPost" && platform == "mp-weixin")
             return await _settingManager.GetSettingValueAsync(AppSettings.FeatureSwitch.ShowTradingPostMaxVersionMpWeixin);
+        if (feature == "ShowBanner" && platform == "mp-weixin")
+            return await _settingManager.GetSettingValueAsync(AppSettings.FeatureSwitch.ShowBannerMaxVersionMpWeixin);
         return string.Empty;
     }
 

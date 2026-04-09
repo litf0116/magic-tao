@@ -71,7 +71,7 @@
                     ></uv-swiper>
                 </view>
 
-                <view v-if="advertisingSpaceList.length > 0" class="advertisingSpace">
+                <view v-if="appFeatureStore.getShowBanner() && advertisingSpaceList.length > 0" class="advertisingSpace">
                     <div v-for="(item, index) in advertisingSpaceList" :key="index" class="advertisingSpace-item">
                         <image
                             class="logo2"

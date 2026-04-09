@@ -18,5 +18,6 @@ public static class AppSettings
     {
         public const string ShowAuctionMaxVersionMpWeixin = "AppFeatures.ShowAuction.MaxVersion.mp-weixin";
         public const string ShowTradingPostMaxVersionMpWeixin = "AppFeatures.ShowTradingPost.MaxVersion.mp-weixin";
+        public const string ShowBannerMaxVersionMpWeixin = "AppFeatures.ShowBanner.MaxVersion.mp-weixin";
     }
 }

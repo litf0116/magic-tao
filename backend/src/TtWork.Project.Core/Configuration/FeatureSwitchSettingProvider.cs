@@ -20,6 +20,12 @@ public class FeatureSwitchSettingProvider : SettingProvider
                 "",
                 scopes: SettingScopes.Application,
                 isVisibleToClients: true
+            ),
+            new SettingDefinition(
+                AppSettings.FeatureSwitch.ShowBannerMaxVersionMpWeixin,
+                "",
+                scopes: SettingScopes.Application,
+                isVisibleToClients: true
             )
         };
     }

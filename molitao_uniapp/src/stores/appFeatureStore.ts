@@ -44,6 +44,10 @@ export const useAppFeatureStore = defineStore('appFeatureStore', () => {
         return isFeatureEnabled('ShowTradingPost')
     }
 
+    function getShowBanner(): boolean {
+        return isFeatureEnabled('ShowBanner')
+    }
+
     return {
         features,
         platform,
@@ -53,5 +57,6 @@ export const useAppFeatureStore = defineStore('appFeatureStore', () => {
         isFeatureEnabled,
         getShowAuction,
         getShowTradingPost,
+        getShowBanner,
     }
 })
