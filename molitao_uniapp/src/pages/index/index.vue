@@ -59,7 +59,7 @@
                     </view>
                 </view>
 
-                <view class="mt-2 w-full">
+                <view v-if="appFeatureStore.getShowBanner()" class="mt-2 w-full">
                     <uv-swiper
                         :height="200"
                         :interval="5000"
