@@ -32,30 +32,30 @@
                     <view class="h-3 w-4px mr-2 bg-[#ccc] rounded-full"></view>
                     <text>常用工具</text>
                 </view>
-                <view class="myCard py-4 grid grid-cols-4 mb-4 text-[#171717]">
-                    <view class="flex flex-col flex-center zoom-in" @tap="gotoPetCalculator">
-                        <view class="bg-[#f6f6f6] size-12 rounded-full flex flex-center">
+                <view class="myCard py-4 grid grid-cols-2 gap-4 mb-4 text-[#171717]">
+                    <view class="flex flex-center zoom-in py-3" @tap="gotoPetCalculator">
+                        <view class="mr-3 bg-[#f6f6f6] size-12 rounded-full flex flex-center">
                             <view class="size-7 i-icon-park-outline:dog"></view>
                         </view>
-                        <text class="pt-2 text-sm font-500">宠物算档器</text>
+                        <text class="text-sm font-500">宠物算档器</text>
                     </view>
-                    <view class="flex flex-col flex-center" @tap="onFeatureDeveloping">
-                        <view class="bg-[#f6f6f6] size-12 rounded-full flex flex-center">
+                    <view class="flex flex-center py-3" @tap="onFeatureDeveloping">
+                        <view class="mr-3 bg-[#f6f6f6] size-12 rounded-full flex flex-center">
                             <view class="size-7 i-icon-park-outline:calculator"></view>
                         </view>
-                        <text class="pt-2 text-sm font-500">升级计算</text>
+                        <text class="text-sm font-500">升级计算</text>
                     </view>
-                    <view class="flex flex-col flex-center" @tap="onFeatureDeveloping">
-                        <view class="bg-[#f6f6f6] size-12 rounded-full flex flex-center">
+                    <view class="flex flex-center py-3" @tap="onFeatureDeveloping">
+                        <view class="mr-3 bg-[#f6f6f6] size-12 rounded-full flex flex-center">
                             <view class="size-7 i-icon-park-outline:map"></view>
                         </view>
-                        <text class="pt-2 text-sm font-500">地图导航</text>
+                        <text class="text-sm font-500">地图导航</text>
                     </view>
-                    <view class="flex flex-col flex-center" @tap="onFeatureDeveloping">
-                        <view class="bg-[#f6f6f6] size-12 rounded-full flex flex-center">
+                    <view class="flex flex-center py-3" @tap="onFeatureDeveloping">
+                        <view class="mr-3 bg-[#f6f6f6] size-12 rounded-full flex flex-center">
                             <view class="size-7 i-icon-park-outline:more-app"></view>
                         </view>
-                        <text class="pt-2 text-sm font-500">敬请期待</text>
+                        <text class="text-sm font-500">敬请期待</text>
                     </view>
                 </view>
 
@@ -71,7 +71,10 @@
                     ></uv-swiper>
                 </view>
 
-                <view v-if="appFeatureStore.getShowBanner() && advertisingSpaceList.length > 0" class="advertisingSpace">
+                <view
+                    v-if="appFeatureStore.getShowBanner() && advertisingSpaceList.length > 0"
+                    class="advertisingSpace"
+                >
                     <div v-for="(item, index) in advertisingSpaceList" :key="index" class="advertisingSpace-item">
                         <image
                             class="logo2"
@@ -134,7 +137,7 @@ const gotoPetCalculator = () => {
 const onFeatureDeveloping = () => {
     uni.showToast({
         title: '功能开发中',
-        icon: 'none'
+        icon: 'none',
     })
 }
 
@@ -253,8 +256,8 @@ const font = ref({ size: '2em' })
 
     .header {
         @apply w-full text-center h-[160px] flex flex-col justify-end items-center;
-        background: url(https://image.molitao.top/20250330/04j40l4ynlbh3v3h4bgfe7j2pxiqjg8d.png) no-repeat center -60rpx /
-            cover;
+        background: url(https://image.molitao.top/20250330/04j40l4ynlbh3v3h4bgfe7j2pxiqjg8d.png) no-repeat
+            center -60rpx / cover;
 
         .logo2 {
             @apply mb-1 w-462rpx h-212rpx;
