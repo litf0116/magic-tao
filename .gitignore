@@ -47,6 +47,9 @@ docs/*.apk
 # Credentials config
 credentials.conf
 
+# Secrets directory (敏感信息)
+secrets/
+
 # Playwright MCP logs
 .playwright-mcp/
 
