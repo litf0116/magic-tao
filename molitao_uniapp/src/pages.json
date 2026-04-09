@@ -152,6 +152,20 @@
             "style": {
                 "navigationBarTitleText": "隐私政策"
             }
+        },
+        {
+            "path": "pages/tools/petCalculator",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "宠物算档器"
+            }
+        },
+        {
+            "path": "pages/tools/characterSimulator",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "人物模拟器"
+            }
         }
     ],
     "globalStyle": {

@@ -26,6 +26,39 @@
                         @tap="Goto.auction()"
                     />
                 </view>
+
+                <!-- 功能模块区域 -->
+                <view class="my-4 flex items-center">
+                    <view class="h-3 w-4px mr-2 bg-[#ccc] rounded-full"></view>
+                    <text>常用工具</text>
+                </view>
+                <view class="myCard py-4 grid grid-cols-4 mb-4 text-[#171717]">
+                    <view class="flex flex-col flex-center zoom-in" @tap="gotoPetCalculator">
+                        <view class="bg-[#f6f6f6] size-12 rounded-full flex flex-center">
+                            <view class="size-7 i-icon-park-outline:dog"></view>
+                        </view>
+                        <text class="pt-2 text-sm font-500">宠物算档器</text>
+                    </view>
+                    <view class="flex flex-col flex-center zoom-in" @tap="gotoCharacterSimulator">
+                        <view class="bg-[#f6f6f6] size-12 rounded-full flex flex-center">
+                            <view class="size-7 i-icon-park-outline:peoples"></view>
+                        </view>
+                        <text class="pt-2 text-sm font-500">人物模拟器</text>
+                    </view>
+                    <view class="flex flex-col flex-center" @tap="onFeatureDeveloping">
+                        <view class="bg-[#f6f6f6] size-12 rounded-full flex flex-center">
+                            <view class="size-7 i-icon-park-outline:more-app"></view>
+                        </view>
+                        <text class="pt-2 text-sm font-500">更多功能</text>
+                    </view>
+                    <view class="flex flex-col flex-center" @tap="onFeatureDeveloping">
+                        <view class="bg-[#f6f6f6] size-12 rounded-full flex flex-center">
+                            <view class="size-7 i-icon-park-outline:more-app"></view>
+                        </view>
+                        <text class="pt-2 text-sm font-500">敬请期待</text>
+                    </view>
+                </view>
+
                 <view class="mt-2 w-full">
                     <uv-swiper
                         :height="200"
@@ -37,6 +70,7 @@
                         :display-multiple-items="0"
                     ></uv-swiper>
                 </view>
+
                 <view v-if="advertisingSpaceList.length > 0" class="advertisingSpace">
                     <div v-for="(item, index) in advertisingSpaceList" :key="index" class="advertisingSpace-item">
                         <image
@@ -89,6 +123,24 @@ const showAuctionEntrance = computed(() => {
 // 跳转到交易站
 const gotoTradingPost = () => {
     emit('refreshCurrentVal', 2)
+}
+
+// 跳转到宠物算档器
+const gotoPetCalculator = () => {
+    navTo('/pages/tools/petCalculator')
+}
+
+// 跳转到人物模拟器
+const gotoCharacterSimulator = () => {
+    navTo('/pages/tools/characterSimulator')
+}
+
+// 功能开发中提示
+const onFeatureDeveloping = () => {
+    uni.showToast({
+        title: '功能开发中',
+        icon: 'none'
+    })
 }
 
 //广告位信息
@@ -164,6 +216,11 @@ onShareTimeline(() => {
 const font = ref({ size: '2em' })
 </script>
 <style>
+.myCard {
+    background: #fff;
+    border-radius: 16rpx;
+}
+
 .advertisingSpace {
     display: flex;
     flex-wrap: wrap;
