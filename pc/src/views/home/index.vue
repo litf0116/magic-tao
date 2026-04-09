@@ -1,10 +1,7 @@
 <template>
     <div class="home-container">
-        <!-- 左侧悬浮工具列 -->
-        <LeftSidebarTools />
-
-        <!-- App 下载入口卡片 -->
-        <AppDownloadCard />
+        <!-- 右上角悬浮工具栏 -->
+        <TopRightToolbar />
 
         <!-- 广告展示区域 -->
         <AdvertisementBanner />
@@ -18,8 +15,7 @@
 </template>
 
 <script setup lang="ts">
-import AppDownloadCard from '@/components/AppDownloadCard.vue'
-import LeftSidebarTools from '@/components/LeftSidebarTools.vue'
+import TopRightToolbar from '@/components/TopRightToolbar.vue'
 import AdvertisementBanner from './components/AdvertisementBanner.vue'
 import TradingPostCard from './components/TradingPostCard.vue'
 import AuctionCard from './components/AuctionCard.vue'
