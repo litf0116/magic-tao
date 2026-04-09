@@ -1,167 +1,225 @@
 <template>
     <div class="top-right-toolbar">
-        <!-- 主工具栏 -->
+        <!-- 工具栏容器 - 垂直排列 -->
         <div class="toolbar-container">
-            <!-- 充值 -->
-            <div class="tool-item" :class="{ 'has-badge': userStore.isLogin && userStore.user.depositBalance > 0 }" @click="handleRecharge">
-                <div class="tool-icon">
-                    <el-icon><Wallet /></el-icon>
-                </div>
-                <span class="tool-label">充值</span>
-                <div v-if="userStore.isLogin && userStore.user.depositBalance > 0" class="balance-badge">
-                    ¥{{ userStore.user.depositBalance }}
-                </div>
-            </div>
+            <!-- 用户信息 -->
+            <template v-if="userStore.isLogin">
+                <el-tooltip content="我的" placement="left">
+                    <div class="tool-item user-item" @click="toggleUserPanel">
+                        <el-avatar :size="36" :src="userStore.user.headImgUrl" class="user-avatar">
+                            <el-icon><User /></el-icon>
+                        </el-avatar>
+                        <span class="tool-label">我的</span>
+                    </div>
+                </el-tooltip>
+            </template>
 
-            <!-- 拍卖 -->
-            <div class="tool-item" @click="goToAuction">
-                <div class="tool-icon">
-                    <el-icon><Trophy /></el-icon>
-                </div>
-                <span class="tool-label">拍卖</span>
-            </div>
-
-            <!-- 交易 -->
-            <div class="tool-item" @click="goToTrading">
-                <div class="tool-icon">
-                    <el-icon><Shop /></el-icon>
-                </div>
-                <span class="tool-label">交易</span>
-            </div>
+            <!-- 未登录 - 登录按钮 -->
+            <template v-else>
+                <el-tooltip content="登录" placement="left">
+                    <div class="tool-item login-item" @click="goToLogin">
+                        <div class="tool-icon">
+                            <el-icon><User /></el-icon>
+                        </div>
+                        <span class="tool-label">登录</span>
+                    </div>
+                </el-tooltip>
+            </template>
 
             <!-- 下载App -->
-            <div class="tool-item download-item" @click="toggleDownloadPanel">
-                <div class="tool-icon">
-                    <el-icon><Download /></el-icon>
+            <el-tooltip content="下载App" placement="left">
+                <div class="tool-item" @click="toggleDownloadPanel">
+                    <div class="tool-icon download-icon">
+                        <el-icon><Download /></el-icon>
+                    </div>
+                    <span class="tool-label">下载</span>
                 </div>
-                <span class="tool-label">下载App</span>
-            </div>
+            </el-tooltip>
 
-            <!-- 用户信息 / 登录 -->
-            <div class="tool-item user-item" @click="handleUser">
-                <div class="tool-icon">
-                    <el-icon><User /></el-icon>
+            <!-- 拍卖 -->
+            <el-tooltip content="拍卖行" placement="left">
+                <div class="tool-item" @click="goToAuction">
+                    <div class="tool-icon">
+                        <el-icon><Trophy /></el-icon>
+                    </div>
+                    <span class="tool-label">拍卖</span>
                 </div>
-                <span class="tool-label">{{ userStore.isLogin ? userStore.user.name : '登录' }}</span>
-            </div>
+            </el-tooltip>
+
+            <!-- 交易 -->
+            <el-tooltip content="交易站" placement="left">
+                <div class="tool-item" @click="goToTrading">
+                    <div class="tool-icon">
+                        <el-icon><Shop /></el-icon>
+                    </div>
+                    <span class="tool-label">交易</span>
+                </div>
+            </el-tooltip>
 
             <!-- 回到顶部 -->
-            <div class="tool-item" v-show="showBackTop" @click="scrollToTop">
-                <div class="tool-icon">
-                    <el-icon><ArrowUp /></el-icon>
+            <el-tooltip content="回到顶部" placement="left">
+                <div class="tool-item" v-show="showBackTop" @click="scrollToTop">
+                    <div class="tool-icon back-top-icon">
+                        <el-icon><ArrowUp /></el-icon>
+                    </div>
+                    <span class="tool-label">顶部</span>
                 </div>
-                <span class="tool-label">顶部</span>
-            </div>
-        </div>
+            </el-tooltip>
 
-        <!-- 充值面板（下拉） -->
-        <Transition name="slide-down">
-            <div v-if="showRechargePanel" class="recharge-panel">
-                <div class="panel-header">
-                    <h3 class="panel-title">魔力值充值</h3>
-                    <button class="close-btn" @click="closeRechargePanel">
-                        <el-icon><Close /></el-icon>
-                    </button>
-                </div>
-
-                <div class="panel-content">
-                    <!-- 当前余额 -->
-                    <div class="balance-section">
-                        <div class="balance-label">当前魔力值</div>
-                        <div class="balance-amount">¥{{ userStore.user?.depositBalance || 0 }}</div>
+            <!-- 用户信息面板（向左展开） -->
+            <Transition name="slide-left">
+                <div v-if="showUserPanel" class="user-panel">
+                    <div class="panel-header">
+                        <div class="user-info-header">
+                            <el-avatar :size="48" :src="userStore.user.headImgUrl" class="user-avatar-large">
+                                <el-icon><User /></el-icon>
+                            </el-avatar>
+                            <div class="user-meta">
+                                <h3 class="user-name">{{ userStore.user.name }}</h3>
+                                <span class="user-id">ID: {{ userStore.user.id }}</span>
+                            </div>
+                        </div>
+                        <button class="close-btn" @click="closeUserPanel">
+                            <el-icon><Close /></el-icon>
+                        </button>
                     </div>
 
-                    <!-- 充值金额 -->
-                    <div class="amount-section">
-                        <div class="amount-label">充值金额</div>
-                        <div class="amount-value">¥51.00</div>
-                        <div class="amount-hint">含手续费¥1，实际到账¥50</div>
-                    </div>
-
-                    <!-- 二维码区域 -->
-                    <div class="qrcode-section">
-                        <div v-if="loading" class="loading-state">
-                            <el-icon class="is-loading"><Loading /></el-icon>
-                            <span>正在生成支付二维码...</span>
+                    <div class="panel-content">
+                        <!-- 余额信息 -->
+                        <div class="balance-info">
+                            <div class="balance-item">
+                                <span class="balance-label">账户余额</span>
+                                <span class="balance-value">¥{{ userStore.user.balance || 0 }}</span>
+                            </div>
+                            <div class="balance-item highlight">
+                                <span class="balance-label">保证金</span>
+                                <span class="balance-value">¥{{ userStore.user.depositBalance || 0 }}</span>
+                            </div>
                         </div>
 
-                        <div v-else-if="qrCodeUrl" class="qrcode-display">
-                            <img :src="qrCodeUrl" alt="支付二维码" class="qrcode-img" />
-                            <div class="qrcode-hint">请使用微信扫一扫完成支付</div>
-                            <div v-if="countdown > 0" class="countdown">⏱️ 有效期剩余 {{ formatCountdown(countdown) }}</div>
-                            <div v-else class="countdown expired">二维码已过期，请刷新</div>
-                        </div>
-
-                        <div v-else-if="error" class="error-state">
-                            <el-icon><CircleClose /></el-icon>
-                            <span>{{ error }}</span>
-                            <el-button type="primary" size="small" @click="generateQRCode">重新生成</el-button>
-                        </div>
-
-                        <div v-else class="generate-btn-wrapper">
-                            <el-button type="primary" size="large" @click="generateQRCode" :loading="loading">
+                        <!-- 操作按钮 -->
+                        <div class="action-buttons">
+                            <el-button type="primary" class="action-btn" @click="handleRechargeFromPanel">
                                 <el-icon><Wallet /></el-icon>
-                                生成支付二维码
+                                保证金充值
+                            </el-button>
+                            <el-button class="action-btn" @click="goToProfile">
+                                <el-icon><User /></el-icon>
+                                个人中心
+                            </el-button>
+                            <el-button class="action-btn logout-btn" @click="handleLogout">
+                                <el-icon><SwitchButton /></el-icon>
+                                退出登录
                             </el-button>
                         </div>
                     </div>
-
-                    <!-- 充值说明 -->
-                    <div class="recharge-tips">
-                        <div class="tips-title">💡 充值说明</div>
-                        <ul class="tips-list">
-                            <li>充值金额：¥51（含手续费¥1）</li>
-                            <li>到账金额：¥50 魔力值</li>
-                            <li>支持微信扫码支付</li>
-                            <li>支付成功后立即到账</li>
-                        </ul>
-                    </div>
                 </div>
-            </div>
-        </Transition>
+            </Transition>
 
-        <!-- 下载App面板（下拉） -->
-        <Transition name="slide-down">
-            <div v-if="showDownloadPanel" class="download-panel">
-                <div class="panel-header">
-                    <div class="app-info">
-                        <img :src="logoImage" alt="魔力淘" class="app-icon" />
-                        <div class="app-meta">
-                            <h3 class="panel-title">魔力淘 App</h3>
-                            <span class="version">{{ latestVersion?.latestVersionName || 'v1.0.0' }}</span>
+            <!-- 下载App面板（向左展开） -->
+            <Transition name="slide-left">
+                <div v-if="showDownloadPanel" class="download-panel">
+                    <div class="panel-header">
+                        <div class="app-info">
+                            <img :src="logoImage" alt="魔力淘" class="app-icon" />
+                            <div class="app-meta">
+                                <h3 class="panel-title">魔力淘 App</h3>
+                                <span class="version">{{ latestVersion?.latestVersionName || 'v1.0.0' }}</span>
+                            </div>
                         </div>
+                        <button class="close-btn" @click="closeDownloadPanel">
+                            <el-icon><Close /></el-icon>
+                        </button>
                     </div>
-                    <button class="close-btn" @click="closeDownloadPanel">
-                        <el-icon><Close /></el-icon>
-                    </button>
+
+                    <div class="panel-content">
+                        <div class="qr-wrapper">
+                            <img
+                                src="https://image.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png!w300"
+                                alt="扫码下载"
+                                class="qr-code"
+                            />
+                            <span class="qr-hint">扫码下载</span>
+                        </div>
+                        <el-button type="primary" class="goto-btn" @click="goToDownloadPage">
+                            <el-icon><Download /></el-icon>
+                            前往下载页面
+                        </el-button>
+                    </div>
+                </div>
+            </Transition>
+        </div>
+
+        <!-- 充值弹窗（居中） -->
+        <el-dialog
+            v-model="showRechargeDialog"
+            title="魔力值充值"
+            width="420px"
+            center
+            :close-on-click-modal="false"
+            @closed="onRechargeDialogClosed"
+        >
+            <div class="recharge-dialog-content">
+                <!-- 当前余额 -->
+                <div class="balance-section">
+                    <div class="balance-label">当前魔力值</div>
+                    <div class="balance-amount">¥{{ userStore.user?.depositBalance || 0 }}</div>
                 </div>
 
-                <div class="panel-content">
-                    <!-- 二维码 -->
-                    <div class="qr-wrapper">
-                        <img
-                            src="https://image.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png!w300"
-                            alt="扫码下载"
-                            class="qr-code"
-                        />
-                        <span class="qr-hint">扫码下载</span>
+                <!-- 充值金额 -->
+                <div class="amount-section">
+                    <div class="amount-label">充值金额</div>
+                    <div class="amount-value">¥51.00</div>
+                    <div class="amount-hint">含手续费¥1，实际到账¥50</div>
+                </div>
+
+                <!-- 二维码区域 -->
+                <div class="qrcode-section">
+                    <div v-if="loading" class="loading-state">
+                        <el-icon class="is-loading"><Loading /></el-icon>
+                        <span>正在生成支付二维码...</span>
                     </div>
 
-                    <!-- 跳转按钮 -->
-                    <el-button type="primary" class="goto-btn" @click="goToDownloadPage">
-                        <el-icon><Download /></el-icon>
-                        前往下载页面
-                    </el-button>
+                    <div v-else-if="qrCodeUrl" class="qrcode-display">
+                        <img :src="qrCodeUrl" alt="支付二维码" class="qrcode-img" />
+                        <div class="qrcode-hint">请使用微信扫一扫完成支付</div>
+                        <div v-if="countdown > 0" class="countdown">有效期剩余 {{ formatCountdown(countdown) }}</div>
+                        <div v-else class="countdown expired">二维码已过期，请刷新</div>
+                    </div>
+
+                    <div v-else-if="error" class="error-state">
+                        <el-icon><CircleClose /></el-icon>
+                        <span>{{ error }}</span>
+                        <el-button type="primary" size="small" @click="generateQRCode">重新生成</el-button>
+                    </div>
+
+                    <div v-else class="generate-btn-wrapper">
+                        <el-button type="primary" size="large" @click="generateQRCode" :loading="loading">
+                            <el-icon><Wallet /></el-icon>
+                            生成支付二维码
+                        </el-button>
+                    </div>
+                </div>
+
+                <!-- 充值说明 -->
+                <div class="recharge-tips">
+                    <div class="tips-title">充值说明</div>
+                    <ul class="tips-list">
+                        <li>充值金额：¥51（含手续费¥1）</li>
+                        <li>到账金额：¥50 魔力值</li>
+                        <li>支持微信扫码支付</li>
+                        <li>支付成功后立即到账</li>
+                    </ul>
                 </div>
             </div>
-        </Transition>
+        </el-dialog>
     </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Wallet, Trophy, Shop, User, ArrowUp, Close, Loading, CircleClose, Download } from '@element-plus/icons-vue'
+import { Wallet, Trophy, Shop, User, ArrowUp, Close, Loading, CircleClose, Download, SwitchButton } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { payApi } from '@/api/pay'
 import appReleaseAPI from '@/api/appRelease'
@@ -177,8 +235,8 @@ const userStore = useUserStore()
 
 // 状态管理
 const showBackTop = ref(false)
-const showRechargePanel = ref(false)
 const showDownloadPanel = ref(false)
+const showRechargeDialog = ref(false)
 const loading = ref(false)
 const qrCodeUrl = ref('')
 const countdown = ref(300)
@@ -197,7 +255,6 @@ const handleScroll = () => {
 
 onMounted(() => {
     window.addEventListener('scroll', handleScroll)
-    // 获取App版本信息
     fetchLatestVersion()
 })
 
@@ -221,23 +278,40 @@ const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-// 处理充值
-const handleRecharge = () => {
+// 用户面板
+const showUserPanel = ref(false)
+
+const toggleUserPanel = () => {
     closeDownloadPanel()
-    if (!userStore.isLogin) {
-        ElMessage.info('请先登录')
-        router.push('/auth/login?redirect=/deposit-payment')
-        return
-    }
-    showRechargePanel.value = !showRechargePanel.value
-    if (!showRechargePanel.value) {
-        clearAllTimers()
-        resetState()
-    }
+    showUserPanel.value = !showUserPanel.value
 }
 
-const closeRechargePanel = () => {
-    showRechargePanel.value = false
+const closeUserPanel = () => {
+    showUserPanel.value = false
+}
+
+const handleRechargeFromPanel = () => {
+    closeUserPanel()
+    openRechargeDialog()
+}
+
+const goToProfile = () => {
+    closeUserPanel()
+    ElMessage.info('个人中心功能开发中')
+}
+
+// 打开充值弹窗
+const openRechargeDialog = () => {
+    showRechargeDialog.value = true
+}
+
+// 关闭充值弹窗
+const closeRechargeDialog = () => {
+    showRechargeDialog.value = false
+}
+
+// 充值弹窗关闭回调
+const onRechargeDialogClosed = () => {
     clearAllTimers()
     resetState()
 }
@@ -266,7 +340,6 @@ const generateQRCode = async () => {
         qrCodeUrl.value = response.code_url
         orderNo.value = response.outTradeNo || Date.now().toString()
 
-        // 启动倒计时和轮询
         startCountdown()
         startPolling()
     } catch (err: any) {
@@ -304,9 +377,8 @@ const checkPaymentStatus = async () => {
             if (status.status === '已支付') {
                 ElMessage.success('支付成功！魔力值已到账')
                 clearAllTimers()
-                // 刷新用户信息
                 await userStore.getUserInfo()
-                closeRechargePanel()
+                closeRechargeDialog()
             }
         }
     } catch (err) {
@@ -336,7 +408,6 @@ const clearCountdownTimer = () => {
 
 // 下载面板
 const toggleDownloadPanel = () => {
-    closeRechargePanel()
     showDownloadPanel.value = !showDownloadPanel.value
 }
 
@@ -349,34 +420,29 @@ const goToDownloadPage = () => {
     router.push('/app-download')
 }
 
-// 去拍卖行
+// 导航
+const goToLogin = () => {
+    router.push('/auth/login')
+}
+
 const goToAuction = () => {
-    closeRechargePanel()
     closeDownloadPanel()
     router.push('/chat/auction/auction')
 }
 
-// 去交易站
 const goToTrading = () => {
-    closeRechargePanel()
     closeDownloadPanel()
     router.push('/forum/tradingPost')
 }
 
-// 处理用户点击
-const handleUser = () => {
-    closeRechargePanel()
-    closeDownloadPanel()
-    if (!userStore.isLogin) {
-        router.push('/auth/login')
-        return
-    }
-    ElMessage.info('个人中心功能开发中')
+const handleLogout = async () => {
+    closeUserPanel()
+    await userStore.logout()
+    router.push('/auth/login')
 }
 </script>
 
 <style lang="scss" scoped>
-// 网站主色调 - 暖色系复古游戏风格
 $primary-color: #833a00;
 $primary-light: #ae6f4d;
 $bg-light: #fff2e8;
@@ -389,9 +455,9 @@ $border-color: #ae6f4d;
     right: 20px;
     z-index: 100;
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 12px;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 10px;
 
     @media (max-width: 1200px) {
         top: 10px;
@@ -400,44 +466,44 @@ $border-color: #ae6f4d;
 }
 
 .toolbar-container {
+    position: relative;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
+    gap: 12px;
+    padding: 16px 12px;
     background: linear-gradient(135deg, $bg-card 0%, #ffe8d6 100%);
     border: 3px solid $border-color;
-    border-radius: 16px;
+    border-radius: 20px;
     box-shadow: 0 4px 12px rgba(131, 58, 0, 0.15);
 }
 
 .tool-item {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 6px;
-    padding: 8px 12px;
+    justify-content: center;
+    width: 60px;
+    height: 70px;
     cursor: pointer;
     border-radius: 12px;
     transition: all 0.3s ease;
     position: relative;
-    white-space: nowrap;
+    gap: 6px;
 
     &:hover {
         background: rgba(131, 58, 0, 0.15);
-        transform: translateY(-2px);
+        transform: scale(1.05);
     }
 
     &:active {
-        transform: scale(0.95);
-    }
-
-    &.has-badge {
-        padding-right: 20px;
+        transform: scale(0.98);
     }
 }
 
 .tool-icon {
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -447,52 +513,163 @@ $border-color: #ae6f4d;
     transition: all 0.3s ease;
 
     .el-icon {
-        font-size: 18px;
+        font-size: 22px;
         color: #fff;
     }
 }
 
 .tool-label {
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 600;
     color: $primary-color;
 }
 
-// 余额徽章
-.balance-badge {
+.download-icon {
+    background: #52c41a;
+    border-color: darken(#52c41a, 10%);
+}
+
+.back-top-icon {
+    background: $primary-light;
+    border-color: darken($primary-light, 10%);
+}
+
+.user-avatar {
+    border: 2px solid $border-color;
+}
+
+// 用户信息面板
+.user-panel {
     position: absolute;
-    top: -4px;
-    right: 0;
-    background: #d02129;
-    color: #fff;
-    font-size: 10px;
-    font-weight: bold;
-    padding: 2px 6px;
-    border-radius: 10px;
-    border: 1px solid #fff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
+    right: calc(100% + 10px);
+    top: 0;
+    width: 280px;
+    background: #fff;
+    border: 3px solid $border-color;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(131, 58, 0, 0.2);
+    overflow: hidden;
 
-// 用户项特殊样式
-.user-item {
-    .tool-icon {
-        background: $primary-light;
-        border-color: darken($primary-light, 10%);
+    .panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px;
+        background: linear-gradient(135deg, $bg-card 0%, #ffe8d6 100%);
+        border-bottom: 2px solid $border-color;
+
+        .user-info-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            .user-avatar-large {
+                border: 2px solid $border-color;
+            }
+
+            .user-meta {
+                .user-name {
+                    font-size: 16px;
+                    font-weight: 600;
+                    color: $primary-color;
+                    margin: 0 0 4px 0;
+                }
+
+                .user-id {
+                    font-size: 12px;
+                    color: $primary-light;
+                }
+            }
+        }
+    }
+
+    .panel-content {
+        padding: 16px;
+        background: $bg-light;
+
+        .balance-info {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding: 16px;
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid $border-color;
+
+            .balance-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+
+                .balance-label {
+                    font-size: 14px;
+                    color: #666;
+                }
+
+                .balance-value {
+                    font-size: 18px;
+                    font-weight: 600;
+                    color: $primary-color;
+                }
+
+                &.highlight {
+                    padding-top: 12px;
+                    border-top: 1px dashed #ddd;
+
+                    .balance-value {
+                        color: #d02129;
+                    }
+                }
+            }
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+
+            .action-btn {
+                width: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                padding: 12px 0;
+                margin-left: 0 !important;
+                background: $primary-color;
+                border-color: $primary-color;
+                color: #fff;
+
+                &:hover {
+                    background: darken($primary-color, 10%);
+                    border-color: darken($primary-color, 10%);
+                }
+
+                &.logout-btn {
+                    background: $primary-light;
+                    border-color: $primary-light;
+
+                    &:hover {
+                        background: darken($primary-light, 10%);
+                        border-color: darken($primary-light, 10%);
+                    }
+                }
+
+                .el-icon {
+                    font-size: 14px;
+                }
+            }
+        }
     }
 }
 
-// 下载项特殊样式
-.download-item {
-    .tool-icon {
-        background: #52c41a;
-        border-color: darken(#52c41a, 10%);
-    }
-}
-
-// 通用面板样式
-.recharge-panel,
+// 下载面板
 .download-panel {
-    width: 320px;
+    position: absolute;
+    right: calc(100% + 10px);
+    top: 0;
+    width: 280px;
     background: #fff;
     border: 3px solid $border-color;
     border-radius: 16px;
@@ -500,30 +677,53 @@ $border-color: #ae6f4d;
     overflow: hidden;
 }
 
-.slide-down-enter-active,
-.slide-down-leave-active {
+.slide-left-enter-active,
+.slide-left-leave-active {
     transition: all 0.3s ease;
 }
 
-.slide-down-enter-from,
-.slide-down-leave-to {
+.slide-left-enter-from,
+.slide-left-leave-to {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateX(20px);
 }
 
 .panel-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 20px;
+    padding: 16px;
     background: linear-gradient(135deg, $bg-card 0%, #ffe8d6 100%);
     border-bottom: 2px solid $border-color;
 
-    .panel-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: $primary-color;
-        margin: 0;
+    .app-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .app-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 2px solid $border-color;
+        }
+
+        .app-meta {
+            .panel-title {
+                font-size: 16px;
+                font-weight: 600;
+                color: $primary-color;
+                margin: 0 0 2px 0;
+            }
+
+            .version {
+                font-size: 12px;
+                color: $primary-light;
+                background: #fff;
+                padding: 2px 8px;
+                border-radius: 10px;
+            }
+        }
     }
 
     .close-btn {
@@ -547,232 +747,193 @@ $border-color: #ae6f4d;
 }
 
 .panel-content {
-    padding: 20px;
-    max-height: 500px;
-    overflow-y: auto;
-}
-
-// 余额区域
-.balance-section {
-    text-align: center;
     padding: 16px;
     background: $bg-light;
-    border-radius: 12px;
-    margin-bottom: 16px;
 
-    .balance-label {
-        font-size: 13px;
-        color: $primary-light;
-        margin-bottom: 4px;
-    }
-
-    .balance-amount {
-        font-size: 28px;
-        font-weight: bold;
-        color: $primary-color;
-    }
-}
-
-// 金额区域
-.amount-section {
-    text-align: center;
-    padding: 16px;
-    background: #f5f5f5;
-    border-radius: 12px;
-    margin-bottom: 16px;
-
-    .amount-label {
-        font-size: 13px;
-        color: #666;
-        margin-bottom: 4px;
-    }
-
-    .amount-value {
-        font-size: 24px;
-        font-weight: bold;
-        color: #52c41a;
-    }
-
-    .amount-hint {
-        font-size: 12px;
-        color: #999;
-        margin-top: 4px;
-    }
-}
-
-// 二维码区域
-.qrcode-section {
-    text-align: center;
-    padding: 16px;
-    background: #fff;
-    border: 2px dashed $border-color;
-    border-radius: 12px;
-    margin-bottom: 16px;
-    min-height: 200px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-
-    .loading-state {
+    .qr-wrapper {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 12px;
-        color: $primary-light;
+        margin-bottom: 16px;
 
-        .el-icon {
-            font-size: 32px;
-            animation: rotating 2s linear infinite;
-        }
-    }
-
-    .qrcode-display {
-        .qrcode-img {
-            width: 180px;
-            height: 180px;
+        .qr-code {
+            width: 140px;
+            height: 140px;
             border-radius: 8px;
             border: 2px solid $border-color;
+            background: #fff;
         }
 
-        .qrcode-hint {
-            margin-top: 12px;
-            font-size: 13px;
-            color: $primary-light;
-        }
-
-        .countdown {
+        .qr-hint {
             margin-top: 8px;
             font-size: 12px;
-            color: #666;
-
-            &.expired {
-                color: #d02129;
-                font-weight: bold;
-            }
+            color: $primary-light;
         }
     }
 
-    .error-state {
+    .goto-btn {
+        width: 100%;
+        background: $primary-color;
+        border-color: $primary-color;
+
+        &:hover {
+            background: darken($primary-color, 10%);
+            border-color: darken($primary-color, 10%);
+        }
+    }
+}
+
+// 充值弹窗样式
+.recharge-dialog-content {
+    .balance-section {
+        text-align: center;
+        padding: 20px;
+        background: $bg-light;
+        border-radius: 12px;
+        margin-bottom: 16px;
+
+        .balance-label {
+            font-size: 14px;
+            color: $primary-light;
+            margin-bottom: 8px;
+        }
+
+        .balance-amount {
+            font-size: 32px;
+            font-weight: bold;
+            color: $primary-color;
+        }
+    }
+
+    .amount-section {
+        text-align: center;
+        padding: 16px;
+        background: #f5f5f5;
+        border-radius: 12px;
+        margin-bottom: 16px;
+
+        .amount-label {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .amount-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #52c41a;
+        }
+
+        .amount-hint {
+            font-size: 12px;
+            color: #999;
+            margin-top: 4px;
+        }
+    }
+
+    .qrcode-section {
+        text-align: center;
+        padding: 16px;
+        background: #fff;
+        border: 2px dashed $border-color;
+        border-radius: 12px;
+        margin-bottom: 16px;
+        min-height: 200px;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 12px;
-        color: #d02129;
+        justify-content: center;
 
-        .el-icon {
-            font-size: 32px;
-        }
-    }
-
-    .generate-btn-wrapper {
-        .el-button {
-            background: $primary-color;
-            border-color: $primary-color;
-
-            &:hover {
-                background: darken($primary-color, 10%);
-                border-color: darken($primary-color, 10%);
-            }
-        }
-    }
-}
-
-// 充值说明
-.recharge-tips {
-    .tips-title {
-        font-size: 13px;
-        font-weight: 600;
-        color: $primary-color;
-        margin-bottom: 8px;
-    }
-
-    .tips-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-
-        li {
-            font-size: 12px;
-            color: $primary-light;
-            padding: 4px 0;
-            padding-left: 16px;
-            position: relative;
-
-            &::before {
-                content: '•';
-                position: absolute;
-                left: 6px;
-                color: $primary-color;
-            }
-        }
-    }
-}
-
-// 下载面板特殊样式
-.download-panel {
-    .panel-header {
-        .app-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-
-            .app-icon {
-                width: 40px;
-                height: 40px;
-                border-radius: 10px;
-                border: 2px solid $border-color;
-            }
-
-            .app-meta {
-                .panel-title {
-                    font-size: 16px;
-                    margin-bottom: 2px;
-                }
-
-                .version {
-                    font-size: 12px;
-                    color: $primary-light;
-                    background: #fff;
-                    padding: 2px 8px;
-                    border-radius: 10px;
-                }
-            }
-        }
-    }
-
-    .panel-content {
-        background: $bg-light;
-
-        .qr-wrapper {
+        .loading-state {
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-bottom: 16px;
+            gap: 12px;
+            color: $primary-light;
 
-            .qr-code {
-                width: 140px;
-                height: 140px;
-                border-radius: 8px;
-                border: 2px solid $border-color;
-                background: #fff;
-            }
-
-            .qr-hint {
-                margin-top: 8px;
-                font-size: 12px;
-                color: $primary-light;
+            .el-icon {
+                font-size: 32px;
+                animation: rotating 2s linear infinite;
             }
         }
 
-        .goto-btn {
-            width: 100%;
-            background: $primary-color;
-            border-color: $primary-color;
+        .qrcode-display {
+            .qrcode-img {
+                width: 180px;
+                height: 180px;
+                border-radius: 8px;
+                border: 2px solid $border-color;
+            }
 
-            &:hover {
-                background: darken($primary-color, 10%);
-                border-color: darken($primary-color, 10%);
+            .qrcode-hint {
+                margin-top: 12px;
+                font-size: 13px;
+                color: $primary-light;
+            }
+
+            .countdown {
+                margin-top: 8px;
+                font-size: 12px;
+                color: #666;
+
+                &.expired {
+                    color: #d02129;
+                    font-weight: bold;
+                }
+            }
+        }
+
+        .error-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            color: #d02129;
+
+            .el-icon {
+                font-size: 32px;
+            }
+        }
+
+        .generate-btn-wrapper {
+            .el-button {
+                background: $primary-color;
+                border-color: $primary-color;
+
+                &:hover {
+                    background: darken($primary-color, 10%);
+                    border-color: darken($primary-color, 10%);
+                }
+            }
+        }
+    }
+
+    .recharge-tips {
+        .tips-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: $primary-color;
+            margin-bottom: 8px;
+        }
+
+        .tips-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+
+            li {
+                font-size: 12px;
+                color: $primary-light;
+                padding: 4px 0;
+                padding-left: 16px;
+                position: relative;
+
+                &::before {
+                    content: '•';
+                    position: absolute;
+                    left: 6px;
+                    color: $primary-color;
+                }
             }
         }
     }
@@ -787,33 +948,29 @@ $border-color: #ae6f4d;
     }
 }
 
-// 响应式：小屏幕隐藏部分元素
+// 响应式
 @media (max-width: 768px) {
     .toolbar-container {
-        padding: 6px 8px;
-        gap: 4px;
+        padding: 8px 6px;
+        gap: 6px;
     }
 
     .tool-item {
-        padding: 6px 8px;
-    }
-
-    .tool-label {
-        font-size: 12px;
+        width: 36px;
+        height: 36px;
     }
 
     .tool-icon {
-        width: 30px;
-        height: 30px;
+        width: 32px;
+        height: 32px;
 
         .el-icon {
-            font-size: 15px;
+            font-size: 16px;
         }
     }
 
-    .recharge-panel,
     .download-panel {
-        width: 280px;
+        width: 260px;
     }
 }
 </style>
