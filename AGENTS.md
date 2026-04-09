@@ -25,6 +25,41 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 
 **UniApp**: `cd molitao_uniapp && npm run dev:h5` | `npm run dev:mp-weixin` | `npm run build` | `npm run type-check` | `npm run lint:fix`
 
+**H5 部署**: 使用 skill `molitao-h5-deploy` 或执行：
+```bash
+# 1. 备份 + 上传
+ssh molitao "mv /www/wwwroot/molitao-h5 /www/wwwroot/molitao-h5.bak-$(date +%Y%m%d_%H%M%S) && mkdir -p /www/wwwroot/molitao-h5"
+scp -r molitao_h5/dist/build/h5/* molitao:/www/wwwroot/molitao-h5/
+# 2. 重载 Nginx
+ssh molitao "nginx -t && nginx -s reload"
+# 3. 验证
+curl -I https://www.molitao.top/h5/
+```
+
+**PC 端部署**: 构建生产版本并上传到服务器
+```bash
+# 1. 构建
+cd pc && pnpm run build:prod
+
+# 2. 备份（可选）
+ssh molitao "cd /www/wwwroot/www.molitao.top && tar -czf ../www.molitao.top-bak-$(date +%Y%m%d_%H%M%S).tar.gz *"
+
+# 3. 上传（注意：上传到 /www/wwwroot/www.molitao.top/，不是 wwwroot 子目录）
+scp -r pc/dist/* molitao:/www/wwwroot/www.molitao.top/
+
+# 4. 重载 Nginx
+ssh molitao "nginx -t && nginx -s reload"
+
+# 5. 验证
+curl -I https://www.molitao.top/
+```
+
+**重要提醒**：
+- PC 端 Nginx root 配置为 `/www/wwwroot/www.molitao.top`
+- 上传路径：`scp pc/dist/* molitao:/www/wwwroot/www.molitao.top/`
+- ❌ 错误路径：`/www/wwwroot/www.molitao.top/wwwroot/`
+- ✅ 正确路径：`/www/wwwroot/www.molitao.top/`
+
 **Monitor UI**: `cd monitor-ui && npm run dev` | `npm run build`
 
 ## Code Style (KISS)
