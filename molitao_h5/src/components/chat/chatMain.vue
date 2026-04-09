@@ -1,7 +1,7 @@
 <template>
     <view class="chatInterface" @contextmenu.prevent="">
         <view id="scrollview" class="scroll-view">
-            <image v-if="history.loading" class="history-loaded" src="./static/images/loading.svg" />
+            <image v-if="history.loading" class="history-loaded" src="../../static/images/loading.svg" />
             <view v-else :class="history.allLoaded ? 'history-loaded' : 'load'" @click="loadHistoryMessage(false)">
                 <view>{{ history.allLoaded ? '已经没有更多的历史消息' : '点击获取历史消息' }}</view>
             </view>
@@ -140,11 +140,11 @@
                     @confirm="sendTextMessage"
                 />
                 <view @click="switchEmojiKeyboard">
-                    <image v-if="emoji.visible" class="more" src="./static/images/jianpan.png"></image>
-                    <image v-else class="more" src="./static/images/emoji.png"></image>
+                    <image v-if="emoji.visible" class="more" src="../../static/images/jianpan.png"></image>
+                    <image v-else class="more" src="../../static/images/emoji.png"></image>
                 </view>
                 <view>
-                    <image class="more" src="./static/images/more.png" @click="showOtherTypesMessagePanel()" />
+                    <image class="more" src="../../static/images/more.png" @click="showOtherTypesMessagePanel()" />
                 </view>
                 <view v-if="text" class="send-btn-box">
                     <text class="btn" @click="sendTextMessage">发送</text>
@@ -195,7 +195,7 @@
                     <view class="size-6 text-red i-mdi:close"></view>
                 </view>
                 <view class="more-icon">
-                    <image class="operation-icon" src="./static/images/picture.png" @click="sendImageMessage2()"></image>
+                    <image class="operation-icon" src="../../static/images/picture.png" @click="sendImageMessage2()"></image>
                     <view class="operation-title">图片</view>
                 </view>
             </view>
