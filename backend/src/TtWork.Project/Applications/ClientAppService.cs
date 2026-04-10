@@ -538,20 +538,26 @@ public class ClientAppService(
             return new List<ChatListItem>();
         }
 
-        // ===== 版本控制过滤逻辑 =====
-        var currentVersion = _abpSession.GetAppVersion();
-        var stableVersion = await SettingManager.GetSettingValueAsync(AppSettings.VersionControl.LatestStableVersion);
-        var shouldShowAuction = VersionComparer.ShouldShowAuction(currentVersion, stableVersion);
+        // ===== 版本控制过滤逻辑（仅针对 uniapp 小程序） =====
+        // 通过 X-Platform 请求头识别平台，mp-weixin = 微信小程序
+        var platform = httpContextAccessor?.HttpContext?.Request.Headers["X-Platform"].FirstOrDefault();
+        var isMpWeixin = platform == "mp-weixin";
 
-        // 获取请求头中的原始值用于调试
-        var httpContextAccessor = IocManager.Instance.Resolve<IHttpContextAccessor>();
-        var requestHeaders = httpContextAccessor?.HttpContext?.Request.Headers;
-        var appVersionHeaderValue = requestHeaders?["AppVersion"].FirstOrDefault();
+        // 只对 uniapp 小程序请求应用版本过滤，其他平台（PC/H5）始终显示拍卖场
+        bool shouldShowAuction = true;
+        if (isMpWeixin)
+        {
+            var currentVersion = _abpSession.GetAppVersion();
+            var stableVersion = await SettingManager.GetSettingValueAsync(AppSettings.VersionControl.LatestStableVersion);
+            shouldShowAuction = VersionComparer.ShouldShowAuction(currentVersion, stableVersion);
 
-        logger.LogInformation(
-            $"[GetChatList] Step 3 - currentVersion: [{currentVersion}], stableVersion: [{stableVersion}], shouldShowAuction: {shouldShowAuction}");
-        logger.LogInformation(
-            $"[GetChatList] Step 3b - RequestHeader AppVersion: [{appVersionHeaderValue}], Headers count: {requestHeaders?.Count}");
+            logger.LogInformation(
+                $"[GetChatList] Step 3 - Platform: [{platform}], currentVersion: [{currentVersion}], stableVersion: [{stableVersion}], shouldShowAuction: {shouldShowAuction}");
+        }
+        else
+        {
+            logger.LogInformation($"[GetChatList] Step 3 - Platform: [{platform ?? "unknown"}], skipping version filter, shouldShowAuction: true");
+        }
         // ===== 版本控制过滤逻辑结束 =====
 
         var privateUserIds = channels
