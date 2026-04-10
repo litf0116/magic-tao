@@ -24,7 +24,7 @@ export interface CreatePaymentOrderResponse {
  * console.log(result.code_url) // 二维码 URL
  * console.log(result.outTradeNo) // 订单号
  */
-export function createPaymentOrder(amount: number = 51): Promise<CreatePaymentOrderResponse> {
+export function createPaymentOrder(amount = 51): Promise<CreatePaymentOrderResponse> {
     const url = '/api/services/app/Client/PayDepositNative'
     return request({
         method: 'get',
