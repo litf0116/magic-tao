@@ -173,10 +173,10 @@ export class H5PushService {
                 body: JSON.stringify({
                     endpoint: subscription.endpoint,
                     keys: {
-                        p256dh: this.arrayBufferToBase64(subscription.getKey('p256dh')!),
-                        auth: this.arrayBufferToBase64(subscription.getKey('auth')!),
+                        P256Dh: this.arrayBufferToBase64(subscription.getKey('p256dh')!),
+                        Auth: this.arrayBufferToBase64(subscription.getKey('auth')!),
                     },
-                    platform: 'h5',
+                    deviceName: 'H5 Browser',
                 }),
             })
 

@@ -25,6 +25,10 @@ export default defineConfig({
                 changeOrigin: true,
             },
         },
+        // 修复 Service Worker MIME 类型问题
+        headers: {
+            'Content-Type': 'application/javascript; charset=utf-8',
+        },
     },
     build: {
         sourcemap: false,

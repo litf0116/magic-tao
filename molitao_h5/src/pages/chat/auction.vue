@@ -105,6 +105,7 @@ import { onLoad, onShow, onReady } from '@dcloudio/uni-app'
 import { ChatMessageType } from '@/composables/types'
 import { nextTick, onUnmounted } from 'vue'
 import { pushService } from '@/utils/push'
+import { H5PushService } from '@/utils/pushH5'
 
 // import AuctionList from '@/components/chat/AuctionList.vue'
 const chatStore = useChatStore()
@@ -279,6 +280,30 @@ function sub(e: AuctionItemDto) {
         .catch((error: any) => {
             Tips.error(error?.message || '订阅失败，请重试')
         })
+    // #endif
+
+    // #ifdef H5
+    // H5：使用 Web Push
+    ;(async () => {
+        try {
+            const h5PushService = new H5PushService()
+            const inited = await h5PushService.init()
+            if (!inited) {
+                Tips.info('正在初始化推送服务...')
+                return
+            }
+            const success = await h5PushService.requestPermission()
+            if (success) {
+                await auctionStore.startNotify(e.id!, 'h5')
+                Tips.success('订阅成功，秒杀开始时将推送通知')
+            } else {
+                Tips.info('请允许接受通知')
+            }
+        } catch (error: any) {
+            console.error('[H5] 订阅失败:', error)
+            Tips.error(error?.message || '订阅失败，请重试')
+        }
+    })()
     // #endif
 }
 

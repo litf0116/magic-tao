@@ -33,29 +33,22 @@
         <div id="app"><!--app-html--></div>
         <script type="module" src="/src/main.ts"></script>
         <script>
-            const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            if ('serviceWorker' in navigator && !isDev && window.location.protocol === 'https:') {
+            // 支持 localhost 测试 WebPush（开发环境）
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const allowSW = isLocalhost || window.location.protocol === 'https:';
+
+            if ('serviceWorker' in navigator && allowSW) {
                 window.addEventListener('load', function() {
-                    navigator.serviceWorker.register('./sw.js?v=20260410')
+                    navigator.serviceWorker.register('./sw.js')
                         .then(function(registration) {
-                            console.log('[SW] Service Worker 注册成功:', registration.scope);
+                            console.log('[SW] Service Worker 注册成功:', registration.scope, isLocalhost ? '(开发环境)' : '(生产环境)');
                         })
                         .catch(function(error) {
                             console.error('[SW] Service Worker 注册失败:', error);
                         });
                 });
-            } else if ('serviceWorker' in navigator && !isDev && window.location.hostname === 'localhost') {
-                window.addEventListener('load', function() {
-                    navigator.serviceWorker.register('./sw.js?v=20260410')
-                        .then(function(registration) {
-                            console.log('[SW] Service Worker 注册成功 (localhost):', registration.scope);
-                        })
-                        .catch(function(error) {
-                            console.error('[SW] Service Worker 注册失败:', error);
-                        });
-                });
-            } else if (isDev) {
-                console.log('[SW] 开发模式跳过 Service Worker');
+            } else {
+                console.log('[SW] 当前环境不支持 Service Worker:', window.location.protocol, window.location.hostname);
             }
         </script>
     </body>

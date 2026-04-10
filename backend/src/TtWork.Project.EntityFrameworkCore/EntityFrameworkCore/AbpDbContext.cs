@@ -34,6 +34,7 @@ namespace TtWork.Project.EntityFrameworkCore {
         public DbSet<BanedUser> BanedUsers { get; set; }
         public DbSet<SensitiveWord> SensitiveWords { get; set; }
         public DbSet<AuctionStartNotify> AuctionStartNotify { get; set; }
+        public DbSet<PushSubscription> PushSubscriptions { get; set; }
         public DbSet<ChatGroup> ChatGroups { get; set; }
         public DbSet<ChatEmoji> ChatEmoji { get; set; }
         public DbSet<ChatListDelete> ChatListDelete { get; set; }

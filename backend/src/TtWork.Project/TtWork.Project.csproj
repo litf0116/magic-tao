@@ -30,6 +30,7 @@
       <PackageReference Include="SKIT.FlurlHttpClient.Wechat.TenpayV3" Version="3.9.0" />
       <PackageReference Include="TTWork.WeiXinMiddleware" Version="8.0.1" />
       <PackageReference Include="Jiguang.JPush" Version="1.2.5" />
+        <PackageReference Include="WebPush" Version="1.0.11" />
     </ItemGroup>
     <ItemGroup>
       <Folder Include="Events\Handles\" />

@@ -92,6 +92,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     private readonly IMemoryCache _memoryCache;
     private readonly IRepository<UserLogin, long> _userLoginRepository;
     private readonly IJPushService _jPushService;
+    private readonly IWebPushService _webPushService;
 
     // 内存锁字典（替代 Redis 分布式锁）
     private static readonly ConcurrentDictionary<long, SemaphoreSlim> _auctionLocks = new();
@@ -119,7 +120,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         IMessageSendingService messageSendingService,
         IBidEligibilityService bidEligibilityService,
         IRepository<UserLogin, long> userLoginRepository,
-        IJPushService jPushService) : base(repository, iocManager)
+        IJPushService jPushService,
+        IWebPushService webPushService) : base(repository, iocManager)
     {
         _sqlSugarClient = sqlSugarClient;
         _userCache = userCache;
@@ -146,6 +148,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         _bidEligibilityService = bidEligibilityService;
         _memoryCache = memoryCache;
         _jPushService = jPushService;
+        _webPushService = webPushService;
     }
 
 
@@ -268,6 +271,45 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "极光推送发送异常");
+                }
+            }
+        }
+
+        // 3. 发送 WebPush（H5端）
+        var h5Subscribers = subscribers
+            .Where(x => x.Platform == "h5" && x.UserId.HasValue)
+            .Select(x => x.UserId!.Value)
+            .Distinct()
+            .ToList();
+
+        if (h5Subscribers.Count > 0)
+        {
+            _logger.LogInformation("发送 WebPush(H5): {Count} 个用户", h5Subscribers.Count);
+
+            foreach (var userId in h5Subscribers)
+            {
+                try
+                {
+                    var result = await _webPushService.SendPushAsync(
+                        userId,
+                        title,
+                        content,
+                        null,
+                        $"/pages/chat/auction?id={id}"
+                    );
+
+                    if (result.Success)
+                    {
+                        _logger.LogInformation("WebPush 发送成功: UserId={UserId}", userId);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("WebPush 发送失败: UserId={UserId}, Error={Error}", userId, result.ErrorMessage);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "WebPush 发送异常: UserId={UserId}", userId);
                 }
             }
         }
