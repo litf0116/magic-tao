@@ -2210,7 +2210,7 @@ export class ChatGroupService {
 
 export class ClientService {
     /**
-     * 保证金支付
+     * 诚信履约金支付
      */
     static payDeposit(
         params: {
@@ -2218,7 +2218,7 @@ export class ClientService {
             openid?: string
             /**  */
             type?: string
-            /** 支付金额，如果不指定则使用默认保证金金额 */
+            /** 支付金额，如果不指定则使用默认诚信履约金金额 */
             amount?: number
         } = {} as any,
         options: IRequestOptions = {}
@@ -6272,7 +6272,7 @@ export interface UserEditDto {
     /** 微信号 */
     wx?: string
     /**
-     * 保证金
+     * 诚信履约金
      */
     depositBalance: number
 }
@@ -6302,7 +6302,7 @@ export interface UserLoginInfoDto {
     balance: number
 
     /**
-     * 保证金
+     * 诚信履约金
      */
     depositBalance: number
 

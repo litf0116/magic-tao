@@ -18,7 +18,7 @@
         <el-form-item label="手机" prop="user.phoneNumber">
             <el-input v-model="form.user.phoneNumber" type="number" maxlength="11" />
         </el-form-item>
-        <el-form-item label="保证金" prop="user.depositBalance">
+        <el-form-item label="诚信履约金" prop="user.depositBalance">
             <el-input v-model="form.user.depositBalance" type="number" maxlength="11" />
         </el-form-item>
         <el-form-item v-if="form.user.detail" label="企业微信号" prop="user.detail.WechatWorkAcctId">

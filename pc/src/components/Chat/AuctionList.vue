@@ -320,8 +320,8 @@ async function bid() {
         })
 
         if (userLevel === 0 && deposit < 50) {
-            console.log('新用户保证金不足:', { userLevel, deposit })
-            ElMessageBox.confirm('新用户参与拍卖，需要缴纳 51 元（50 元保证金 +1 元提现手续费）。', '出价须知', {
+            console.log('新用户诚信履约金不足:', { userLevel, deposit })
+            ElMessageBox.confirm('新用户参与拍卖，需要缴纳 51 元（50 元诚信履约金 +1 元提现手续费）。', '出价须知', {
                 confirmButtonText: '去缴纳',
                 cancelButtonText: '取消',
                 type: 'warning',

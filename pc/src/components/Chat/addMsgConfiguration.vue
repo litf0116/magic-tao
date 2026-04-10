@@ -44,7 +44,7 @@ const formFields = reactive([
         id: 0,
         type: 1,
         msg: '',
-        label: '新用户出价保证金余额不足提示',
+        label: '新用户出价诚信履约金余额不足提示',
         prop: 'msg',
     },
 ])

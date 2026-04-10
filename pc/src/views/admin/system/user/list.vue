@@ -24,7 +24,7 @@
             <el-table-column label="用户名" prop="userName" sortable />
             <el-table-column label="QQ" prop="qq" sortable />
             <el-table-column label="微信" prop="wx" sortable />
-            <el-table-column label="保证金" prop="depositBalance" />
+            <el-table-column label="诚信履约金" prop="depositBalance" />
             <!-- <el-table-column label="手机号码" prop="phoneNumber" /> -->
             <el-table-column align="center" width="200px">
                 <template #default="scope">

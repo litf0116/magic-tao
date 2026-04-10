@@ -2,7 +2,7 @@
  * 支付场景配置
  */
 export const PAYMENT_SCENARIOS = {
-    /** 保证金充值 */
+    /** 诚信履约金充值 */
     DEPOSIT: 'deposit',
     /** 会员认证 */
     MEMBER_VERIFICATION: 'member_verification',
@@ -12,9 +12,9 @@ export const PAYMENT_SCENARIOS = {
  * 支付金额配置（单位：元）
  */
 export const PAYMENT_AMOUNTS = {
-    /** 保证金充值金额：51 元（50 保证金 + 1 平台费） */
+    /** 诚信履约金充值金额：51 元（50 诚信履约金 + 1 平台费） */
     DEPOSIT_TOTAL: 51,
-    /** 保证金金额 */
+    /** 诚信履约金金额 */
     DEPOSIT_BASE: 50,
     /** 平台服务费 */
     PLATFORM_FEE: 1,

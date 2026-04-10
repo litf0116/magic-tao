@@ -15,7 +15,7 @@
                     <span v-if="userStore.isLogin">
                         当前魔力值：<strong class="balance">¥{{ userStore.user.depositBalance || 0 }}</strong>
                     </span>
-                    <span v-else> 参与竞拍需要缴纳保证金，支持微信扫码支付 </span>
+                    <span v-else> 参与竞拍需要缴纳诚信履约金，支持微信扫码支付 </span>
                 </p>
             </div>
 

@@ -66,7 +66,7 @@ async function checkDepositAndSend(e: { type: ChatMessageType; data: string | ob
     const userLevel = levelResponse?.data?.levelSettings?.level ?? 0
 
     if (userLevel === 0 && deposit < 50) {
-        ElMessage.warning('新用户参与竞拍需要缴纳保证金 (50 元)')
+        ElMessage.warning('新用户参与竞拍需要缴纳诚信履约金 (50 元)')
         return false
     }
 

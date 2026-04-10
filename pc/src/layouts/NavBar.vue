@@ -20,7 +20,7 @@
                 <template #dropdown>
                     <el-dropdown-menu>
                         <div class="px-4 py-2 text-sm text-gray-600 border-b">
-                            保证金余额：¥{{ userStore.user.depositBalance || 0 }}
+                            诚信履约金余额：¥{{ userStore.user.depositBalance || 0 }}
                         </div>
                         <el-dropdown-item :command="Command.changePassword">修改密码</el-dropdown-item>
                         <el-dropdown-item divided :command="Command.logout">退出登录</el-dropdown-item>

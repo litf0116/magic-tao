@@ -92,7 +92,7 @@
                                 <span class="balance-value">¥{{ userStore.user.balance || 0 }}</span>
                             </div>
                             <div class="balance-item highlight">
-                                <span class="balance-label">保证金</span>
+                                <span class="balance-label">诚信履约金</span>
                                 <span class="balance-value">¥{{ userStore.user.depositBalance || 0 }}</span>
                             </div>
                         </div>
@@ -101,7 +101,7 @@
                         <div class="action-buttons">
                             <el-button type="primary" class="action-btn" @click="handleRechargeFromPanel">
                                 <el-icon><Wallet /></el-icon>
-                                保证金充值
+                                诚信履约金充值
                             </el-button>
                             <el-button class="action-btn" @click="goToProfile">
                                 <el-icon><User /></el-icon>

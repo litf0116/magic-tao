@@ -25,7 +25,7 @@
                 </tt-upload>
 
                 <div style="width: 75%; text-align: center">
-                    保证金：¥{{ form.depositBalance }}
+                    诚信履约金：¥{{ form.depositBalance }}
                     <div style="margin-top: 10px">
                         <el-button type="success" @click="handleDeposit"> 充值 </el-button>
                         <el-button type="primary" @click="withdrawDialogVisible = true"> 提现 </el-button>
@@ -62,7 +62,7 @@
     </el-dialog>
 
     <withdrawDialog v-model:show="withdrawDialogVisible" title="提示" :show-cancel="false" @confirm="handleConfirm">
-        <div>平台提现功能尚未完善，保证金退款，请加管理员老淡QQ：383875411，微信：18845639111，私信扫码退款。</div>
+        <div>平台提现功能尚未完善，诚信履约金退款，请加管理员老淡QQ：383875411，微信：18845639111，私信扫码退款。</div>
     </withdrawDialog>
 </template>
 
