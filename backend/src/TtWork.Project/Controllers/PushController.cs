@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Abp.AspNetCore.Mvc.Controllers;
+using Abp.Authorization;
 using Abp.Auditing;
 using Abp.Domain.Repositories;
 using Microsoft.AspNetCore.Mvc;
@@ -24,6 +25,7 @@ public class PushKeys
 
 [Route("api/push")]
 [DisableAuditing]
+[AbpAuthorize]
 public class PushController : AbpController
 {
     private readonly IRepository<PushSubscription, long> _pushSubscriptionRepository;
