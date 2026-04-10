@@ -53,6 +53,12 @@ namespace TtWork.Project.EntityFrameworkCore.Seed.Host
                 "20260401@1.1.9",
                 tenantId
             );
+
+            AddSettingIfNotExists(
+                TtWork.Project.Core.AppSettings.FeatureSwitch.ShowBannerMaxVersionMpWeixin,
+                "20260401@1.1.9",
+                tenantId
+            );
         }
 
         private void AddSettingIfNotExists(string name, string value, int? tenantId = null)

@@ -5,6 +5,7 @@ using Abp.Application.Services;
 using Abp.Authorization;
 using Abp.Configuration;
 using Abp.Dependency;
+using Abp.Runtime.Caching;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TtWork.Abp.Definitions;
@@ -17,13 +18,18 @@ public class AppFeatureSwitchAppService : ApplicationService
 {
     private readonly ISettingManager _settingManager;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ICacheManager _cacheManager;
 
     private static readonly string[] Features = { "ShowAuction", "ShowTradingPost", "ShowBanner" };
 
-    public AppFeatureSwitchAppService(ISettingManager settingManager, IHttpContextAccessor httpContextAccessor)
+    public AppFeatureSwitchAppService(
+        ISettingManager settingManager, 
+        IHttpContextAccessor httpContextAccessor,
+        ICacheManager cacheManager)
     {
         _settingManager = settingManager;
         _httpContextAccessor = httpContextAccessor;
+        _cacheManager = cacheManager;
     }
 
     [HttpGet]
@@ -190,6 +196,10 @@ public class AppFeatureSwitchAppService : ApplicationService
     {
         var settingName = $"AppFeatures.{input.Feature}.MaxVersion.{input.Platform}";
         await _settingManager.ChangeSettingForApplicationAsync(settingName, input.MaxVersion);
+        
+        // 清除设置缓存以确保所有实例都能获取最新值
+        var settingCache = _cacheManager.GetCache("AbpZeroSettingCache");
+        await settingCache.ClearAsync();
     }
 }
 
