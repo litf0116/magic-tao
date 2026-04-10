@@ -1,20 +1,7 @@
 <template>
     <scroll-view class="conversations" scroll-y="true">
-        <!-- 未登录时显示游客提示 -->
-        <view v-if="!isLoggedIn" class="guest-container">
-            <view class="guest-content">
-                <view class="guest-icon-text">
-                    <text>💬</text>
-                </view>
-                <text class="guest-title">登录后查看会话消息</text>
-                <text class="guest-desc">与好友聊天、参与群组讨论</text>
-                <view class="guest-btn" @tap="goLogin">
-                    <text>立即登录</text>
-                </view>
-            </view>
-        </view>
-        <!-- 已登录时显示会话列表 -->
-        <view v-else-if="chatStore.chatList.length">
+        <!-- 会话列表 -->
+        <view v-if="chatStore.chatList.length">
             <view
                 v-for="(x, key) in orderBy(chatStore.chatList, ['order'], ['desc'])"
                 :key="key"
@@ -120,7 +107,7 @@
 
 <script setup lang="ts">
 import { onLoad, onShow, onUnload } from '@dcloudio/uni-app'
-import { ref, reactive, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
 import { Goto } from '@/composables/goto'
 import { orderBy } from 'lodash'
 import { getImgUrl } from '@/composables'
@@ -130,20 +117,13 @@ import type { ChatListItem, ChatMessage } from '@/composables/types'
 const chatStore: any = useChatStore()
 const userStore = useUserStore()
 
-// 登录状态
-const isLoggedIn = computed(() => !!userStore.token)
-
-// 跳转登录页（用户主动选择）
-const goLogin = () => {
-    uni.navigateTo({
-        url: '/pages/index/login',
-    })
-}
-
 //初始化
 const init = () => {
-    // 移除强制登录检查，改为游客浏览模式
+    // 未登录时直接跳转登录页
     if (!userStore.token) {
+        uni.navigateTo({
+            url: '/pages/index/login',
+        })
         return
     }
     chatStore.getChatList()
@@ -151,6 +131,11 @@ const init = () => {
         //todo
     })
 }
+
+// 页面显示时检查登录状态
+onShow(() => {
+    init()
+})
 const actionPopup = reactive({
     visible: false,
     conversation: null as ChatMessage | null,
@@ -234,55 +219,6 @@ defineExpose({
     flex-direction: column;
     box-sizing: border-box;
     height: 100%;
-}
-
-// 游客空状态样式
-.guest-container {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 60rpx 40rpx;
-}
-
-.guest-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-}
-
-.guest-icon-text {
-    width: 200rpx;
-    height: 200rpx;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 120rpx;
-    margin-bottom: 40rpx;
-}
-
-.guest-title {
-    font-size: 36rpx;
-    color: #333;
-    font-weight: 500;
-    margin-bottom: 20rpx;
-}
-
-.guest-desc {
-    font-size: 28rpx;
-    color: #999;
-    margin-bottom: 60rpx;
-}
-
-.guest-btn {
-    background: #f4835a;
-    color: #fff;
-    padding: 24rpx 80rpx;
-    border-radius: 48rpx;
-    font-size: 32rpx;
 }
 
 .scroll-item {

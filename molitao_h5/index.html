@@ -36,7 +36,7 @@
             const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
             if ('serviceWorker' in navigator && !isDev && window.location.protocol === 'https:') {
                 window.addEventListener('load', function() {
-                    navigator.serviceWorker.register('./sw.js')
+                    navigator.serviceWorker.register('./sw.js?v=20260410')
                         .then(function(registration) {
                             console.log('[SW] Service Worker 注册成功:', registration.scope);
                         })
@@ -46,7 +46,7 @@
                 });
             } else if ('serviceWorker' in navigator && !isDev && window.location.hostname === 'localhost') {
                 window.addEventListener('load', function() {
-                    navigator.serviceWorker.register('./sw.js')
+                    navigator.serviceWorker.register('./sw.js?v=20260410')
                         .then(function(registration) {
                             console.log('[SW] Service Worker 注册成功 (localhost):', registration.scope);
                         })

@@ -6,7 +6,7 @@ import UniLayouts from '@uni-helper/vite-plugin-uni-layouts'
 
 export default defineConfig({
     publicDir: 'public',
-    base: '/h5/',
+    base: './',
     define: {
         __APP_VERSION__: '"20260407@1.2.0"',
     },

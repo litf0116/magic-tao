@@ -231,15 +231,13 @@ function payDeposit() {
     // #endif
 
     // #ifdef H5
-    api.client.payDeposit({ amount: 51, type: 'h5' }).then((res: any) => {
-        if (res.h5_url) {
-            const redirectUrl = encodeURIComponent(window.location.origin + '/pages/index/my?from=h5pay')
-            window.location.href = res.h5_url + '&redirect_url=' + redirectUrl
-        } else {
-            Tips.error('获取支付链接失败')
-        }
-    }).catch(() => {
-        Tips.info('用户取消支付')
+    // H5 端提示用户去 PC 端扫码支付
+    uni.showModal({
+        title: '充值提示',
+        content:
+            'H5端暂不支持在线充值\n\n请登录PC端完成魔力值充值：\nwww.molitao.top\n\n💡 操作步骤：\n1. 登录PC端\n2. 点击右上角用户名\n3. 选择"保证金充值"\n4. 扫码支付\n\n支持微信扫码支付哦~',
+        showCancel: false,
+        confirmText: '我知道了',
     })
     // #endif
 

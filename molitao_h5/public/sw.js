@@ -6,7 +6,7 @@
  * 3. 通知点击处理
  */
 
-const CACHE_NAME = 'molitao-pwa-v1'
+const CACHE_NAME = 'molitao-pwa-v20260410'
 const API_CACHE_NAME = 'molitao-api-v1'
 const STATIC_CACHE_LIST = [
   './',
@@ -20,6 +20,8 @@ const STATIC_CACHE_LIST = [
 // 安装事件：缓存静态资源
 self.addEventListener('install', (event) => {
   console.log('[SW] Service Worker 安装中...')
+  // 立即激活新 SW，不等待旧页面关闭
+  self.skipWaiting()
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('[SW] 缓存静态资源')
