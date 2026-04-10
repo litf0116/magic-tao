@@ -26,10 +26,6 @@ const chatStore = useChatStore()
 const userStore = useUserStore()
 const router = useRouter()
 
-const goToDepositPayment = () => {
-    router.push('/chat/deposit-payment')
-}
-
 const chatRef = ref<InstanceType<typeof chatMain> | null>(null)
 
 onMounted(() => {
@@ -71,7 +67,6 @@ async function checkDepositAndSend(e: { type: ChatMessageType; data: string | ob
 
     if (userLevel === 0 && deposit < 50) {
         ElMessage.warning('新用户参与竞拍需要缴纳保证金 (50 元)')
-        goToDepositPayment()
         return false
     }
 

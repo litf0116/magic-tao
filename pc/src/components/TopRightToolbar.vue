@@ -58,7 +58,7 @@
 
             <!-- 回到顶部 -->
             <el-tooltip content="回到顶部" placement="left">
-                <div class="tool-item" v-show="showBackTop" @click="scrollToTop">
+                <div v-show="showBackTop" class="tool-item" @click="scrollToTop">
                     <div class="tool-icon back-top-icon">
                         <el-icon><ArrowUp /></el-icon>
                     </div>
@@ -194,7 +194,7 @@
                     </div>
 
                     <div v-else class="generate-btn-wrapper">
-                        <el-button type="primary" size="large" @click="generateQRCode" :loading="loading">
+                        <el-button type="primary" size="large" :loading="loading" @click="generateQRCode">
                             <el-icon><Wallet /></el-icon>
                             生成支付二维码
                         </el-button>
@@ -219,7 +219,18 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Wallet, Trophy, Shop, User, ArrowUp, Close, Loading, CircleClose, Download, SwitchButton } from '@element-plus/icons-vue'
+import {
+    Wallet,
+    Trophy,
+    Shop,
+    User,
+    ArrowUp,
+    Close,
+    Loading,
+    CircleClose,
+    Download,
+    SwitchButton,
+} from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { payApi } from '@/api/pay'
 import appReleaseAPI from '@/api/appRelease'

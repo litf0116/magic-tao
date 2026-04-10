@@ -112,7 +112,6 @@
         <auction-item-detail ref="detailRef" @onEdit="edit" />
         <withdrawalApprovaltem ref="withdrawalApprovaRef" @on-saved="auctionStore.getList()" />
         <addMsgConfiguration ref="addMsgRef" />
-        <DepositRechargeDialog v-model="showDepositDialog" @success="handleDepositSuccess" />
     </div>
 </template>
 
@@ -133,7 +132,6 @@ import type { UserLevelInfo } from '@/api/groupChatLevel'
 import api from '@/api'
 import type { UserDto } from '@/api/appService'
 import { calculateMinBidPrice } from '@/utils/auction'
-import DepositRechargeDialog from '@/components/DepositRechargeDialog.vue'
 
 let ps: PerfectScrollbar | null = null
 
@@ -152,7 +150,6 @@ import { ElRadioGroup, ElRadioButton, ElButton } from 'element-plus'
 import { convertImageUrl } from '@/utils/imageUrlConverter'
 
 const activeName = ref('1')
-const showDepositDialog = ref(false)
 
 const waitList = computed(() => {
     return auctionStore.list.filter((item) => item.status === '上架')
@@ -247,13 +244,6 @@ function getListHeight() {
     return onAuctionItem.value ? '354px' : '624px'
 }
 
-function handleDepositSuccess() {
-    ElMessage.success('保证金已到账，可以继续出价')
-    setTimeout(() => {
-        bid()
-    }, 500)
-}
-
 // getItemIndex 函数已移除，序号现在存储在 item.displayIndex 中
 
 //LINK - 结束竞拍
@@ -310,6 +300,10 @@ async function bid() {
             isActive: currentUser.isActive,
         })
 
+        // 使用工具方法计算最低出价
+        const minPrice = calculateMinBidPrice(onAuctionItem.value.currentPrice, auctionStore.isKasec)
+        console.log('计算最低出价:', minPrice)
+
         // 获取用户等级信息
         console.log('正在获取用户等级信息...')
         const levelResponse = await GetUserLevelInfo(userId)
@@ -325,13 +319,23 @@ async function bid() {
 
         if (userLevel === 0 && deposit < 50) {
             console.log('新用户保证金不足:', { userLevel, deposit })
-            ElMessageBox.confirm('新用户参与拍卖，需要缴纳51元（50元保证金+1元提现手续费）。', '出价须知', {
+            ElMessageBox.confirm('新用户参与拍卖，需要缴纳 51 元（50 元保证金 +1 元提现手续费）。', '出价须知', {
                 confirmButtonText: '去缴纳',
                 cancelButtonText: '取消',
                 type: 'warning',
             })
                 .then(() => {
-                    showDepositDialog.value = true
+                    router.push({
+                        path: '/payment',
+                        query: {
+                            type: 'deposit',
+                            returnUrl: '/chat/auction',
+                            returnContext: JSON.stringify({
+                                auctionItemId: onAuctionItem.value.id,
+                                bidPrice: minPrice,
+                            }),
+                        },
+                    })
                 })
                 .catch(() => {
                     Tips.info('取消缴纳')
@@ -340,9 +344,6 @@ async function bid() {
         }
 
         // 原有出价弹窗逻辑
-
-        // 使用工具方法计算最低出价
-        const minPrice = calculateMinBidPrice(onAuctionItem.value.currentPrice, auctionStore.isKasec)
 
         let message = `请输入出价金额(最低出价${minPrice})`
         let dialogTitle = '出价'

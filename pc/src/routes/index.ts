@@ -71,6 +71,12 @@ export const constantRoutes: RouteRecordRaw[] = [
             },
         ],
     },
+    {
+        path: '/payment',
+        name: 'Payment',
+        meta: { title: '支付' },
+        component: () => import('@/views/payment/PaymentPage.vue'),
+    },
 ]
 
 export const asyncRouter: RouteRecordRaw[] = [

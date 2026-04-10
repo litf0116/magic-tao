@@ -26,7 +26,6 @@ declare module 'vue' {
     CreateGroupDislog: typeof import('./src/components/Chat/createGroupDislog.vue')['default']
     CustomModal: typeof import('./src/components/CustomModal.vue')['default']
     DepositGuideCard: typeof import('./src/components/DepositGuideCard.vue')['default']
-    DepositRechargeDialog: typeof import('./src/components/DepositRechargeDialog.vue')['default']
     EditAnnounce: typeof import('./src/components/Chat/editAnnounce.vue')['default']
     EditAuctionItem: typeof import('./src/components/Chat/editAuctionItem.vue')['default']
     Footer: typeof import('./src/components/Footer.vue')['default']

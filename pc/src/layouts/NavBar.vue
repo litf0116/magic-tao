@@ -22,10 +22,6 @@
                         <div class="px-4 py-2 text-sm text-gray-600 border-b">
                             保证金余额：¥{{ userStore.user.depositBalance || 0 }}
                         </div>
-                        <el-dropdown-item :command="Command.depositPayment">
-                            <span class="i-mdi:wallet-plus mr-2"></span>
-                            保证金充值
-                        </el-dropdown-item>
                         <el-dropdown-item :command="Command.changePassword">修改密码</el-dropdown-item>
                         <el-dropdown-item divided :command="Command.logout">退出登录</el-dropdown-item>
                     </el-dropdown-menu>
@@ -47,12 +43,7 @@ const toLogin = () => {
     router.push('/auth/login')
 }
 
-const goToDepositPayment = () => {
-    router.push('/deposit-payment')
-}
-
 enum Command {
-    'depositPayment',
     'changePassword',
     'logout',
 }
@@ -64,9 +55,6 @@ const logout = async () => {
 
 const handleCommand = (command: Command) => {
     switch (command) {
-        case Command.depositPayment:
-            goToDepositPayment()
-            break
         case Command.logout:
             logout()
             break

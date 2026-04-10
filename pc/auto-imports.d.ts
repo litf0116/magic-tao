@@ -74,6 +74,7 @@ declare global {
   const useId: typeof import('vue')['useId']
   const useLink: typeof import('vue-router')['useLink']
   const useModel: typeof import('vue')['useModel']
+  const usePayment: typeof import('./src/composables/usePayment')['usePayment']
   const usePermissionStore: typeof import('./src/stores/permissionStore')['usePermissionStore']
   const useRoute: typeof import('vue-router')['useRoute']
   const useRouter: typeof import('vue-router')['useRouter']

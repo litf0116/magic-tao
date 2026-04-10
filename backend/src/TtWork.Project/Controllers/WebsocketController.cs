@@ -38,7 +38,7 @@ namespace TtWork.Project.Controllers
 {
     public class SubscrChannelInput
     {
-        public long WebsocketId { get; set; }
+        public long? WebsocketId { get; set; }
         public string Channel { get; set; }
     }
 
@@ -180,7 +180,7 @@ namespace TtWork.Project.Controllers
             }
             // }
 
-            ImHelper.JoinChan(input.WebsocketId, input.Channel);
+            ImHelper.JoinChan(input.WebsocketId ?? AbpSession.UserId!.Value, input.Channel);
             // ImHelper.ClearChanClient(input.Channel);
             return new
             {
