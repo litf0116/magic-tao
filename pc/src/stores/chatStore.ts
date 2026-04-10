@@ -555,6 +555,10 @@ export const useChatStore = defineStore('chat', () => {
     }
 
     const joinChannel = async (chan: string) => {
+        if (!websocketId.value || websocketId.value === 0) {
+            await connectServer()
+        }
+
         return new Promise((resolve, reject) => {
             api.ws
                 .subChannel({ body: { websocketId: websocketId.value, channel: chan } })

@@ -103,6 +103,7 @@ export const useUserStore = defineStore('user', () => {
                     SET_ROLES([])
                 } else {
                     SET_USER(res.user)
+                    chatStore.websocketId = res.user.id
                 }
                 if (res.permissions) permissions.value = res.permissions
                 if (res.roles) roles.value = res.roles
