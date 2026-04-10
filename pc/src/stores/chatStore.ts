@@ -59,7 +59,6 @@ export const useChatStore = defineStore('chat', () => {
     const currentChat = ref(AuctionChat)
     const inputChannelMsg = ref<InputChannelMsgType>({ type: 'text', content: '' })
 
-    //聊天对象表
     const chatList: Ref<ChatListItem[]> = useLocalStorage('chatList', [AuctionChat])
     const chatMap = ref<Map<string, ChatMessage[]>>(new Map())
 
