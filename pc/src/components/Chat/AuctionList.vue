@@ -132,9 +132,11 @@ import type { UserLevelInfo } from '@/api/groupChatLevel'
 import api from '@/api'
 import type { UserDto } from '@/api/appService'
 import { calculateMinBidPrice } from '@/utils/auction'
+import { useRouter } from 'vue-router'
 
 let ps: PerfectScrollbar | null = null
 
+const router = useRouter()
 const userStore = useUserStore()
 
 const auctionStore = useAuctionStore()
@@ -338,7 +340,7 @@ async function bid() {
                     })
                 })
                 .catch(() => {
-                    Tips.info('取消缴纳')
+                    // 用户点击取消，不显示提示
                 })
             return
         }

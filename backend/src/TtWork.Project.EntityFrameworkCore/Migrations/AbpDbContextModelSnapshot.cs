@@ -1621,6 +1621,9 @@ namespace TtWork.Project.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("varchar(128)");
 
+                    b.Property<bool>("SkipProfileCompletion")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<string>("Surname")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -1985,8 +1988,17 @@ namespace TtWork.Project.Migrations
                     b.Property<long?>("CreatorUserId")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("openid")
-                        .HasColumnType("longtext");
+                    b.Property<string>("OpenId")
+                        .HasColumnType("longtext")
+                        .HasColumnName("openid");
+
+                    b.Property<string>("Platform")
+                        .HasColumnType("longtext")
+                        .HasColumnName("platform");
+
+                    b.Property<long?>("UserId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("user_id");
 
                     b.HasKey("Id");
 
@@ -2668,6 +2680,45 @@ namespace TtWork.Project.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Pays_WechatPaymentNotification");
+                });
+
+            modelBuilder.Entity("TtWork.Project.Domains.PushSubscription", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Auth")
+                        .HasColumnType("longtext")
+                        .HasColumnName("auth");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<long?>("CreatorUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("DeviceName")
+                        .HasColumnType("longtext")
+                        .HasColumnName("device_name");
+
+                    b.Property<string>("Endpoint")
+                        .HasColumnType("longtext")
+                        .HasColumnName("endpoint");
+
+                    b.Property<string>("P256Dh")
+                        .HasColumnType("longtext")
+                        .HasColumnName("p256dh");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("T_PushSubscription");
                 });
 
             modelBuilder.Entity("TtWork.Project.Domains.SensitiveWord", b =>

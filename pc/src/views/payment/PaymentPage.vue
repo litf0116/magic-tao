@@ -1,5 +1,5 @@
 <template>
-    <div class="payment-page min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div class="payment-page min-h-screen flex items-center justify-center p-4">
         <div class="payment-container w-full max-w-4xl mx-auto">
             <!-- 商家信息区域 -->
             <div class="merchant-info bg-white rounded-lg shadow-sm p-6 mb-6">
@@ -148,19 +148,21 @@
 
                         <!-- 操作按钮 -->
                         <div class="payment-actions flex flex-col gap-3">
-                            <el-button
-                                v-if="!paymentSuccess && !isLoading && qrCodeUrl"
-                                type="primary"
-                                size="large"
-                                class="w-full"
-                                :loading="checking"
-                                @click="manualCheck"
-                            >
-                                我已支付
-                            </el-button>
-                            <el-button v-if="!paymentSuccess" size="large" class="w-full" @click="goBack">
-                                取消支付
-                            </el-button>
+                            <template v-if="!paymentSuccess">
+                                <el-button
+                                    v-if="!isLoading && qrCodeUrl"
+                                    type="primary"
+                                    size="large"
+                                    class="w-full"
+                                    :loading="checking"
+                                    @click="manualCheck"
+                                >
+                                    我已支付
+                                </el-button>
+                                <el-button type="default" size="large" class="w-full" @click="goBack">
+                                    取消支付
+                                </el-button>
+                            </template>
                         </div>
                     </div>
                 </div>
@@ -290,7 +292,8 @@ onUnmounted(() => {
 
 <style scoped>
 .payment-page {
-    min-height: calc(100vh - 60px); /* 减去可能的头部高度 */
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
 }
 
 .qrcode-wrapper {
@@ -306,6 +309,11 @@ onUnmounted(() => {
 .countdown.expired {
     color: #ff4d4f;
     font-weight: bold;
+}
+
+/* 覆盖 Element Plus 按钮相邻的 margin-left */
+.payment-actions .el-button + .el-button {
+    margin-left: 0;
 }
 
 @media (max-width: 768px) {

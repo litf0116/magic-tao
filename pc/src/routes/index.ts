@@ -50,6 +50,12 @@ export const constantRoutes: RouteRecordRaw[] = [
             },
         ],
     },
+    {
+        path: '/payment',
+        name: 'Payment',
+        meta: { title: '支付' },
+        component: () => import('@/views/payment/PaymentPage.vue'),
+    },
     appDownloadRoute,
     {
         path: '/forum',
@@ -70,12 +76,6 @@ export const constantRoutes: RouteRecordRaw[] = [
                 component: () => import('@/views/home/components/postDetail.vue'),
             },
         ],
-    },
-    {
-        path: '/payment',
-        name: 'Payment',
-        meta: { title: '支付' },
-        component: () => import('@/views/payment/PaymentPage.vue'),
     },
 ]
 

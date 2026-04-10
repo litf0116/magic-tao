@@ -303,7 +303,10 @@ const closeUserPanel = () => {
 
 const handleRechargeFromPanel = () => {
     closeUserPanel()
-    openRechargeDialog()
+    router.push({
+        path: '/payment',
+        query: { type: 'deposit' },
+    })
 }
 
 const goToProfile = () => {
