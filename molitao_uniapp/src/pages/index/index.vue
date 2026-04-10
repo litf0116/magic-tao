@@ -9,15 +9,13 @@
             </view>
             <view class="content px-4">
                 <view class="flex flex-col">
-                    <!-- #ifndef MP-WEIXIN -->
-                    <!-- H5/APP 显示交易站入口 -->
+                    <!-- 交易站入口 -->
                     <image
                         v-if="appFeatureStore.getShowTradingPost()"
                         class="w-full h-270rpx"
                         :src="convertImageUrl('https://image.molitao.top/banners/jyz.png')"
                         @tap="gotoTradingPost"
                     />
-                    <!-- #endif -->
                     <!-- 秒杀场入口：仅当用户有权限时显示 -->
                     <image
                         v-if="showAuctionEntrance"
