@@ -7,7 +7,7 @@ import UniLayouts from '@uni-helper/vite-plugin-uni-layouts'
 export default defineConfig({
     publicDir: 'public',
     define: {
-        __APP_VERSION__: '"20260407@1.2.0"',
+        __APP_VERSION__: '"20260410@1.2.1"',
     },
     // H5 开发服务器配置 - 解决跨域问题
     server: {
