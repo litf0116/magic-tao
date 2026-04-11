@@ -114,9 +114,7 @@ function isAbpResponse(response: any) {
 function doAbpResponse(response: any) {
     return new Promise((resolve, reject) => {
         if (response.data.success === true) {
-            const _response = response
-            _response.data = response.data.result
-            resolve(_response)
+            resolve(response.data.result)
         } else {
             //todo:处理ABP错误
             reject(response.data.error.message)
