@@ -120,14 +120,12 @@ class _PushNotificationBannerState extends ConsumerState<PushNotificationBanner>
         widget.child,
         // 顶部横幅
         if (_isVisible || _animationController.isAnimating)
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: SlideTransition(
-              position: _slideAnimation,
-              child: FadeTransition(
-                opacity: _fadeAnimation,
+          SafeArea(
+            bottom: false,
+            child: Transform.translate(
+              offset: Offset(0, _slideAnimation.value.dy * 100),
+              child: Opacity(
+                opacity: _fadeAnimation.value,
                 child: _buildBanner(),
               ),
             ),

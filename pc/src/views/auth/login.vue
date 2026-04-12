@@ -15,6 +15,23 @@
                         :src="chatStore.pubQrUrl"
                     />
                     <div
+                        v-if="chatStore.qrLoading && !chatStore.pubQrUrl"
+                        class="size-240px flex flex-col flex-center text-gray-400"
+                    >
+                        <div class="i-carbon:loading size-16 animate-spin" />
+                        <div class="mt-4">加载中...</div>
+                    </div>
+                    <div
+                        v-if="chatStore.qrError && !chatStore.pubQrUrl"
+                        class="size-240px flex flex-col flex-center text-red-400 text-xl"
+                    >
+                        <div class="i-carbon:error size-16" />
+                        <div class="mt-4">{{ chatStore.qrError }}</div>
+                        <div class="mt-2">
+                            <span class="cursor-pointer text-blue-400 underline" @click.stop="initQrLogin()">重试</span>
+                        </div>
+                    </div>
+                    <div
                         v-if="qrTimeout"
                         class="absolute top-0 left-0 size-240px flex flex-col flex-center text-white text-xl"
                     >
@@ -22,7 +39,7 @@
                         <div class="mt-4">二维码已过期</div>
                         <div>
                             请
-                            <span class="cursor-pointer text-blue-400 underline" @click.stop="init()">刷新</span> 后重试
+                            <span class="cursor-pointer text-blue-400 underline" @click.stop="initQrLogin()">刷新</span> 后重试
                         </div>
                     </div>
                 </div>
@@ -86,36 +103,41 @@ let expiredTimer: number | undefined = undefined
 const profileGuideRef = ref()
 
 onMounted(() => {
-    init()
+    initQrLogin()
 })
 
-function init() {
-    debounce(() => {
-        chatStore.init().then(async (res) => {
-            qrTimeout.value = false
-            await chatStore.initQr(res)
-            expiredTimer = setTimeout(() => {
-                qrTimeout.value = true
-                clearInterval(interVal)
-            }, 60_000) // 1 minute
+async function initQrLogin() {
+    clearTimeout(expiredTimer)
+    clearInterval(interVal)
+    qrTimeout.value = false
+    try {
+        const res = await chatStore.init()
+        await chatStore.initQr(res)
+        expiredTimer = setTimeout(() => {
+            qrTimeout.value = true
+            clearInterval(interVal)
+        }, 60_000) // 1 minute
 
-            interVal = setInterval(() => {
-                api.tokenAuth.qrToken({ key: res }).then(async (accessToken) => {
-                    if (accessToken) {
-                        clearTimeout(expiredTimer)
-                        await userStore.SET_TOKEN(accessToken)
-                        const res = await userStore.getUserInfo()
-                        clearInterval(interVal)
-                        if (res?.user?.needProfileCompletion) {
-                            profileGuideRef.value?.show(res.user.id)
-                        } else {
-                            navigateToHome()
-                        }
+        interVal = setInterval(() => {
+            api.tokenAuth.qrToken({ key: res }).then(async (accessToken) => {
+                if (accessToken) {
+                    clearTimeout(expiredTimer)
+                    await userStore.SET_TOKEN(accessToken)
+                    const userInfo = await userStore.getUserInfo()
+                    clearInterval(interVal)
+                    if (userInfo?.user?.needProfileCompletion) {
+                        profileGuideRef.value?.show(userInfo.user.id)
+                    } else {
+                        navigateToHome()
                     }
-                })
-            }, 2000)
-        })
-    }, 200)()
+                }
+            }).catch((err) => {
+                console.error('轮询二维码登录状态失败:', err)
+            })
+        }, 2000)
+    } catch (err) {
+        console.error('初始化二维码登录失败:', err)
+    }
 }
 
 const submitDisabled = computed(() => {

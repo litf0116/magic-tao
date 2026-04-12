@@ -72,13 +72,24 @@ export const useChatStore = defineStore('chat', () => {
     //getter
 
     //action
+    const qrLoading = ref(false)
+    const qrError = ref('')
+
     const initQr = (str: string) => {
         if (str) {
             const qrLoginUrl = `${BASE_API_URL}/api/tokenAuth/qrLogin?state=${str}`
             console.log('qrLoginUrl', qrLoginUrl)
             qrUrl.value = `${BASE_API_URL}/home/qr?str=${qrLoginUrl}`
+            qrLoading.value = true
+            qrError.value = ''
             api.tokenAuth.pubQrLogin({ state: str }).then((res) => {
                 pubQrUrl.value = res
+            }).catch((err) => {
+                console.error('获取二维码失败:', err)
+                pubQrUrl.value = ''
+                qrError.value = typeof err === 'string' ? err : '获取二维码失败，请刷新重试'
+            }).finally(() => {
+                qrLoading.value = false
             })
         } else {
             qrUrl.value = ''
@@ -861,6 +872,8 @@ export const useChatStore = defineStore('chat', () => {
         websocketId,
         qrUrl,
         pubQrUrl,
+        qrLoading,
+        qrError,
         friends,
         friends0,
         groups,
