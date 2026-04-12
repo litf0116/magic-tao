@@ -35,7 +35,7 @@ class PushService {
       _jpush.setup(
         appKey: '4e91398522bb1286f6452efb',
         channel: 'developer-default',
-        production: false,
+        production: true,
         debug: true,
       );
       print('[Push] setup 完成');
