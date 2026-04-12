@@ -50,6 +50,9 @@ dependencies:
   # 极光推送
   jpush_flutter: ^3.4.4
 
+  # 权限管理
+  permission_handler: ^11.3.1
+
   # 音频播放
   audioplayers: ^6.1.0
 

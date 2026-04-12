@@ -12,6 +12,7 @@ import '../../../data/models/chat_message_model.dart';
 import '../../../data/repositories/chat_repository.dart';
 import '../../../data/repositories/friend_repository.dart';
 import '../../../data/repositories/user_repository.dart';
+import '../../../data/services/notification_permission_service.dart';
 import '../../../data/services/upload_service.dart';
 import '../../providers/auction_provider.dart';
 import '../../providers/chat_store.dart';
@@ -1341,6 +1342,14 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
     debugPrint('[订阅通知] 开始订阅, auctionItemId=$auctionItemId');
     if (auctionItemId == null) {
       debugPrint('[订阅通知] auctionItemId 为空，返回');
+      return;
+    }
+
+    final permissionService = NotificationPermissionService();
+    final hasPermission = await permissionService.checkPermission();
+    if (!hasPermission) {
+      debugPrint('[订阅通知] 没有通知权限，弹窗提示');
+      await permissionService.showPermissionDialog(context);
       return;
     }
 
