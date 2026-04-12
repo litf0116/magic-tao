@@ -15,13 +15,10 @@ class PushNotificationBanner extends ConsumerStatefulWidget {
       _PushNotificationBannerState();
 }
 
-class _PushNotificationBannerState extends ConsumerState<PushNotificationBanner>
-    with SingleTickerProviderStateMixin {
+class _PushNotificationBannerState
+    extends ConsumerState<PushNotificationBanner> {
   StreamSubscription<PushMessage>? _messageSubscription;
   Timer? _dismissTimer;
-  late AnimationController _animationController;
-  late Animation<Offset> _slideAnimation;
-  late Animation<double> _fadeAnimation;
 
   // 当前显示的通知
   PushMessage? _currentMessage;
@@ -30,17 +27,6 @@ class _PushNotificationBannerState extends ConsumerState<PushNotificationBanner>
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(0, -1), end: Offset.zero).animate(
-          CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-        );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-    );
     _listenToPushMessages();
   }
 
@@ -64,7 +50,6 @@ class _PushNotificationBannerState extends ConsumerState<PushNotificationBanner>
       _currentMessage = message;
       _isVisible = true;
     });
-    _animationController.forward();
 
     // 5秒后自动消失
     _dismissTimer?.cancel();
@@ -74,13 +59,11 @@ class _PushNotificationBannerState extends ConsumerState<PushNotificationBanner>
   }
 
   void _dismiss() {
-    _animationController.reverse().then((_) {
-      if (mounted) {
-        setState(() {
-          _isVisible = false;
-        });
-      }
-    });
+    if (mounted) {
+      setState(() {
+        _isVisible = false;
+      });
+    }
     _dismissTimer?.cancel();
   }
 
@@ -107,29 +90,31 @@ class _PushNotificationBannerState extends ConsumerState<PushNotificationBanner>
   void dispose() {
     _messageSubscription?.cancel();
     _dismissTimer?.cancel();
-    _animationController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Stack(
-      alignment: Alignment.topLeft,
       textDirection: TextDirection.ltr,
       children: [
         widget.child,
         // 顶部横幅
-        if (_isVisible || _animationController.isAnimating)
-          SafeArea(
+        AnimatedPositioned(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+          top: _isVisible ? 0 : -120,
+          left: 0,
+          right: 0,
+          child: SafeArea(
             bottom: false,
-            child: Transform.translate(
-              offset: Offset(0, _slideAnimation.value.dy * 100),
-              child: Opacity(
-                opacity: _fadeAnimation.value,
-                child: _buildBanner(),
-              ),
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              opacity: _isVisible ? 1.0 : 0.0,
+              child: _buildBanner(),
             ),
           ),
+        ),
       ],
     );
   }
@@ -138,97 +123,103 @@ class _PushNotificationBannerState extends ConsumerState<PushNotificationBanner>
     final message = _currentMessage;
     if (message == null) return const SizedBox.shrink();
 
-    return Container(
-      margin: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              // 图标
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF4835A).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Icon(
-                  Icons.notifications_active,
-                  color: Color(0xFFF4835A),
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              // 内容
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      message.title,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF333333),
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      message.content,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF666666),
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              // 查看详情按钮
-              TextButton(
-                onPressed: _onTapDetail,
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Container(
+        margin: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                // 图标
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF4835A).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: const Text(
-                  '查看',
-                  style: TextStyle(
-                    fontSize: 12,
+                  child: const Icon(
+                    Icons.notifications_active,
                     color: Color(0xFFF4835A),
-                    fontWeight: FontWeight.w600,
+                    size: 20,
                   ),
                 ),
-              ),
-              // 关闭按钮
-              IconButton(
-                onPressed: _dismiss,
-                icon: const Icon(Icons.close, size: 18),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
-                color: const Color(0xFF999999),
-              ),
-            ],
+                const SizedBox(width: 12),
+                // 内容
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        message.title,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF333333),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        message.content,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF666666),
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // 查看详情按钮
+                TextButton(
+                  onPressed: _onTapDetail,
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: const Text(
+                    '查看',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFFF4835A),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                // 关闭按钮
+                IconButton(
+                  onPressed: _dismiss,
+                  icon: const Icon(Icons.close, size: 18),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 24,
+                    minHeight: 24,
+                  ),
+                  color: const Color(0xFF999999),
+                ),
+              ],
+            ),
           ),
         ),
       ),

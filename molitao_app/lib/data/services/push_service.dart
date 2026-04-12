@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:jpush_flutter/jpush_flutter.dart';
 import 'package:jpush_flutter/jpush_interface.dart';
@@ -13,6 +14,7 @@ class PushService {
       StreamController<PushMessage>.broadcast();
   final StreamController<PushMessage> _clickController =
       StreamController<PushMessage>.broadcast();
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   String _registrationId = '';
   bool _isInitialized = false;
@@ -84,7 +86,18 @@ class PushService {
     if (isClick) {
       _clickController.add(pushMessage);
     } else {
+      // 收到前台推送时播放声音
+      _playNotificationSound();
       _messageController.add(pushMessage);
+    }
+  }
+
+  Future<void> _playNotificationSound() async {
+    try {
+      await _audioPlayer.play(AssetSource('sounds/cgsys11.mp3'));
+      debugPrint('[Push] 播放通知声音');
+    } catch (e) {
+      debugPrint('[Push] 播放声音失败: $e');
     }
   }
 
@@ -126,6 +139,7 @@ class PushService {
   void dispose() {
     _messageController.close();
     _clickController.close();
+    _audioPlayer.dispose();
   }
 }
 
