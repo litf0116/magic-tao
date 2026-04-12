@@ -47,6 +47,9 @@ dependencies:
   # 微信登录/支付
   fluwx: ^5.7.5
 
+  # 极光推送
+  jpush_flutter: ^3.4.4
+
   # 音频播放
   audioplayers: ^6.1.0
 

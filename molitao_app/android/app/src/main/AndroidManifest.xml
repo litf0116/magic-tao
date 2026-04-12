@@ -1,7 +1,12 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.RECEIVE_USER_PRESENT"/>
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.GET_TASKS"/>
     <application
         android:label="魔力淘"
         android:usesCleartextTraffic="true"
@@ -42,6 +47,16 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- 极光推送 -->
+        <meta-data
+            android:name="JPUSH_CHANNEL"
+            android:value="developer-default"
+            tools:replace="android:value"/>
+        <meta-data
+            android:name="JPUSH_APPKEY"
+            android:value="4e91398522bb1286f6452efb"
+            tools:replace="android:value"/>
     </application>
     <queries>
         <intent>

@@ -66,5 +66,10 @@
 		<string>weixinULAPI</string>
 		<string>weixinpay</string>
 	</array>
+	<!-- 极光推送 -->
+	<key>JPUSH_APPKEY</key>
+	<string>4e91398522bb1286f6452efb</string>
+	<key>APS_PRODUCTION</key>
+	<string>1</string>
 </dict>
 </plist>

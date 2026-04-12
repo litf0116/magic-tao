@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/services/storage_service.dart';
+import '../../data/services/push_service.dart';
 import '../../data/repositories/auth_repository.dart';
 
 // User data model
@@ -200,6 +201,10 @@ class UserNotifier extends StateNotifier<UserState> {
             '[UserProvider] - state.user?.userName: ${state.user?.userName}',
           );
           print('[UserProvider] 自动登录成功: ${user.userName}');
+
+          final alias = 'user_${user.id}';
+          print('[Push] 设置别名: $alias');
+          PushService().setAlias(alias);
         } else {
           // token 无效，清除登录状态
           print('[UserProvider] token 无效，清除登录状态');
@@ -246,6 +251,12 @@ class UserNotifier extends StateNotifier<UserState> {
       print('[UserProvider] login() 成功');
       print('[UserProvider] - state.isLoggedIn: ${state.isLoggedIn}');
       print('[UserProvider] - state.user: ${state.user?.userName}');
+
+      if (user.id != null) {
+        final alias = 'user_${user.id}';
+        print('[Push] 设置别名: $alias');
+        PushService().setAlias(alias);
+      }
 
       return true;
     } catch (e) {
@@ -299,6 +310,8 @@ class UserNotifier extends StateNotifier<UserState> {
   /// 退出登录
   Future<void> logout() async {
     state = state.copyWith(isLoading: true);
+
+    PushService().deleteAlias();
 
     try {
       final authRepository = _ref.read(authRepositoryProvider);
