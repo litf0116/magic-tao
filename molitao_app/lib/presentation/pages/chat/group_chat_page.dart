@@ -122,10 +122,8 @@ class _GroupChatPageState extends ConsumerState<GroupChatPage> {
 
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
-      // 第一次: 确保 UI rebuild 完成
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        // 第二次: rebuild 后的下一帧，列表已渲染完毕
-        WidgetsBinding.instance.addPostFrameCallback((_) {
+        Future.delayed(const Duration(milliseconds: 50), () {
           if (_scrollController.hasClients &&
               _scrollController.position.maxScrollExtent > 0) {
             _scrollController.animateTo(
