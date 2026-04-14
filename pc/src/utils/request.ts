@@ -108,7 +108,10 @@ service.interceptors.response.use(
 )
 
 function isAbpResponse(response: any) {
-    return response && response.data && response.data.__abp
+    if (!response?.data) return false
+    if (response.data.__abp) return true
+    if (response.data.success === true && response.data.result !== undefined) return true
+    return false
 }
 
 function doAbpResponse(response: any) {
