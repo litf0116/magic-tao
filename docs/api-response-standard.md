@@ -133,11 +133,13 @@
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | `success` | boolean | ✅ | 请求是否成功 |
-| `result` | any | ✅（成功时） | 业务数据 |
+| `result` | any | ✅（成功时） | 业务数据，统一使用 result，不使用 data |
 | `code` | number | ❌ | 状态码，默认 200 |
 | `error` | object | ❌（失败时） | 错误信息 |
 | `error.code` | number | ✅（失败时） | 错误码 |
 | `error.message` | string | ✅（失败时） | 错误描述 |
+
+**注意**：简化格式只使用 `result` 字段，不使用 `data`，确保与标准格式兼容。
 
 ## PC 前端处理逻辑
 

@@ -78,8 +78,8 @@ function extractAbpResult<T>(response: any): T | undefined {
  * 从简化响应中提取业务数据
  */
 function extractSimpleResult<T>(response: any): T | undefined {
-    // 优先使用 result，其次使用 data
-    return response.data?.result ?? response.data?.data as T | undefined
+    // 只使用 result，与标准格式保持一致
+    return response.data?.result as T | undefined
 }
 
 /**
