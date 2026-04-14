@@ -107,19 +107,26 @@ onMounted(() => {
 })
 
 async function initQrLogin() {
+    console.log('[DEBUG initQrLogin] 开始初始化扫码登录')
     clearTimeout(expiredTimer)
     clearInterval(interVal)
     qrTimeout.value = false
     try {
         const res = await chatStore.init()
+        console.log('[DEBUG initQrLogin] chatStore.init() 返回:', res)
+        console.log('[DEBUG initQrLogin] 调用 chatStore.initQr()')
         await chatStore.initQr(res)
+        console.log('[DEBUG initQrLogin] chatStore.initQr() 完成')
         expiredTimer = setTimeout(() => {
+            console.log('[DEBUG initQrLogin] 二维码过期定时器触发')
             qrTimeout.value = true
             clearInterval(interVal)
         }, 60_000) // 1 minute
 
         interVal = setInterval(() => {
+            console.log('[DEBUG initQrLogin] 轮询 QrToken, key:', res)
             api.tokenAuth.qrToken({ key: res }).then(async (accessToken) => {
+                console.log('[DEBUG initQrLogin] QrToken 返回:', accessToken)
                 if (accessToken) {
                     clearTimeout(expiredTimer)
                     await userStore.SET_TOKEN(accessToken)
@@ -132,11 +139,11 @@ async function initQrLogin() {
                     }
                 }
             }).catch((err) => {
-                console.error('轮询二维码登录状态失败:', err)
+                console.error('[DEBUG initQrLogin] 轮询二维码登录状态失败:', err)
             })
         }, 2000)
     } catch (err) {
-        console.error('初始化二维码登录失败:', err)
+        console.error('[DEBUG initQrLogin] 初始化二维码登录失败:', err)
     }
 }
 
