@@ -40,9 +40,15 @@ export function axios(configs: IRequestConfig, resolve: (p: any) => void, reject
             .request(configs)
             .then((res) => {
                 console.log('[DEBUG axios] 响应成功, res:', res)
+                console.log('[DEBUG axios] res 类型:', typeof res)
                 console.log('[DEBUG axios] res 完整结构:', JSON.stringify(res, null, 2))
-                console.log('[DEBUG axios] res.data:', res?.data)
-                resolve(res.data)
+                if (res && typeof res === 'object' && res.data !== undefined) {
+                    console.log('[DEBUG axios] res.data:', res.data)
+                    resolve(res.data)
+                } else {
+                    console.log('[DEBUG axios] res 已是解析后的值，直接使用')
+                    resolve(res)
+                }
             })
             .catch((err) => {
                 console.error('[DEBUG axios] 请求失败, err:', err)
