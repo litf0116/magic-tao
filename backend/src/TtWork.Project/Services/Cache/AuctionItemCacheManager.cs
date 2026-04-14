@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -10,140 +9,95 @@ using Abp.Domain.Repositories;
 using Abp.Linq.Extensions;
 using Abp.ObjectMapping;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using TtWork.Abp.Applications.Dtos;
+using TtWork.Lib.Redis;
 using TtWork.Project.Domains;
 
 namespace TtWork.Project.Services.Cache
 {
     /// <summary>
     /// 拍卖品缓存管理服务
-    /// 纯本地内存缓存架构（移除 Redis L2，解决 DeleteKeysWithPartten 性能问题）
     /// </summary>
     public class AuctionItemCacheManager : IAuctionItemCacheService
     {
+        private readonly IRedisClient _redisClient;
         private readonly IRepository<AuctionItem, long> _auctionItemRepository;
         private readonly IRepository<BidHistory, long> _bidHistoryRepository;
         private readonly IObjectMapper _objectMapper;
         private readonly ILogger<AuctionItemCacheManager> _logger;
-        private readonly IMemoryCache _memoryCache;
 
-        // 缓存锁字典，防止缓存击穿
-        private static readonly ConcurrentDictionary<string, SemaphoreSlim> _cacheLocks = new();
-
-        // 缓存键追踪器（用于 O(1) 前缀匹配清除）
-        private static readonly ConcurrentDictionary<string, DateTime> _cacheKeys = new();
+        // 单实例部署的内存锁，防止缓存击穿
+        private static readonly Dictionary<string, SemaphoreSlim> _cacheLocks = new();
+        private static readonly object _lockDictLock = new();
 
         public AuctionItemCacheManager(
+            IRedisClient redisClient,
             IRepository<AuctionItem, long> auctionItemRepository,
             IRepository<BidHistory, long> bidHistoryRepository,
             IObjectMapper objectMapper,
-            ILogger<AuctionItemCacheManager> logger,
-            IMemoryCache memoryCache)
+            ILogger<AuctionItemCacheManager> logger)
         {
+            _redisClient = redisClient;
             _auctionItemRepository = auctionItemRepository;
             _bidHistoryRepository = bidHistoryRepository;
             _objectMapper = objectMapper;
             _logger = logger;
-            _memoryCache = memoryCache;
-
-            // 启动定期清理任务（每10分钟清理过期键追踪）
-            _ = Task.Run(async () =>
-            {
-                while (true)
-                {
-                    await Task.Delay(TimeSpan.FromMinutes(10));
-                    CleanupExpiredKeys();
-                }
-            });
         }
 
-        /// <summary>
-        /// 清理过期的缓存键追踪（防止内存泄漏）
-        /// </summary>
-        private void CleanupExpiredKeys()
-        {
-            try
-            {
-                var cutoff = DateTime.UtcNow.AddHours(-1);
-                var expiredKeys = _cacheKeys
-                    .Where(kvp => kvp.Value < cutoff)
-                    .Select(kvp => kvp.Key)
-                    .ToList();
-
-                foreach (var key in expiredKeys)
-                {
-                    _cacheKeys.TryRemove(key, out _);
-                }
-
-                if (expiredKeys.Count > 0)
-                {
-                    _logger.LogDebug("清理过期缓存键追踪，数量: {Count}", expiredKeys.Count);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "清理过期缓存键失败");
-            }
-        }
-
-        public async Task<ListResultDto<AuctionItemDto>> GetAuctionListAsync(AppResultRequestDto input)
+        public async Task<PagedResultDto<AuctionItemDto>> GetAuctionListAsync(AppResultRequestDto input)
         {
             if (!AuctionItemCachePolicy.IsCacheEnabled())
             {
                 return await GetAuctionListFromDatabaseAsync(input);
             }
 
-            var sw = System.Diagnostics.Stopwatch.StartNew();
             try
             {
                 // 生成缓存键
                 string cacheKey = AuctionItemCacheKeys.GenerateListCacheKey(input);
 
-                // 1. 尝试从内存缓存获取数据（~1ms）
-                if (_memoryCache.TryGetValue(cacheKey, out ListResultDto<AuctionItemDto> cached))
+                // 尝试从缓存获取数据
+                var cachedValue = await _redisClient.Database.StringGetAsync(cacheKey);
+                if (cachedValue.HasValue)
                 {
-                    _logger.LogDebug("[PERF-Cache] 拍卖品列表内存缓存命中: {CacheKey}", cacheKey);
-                    return cached;
+                    var cachedResult = JsonConvert.DeserializeObject<PagedResultDto<AuctionItemDto>>(cachedValue);
+                    _logger.LogDebug("拍卖品列表缓存命中: {CacheKey}", cacheKey);
+                    return cachedResult;
                 }
 
-                // 获取缓存锁，防止缓存击穿
-                var semaphore = _cacheLocks.GetOrAdd(cacheKey, _ => new SemaphoreSlim(1, 1));
-                await semaphore.WaitAsync();
+                // 获取或创建内存锁防止缓存击穿
+                var cacheLock = GetOrCreateCacheLock(cacheKey);
+                await cacheLock.WaitAsync();
                 try
                 {
-                    // 2. 双重检查：再次检查内存缓存
-                    if (_memoryCache.TryGetValue(cacheKey, out cached))
+                    // 双重检查锁定：获取锁后再次检查缓存
+                    cachedValue = await _redisClient.Database.StringGetAsync(cacheKey);
+                    if (cachedValue.HasValue)
                     {
-                        return cached;
+                        var cachedResult = JsonConvert.DeserializeObject<PagedResultDto<AuctionItemDto>>(cachedValue);
+                        _logger.LogDebug("拍卖品列表缓存命中（二次检查）: {CacheKey}", cacheKey);
+                        return cachedResult;
                     }
 
-                    // 3. 缓存未命中，从数据库获取
-                    var dbResult = await GetAuctionListFromDatabaseAsync(input);
+                    // 缓存未命中，从数据库获取
+                    var result = await GetAuctionListFromDatabaseAsync(input);
 
-                    // 4. 写入内存缓存（带随机 TTL 防止雪崩）
-                    var expireTime = AuctionItemCachePolicy.GetListCacheExpireWithJitter(input.Status);
-                    _memoryCache.Set(cacheKey, dbResult, expireTime);
-                    
-                    // 5. 追踪缓存键（用于批量清除）
-                    _cacheKeys.TryAdd(cacheKey, DateTime.UtcNow);
+                    // 设置缓存
+                    await SetAuctionListCacheAsync(input, result);
 
-                    sw.Stop();
-                    _logger.LogInformation("[PERF-Cache] 拍卖品列表已缓存到内存: {CacheKey}, Count: {Count}, 耗时: {ElapsedMs}ms",
-                        cacheKey, dbResult.Items?.Count ?? 0, sw.ElapsedMilliseconds);
-                    
-                    return dbResult;
+                    _logger.LogDebug("拍卖品列表数据已缓存: {CacheKey}, Count: {Count}", cacheKey, result.Items?.Count ?? 0);
+                    return result;
                 }
                 finally
                 {
-                    semaphore.Release();
+                    cacheLock.Release();
                 }
             }
             catch (Exception ex)
             {
-                sw.Stop();
-                _logger.LogError(ex, "[PERF-Cache] 获取拍卖品列表缓存失败，降级到数据库查询，耗时: {ElapsedMs}ms", sw.ElapsedMilliseconds);
+                _logger.LogError(ex, "获取拍卖品列表缓存失败，降级到数据库查询");
                 return await GetAuctionListFromDatabaseAsync(input);
             }
         }
@@ -155,50 +109,54 @@ namespace TtWork.Project.Services.Cache
                 return await GetAuctionDetailFromDatabaseAsync(auctionItemId);
             }
 
-            var sw = System.Diagnostics.Stopwatch.StartNew();
             try
             {
+                // 生成缓存键
                 string cacheKey = AuctionItemCacheKeys.GenerateDetailCacheKey(auctionItemId);
 
-                if (_memoryCache.TryGetValue(cacheKey, out AuctionItemDto cached))
+                // 尝试从缓存获取数据
+                var cachedValue = await _redisClient.Database.StringGetAsync(cacheKey);
+                if (cachedValue.HasValue)
                 {
-                    _logger.LogDebug("[PERF-Cache] 拍卖品详情内存缓存命中: {CacheKey}", cacheKey);
-                    return cached;
+                    var cachedResult = JsonConvert.DeserializeObject<AuctionItemDto>(cachedValue);
+                    _logger.LogDebug("拍卖品详情缓存命中: {CacheKey}", cacheKey);
+                    return cachedResult;
                 }
 
-                var semaphore = _cacheLocks.GetOrAdd(cacheKey, _ => new SemaphoreSlim(1, 1));
-                await semaphore.WaitAsync();
+                // 获取或创建内存锁防止缓存击穿
+                var cacheLock = GetOrCreateCacheLock(cacheKey);
+                await cacheLock.WaitAsync();
                 try
                 {
-                    if (_memoryCache.TryGetValue(cacheKey, out cached))
+                    // 双重检查锁定：获取锁后再次检查缓存
+                    cachedValue = await _redisClient.Database.StringGetAsync(cacheKey);
+                    if (cachedValue.HasValue)
                     {
-                        return cached;
+                        var cachedResult = JsonConvert.DeserializeObject<AuctionItemDto>(cachedValue);
+                        _logger.LogDebug("拍卖品详情缓存命中（二次检查）: {CacheKey}", cacheKey);
+                        return cachedResult;
                     }
 
+                    // 缓存未命中，从数据库获取
                     var result = await GetAuctionDetailFromDatabaseAsync(auctionItemId);
 
+                    // 设置缓存
                     if (result != null)
                     {
-                        var expireTime = AuctionItemCachePolicy.GetDetailCacheExpire(result.Status);
-                        _memoryCache.Set(cacheKey, result, expireTime);
-                        _cacheKeys.TryAdd(cacheKey, DateTime.UtcNow);
+                        await SetAuctionDetailCacheAsync(result);
                     }
 
-                    sw.Stop();
-                    _logger.LogInformation("[PERF-Cache] 拍卖品详情已缓存到内存: {CacheKey}, 耗时: {ElapsedMs}ms",
-                        cacheKey, sw.ElapsedMilliseconds);
+                    _logger.LogDebug("拍卖品详情数据已缓存: {CacheKey}", cacheKey);
                     return result;
                 }
                 finally
                 {
-                    semaphore.Release();
+                    cacheLock.Release();
                 }
             }
             catch (Exception ex)
             {
-                sw.Stop();
-                _logger.LogError(ex, "[PERF-Cache] 获取拍卖品详情缓存失败，ID: {AuctionItemId}, 耗时: {ElapsedMs}ms",
-                    auctionItemId, sw.ElapsedMilliseconds);
+                _logger.LogError(ex, "获取拍卖品详情缓存失败，降级到数据库查询，ID: {AuctionItemId}", auctionItemId);
                 return await GetAuctionDetailFromDatabaseAsync(auctionItemId);
             }
         }
@@ -210,46 +168,34 @@ namespace TtWork.Project.Services.Cache
                 return await GetCurrentAuctionItemFromDatabaseAsync();
             }
 
-            var sw = System.Diagnostics.Stopwatch.StartNew();
             try
             {
-                string cacheKey = AuctionItemCacheKeys.CURRENT_AUCTION;
-
-                if (_memoryCache.TryGetValue(cacheKey, out AuctionItemDto cached))
+                // 尝试从缓存获取数据
+                var cachedValue = await _redisClient.Database.StringGetAsync(AuctionItemCacheKeys.CURRENT_AUCTION);
+                if (cachedValue.HasValue)
                 {
-                    _logger.LogDebug("[PERF-Cache] 当前拍卖商品内存缓存命中: {CacheKey}", cacheKey);
-                    return cached;
-                }
-
-                var semaphore = _cacheLocks.GetOrAdd(cacheKey, _ => new SemaphoreSlim(1, 1));
-                await semaphore.WaitAsync();
-                try
-                {
-                    if (_memoryCache.TryGetValue(cacheKey, out cached))
+                    if (cachedValue == "null")
                     {
-                        return cached;
+                        return null;
                     }
 
-                    var result = await GetCurrentAuctionItemFromDatabaseAsync();
-
-                    var expireTime = AuctionItemCachePolicy.GetCurrentAuctionCacheExpire();
-                    _memoryCache.Set(cacheKey, result, expireTime);
-                    _cacheKeys.TryAdd(cacheKey, DateTime.UtcNow);
-
-                    sw.Stop();
-                    _logger.LogInformation("[PERF-Cache] 当前拍卖商品已缓存到内存: {CacheKey}, 耗时: {ElapsedMs}ms",
-                        cacheKey, sw.ElapsedMilliseconds);
-                    return result;
+                    var cachedResult = JsonConvert.DeserializeObject<AuctionItemDto>(cachedValue);
+                    _logger.LogDebug("当前拍卖商品缓存命中");
+                    return cachedResult;
                 }
-                finally
-                {
-                    semaphore.Release();
-                }
+
+                // 缓存未命中，从数据库获取
+                var result = await GetCurrentAuctionItemFromDatabaseAsync();
+
+                // 设置缓存
+                await SetCurrentAuctionCacheAsync(result);
+
+                _logger.LogDebug("当前拍卖商品数据已缓存");
+                return result;
             }
             catch (Exception ex)
             {
-                sw.Stop();
-                _logger.LogError(ex, "[PERF-Cache] 获取当前拍卖商品缓存失败，耗时: {ElapsedMs}ms", sw.ElapsedMilliseconds);
+                _logger.LogError(ex, "获取当前拍卖商品缓存失败，降级到数据库查询");
                 return await GetCurrentAuctionItemFromDatabaseAsync();
             }
         }
@@ -261,100 +207,98 @@ namespace TtWork.Project.Services.Cache
                 return await GetAuctionMidListFromDatabaseAsync(input);
             }
 
-            var sw = System.Diagnostics.Stopwatch.StartNew();
             try
             {
+                // 生成缓存键
                 string cacheKey = AuctionItemCacheKeys.GenerateMidListCacheKey(input);
 
-                if (_memoryCache.TryGetValue(cacheKey, out ListResultDto<AuctionItemDto> cached))
+                // 尝试从缓存获取数据
+                var cachedValue = await _redisClient.Database.StringGetAsync(cacheKey);
+                if (cachedValue.HasValue)
                 {
-                    _logger.LogDebug("[PERF-Cache] 拍卖中商品列表内存缓存命中: {CacheKey}", cacheKey);
-                    return cached;
+                    var cachedResult = JsonConvert.DeserializeObject<ListResultDto<AuctionItemDto>>(cachedValue);
+                    _logger.LogDebug("拍卖中商品列表缓存命中: {CacheKey}", cacheKey);
+                    return cachedResult;
                 }
 
-                var semaphore = _cacheLocks.GetOrAdd(cacheKey, _ => new SemaphoreSlim(1, 1));
-                await semaphore.WaitAsync();
+                // 获取或创建内存锁防止缓存击穿
+                var cacheLock = GetOrCreateCacheLock(cacheKey);
+                await cacheLock.WaitAsync();
                 try
                 {
-                    if (_memoryCache.TryGetValue(cacheKey, out cached))
+                    // 双重检查锁定：获取锁后再次检查缓存
+                    cachedValue = await _redisClient.Database.StringGetAsync(cacheKey);
+                    if (cachedValue.HasValue)
                     {
-                        return cached;
+                        var cachedResult = JsonConvert.DeserializeObject<ListResultDto<AuctionItemDto>>(cachedValue);
+                        _logger.LogDebug("拍卖中商品列表缓存命中（二次检查）: {CacheKey}", cacheKey);
+                        return cachedResult;
                     }
 
+                    // 缓存未命中，从数据库获取
                     var result = await GetAuctionMidListFromDatabaseAsync(input);
 
-                    var expireTime = AuctionItemCachePolicy.GetMidListCacheExpire();
-                    _memoryCache.Set(cacheKey, result, expireTime);
-                    _cacheKeys.TryAdd(cacheKey, DateTime.UtcNow);
+                    // 设置缓存
+                    await SetAuctionMidListCacheAsync(input, result);
 
-                    sw.Stop();
-                    _logger.LogInformation("[PERF-Cache] 拍卖中商品列表已缓存到内存: {CacheKey}, Count: {Count}, 耗时: {ElapsedMs}ms",
-                        cacheKey, result.Items?.Count ?? 0, sw.ElapsedMilliseconds);
-
+                    _logger.LogDebug("拍卖中商品列表数据已缓存: {CacheKey}, Count: {Count}", cacheKey, result.Items?.Count ?? 0);
                     return result;
                 }
                 finally
                 {
-                    semaphore.Release();
+                    cacheLock.Release();
                 }
             }
             catch (Exception ex)
             {
-                sw.Stop();
-                _logger.LogError(ex, "[PERF-Cache] 获取拍卖中商品列表缓存失败，耗时: {ElapsedMs}ms", sw.ElapsedMilliseconds);
+                _logger.LogError(ex, "获取拍卖中商品列表缓存失败，降级到数据库查询");
                 return await GetAuctionMidListFromDatabaseAsync(input);
             }
         }
 
-        public Task SetAuctionDetailCacheAsync(AuctionItemDto auctionItem)
+        public async Task SetAuctionDetailCacheAsync(AuctionItemDto auctionItem)
         {
             if (!AuctionItemCachePolicy.IsCacheEnabled() || auctionItem == null)
             {
-                return Task.CompletedTask;
+                return;
             }
 
             try
             {
                 string cacheKey = AuctionItemCacheKeys.GenerateDetailCacheKey(auctionItem.Id);
                 var expireTime = AuctionItemCachePolicy.GetDetailCacheExpire(auctionItem.Status);
+                string serializedData = JsonConvert.SerializeObject(auctionItem);
 
-                _memoryCache.Set(cacheKey, auctionItem, expireTime);
-                _cacheKeys.TryAdd(cacheKey, DateTime.UtcNow);
-
-                _logger.LogDebug("[PERF-Cache] 拍卖品详情缓存已设置: {CacheKey}, 过期时间: {ExpireTime}", cacheKey, expireTime);
+                await _redisClient.Database.StringSetAsync(cacheKey, serializedData, expireTime);
+                _logger.LogDebug("拍卖品详情缓存已设置: {CacheKey}, 过期时间: {ExpireTime}", cacheKey, expireTime);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "设置拍卖品详情缓存失败，ID: {AuctionItemId}", auctionItem.Id);
             }
-
-            return Task.CompletedTask;
         }
 
-        public Task SetAuctionListCacheAsync(AppResultRequestDto input, ListResultDto<AuctionItemDto> result)
+        public async Task SetAuctionListCacheAsync(AppResultRequestDto input, PagedResultDto<AuctionItemDto> result)
         {
             if (!AuctionItemCachePolicy.IsCacheEnabled() || result == null)
             {
-                return Task.CompletedTask;
+                return;
             }
 
             try
             {
                 string cacheKey = AuctionItemCacheKeys.GenerateListCacheKey(input);
-                var expireTime = AuctionItemCachePolicy.GetListCacheExpireWithJitter(input.Status);
+                var expireTime = AuctionItemCachePolicy.GetListCacheExpire(input.Status);
+                string serializedData = JsonConvert.SerializeObject(result);
 
-                _memoryCache.Set(cacheKey, result, expireTime);
-                _cacheKeys.TryAdd(cacheKey, DateTime.UtcNow);
-
-                _logger.LogDebug("[PERF-Cache] 拍卖品列表缓存已设置: {CacheKey}, Count: {Count}, 过期时间: {ExpireTime}",
+                await _redisClient.Database.StringSetAsync(cacheKey, serializedData, expireTime);
+                _logger.LogDebug("拍卖品列表缓存已设置: {CacheKey}, Count: {Count}, 过期时间: {ExpireTime}", 
                     cacheKey, result.Items?.Count ?? 0, expireTime);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "设置拍卖品列表缓存失败");
             }
-
-            return Task.CompletedTask;
         }
 
         public async Task ClearAuctionCacheAsync(long? auctionItemId = null)
@@ -384,91 +328,57 @@ namespace TtWork.Project.Services.Cache
             }
         }
 
-        public Task ClearAuctionListCacheAsync(AuctionStatusEnum? status = null)
+        public async Task ClearAuctionListCacheAsync(AuctionStatusEnum? status = null)
         {
-            var sw = System.Diagnostics.Stopwatch.StartNew();
-            int cleared = 0;
-
             try
             {
-                // 根据状态确定前缀
-                string prefix = status.HasValue
-                    ? $"auction:list:{status.Value}:"
-                    : "auction:list:";
-
-                // 遍历追踪的键，按前缀匹配清除（O(1) 操作）
-                var keysToRemove = _cacheKeys.Keys
-                    .Where(k => k.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-
-                foreach (var key in keysToRemove)
+                var patterns = AuctionItemCacheKeys.GetListCachePatterns(status);
+                foreach (var pattern in patterns)
                 {
-                    _memoryCache.Remove(key);
-                    _cacheKeys.TryRemove(key, out _);
-                    cleared++;
+                    await _redisClient.DeleteKeysWithParttenAsync(pattern);
                 }
 
                 // 同时清除拍卖中商品列表缓存
-                var midPrefix = "auction:mid:";
-                var midKeysToRemove = _cacheKeys.Keys
-                    .Where(k => k.StartsWith(midPrefix, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-
-                foreach (var key in midKeysToRemove)
+                var midPatterns = AuctionItemCacheKeys.GetMidListCachePatterns();
+                foreach (var pattern in midPatterns)
                 {
-                    _memoryCache.Remove(key);
-                    _cacheKeys.TryRemove(key, out _);
-                    cleared++;
+                    await _redisClient.DeleteKeysWithParttenAsync(pattern);
                 }
 
-                sw.Stop();
-                _logger.LogInformation("[PERF-Cache] 拍卖品列表缓存已清除，数量: {Cleared}, 耗时: {ElapsedMs}ms, 状态: {Status}",
-                    cleared, sw.ElapsedMilliseconds, status?.ToString() ?? "ALL");
+                _logger.LogDebug("拍卖品列表缓存已清除，状态过滤: {Status}", status?.ToString() ?? "ALL");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "清除拍卖品列表缓存失败");
             }
-
-            return Task.CompletedTask;
         }
 
-        public Task ClearAuctionDetailCacheAsync(long auctionItemId)
+        public async Task ClearAuctionDetailCacheAsync(long auctionItemId)
         {
             try
             {
                 string cacheKey = AuctionItemCacheKeys.GenerateDetailCacheKey(auctionItemId);
-
-                _memoryCache.Remove(cacheKey);
-                _cacheKeys.TryRemove(cacheKey, out _);
-
-                _logger.LogDebug("[PERF-Cache] 拍卖品详情缓存已清除: {CacheKey}", cacheKey);
+                await _redisClient.Database.KeyDeleteAsync(cacheKey);
+                
+                _logger.LogDebug("拍卖品详情缓存已清除: {CacheKey}", cacheKey);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "清除拍卖品详情缓存失败，ID: {AuctionItemId}", auctionItemId);
             }
-
-            return Task.CompletedTask;
         }
 
-        public Task ClearCurrentAuctionCacheAsync()
+        public async Task ClearCurrentAuctionCacheAsync()
         {
             try
             {
-                string cacheKey = AuctionItemCacheKeys.CURRENT_AUCTION;
-
-                _memoryCache.Remove(cacheKey);
-                _cacheKeys.TryRemove(cacheKey, out _);
-
-                _logger.LogDebug("[PERF-Cache] 当前拍卖商品缓存已清除");
+                await _redisClient.Database.KeyDeleteAsync(AuctionItemCacheKeys.CURRENT_AUCTION);
+                _logger.LogDebug("当前拍卖商品缓存已清除");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "清除当前拍卖商品缓存失败");
             }
-
-            return Task.CompletedTask;
         }
 
         public async Task WarmupCacheAsync()
@@ -542,7 +452,19 @@ namespace TtWork.Project.Services.Cache
 
         #region 私有方法
 
-        private async Task<ListResultDto<AuctionItemDto>> GetAuctionListFromDatabaseAsync(AppResultRequestDto input)
+        private SemaphoreSlim GetOrCreateCacheLock(string cacheKey)
+        {
+            lock (_lockDictLock)
+            {
+                if (!_cacheLocks.ContainsKey(cacheKey))
+                {
+                    _cacheLocks[cacheKey] = new SemaphoreSlim(1, 1);
+                }
+                return _cacheLocks[cacheKey];
+            }
+        }
+
+        private async Task<PagedResultDto<AuctionItemDto>> GetAuctionListFromDatabaseAsync(AppResultRequestDto input)
         {
             if (input.MaxResultCount <= 0)
             {
@@ -554,11 +476,12 @@ namespace TtWork.Project.Services.Cache
                     x => x.Status == AuctionStatusEnum.上架 || x.Status == AuctionStatusEnum.拍卖中)
                 .WhereIf(input.Status.HasValue, x => (int)x.Status == input.Status!.Value);
 
+            // 获取总数
+            var totalCount = await query.CountAsync();
+
             if (!input.Status.HasValue)
             {
-                var allItems = await query.OrderBy(x => x.Order).ThenBy(x => x.Id).ToListAsync();
-                var resultItems = _objectMapper.Map<List<AuctionItemDto>>(allItems.Take(input.MaxResultCount).ToList());
-                return new ListResultDto<AuctionItemDto>(resultItems);
+                query = query.OrderBy(x => x.Order).ThenBy(x => x.Id).Take(input.MaxResultCount);
             }
             else if (input.Status == (int)AuctionStatusEnum.已成交)
             {
@@ -570,8 +493,8 @@ namespace TtWork.Project.Services.Cache
             }
 
             var items = await query.ToListAsync();
-            var resultDtos = _objectMapper.Map<List<AuctionItemDto>>(items);
-            return new ListResultDto<AuctionItemDto>(resultDtos);
+            var dtoItems = _objectMapper.Map<List<AuctionItemDto>>(items);
+            return new PagedResultDto<AuctionItemDto>(totalCount, dtoItems);
         }
 
         private async Task<AuctionItemDto> GetAuctionDetailFromDatabaseAsync(long auctionItemId)
@@ -604,6 +527,11 @@ namespace TtWork.Project.Services.Cache
                 }
             }
 
+            // 获取卡秒状态
+            var kasecKey = AuctionItemCacheKeys.GenerateKasecCacheKey(auctionItemId);
+            var kasecVal = await _redisClient.Database.StringGetAsync(kasecKey);
+            result.IsKasec = kasecVal.HasValue && kasecVal == "true";
+
             return result;
         }
 
@@ -633,6 +561,11 @@ namespace TtWork.Project.Services.Cache
                 result.CurrentPriceTime = latestBid.BidTime;
                 result.UseCountdownTime = latestBid.CreationTime;
             }
+
+            // 获取卡秒状态
+            var kasecKey = AuctionItemCacheKeys.GenerateKasecCacheKey(auctionItem.Id);
+            var kasecVal = await _redisClient.Database.StringGetAsync(kasecKey);
+            result.IsKasec = kasecVal.HasValue && kasecVal == "true";
 
             return result;
         }
@@ -679,73 +612,65 @@ namespace TtWork.Project.Services.Cache
             return result;
         }
 
-        private Task SetCurrentAuctionCacheAsync(AuctionItemDto currentAuction)
+        private async Task SetCurrentAuctionCacheAsync(AuctionItemDto currentAuction)
         {
             try
             {
                 var expireTime = AuctionItemCachePolicy.GetCurrentAuctionCacheExpire();
-                string cacheKey = AuctionItemCacheKeys.CURRENT_AUCTION;
+                
+                if (currentAuction == null)
+                {
+                    // 缓存空结果，避免缓存穿透
+                    await _redisClient.Database.StringSetAsync(AuctionItemCacheKeys.CURRENT_AUCTION, "null", 
+                        AuctionItemCachePolicy.GetNullResultCacheExpire());
+                }
+                else
+                {
+                    string serializedData = JsonConvert.SerializeObject(currentAuction);
+                    await _redisClient.Database.StringSetAsync(AuctionItemCacheKeys.CURRENT_AUCTION, serializedData, expireTime);
+                }
 
-                _memoryCache.Set(cacheKey, currentAuction, expireTime);
-                _cacheKeys.TryAdd(cacheKey, DateTime.UtcNow);
-
-                _logger.LogDebug("[PERF-Cache] 当前拍卖商品缓存已设置，过期时间: {ExpireTime}", expireTime);
+                _logger.LogDebug("当前拍卖商品缓存已设置，过期时间: {ExpireTime}", expireTime);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "设置当前拍卖商品缓存失败");
             }
-
-            return Task.CompletedTask;
         }
 
-        private Task SetAuctionMidListCacheAsync(AppResultRequestDto input, ListResultDto<AuctionItemDto> result)
+        private async Task SetAuctionMidListCacheAsync(AppResultRequestDto input, ListResultDto<AuctionItemDto> result)
         {
             try
             {
                 string cacheKey = AuctionItemCacheKeys.GenerateMidListCacheKey(input);
                 var expireTime = AuctionItemCachePolicy.GetMidListCacheExpire();
+                string serializedData = JsonConvert.SerializeObject(result);
 
-                _memoryCache.Set(cacheKey, result, expireTime);
-                _cacheKeys.TryAdd(cacheKey, DateTime.UtcNow);
-
-                _logger.LogDebug("[PERF-Cache] 拍卖中商品列表缓存已设置: {CacheKey}, 过期时间: {ExpireTime}", cacheKey, expireTime);
+                await _redisClient.Database.StringSetAsync(cacheKey, serializedData, expireTime);
+                _logger.LogDebug("拍卖中商品列表缓存已设置: {CacheKey}, 过期时间: {ExpireTime}", cacheKey, expireTime);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "设置拍卖中商品列表缓存失败");
             }
-
-            return Task.CompletedTask;
         }
 
-        private Task ClearAllAuctionCacheAsync()
+        private async Task ClearAllAuctionCacheAsync()
         {
-            var sw = System.Diagnostics.Stopwatch.StartNew();
-            int cleared = 0;
-
             try
             {
-                // 清除所有追踪的缓存键
-                var keysToRemove = _cacheKeys.Keys.ToList();
-
-                foreach (var key in keysToRemove)
+                var patterns = AuctionItemCacheKeys.GetAllCachePatterns();
+                foreach (var pattern in patterns)
                 {
-                    _memoryCache.Remove(key);
-                    _cacheKeys.TryRemove(key, out _);
-                    cleared++;
+                    await _redisClient.DeleteKeysWithParttenAsync(pattern);
                 }
 
-                sw.Stop();
-                _logger.LogInformation("[PERF-Cache] 所有拍卖品缓存已清除，数量: {Cleared}, 耗时: {ElapsedMs}ms",
-                    cleared, sw.ElapsedMilliseconds);
+                _logger.LogDebug("所有拍卖品缓存已清除");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "清除所有拍卖品缓存失败");
             }
-
-            return Task.CompletedTask;
         }
 
         #endregion

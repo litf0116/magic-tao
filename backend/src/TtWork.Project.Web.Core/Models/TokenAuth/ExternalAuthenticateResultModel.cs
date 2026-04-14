@@ -19,5 +19,15 @@
         public object Extension { get; set; }
         
         public string[] RoleNames { get; set; }
+
+        /// <summary>
+        /// 是否需要完善个人信息
+        /// </summary>
+        public bool NeedProfileCompletion { get; set; }
+
+        /// <summary>
+        /// 用户ID
+        /// </summary>
+        public long UserId { get; set; }
     }
 }

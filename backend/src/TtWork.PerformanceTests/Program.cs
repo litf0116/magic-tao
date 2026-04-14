@@ -224,20 +224,26 @@ class Program
     {
         try
         {
-            // 运行用户状态字段方案的性能测试
-            ChatListPerformanceTestFinal.RunPerformanceComparison();
-            ChatListPerformanceTestFinal.ShowSqlComparison();
-            ChatListPerformanceTestFinal.ShowIndexOptimization();
+            // 运行拍卖品缓存性能测试
+            AuctionCachePerformanceTest.RunAllTests();
+
+            // 可选：运行原来的聊天列表性能测试
+            // ChatListPerformanceTestFinal.RunPerformanceComparison();
+            // ChatListPerformanceTestFinal.ShowSqlComparison();
+            // ChatListPerformanceTestFinal.ShowIndexOptimization();
+
+            // 清理测试数据
+            AuctionCachePerformanceTest.Cleanup();
 
             Console.WriteLine();
-            Console.WriteLine("🎯 用户状态字段方案优化总结:");
-            Console.WriteLine("✅ 查询次数：从1+N次降低到1次");
-            Console.WriteLine("✅ 响应时间：从200-500ms降低到50-65ms");
-            Console.WriteLine("✅ 性能提升：60-80%");
-            Console.WriteLine("✅ 数据库负载：减少80%+");
-            Console.WriteLine("✅ 维护复杂度：降低80%");
+            Console.WriteLine("🎯 拍卖品缓存性能测试总结:");
+            Console.WriteLine("✅ 缓存命中性能：验证了冷启动 vs 缓存命中的性能差异");
+            Console.WriteLine("✅ 缓存击穿防护：验证了并发访问时的锁机制有效性");
+            Console.WriteLine("✅ 不同状态缓存：验证了不同状态商品的缓存策略");
+            Console.WriteLine("✅ 高并发压力：验证了100并发请求的系统稳定性");
+            Console.WriteLine("✅ 缓存过期机制：验证了缓存过期和自动重建机制");
             Console.WriteLine();
-            Console.WriteLine("🎉 用户状态字段方案实施成功！");
+            Console.WriteLine("🎉 拍卖品缓存性能测试完成！");
         }
         catch (Exception ex)
         {

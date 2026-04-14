@@ -18,7 +18,7 @@
 
         <view class="fixed right-0 top-290rpx z-100" @click.stop="showGoods">
             <view class="text-30rpx w-48rpx py-2 bg-[#ff7144] text-white font-700 rounded-l-lg text-center">
-                待拍品
+                秒杀榜
             </view>
         </view>
 
@@ -29,7 +29,7 @@
                 >拍品详情
             </view>
             <view class="py-4 px-3 bg-red-500 rounded-lg text-center opacity-80" @click.stop="bid">
-                <view class="text-sm text-white mb-2">拍卖中</view>
+                <view class="text-sm text-white mb-2">秒杀中</view>
                 <view class="text-32rpx text-white font-700 underline">出价</view>
             </view>
         </view>
@@ -92,6 +92,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import chatMain from '@/components/chat/chatMain.vue'
 import { getImgUrl, Tips } from '@/composables'
 import { convertImageUrl } from '@/utils/imageUrlConverter'
@@ -103,16 +104,17 @@ import { calculateMinBidPrice } from '@/utils/auction'
 import { onLoad, onShow, onReady } from '@dcloudio/uni-app'
 import { ChatMessageType } from '@/composables/types'
 import { nextTick, onUnmounted } from 'vue'
+import { pushService } from '@/utils/push'
 
 // import AuctionList from '@/components/chat/AuctionList.vue'
 const chatStore = useChatStore()
 const userStore = useUserStore()
 const auctionStore = useAuctionStore()
 const chatRef = ref<InstanceType<typeof chatMain> | null>(null)
-const popupRef = ref(null as any)
+const popupRef = ref(null)
 //公告信息跟弹窗
 const item = ref<AnnounceDto | null>(null)
-const popupShowRef = ref(null as any)
+const popupShowRef = ref(null)
 
 // 出价规则弹窗相关
 const bidRulesModalVisible = ref(false)
@@ -125,10 +127,40 @@ const unread = ref('')
 const showUnread = ref(false)
 
 onLoad(() => {
-    chatStore.connectServer().then(async () => {
-        //todo
-        init('-1_auction')
-    })
+    // 版本控制检查：验证用户是否有访问秒杀频道的权限
+    console.log('[Auction] onLoad, chatList:', JSON.stringify(chatStore.chatList))
+    const hasAccess = chatStore.chatList.some((chat) => chat.id === -1)
+    console.log('[Auction] hasAccess:', hasAccess)
+
+    if (!hasAccess) {
+        console.log('[Auction] hasAccess false, redirecting...')
+        uni.showToast({
+            title: '秒杀功能暂未开放',
+            icon: 'none',
+            duration: 2000,
+        })
+
+        setTimeout(() => {
+            uni.navigateBack({
+                delta: 1,
+                fail: () => {
+                    uni.switchTab({ url: '/pages/tabbar/index' })
+                },
+            })
+        }, 500)
+
+        return
+    }
+
+    chatStore
+        .connectServer()
+        .then(async () => {
+            console.log('[Auction] connectServer success, calling init')
+            init('-1_auction')
+        })
+        .catch((err) => {
+            console.error('[Auction] connectServer error:', err)
+        })
     //获取最新公告
     api.announce.getLatest({ id: 2 }).then((res) => {
         item.value = res
@@ -152,7 +184,7 @@ onLoad(() => {
     uni.$on('showBidRulesModal', (data: { message: string; needPriceInfo?: boolean }) => {
         bidRulesMessage.value = data.message
 
-        // 如果需要价格信息，从当前拍卖商品获取
+        // 如果需要价格信息，从当前秒杀商品获取
         if (data.needPriceInfo && onAuctionItem.value) {
             bidRulesCurrentPrice.value = onAuctionItem.value.currentPrice || onAuctionItem.value.startingPrice || 0
             // 计算最低出价
@@ -177,7 +209,7 @@ function onBidRulesConfirm() {
 //关闭公告弹窗
 const onConfirm = () => {
     uni.setStorageSync('auctionNotice', item.value)
-    popupShowRef.value.close()
+    popupShowRef.value?.close()
 }
 //获取用户信息
 const userId = computed(() => {
@@ -213,6 +245,7 @@ const init = async (name: string) => {
 }
 
 function sub(e: AuctionItemDto) {
+    // 小程序：使用订阅消息
     const msgId = 'ZuYTYzw2cM0LVhF5ybH5iATMaDl6lZ82OC6cczsglEA'
     uni.requestSubscribeMessage({
         tmplIds: [msgId],
@@ -225,11 +258,9 @@ function sub(e: AuctionItemDto) {
         complete: (res: any) => {
             // console.log(res)
             if (res[msgId] !== 'reject') {
-                auctionStore.startNotify(e.id!).then(() => {
+                auctionStore.startNotify(e.id!, 'miniprogram', userStore.openid).then(() => {
                     Tips.success('订阅成功')
                 })
-
-                // chatStore.sendChannelMsg('订阅成功', '', ChatMessageType.Text).then(() => {})
             } else {
                 Tips.info('请允许接受通知')
             }
@@ -242,29 +273,35 @@ const historyMsgs = computed(() => {
 })
 
 async function loadHistoryMessage(force = false) {
-    if (force) {
-        await chatStore.joinChannel('-1_auction')
-    }
-
-    // console.log('loadHistoryMessage')
-
-    chatRef.value!.history.loading = true
-
-    let lastTime = 0
-    if (!force) {
-        if (historyMsgs.value && historyMsgs.value.length) {
-            lastTime = historyMsgs.value[0].time!
+    try {
+        if (force) {
+            await chatStore.joinChannel('-1_auction')
         }
-    }
-    await chatStore.getGroupHistory('-1_auction', lastTime, force).then((res) => {
+
+        // console.log('loadHistoryMessage')
+
+        chatRef.value!.history.loading = true
+
+        let lastTime = 0
+        if (!force) {
+            if (historyMsgs.value && historyMsgs.value.length) {
+                lastTime = historyMsgs.value[0].time!
+            }
+        }
+
+        const res = await chatStore.getGroupHistory('-1_auction', lastTime, force)
         chatRef.value!.history.loading = false
         if (res.length < 20) {
             chatRef.value!.history.allLoaded = true
         }
-    })
+    } catch (e) {
+        console.error('[auction.loadHistoryMessage] 错误:', e)
+        chatRef.value!.history.loading = false
+        Tips.error('加载历史消息失败，请重试')
+    }
 }
 
-//LINK[epic=消息发送] - 拍卖消息发送逻辑
+//LINK[epic=消息发送] - 秒杀消息发送逻辑
 function send(e: { type: ChatMessageType; data: string | object }) {
     if (e.type === ChatMessageType.Image) {
         chatStore.sendChannelMsg('[图片]', '', ChatMessageType.Image, e.data).then(() => {})
@@ -283,72 +320,15 @@ function doPayment(
     params: { amount: number; type: string; from: string },
     callback: { success: () => void; fail: () => void }
 ) {
-    api.client
-        .payDeposit({ openid: userStore.openid, amount: params.amount })
-        .then((res: any) => {
-            wx.requestPayment({
-                provider: 'wxpay',
-                timeStamp: `${res.timeStamp}`,
-                nonceStr: res.nonceStr,
-                package: res.package,
-                signType: res.signType,
-                paySign: res.paySign,
-                success: async (res) => {
-                    // console.log('支付成功:', JSON.stringify(res))
-
-                    // 清除支付状态
-                    uni.removeStorageSync('depositStatus')
-
-                    // 更新用户信息
-                    try {
-                        await userStore.checkLogin(false, true)
-                        // console.log('用户信息更新成功')
-                    } catch (error) {
-                        // console.error('更新用户信息失败:', error)
-                    }
-
-                    callback.success()
-                    Tips.success('支付成功，保证金已到账')
-
-                    // 支付成功后，询问用户是否立即出价
-                    setTimeout(() => {
-                        uni.showModal({
-                            title: '支付成功',
-                            content: '保证金已到账，是否立即出价？',
-                            showCancel: true,
-                            confirmText: '立即出价',
-                            cancelText: '稍后出价',
-                            success: (modalRes) => {
-                                if (modalRes.confirm) {
-                                    // 延迟一下再调用出价，确保用户信息已更新
-                                    setTimeout(() => {
-                                        bid()
-                                    }, 500)
-                                }
-                            },
-                        })
-                    }, 1500)
-                },
-                fail: (err) => {
-                    // console.log('支付失败:', JSON.stringify(err))
-
-                    // 清除支付状态
-                    uni.removeStorageSync('depositStatus')
-
-                    callback.fail()
-                    Tips.info('用户取消支付')
-                },
-            })
-        })
-        .catch((error) => {
-            // console.error('获取支付参数失败:', error)
-
-            // 清除支付状态
-            uni.removeStorageSync('depositStatus')
-
-            callback.fail()
-            Tips.error('获取支付参数失败，请重试')
-        })
+    // 小程序端暂时引导用户去PC端充值
+    uni.showModal({
+        title: '充值提示',
+        content:
+            '小程序充值功能正在升级维护中\n\n请登录PC端完成魔力值充值：\nwww.molitao.top\n\n💡 操作步骤：\n1. 登录PC端\n2. 点击右上角用户名\n3. 选择"保证金充值"\n4. 扫码支付\n\n支持微信扫码支付哦~',
+        showCancel: false,
+        confirmText: '我知道了',
+    })
+    callback.fail()
 }
 
 //出价
@@ -357,23 +337,23 @@ async function bid() {
     // console.log('开始出价流程 - 用户ID:', userId)
 
     try {
-        // 首先获取当前拍卖商品ID
+        // 首先获取当前秒杀商品ID
         if (!onAuctionItem.value || !onAuctionItem.value.id) {
-            // console.log('没有正在拍卖的商品')
-            Tips.error('没有正在拍卖的商品')
+            // console.log('没有正在秒杀的商品')
+            Tips.error('没有正在秒杀的商品')
             return
         }
 
         const auctionItemId = onAuctionItem.value.id
-        // console.log('当前拍卖商品ID:', auctionItemId)
+        // console.log('当前秒杀商品ID:', auctionItemId)
 
-        // 获取实时的拍卖商品信息
+        // 获取实时的秒杀商品信息
         const auctionItemDetail = await api.auctionItem.getDetail(auctionItemId)
 
         // 验证商品状态
         if (auctionItemDetail.status !== '拍卖中') {
-            // console.log('商品不在拍卖中，状态:', auctionItemDetail.status)
-            Tips.error('商品不在拍卖中')
+            // console.log('商品不在秒杀中，状态:', auctionItemDetail.status)
+            Tips.error('商品不在秒杀中')
             return
         }
 
@@ -397,28 +377,28 @@ async function bid() {
         const userLevel = levelInfo?.levelSettings?.level ?? 0
         const cumulativeAmount = levelInfo?.userLevel?.cumulativeAmount ?? 0
 
-        // 新用户且保证金不足的情况
+        // 新用户且魔力值不足的情况
         if (userLevel === 0 && deposit < 50) {
-            // console.log('新用户保证金不足:', { userLevel, deposit })
+            // console.log('新用户魔力值不足:', { userLevel, deposit })
             // 先显示一个提示
             uni.showToast({
-                title: '新用户需要缴纳保证金',
+                title: '新用户需要缴纳魔力值',
                 icon: 'none',
                 duration: 2000,
             })
 
-            // console.log('准备显示保证金弹窗...')
+            // console.log('准备显示魔力值弹窗...')
             try {
                 await new Promise((resolve, reject) => {
                     uni.showModal({
                         title: '出价须知',
                         content:
-                            '新用户参与拍卖，需要缴纳51元（50元保证金+1元提现手续费）\n老用户回归参与拍卖，需向拍卖师-老淡，提供以往QQ群成交聊天记录截图',
+                            '新用户参与秒杀，需要魔力值51\n老用户回归参与秒杀，需向管理员-老淡，提供以往QQ群成交聊天记录截图',
                         showCancel: true,
                         confirmText: '去缴纳',
                         cancelText: '提供记录',
                         success: (res) => {
-                            // console.log('保证金弹窗结果:', res)
+                            // console.log('魔力值弹窗结果:', res)
                             if (res.confirm) {
                                 // 保存状态
                                 const depositStatus = {
@@ -429,7 +409,7 @@ async function bid() {
                                 }
                                 uni.setStorageSync('depositStatus', depositStatus)
 
-                                // 直接跳转到保证金支付页面
+                                // 直接跳转到魔力值支付页面
                                 doPayment(
                                     {
                                         amount: 51,
@@ -451,13 +431,13 @@ async function bid() {
                             resolve(res)
                         },
                         fail: (err: any) => {
-                            // console.error('保证金弹窗失败:', err)
+                            // console.error('魔力值弹窗失败:', err)
                             reject(err)
                         },
                     })
                 })
             } catch (error) {
-                // console.error('显示保证金弹窗出错:', error)
+                // console.error('显示魔力值弹窗出错:', error)
                 Tips.error('显示弹窗失败，请重试')
             }
             return
@@ -538,7 +518,21 @@ function showDetail(e: AuctionItemDto) {
         e.imageUrl = convertImageUrl(e.imageUrl)
     }
     showItem.value = convertFields(e)
-    popup.value.open('bottom')
+
+    // 添加防御性检查，确保 popup 已初始化
+    if (popup.value) {
+        popup.value.open('bottom')
+    } else {
+        console.warn('popup ref 未初始化，稍后重试')
+        // 延迟重试，确保组件已挂载
+        setTimeout(() => {
+            if (popup.value) {
+                popup.value.open('bottom')
+            } else {
+                console.error('popup ref 初始化失败')
+            }
+        }, 100)
+    }
 }
 
 //检测首字母是否大写
@@ -594,7 +588,7 @@ function getStartContent(item: AuctionItemDto) {
         </div>`
     }
     // console.log('description', description)
-    // description <img data-url="https://cdn.molitao.top/molitao/2025-09-20/upload_rper34g17578vqs2ri9y08zhcg8iph51.png" src="https://cdn.molitao.top/molitao/2025-09-20/upload_rper34g17578vqs2ri9y08zhcg8iph51.png!w300" style="max-width: 200px; max-height: 200px;"><div><span>120级02101水龙5胞胎队！纯血满树海！</span><br></div>
+    // description <img data-url="https://image.molitao.top/molitao/2025-09-20/upload_rper34g17578vqs2ri9y08zhcg8iph51.png" src="https://image.molitao.top/molitao/2025-09-20/upload_rper34g17578vqs2ri9y08zhcg8iph51.png!w300" style="max-width: 200px; max-height: 200px;"><div><span>120级02101水龙5胞胎队！纯血满树海！</span><br></div>
     // 其中的图片链接需要转换
     // 使用正则表达式替换所有 img 标签的 data-url 属性
     const updatedDescription = description.replace(/<img[^>]+data-url=['"]([^'"]+)['"][^>]*>/g, (match, p1) => {
@@ -602,7 +596,7 @@ function getStartContent(item: AuctionItemDto) {
         return match.replace(p1, convertedUrl)
     })
     // console.log('updatedDescription', updatedDescription)
-    // src = "https://cdn.molitao.top/molitao/2025-09-20/upload_rper34g17578vqs2ri9y08zhcg8iph51.png!w300" 也要修改
+    // src = "https://image.molitao.top/molitao/2025-09-20/upload_rper34g17578vqs2ri9y08zhcg8iph51.png!w300" 也要修改
     // 使用正则表达式替换所有 img 标签的 src 属性
     const finalDescription = updatedDescription.replace(/<img[^>]+src=['"]([^'"]+)['"][^>]*>/g, (match, p1) => {
         const cleanUrl = p1.replace(/!w300$/, '') // 移除缩略图参数
@@ -738,7 +732,7 @@ const navigateToAdminChat = (status: 'pending' | 'record_provided') => {
 <route lang="json">
 {
     "style": {
-        "navigationBarTitleText": "拍卖行"
+        "navigationBarTitleText": "秒杀场"
     }
 }
 </route>

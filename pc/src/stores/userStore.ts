@@ -20,7 +20,8 @@ export const useUserStore = defineStore('user', () => {
     // a function that returns a fresh state
     const permissionStore = usePermissionStore()
 
-    const user: Ref<UserLoginInfoDto> = ref(Object.assign({}, defaultUser, JSON.parse(localStorage.getItem('user')!)))
+    const storedUser = localStorage.getItem('user')
+    const user: Ref<UserLoginInfoDto> = ref(Object.assign({}, defaultUser, storedUser ? JSON.parse(storedUser) : {}))
 
     // 处理用户头像URL转换
     const processedUser = computed(() => {
@@ -102,6 +103,7 @@ export const useUserStore = defineStore('user', () => {
                     SET_ROLES([])
                 } else {
                     SET_USER(res.user)
+                    chatStore.websocketId = res.user.id
                 }
                 if (res.permissions) permissions.value = res.permissions
                 if (res.roles) roles.value = res.roles

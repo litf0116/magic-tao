@@ -9,10 +9,12 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 RUN export hostip=$(cat /etc/resolv.conf |grep -oP '(?<=nameserver\ ).*')
 WORKDIR /src
+COPY ["nuget.config", "./"]
 COPY ["FreeIM/FreeIM/FreeIM.csproj", "FreeIM/FreeIM/"]
 COPY ["Modules/Tt.HttpClient.Weixin/Tt.HttpClient.Weixin.csproj", "Modules/Tt.HttpClient.Weixin/"]
 COPY ["Modules/TtWork.Abp.AppManagement/TtWork.Abp.AppManagement.csproj", "Modules/TtWork.Abp.AppManagement/"]
 COPY ["Modules/TtWork.Abp.Core/TtWork.Abp.Core.csproj", "Modules/TtWork.Abp.Core/"]
+COPY ["Modules/TtWork.Abp.Entity/TtWork.Abp.Entity.csproj", "Modules/TtWork.Abp.Entity/"]
 COPY ["Modules/TtWork.Abp.Oss.UpYun/TtWork.Abp.Oss.UpYun.csproj", "Modules/TtWork.Abp.Oss.UpYun/"]
 COPY ["Modules/TtWork.Lib/TtWork.Lib.csproj", "Modules/TtWork.Lib/"]
 COPY ["src/TtWork.Project/TtWork.Project.csproj", "src/TtWork.Project/"]
@@ -37,9 +39,10 @@ COPY --from=publish /app/publish .
 USER root
 RUN rm -rf /app/wwwroot
 RUN mkdir -p /app/wwwroot
-RUN mkdir -p /app/cert
-RUN chmod -R 777 /app/wwwroot
-RUN chown -R app:app /app/wwwroot /app/cert
+RUN mkdir -p /app/certs
+RUN mkdir -p /app/logs
+RUN chmod -R 777 /app/wwwroot /app/logs
+RUN chown -R app:app /app/wwwroot /app/certs /app/logs
 
 # 切换回app用户以确保安全性
 USER app

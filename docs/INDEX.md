@@ -1,6 +1,18 @@
 # 魔力淘项目文档索引
 
-本文档提供了项目所有文档的分类和导航，包括重复文档的说明。
+> 📚 **完整知识库**: 项目资料已整理到 Obsidian 知识库
+> 位置: `~/Documents/Obsidian/magic-tao-kb/`
+
+本项目文档索引。完整的项目知识库请使用 Obsidian 打开。
+
+## 🔗 快速链接
+
+| 链接 | 说明 |
+|------|------|
+| [Obsidian 知识库](~/Documents/Obsidian/magic-tao-kb/) | 完整项目知识库（推荐） |
+| [账号密码](../secrets/账号密码.md) | 敏感信息，仅本地保存 |
+| [AGENTS.md](../AGENTS.md) | AI 开发指南 |
+| [CLAUDE.md](../CLAUDE.md) | 全局 AI 指令 |
 
 ## 📚 文档分类
 
@@ -63,6 +75,7 @@
 | **auction-optimization.md** | `/pc/docs/auction-optimization.md` | PC 端拍卖优化实现 |
 | **BID_ELIGIBILITY_SERVICE_USAGE.md** | `/docs/BID_ELIGIBILITY_SERVICE_USAGE.md` | 出价资格服务使用指南 |
 | **min-bid-price-util.md** | `/docs/min-bid-price-util.md` | 最低出价价格工具 |
+| **auction-api-testing-guide.md** | `/docs/auction-api-testing-guide.md` | 🌟 拍卖 API 测试指南 | 
 
 ### 💾 技术实现文档
 
@@ -140,4 +153,4 @@
 
 ---
 
-**最后更新**: 2025-01-14
+**最后更新**: 2026-04-05

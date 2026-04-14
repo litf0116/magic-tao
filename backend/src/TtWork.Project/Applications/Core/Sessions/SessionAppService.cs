@@ -50,6 +50,10 @@ namespace TtWork.Project.Applications {
                 output.User = ObjectMapper.Map<UserLoginInfoDto>(cacheUser);
                 output.Roles = roles.ToList();
                 output.Permissions = cacheUser.Permissions;
+                
+                output.User.NeedProfileCompletion = string.IsNullOrEmpty(cacheUser.PhoneNumber) 
+                                                     && !cacheUser.SkipProfileCompletion;
+                output.User.SkipProfileCompletion = cacheUser.SkipProfileCompletion;
             }
 
 

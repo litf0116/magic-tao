@@ -27,6 +27,14 @@ namespace TtWork.Project.Definitions {
                     new LocalizableString(ProjectApp.pub, AppConsts.LocalizationSourceName)
                 )
             );
+
+            context.Add(new AppDefinition(ProjectApp.app,
+                    ProjectApp.app,
+                    "APP",
+                    null,
+                    new LocalizableString(ProjectApp.app, AppConsts.LocalizationSourceName)
+                )
+            );
         }
     }
 
@@ -37,5 +45,7 @@ namespace TtWork.Project.Definitions {
         public const string pub = "pub";
 
         public const string MiniProgram = "uniapp";
+
+        public const string app = "app";
     }
 }

@@ -1,0 +1,75 @@
+using System.Threading.Tasks;
+using Abp.Application.Services;
+using Abp.Authorization;
+using Abp.Configuration;
+using Abp.UI;
+using Abp.Runtime.Caching;
+using Microsoft.AspNetCore.Mvc;
+using TtWork.Abp.Definitions;
+using TtWork.Project.Core;
+
+namespace TtWork.Project.Applications;
+
+[Route("api/services/app/[controller]/[action]")]
+public class VersionControlAppService : ApplicationService
+{
+    private readonly ISettingManager _settingManager;
+    private readonly ICacheManager _cacheManager;
+
+    public VersionControlAppService(
+        ISettingManager settingManager,
+        ICacheManager cacheManager)
+    {
+        _settingManager = settingManager;
+        _cacheManager = cacheManager;
+    }
+
+    [HttpGet]
+    [AbpAllowAnonymous]
+    public async Task<string> GetLatestStableVersion()
+    {
+        return await SettingManager.GetSettingValueAsync(
+            AppSettings.VersionControl.LatestStableVersion
+        );
+    }
+
+    [HttpPost]
+    [AbpAuthorize(AppPermissions.Administration)]
+    public async Task UpdateLatestStableVersion(string version)
+    {
+        // 验证版本格式
+        if (!IsValidVersionFormat(version))
+        {
+            throw new UserFriendlyException("版本格式无效，正确格式: YYYYMMDD@主.次.补");
+        }
+
+        await SettingManager.ChangeSettingForApplicationAsync(
+            AppSettings.VersionControl.LatestStableVersion,
+            version
+        );
+
+        // 清除设置缓存以确保所有实例都能获取最新值
+        var settingCache = _cacheManager.GetCache("AbpZeroSettingCache");
+        await settingCache.ClearAsync();
+    }
+
+    /// <summary>
+    /// 验证版本格式
+    /// </summary>
+    private bool IsValidVersionFormat(string version)
+    {
+        if (string.IsNullOrEmpty(version))
+            return false;
+
+        var parts = version.Split('@');
+        if (parts.Length != 2)
+            return false;
+
+        // 验证日期部分 (8位数字)
+        if (parts[0].Length != 8 || !int.TryParse(parts[0], out _))
+            return false;
+
+        // 验证语义化版本部分
+        return System.Version.TryParse(parts[1], out _);
+    }
+}

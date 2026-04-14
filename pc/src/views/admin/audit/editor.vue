@@ -11,7 +11,7 @@
             </div>
             <div class="r-layout">
                 <draggable :list="recycle" item-key="name" :group="{ name: 'nodes', put: true }" @end="dragEnd4">
-                    <template #item="{ element }">
+                    <template #item="{ element: _element }">
                         <!-- <div class="h-32">&nbsp;</div> -->
                     </template>
                     <template #header>
@@ -123,7 +123,9 @@ export default defineComponent({
             dragEnd1(e: any) {
                 console.log(e)
             },
-            dragEnd2(e: any) {},
+            dragEnd2(e: any) {
+                console.log('drag end 2', e)
+            },
             dragEnd4(e: any) {
                 console.log('recycle dragend')
                 data.recycle = []

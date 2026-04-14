@@ -34,6 +34,7 @@ namespace TtWork.Project.EntityFrameworkCore {
         public DbSet<BanedUser> BanedUsers { get; set; }
         public DbSet<SensitiveWord> SensitiveWords { get; set; }
         public DbSet<AuctionStartNotify> AuctionStartNotify { get; set; }
+        public DbSet<PushSubscription> PushSubscriptions { get; set; }
         public DbSet<ChatGroup> ChatGroups { get; set; }
         public DbSet<ChatEmoji> ChatEmoji { get; set; }
         public DbSet<ChatListDelete> ChatListDelete { get; set; }
@@ -42,9 +43,12 @@ namespace TtWork.Project.EntityFrameworkCore {
 
         public DbSet<UserDepositLog> UserDepositLog { get; set; }
         public DbSet<UserBalanceLog> UserBalanceLog { get; set; }
+        public DbSet<UserAvatarHistory> UserAvatarHistories { get; set; }
 
         public DbSet<PayOrder> PayOrder { get; set; }
         public DbSet<WechatPaymentNotification> WechatPaymentNotification { get; set; }
+
+        public DbSet<AppRelease> AppReleases { get; set; }
 
 
         #region TtWork.Abp.AppManagement
@@ -173,12 +177,29 @@ namespace TtWork.Project.EntityFrameworkCore {
         public class UlidToStringConverter(ConverterMappingHints mappingHints = null) :
             ValueConverter<Ulid, string>(
                 convertToProviderExpression: x => x.ToString(),
-                convertFromProviderExpression: x => Ulid.Parse(x),
+                convertFromProviderExpression: x => ParseUlidSafely(x),
                 mappingHints: defaultHints.With(mappingHints)
             ) {
             private static readonly ConverterMappingHints defaultHints = new(size: 26);
 
             public UlidToStringConverter() : this(null) {
+            }
+
+            private static Ulid ParseUlidSafely(string value) {
+                if (string.IsNullOrEmpty(value))
+                    return default;
+
+                // Handle non-standard Ulid lengths by padding
+                if (value.Length < 26)
+                    value = value.PadLeft(26, '0');
+                else if (value.Length > 26)
+                    value = value.Substring(0, 26);
+
+                try {
+                    return Ulid.Parse(value);
+                } catch {
+                    return default;
+                }
             }
         }
     }

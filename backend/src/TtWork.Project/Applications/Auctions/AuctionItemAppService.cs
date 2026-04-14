@@ -9,6 +9,7 @@ using System.Web;
 using Abp.Application.Services.Dto;
 using Abp.Auditing;
 using Abp.Authorization;
+using Abp.Authorization.Users;
 using Abp.Dependency;
 using Abp.Domain.Repositories;
 using Abp.Domain.Uow;
@@ -54,6 +55,7 @@ using TtWork.Project.Services.Cache;
 using TtWork.Project.Services.Messaging;
 using TtWork.Project.Services.Messaging.Models;
 using TtWork.Project.Services;
+using TtWork.Project.Services.Push;
 using Newtonsoft.Json.Linq;
 
 namespace TtWork.Project.Applications.Auctions;
@@ -61,7 +63,9 @@ namespace TtWork.Project.Applications.Auctions;
 public class SubStartNotifyRequest
 {
     public long AuctionItemId { get; set; }
+    public long? userId { get; set; }
     public string openid { get; set; }
+    public string platform { get; set; }
 }
 
 public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, AuctionItemDto, long, AppResultRequestDto,
@@ -86,6 +90,9 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     private readonly IMessageSendingService _messageSendingService;
     private readonly IBidEligibilityService _bidEligibilityService;
     private readonly IMemoryCache _memoryCache;
+    private readonly IRepository<UserLogin, long> _userLoginRepository;
+    private readonly IJPushService _jPushService;
+    private readonly IWebPushService _webPushService;
 
     // 内存锁字典（替代 Redis 分布式锁）
     private static readonly ConcurrentDictionary<long, SemaphoreSlim> _auctionLocks = new();
@@ -111,7 +118,10 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         IEventBus eventBus,
         IAuctionItemCacheService cacheService,
         IMessageSendingService messageSendingService,
-        IBidEligibilityService bidEligibilityService) : base(repository, iocManager)
+        IBidEligibilityService bidEligibilityService,
+        IRepository<UserLogin, long> userLoginRepository,
+        IJPushService jPushService,
+        IWebPushService webPushService) : base(repository, iocManager)
     {
         _sqlSugarClient = sqlSugarClient;
         _userCache = userCache;
@@ -122,6 +132,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         _notifyRepository = notifyRepository;
         _logger = logger;
         _auctionStartNotifyRepository = auctionStartNotifyRepository;
+        _userLoginRepository = userLoginRepository;
         EnableGetEdit = true;
 
         base.CreatePermissionName = AppPermissions.Pages.ChatManager;
@@ -136,6 +147,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         _messageSendingService = messageSendingService;
         _bidEligibilityService = bidEligibilityService;
         _memoryCache = memoryCache;
+        _jPushService = jPushService;
+        _webPushService = webPushService;
     }
 
 
@@ -148,20 +161,158 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     /// <returns></returns>
     private async Task Notify(long id, string name, bool isAuction = true)
     {
-        var openIds = await _notifyRepository.GetAll().AsNoTracking()
-            .Where(x => x.AuctionItemId == id).Select(x => x.openid).ToListAsync();
+        var subscribers = await _notifyRepository.GetAll().AsNoTracking()
+            .Where(x => x.AuctionItemId == id)
+            .Select(x => new { x.UserId, x.OpenId, x.Platform })
+            .ToListAsync();
+
+        _logger.LogInformation(
+            "准备发送拍卖开拍订阅通知: AuctionItemId={AuctionItemId}, Name={Name}, SubscriberCount={Count}",
+            id, name, subscribers.Count);
+
+        if (subscribers.Count == 0)
+        {
+            _logger.LogWarning("没有订阅用户，跳过发送通知");
+            return;
+        }
+
         var title = name.Length > 16 ? name[..16] : name;
-        await _mediator.Publish(new Events.Commands.MessageSendCommand(Events.Commands.MessageType.WechatTemplate,
-            new SendWechatTemplateDetail(
-                "uniapp",
-                openIds.ToArray(),
-                "ZuYTYzw2cM0LVhF5ybH5iATMaDl6lZ82OC6cczsglEA",
-                new
+        var content = isAuction ? "拍卖即将开始，快来参与吧！" : "有人出价了，快来查看！";
+
+        // 1. 发送微信模板消息（小程序端）- 使用小程序模板
+        var miniprogramOpenIds = subscribers
+            .Where(x => x.Platform == "miniprogram" && !string.IsNullOrEmpty(x.OpenId))
+            .Select(x => x.OpenId)
+            .ToArray();
+
+        if (miniprogramOpenIds.Length > 0)
+        {
+            _logger.LogInformation("发送微信模板消息(小程序): {Count} 个用户", miniprogramOpenIds.Length);
+
+            await _mediator.Publish(new Events.Commands.MessageSendCommand(
+                Events.Commands.MessageType.WechatTemplate,
+                new SendWechatTemplateDetail(
+                    "uniapp",
+                    miniprogramOpenIds,
+                    "ZuYTYzw2cM0LVhF5ybH5iATMaDl6lZ82OC6cczsglEA", // 小程序模板ID
+                    new
+                    {
+                        thing2 = new { value = title },
+                        thing1 = new { value = isAuction ? "开始拍卖通知" : "出价通知" },
+                    },
+                    $"pages/index/index"
+                )));
+        }
+
+        // 2. 发送通知（App端）- 微信订阅消息 + 极光推送
+        var appSubscribers = subscribers
+            .Where(x => x.Platform == "app")
+            .ToList();
+
+        if (appSubscribers.Count > 0)
+        {
+            // 2.1 发送微信模板消息
+            var appOpenIds = appSubscribers
+                .Where(x => !string.IsNullOrEmpty(x.OpenId))
+                .Select(x => x.OpenId)
+                .ToArray();
+
+            if (appOpenIds.Length > 0)
+            {
+                _logger.LogInformation("发送微信模板消息(App): {Count} 个用户", appOpenIds.Length);
+
+                await _mediator.Publish(new Events.Commands.MessageSendCommand(
+                    Events.Commands.MessageType.WechatTemplate,
+                    new SendWechatTemplateDetail(
+                        "app",
+                        appOpenIds,
+                        "aCmoAwuGevXMgA6mlq6x5pXrj7yNx5HJ6akzkHDCDPg",
+                        new
+                        {
+                            thing2 = new { value = title },
+                            thing1 = new { value = isAuction ? "开始拍卖通知" : "出价通知" },
+                        },
+                        $"pages/index/index"
+                    )));
+            }
+
+            // 2.2 发送极光推送
+            var userIds = appSubscribers
+                .Where(x => x.UserId.HasValue)
+                .Select(x => $"user_{x.UserId}")
+                .Distinct()
+                .ToList();
+
+            if (userIds.Count > 0)
+            {
+                _logger.LogInformation("发送极光推送(App): {Count} 个用户", userIds.Count);
+
+                try
                 {
-                    thing2 = new { value = title }, //活动详情
-                    thing1 = new { value = isAuction ? "开始拍卖通知" : "出价通知" }, //活动名称
-                }, $"pages/index/index"
-            )));
+                    var result = await _jPushService.SendByAliasAsync(
+                        title,
+                        content,
+                        userIds,
+                        new Dictionary<string, string>
+                        {
+                            { "type", isAuction ? "auction_start" : "auction_bid" },
+                            { "auctionItemId", id.ToString() }
+                        });
+
+                    if (result.Success)
+                    {
+                        _logger.LogInformation("极光推送发送成功: MessageId={MessageId}", result.MessageId);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("极光推送发送失败: {Error}", result.ErrorMessage);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "极光推送发送异常");
+                }
+            }
+        }
+
+        // 3. 发送 WebPush（H5端）
+        var h5Subscribers = subscribers
+            .Where(x => x.Platform == "h5" && x.UserId.HasValue)
+            .Select(x => x.UserId!.Value)
+            .Distinct()
+            .ToList();
+
+        if (h5Subscribers.Count > 0)
+        {
+            _logger.LogInformation("发送 WebPush(H5): {Count} 个用户", h5Subscribers.Count);
+
+            foreach (var userId in h5Subscribers)
+            {
+                try
+                {
+                    var result = await _webPushService.SendPushAsync(
+                        userId,
+                        title,
+                        content,
+                        null,
+                        $"/pages/chat/auction?id={id}"
+                    );
+
+                    if (result.Success)
+                    {
+                        _logger.LogInformation("WebPush 发送成功: UserId={UserId}", userId);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("WebPush 发送失败: UserId={UserId}, Error={Error}", userId, result.ErrorMessage);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "WebPush 发送异常: UserId={UserId}", userId);
+                }
+            }
+        }
     }
 
 
@@ -169,17 +320,29 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     [AbpAuthorize]
     public async Task SubStartNotify(SubStartNotifyRequest input)
     {
-        if (await _auctionStartNotifyRepository.GetAll()
-                .AsNoTracking()
-                .AnyAsync(x => x.AuctionItemId == input.AuctionItemId && x.openid == input.openid))
+        var platform = input.platform ?? "miniprogram";
+        var userId = AbpSession.UserId;
+        
+        var query = _auctionStartNotifyRepository.GetAll()
+            .Where(x => x.AuctionItemId == input.AuctionItemId);
+
+        if (platform == "miniprogram")
         {
+            query = query.Where(x => x.OpenId == input.openid);
         }
-        else
+        else if (userId.HasValue)
         {
-            await _auctionStartNotifyRepository.InsertAsync(new AuctionStartNotify()
+            query = query.Where(x => x.UserId == userId.Value);
+        }
+
+        if (!await query.AnyAsync())
+        {
+            await _auctionStartNotifyRepository.InsertAsync(new AuctionStartNotify
             {
                 AuctionItemId = input.AuctionItemId,
-                openid = input.openid
+                UserId = userId,
+                OpenId = input.openid,
+                Platform = platform
             });
         }
     }
@@ -305,7 +468,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         {
             try
             {
-                _logger.LogInformation("========== 开始定时结束拍卖 ========== AuctionItemId={AuctionItemId}, Operation=Scheduled",
+                _logger.LogInformation(
+                    "========== 开始定时结束拍卖 ========== AuctionItemId={AuctionItemId}, Operation=Scheduled",
                     auctionItem.Id);
 
                 // 查询最新的商品信息
@@ -317,7 +481,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 }
 
                 // 检查商品状态
-                if (find.Status.HasFlag(AuctionStatusEnum.已成交))
+                if (find.Status == AuctionStatusEnum.已成交)
                 {
                     _logger.LogWarning("定时任务回调：商品已成交，无需处理，ID: {AuctionItemId}", auctionItem.Id);
                     return;
@@ -399,7 +563,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                     }
 
                     // 设置商品为已成交状态
-                    _logger.LogInformation("准备设置成交状态: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, FinalPrice={FinalPrice}",
+                    _logger.LogInformation(
+                        "准备设置成交状态: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, FinalPrice={FinalPrice}",
                         find.Id, find.CurrentPriceUserId, find.CurrentPrice);
 
                     find.SetDeal();
@@ -475,7 +640,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "定时任务流拍消息发送失败: AuctionItemId={AuctionItemId}, Error={Error}", auctionItem.Id, ex.Message);
+                        _logger.LogError(ex, "定时任务流拍消息发送失败: AuctionItemId={AuctionItemId}, Error={Error}",
+                            auctionItem.Id, ex.Message);
                     }
                 }
                 else
@@ -493,39 +659,43 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                     {
                         await _messageSendingService.SendAuctionMessageAsync(auctionManagerInfo.Id, null, "-1_auction",
                             successMessage, true);
-                        _logger.LogInformation("定时任务拍卖成功消息发送成功: AuctionItemId={AuctionItemId}, DealUserName={DealUserName}", 
+                        _logger.LogInformation(
+                            "定时任务拍卖成功消息发送成功: AuctionItemId={AuctionItemId}, DealUserName={DealUserName}",
                             auctionItem.Id, result.DealUserName);
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "定时任务拍卖成功消息发送失败: AuctionItemId={AuctionItemId}, Error={Error}", auctionItem.Id, ex.Message);
+                        _logger.LogError(ex, "定时任务拍卖成功消息发送失败: AuctionItemId={AuctionItemId}, Error={Error}",
+                            auctionItem.Id, ex.Message);
                     }
 
                     // 发送成交用户私信（使用编码机制，将AuctionDeal编码为AuctionEnd类型）
                     var dealMessage = new ChatMessage
                     {
-                        type = ChatMessageType.AuctionDeal,  // 原始类型，会被自动编码为AuctionEnd
+                        type = ChatMessageType.AuctionDeal, // 原始类型，会被自动编码为AuctionEnd
                         msg = result.ToUserMsg,
                         payload = result
                     };
 
                     if (result.DealUserId.HasValue)
                     {
-                        _logger.LogInformation("开始发送拍卖成交私信: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, ToUserMsg={ToUserMsg}",
+                        _logger.LogInformation(
+                            "开始发送拍卖成交私信: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, ToUserMsg={ToUserMsg}",
                             auctionItem.Id, result.DealUserId.Value, result.ToUserMsg);
-                        
+
                         try
                         {
                             // 使用SendPrivateMessageAsync，会自动将AuctionDeal编码为AuctionEnd类型
                             await _messageSendingService.SendPrivateMessageAsync(auctionManagerInfo.Id,
                                 result.DealUserId.Value, dealMessage, false, null);
-                            
+
                             _logger.LogInformation("拍卖成交私信发送成功: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}",
                                 auctionItem.Id, result.DealUserId.Value);
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogError(ex, "拍卖成交私信发送失败: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, Error={Error}",
+                            _logger.LogError(ex,
+                                "拍卖成交私信发送失败: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, Error={Error}",
                                 auctionItem.Id, result.DealUserId.Value, ex.Message);
                         }
                     }
@@ -817,7 +987,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     {
         try
         {
-            _logger.LogInformation("========== 开始结束拍卖 ========== AuctionItemId={AuctionItemId}, UserId={UserId}, Operation=Manual",
+            _logger.LogInformation(
+                "========== 开始结束拍卖 ========== AuctionItemId={AuctionItemId}, UserId={UserId}, Operation=Manual",
                 input.Id, AbpSession.UserId);
 
             // 检查用户登录状态
@@ -834,7 +1005,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             }
 
             // 检查商品状态
-            if (find.Status.HasFlag(AuctionStatusEnum.已成交))
+            if (find.Status == AuctionStatusEnum.已成交)
             {
                 var existingResult = ObjectMapper.Map<AuctionItemDto>(find);
                 existingResult.ToUserMsg = "已成交商品不能再次拍卖";
@@ -908,7 +1079,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 }
 
                 // 设置商品为已成交状态
-                _logger.LogInformation("准备设置成交状态: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, FinalPrice={FinalPrice}",
+                _logger.LogInformation(
+                    "准备设置成交状态: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, FinalPrice={FinalPrice}",
                     find.Id, find.CurrentPriceUserId, find.CurrentPrice);
 
                 find.SetDeal();
@@ -975,7 +1147,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "流拍消息发送失败: AuctionItemId={AuctionItemId}, Error={Error}", input.Id, ex.Message);
+                    _logger.LogError(ex, "流拍消息发送失败: AuctionItemId={AuctionItemId}, Error={Error}", input.Id,
+                        ex.Message);
                 }
             }
             else
@@ -993,25 +1166,27 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 {
                     await _messageSendingService.SendAuctionMessageAsync(AbpSession.UserId.Value, null, "-1_auction",
                         successMessage, true);
-                    _logger.LogInformation("拍卖成功消息发送成功: AuctionItemId={AuctionItemId}, DealUserName={DealUserName}", 
+                    _logger.LogInformation("拍卖成功消息发送成功: AuctionItemId={AuctionItemId}, DealUserName={DealUserName}",
                         input.Id, result.DealUserName);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "拍卖成功消息发送失败: AuctionItemId={AuctionItemId}, Error={Error}", input.Id, ex.Message);
+                    _logger.LogError(ex, "拍卖成功消息发送失败: AuctionItemId={AuctionItemId}, Error={Error}", input.Id,
+                        ex.Message);
                 }
 
                 // 发送成交用户私信（使用编码机制，将AuctionDeal编码为AuctionEnd类型）
                 var dealMessage = new ChatMessage
                 {
-                    type = ChatMessageType.AuctionDeal,  // 原始类型，会被自动编码为AuctionEnd
+                    type = ChatMessageType.AuctionDeal, // 原始类型，会被自动编码为AuctionEnd
                     msg = result.ToUserMsg,
                     payload = result
                 };
 
                 if (result.DealUserId.HasValue)
                 {
-                    _logger.LogInformation("开始发送手动结束拍卖成交私信: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, ToUserMsg={ToUserMsg}",
+                    _logger.LogInformation(
+                        "开始发送手动结束拍卖成交私信: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, ToUserMsg={ToUserMsg}",
                         input.Id, result.DealUserId.Value, result.ToUserMsg);
                     
                     try
@@ -1025,7 +1200,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "手动结束拍卖成交私信发送失败: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, Error={Error}",
+                        _logger.LogError(ex,
+                            "手动结束拍卖成交私信发送失败: AuctionItemId={AuctionItemId}, DealUserId={DealUserId}, Error={Error}",
                             input.Id, result.DealUserId.Value, ex.Message);
                     }
                 }
@@ -1038,14 +1214,16 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             // 发布拍卖结束事件
             await _mediator.Publish(new AuctionEndedEvent(result, hasBids));
 
-            _logger.LogInformation("========== 结束拍卖成功 ========== AuctionItemId={AuctionItemId}, DealUserName={DealUserName}",
+            _logger.LogInformation(
+                "========== 结束拍卖成功 ========== AuctionItemId={AuctionItemId}, DealUserName={DealUserName}",
                 input.Id, result.DealUserName);
 
             return result;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "========== 结束拍卖失败 ========== AuctionItemId={AuctionItemId}, Error={Error}, StackTrace={StackTrace}",
+            _logger.LogError(ex,
+                "========== 结束拍卖失败 ========== AuctionItemId={AuctionItemId}, Error={Error}, StackTrace={StackTrace}",
                 input.Id, ex.Message, ex.StackTrace);
             throw new UserFriendlyException(1, $"系统内部错误，请稍后重试。错误ID: {Guid.NewGuid()}");
         }
@@ -1081,7 +1259,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             throw new UserFriendlyException("当前商品已在拍卖中");
         }
 
-        if (find.Status.HasFlag(AuctionStatusEnum.已成交))
+        if (find.Status == AuctionStatusEnum.已成交)
             throw new UserFriendlyException(1, "已成交商品不能再次拍卖");
 
         find.StartAuction();
@@ -1102,7 +1280,10 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         }
         catch (Exception e)
         {
-            Logger.Error("发送拍卖开始通知失败 {@e}", e);
+            _logger.LogError(e,
+                "========== 发送拍卖开始通知失败 ========== AuctionItemId={AuctionItemId}, AuctionName={AuctionName}, Error={Error}, StackTrace={StackTrace}",
+                find.Id, find.Name, e.Message, e.StackTrace);
+            // 注意：这里不抛出异常，因为拍卖流程本身已经成功，只是通知失败了
         }
 
         return ObjectMapper.Map<AuctionItemDto>(find);
@@ -1135,7 +1316,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     [AllowAnonymous]
     [DisableAuditing]
     [HttpGet("api/AuctionItem/GetPublicListAnonymous")]
-    public async Task<ListResultDto<AuctionItemDto>> GetPublicListAnonymous(AppResultRequestDto input)
+    public async Task<PagedResultDto<AuctionItemDto>> GetPublicListAnonymous(AppResultRequestDto input)
     {
         var sw = System.Diagnostics.Stopwatch.StartNew();
         
@@ -1192,7 +1373,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     protected override IQueryable<AuctionItem> CreateFilteredQuery(AppResultRequestDto input)
     {
         return base.CreateFilteredQuery(input)
-                .WhereIf(input.Status.HasValue, x => x.Status.HasFlag((AuctionStatusEnum)input.Status))
+                .WhereIf(input.Status.HasValue, x => x.Status == (AuctionStatusEnum)input.Status)
                 .WhereIf(!string.IsNullOrEmpty(input.Keyword), x => x.Name.Contains(input.Keyword))
                 .WhereIf(input.UserId.HasValue, x => x.DealUserId == input.UserId.Value) //成功拍得
             ;
@@ -1204,7 +1385,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     public async Task<object> DateAnlayse(AppResultRequestDto input)
     {
         var query = await Repository.GetAll()
-            .WhereIf(input.Status.HasValue, x => x.Status.HasFlag(AuctionStatusEnum.已成交))
+            .WhereIf(input.Status.HasValue, x => x.Status == AuctionStatusEnum.已成交)
             .WhereIf(input.From.HasValue, x => x.CreationTime >= input.From)
             .WhereIf(input.To.HasValue, x => x.CreationTime <= input.From)
             .GroupBy(row => new
@@ -1228,7 +1409,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     public async Task<object> DateAnlayse2(AppResultRequestDto input)
     {
         var query = await Repository.GetAll()
-            .WhereIf(input.Status.HasValue, x => x.Status.HasFlag(AuctionStatusEnum.已成交))
+            .WhereIf(input.Status.HasValue, x => x.Status == AuctionStatusEnum.已成交)
             .WhereIf(input.From.HasValue, x => x.CreationTime >= input.From)
             .WhereIf(input.To.HasValue, x => x.CreationTime <= input.From)
             .GroupBy(row => new

@@ -26,7 +26,12 @@
         "vue/no-multiple-template-root": "off",
         "@typescript-eslint/ban-ts-comment": "off",
         "@typescript-eslint/no-non-null-assertion": "off",
-        "no-irregular-whitespace": "off"
+        "no-irregular-whitespace": "off",
+        "vue/require-v-for-key": "off",
+        "@typescript-eslint/no-empty-function": "off",
+        "vue/no-unused-vars": "warn",
+        "vue/no-useless-v-if": "off",
+        "@typescript-eslint/no-explicit-any": "warn"
         // not needed for vue 3
         // "prettier/prettier": [
         //     "error",

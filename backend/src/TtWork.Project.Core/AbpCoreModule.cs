@@ -33,6 +33,12 @@ namespace TtWork.Project.Core {
                 "Abp.Tenantid"; //兼容处理。Axios Http2.0 header会把 Abp.TenantId 转成 Abp.Tenantid
 
             TtWorkCoreLocalizationConfigurer.Configure(Configuration.Localization);
+
+            // Register version control settings provider
+            Configuration.Settings.Providers.Add<Configuration.VersionControlSettingProvider>();
+            
+            // Register feature switch settings provider
+            Configuration.Settings.Providers.Add<Configuration.FeatureSwitchSettingProvider>();
         }
 
         public override void Initialize() {

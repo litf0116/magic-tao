@@ -15,5 +15,19 @@ namespace TtWork.Project.Applications.Sessions.Dto {
         public string HeadImgUrl { get; set; }
 
         public string PhoneNumber { get; set; }
+
+        /// <summary>
+        /// 帐户余额
+        /// </summary>
+        public decimal Balance { get; set; }
+
+        /// <summary>
+        /// 保证金
+        /// </summary>
+        public decimal DepositBalance { get; set; }
+
+        public bool NeedProfileCompletion { get; set; }
+
+        public bool SkipProfileCompletion { get; set; }
     }
 }

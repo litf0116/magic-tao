@@ -4,14 +4,60 @@
             <view class="header">
                 <image
                     class="logo2"
-                    :src="convertImageUrl('https://cdn.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png')"
+                    :src="convertImageUrl('https://image.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png')"
                 />
             </view>
             <view class="content px-4">
                 <view class="flex flex-col">
-                    <image class="mt-1 w-full h-270rpx" src="../../static/pmh.png" @tap="Goto.auction()" />
+                    <!-- 交易站入口 -->
+                    <image
+                        v-if="appFeatureStore.getShowTradingPost()"
+                        class="w-full h-270rpx"
+                        :src="convertImageUrl('https://image.molitao.top/banners/jyz.png')"
+                        @tap="gotoTradingPost"
+                    />
+                    <!-- 秒杀场入口：仅当用户有权限时显示 -->
+                    <image
+                        v-if="showAuctionEntrance"
+                        class="mt-1 w-full h-270rpx"
+                        :src="convertImageUrl('https://image.molitao.top/banners/pmh.png')"
+                        @tap="Goto.auction()"
+                    />
                 </view>
-                <view class="mt-2 w-full">
+
+                <!-- 功能模块区域 -->
+                <view class="my-4 flex items-center">
+                    <view class="h-3 w-4px mr-2 bg-[#ccc] rounded-full"></view>
+                    <text>常用工具</text>
+                </view>
+                <view class="myCard py-4 grid grid-cols-2 gap-4 mb-4 text-[#171717]">
+                    <view class="flex flex-col flex-center zoom-in py-3" @tap="gotoPetCalculator">
+                        <view class="bg-[#f6f6f6] size-12 rounded-full flex flex-center">
+                            <view class="size-7 i-icon-park-outline:dog"></view>
+                        </view>
+                        <text class="pt-2 text-sm font-500">宠物算档器</text>
+                    </view>
+                    <view class="flex flex-col flex-center py-3" @tap="onFeatureDeveloping">
+                        <view class="bg-[#f6f6f6] size-12 rounded-full flex flex-center">
+                            <view class="size-7 i-icon-park-outline:calculator"></view>
+                        </view>
+                        <text class="pt-2 text-sm font-500">升级计算</text>
+                    </view>
+                    <view class="flex flex-col flex-center py-3" @tap="onFeatureDeveloping">
+                        <view class="bg-[#f6f6f6] size-12 rounded-full flex flex-center">
+                            <view class="size-7 i-icon-park-outline:map"></view>
+                        </view>
+                        <text class="pt-2 text-sm font-500">地图导航</text>
+                    </view>
+                    <view class="flex flex-col flex-center py-3" @tap="onFeatureDeveloping">
+                        <view class="bg-[#f6f6f6] size-12 rounded-full flex flex-center">
+                            <view class="size-7 i-icon-park-outline:more-app"></view>
+                        </view>
+                        <text class="pt-2 text-sm font-500">敬请期待</text>
+                    </view>
+                </view>
+
+                <view v-if="appFeatureStore.getShowBanner()" class="mt-2 w-full">
                     <uv-swiper
                         :height="200"
                         :interval="5000"
@@ -22,14 +68,18 @@
                         :display-multiple-items="0"
                     ></uv-swiper>
                 </view>
-                <view class="advertisingSpace">
-                    <div
-                        v-for="(item, index) in advertisingSpaceList"
-                        :key="index"
-                        class="advertisingSpace-item"
-                        @tap="onTapPostDetail(item.url)"
-                    >
-                        <image class="logo2" :src="convertImageUrl(item.imageUrl, false)" />
+
+                <view
+                    v-if="appFeatureStore.getShowBanner() && advertisingSpaceList.length > 0"
+                    class="advertisingSpace"
+                >
+                    <div v-for="(item, index) in advertisingSpaceList" :key="index" class="advertisingSpace-item">
+                        <image
+                            class="logo2"
+                            :src="convertImageUrl(item.imageUrl, false)"
+                            mode="aspectFill"
+                            @error="handleImageError(index)"
+                        />
                         <div
                             style="
                                 position: absolute;
@@ -39,9 +89,12 @@
                                 color: #fff;
                             "
                         >
-                            {{ item.title }}
+                            {{ item.title || item.name || '' }}
                         </div>
                     </div>
+                </view>
+                <view v-else class="text-center text-gray-400 py-4 text-sm">
+                    <!-- 暂无广告位信息 -->
                 </view>
             </view>
         </view>
@@ -59,22 +112,66 @@ import { onShow, onPullDownRefresh, onShareAppMessage, onShareTimeline, onLoad }
 
 const appStore = useAppStore()
 const userStore = useUserStore()
+const chatStore = useChatStore()
+const appFeatureStore = useAppFeatureStore()
 
 const { navTo } = useTo()
+
+const showAuctionEntrance = computed(() => {
+    return appFeatureStore.getShowAuction()
+})
+
+// 跳转到交易站
+const gotoTradingPost = () => {
+    emit('refreshCurrentVal', 2)
+}
+
+// 跳转到宠物算档器
+const gotoPetCalculator = () => {
+    navTo('/pages/tools/petCalculator')
+}
+
+// 功能开发中提示
+const onFeatureDeveloping = () => {
+    uni.showToast({
+        title: '功能开发中',
+        icon: 'none',
+    })
+}
+
 //广告位信息
 const advertisingSpaceList: any = ref([])
 const emit = defineEmits(['refreshCurrentVal'])
 onMounted(() => {
     fetchCmsData()
     advertisingSpace()
+    appFeatureStore.loadFeatureSwitch()
 })
 //获取广告位列表
 const advertisingSpace = () => {
-    api.AdvertisingSpace.GetAdvertisingSpaceAll(1).then((res: any) => {
-        nextTick(() => {
-            advertisingSpaceList.value = res.items
+    api.AdvertisingSpace.GetAdvertisingSpaceAll(1)
+        .then((res: any) => {
+            console.log('广告位数据响应:', res)
+            if (res && res.items) {
+                advertisingSpaceList.value = res.items
+                console.log('广告位列表:', res.items)
+            } else if (Array.isArray(res)) {
+                advertisingSpaceList.value = res
+                console.log('广告位列表(数组):', res)
+            } else {
+                console.warn('广告位数据格式异常:', res)
+                advertisingSpaceList.value = []
+            }
         })
-    })
+        .catch((err: any) => {
+            console.error('获取广告位数据失败:', err)
+            advertisingSpaceList.value = []
+        })
+}
+
+// 处理图片加载错误
+const handleImageError = (index: number) => {
+    console.warn(`广告位图片加载失败，索引: ${index}`)
 }
 const list = computed(() => {
     return articleList.value.map((item) => {
@@ -111,19 +208,15 @@ onShareTimeline(() => {
         title: '魔力淘',
     }
 })
-//点击跳转到详情
-const onTapPostDetail = (url: any) => {
-    let id = url.split('/').pop()
-    if (/^-?\d+(\.\d+)?$/.test(id)) {
-        uni.navigateTo({
-            url: '/pages/tradingPost/postDetail?id=' + id,
-        })
-    }
-}
-const color = ref('red')
+
 const font = ref({ size: '2em' })
 </script>
 <style>
+.myCard {
+    background: #fff;
+    border-radius: 16rpx;
+}
+
 .advertisingSpace {
     display: flex;
     flex-wrap: wrap;
@@ -161,8 +254,8 @@ const font = ref({ size: '2em' })
 
     .header {
         @apply w-full text-center h-[160px] flex flex-col justify-end items-center;
-        background: url(https://cdn.molitao.top/20250330/04j40l4ynlbh3v3h4bgfe7j2pxiqjg8d.png) no-repeat center -60rpx /
-            cover;
+        background: url(https://image.molitao.top/20250330/04j40l4ynlbh3v3h4bgfe7j2pxiqjg8d.png) no-repeat
+            center -60rpx / cover;
 
         .logo2 {
             @apply mb-1 w-462rpx h-212rpx;
@@ -171,21 +264,21 @@ const font = ref({ size: '2em' })
 
     .content {
         @apply w-full relative mt-12rpx w-[90vw];
-        background: url(https://cdn.molitao.top/molitao/2025-03-30/upload_qxgt8fo3iymdi0heth3rnqipc83rzawn.png) repeat-y
-            center center / 100% 100%;
+        background: url(https://image.molitao.top/molitao/2025-03-30/upload_qxgt8fo3iymdi0heth3rnqipc83rzawn.png)
+            repeat-y center center / 100% 100%;
     }
 
     .content::before {
         content: '';
         @apply block absolute w-full h-18rpx -top-18rpx left-0 right-0;
-        background: url(https://cdn.molitao.top/molitao/2025-03-30/upload_iw2aq9rsovog4lr3v036irwm90nyos20.png)
+        background: url(https://image.molitao.top/molitao/2025-03-30/upload_iw2aq9rsovog4lr3v036irwm90nyos20.png)
             no-repeat center center / 100% 100%;
     }
 
     .content::after {
         content: '';
         @apply block absolute w-full h-18rpx -bottom-18rpx left-0 right-0;
-        background: url(https://cdn.molitao.top/molitao/2025-03-30/upload_to45oxex09l2uu1ltntj09n6z1x4y0df.png)
+        background: url(https://image.molitao.top/molitao/2025-03-30/upload_to45oxex09l2uu1ltntj09n6z1x4y0df.png)
             no-repeat center center / 100% 100%;
     }
 }

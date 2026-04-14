@@ -1,6 +1,7 @@
 /**
  * 图片URL转换工具
  * 将 cdn.molitao.top 转换为 image.molitao.top
+ * 将 http://image.molitao.top 转换为 https://image.molitao.top（兼容 UniApp 旧版 http 头像）
  */
 
 /**
@@ -11,8 +12,15 @@
 export function convertImageUrl(url: string): string {
     if (!url) return url
 
+    let result = url
+
+    // 将 http://image.molitao.top 替换为 https://image.molitao.top（兼容 UniApp 旧版 http 头像）
+    result = result.replace(/http:\/\/image\.molitao\.top/g, 'https://image.molitao.top')
+
     // 将 cdn.molitao.top 替换为 image.molitao.top
-    return url.replace(/https?:\/\/cdn\.molitao\.top/g, 'https://image.molitao.top')
+    result = result.replace(/https?:\/\/cdn\.molitao\.top/g, 'https://image.molitao.top')
+
+    return result
 }
 
 /**

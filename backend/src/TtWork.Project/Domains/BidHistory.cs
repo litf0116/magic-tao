@@ -18,7 +18,7 @@ public class BidHistory : CreationAuditedEntity<long> {
 
     [StringLength(64)] public string BidUserName { get; set; } // 出价人
     [StringLength(256)] public string BidUserAvatar { get; set; } // 出价人头像
-    [ForeignKey(nameof(AuctionItemId))] public AuctionItem AuctionItem { get; set; }
+    [ForeignKey(nameof(AuctionItemId))] public AuctionItem? AuctionItem { get; set; }
 }
 
 [AutoMapFrom(typeof(BidHistory))]
@@ -45,7 +45,6 @@ public class BidHistoryValidator : AbstractValidator<BidHistoryCreateDto> {
     public BidHistoryValidator() {
         RuleFor(x => x.AuctionItemId).GreaterThan(0);
         RuleFor(x => x.BidPrice).GreaterThan(0);
-        RuleFor(x => x.BidUserName).NotEmpty();
-        RuleFor(x => x.BidUserAvatar).NotEmpty();
+        // BidUserName and BidUserAvatar are set server-side from user cache, not required from client
     }
 }

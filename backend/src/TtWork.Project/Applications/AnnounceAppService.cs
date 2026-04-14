@@ -30,9 +30,12 @@ public class AnnounceAppService : AbpAsyncCrudAppService<Announce, AnnounceDto, 
     /// <param name="input"></param>
     /// <returns></returns>
     [HttpGet]
-    public async Task<AnnounceDto> GetLatest(EntityDto<long> input) {
-        var find = await Repository.GetAll().AsNoTracking()
-            .Where(x => x.CategoryId == input.Id)
+    public async Task<AnnounceDto> GetLatest(EntityDto<long?> input) {
+        var query = Repository.GetAll().AsNoTracking();
+        if (input.Id.HasValue) {
+            query = query.Where(x => x.CategoryId == input.Id.Value);
+        }
+        var find = await query
             .OrderByDescending(x => x.Id).FirstOrDefaultAsync();
         return MapToEntityDto(find);
     }

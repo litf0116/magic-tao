@@ -36,7 +36,7 @@
             <div>
                 <div v-motion-fade-visible class="px-2 py-1 rounded shadow-md relative">
                     <div class="flex items-center justify-between text-sm">
-                        <img :src="item.avatar" class="chat-avatar" />
+                        <img :src="convertImageUrl(item.avatar)" class="chat-avatar" />
                         <div>呢称：{{ item.name }}</div>
                     </div>
                     <div class="mt-1 text-true-gray-5 flex items-center justify-between text-xs">
@@ -60,6 +60,7 @@
 import announceDiv from './announceDiv.vue'
 import PerfectScrollbar from 'perfect-scrollbar'
 import createGroupDislog from './createGroupDislog.vue'
+import { convertImageUrl } from '@/utils/imageUrlConverter'
 const chatStore = useChatStore()
 const userStore = useUserStore()
 const router = useRouter()

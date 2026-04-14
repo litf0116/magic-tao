@@ -38,7 +38,7 @@ namespace TtWork.Project.Controllers
 {
     public class SubscrChannelInput
     {
-        public long WebsocketId { get; set; }
+        public long? WebsocketId { get; set; }
         public string Channel { get; set; }
     }
 
@@ -180,7 +180,7 @@ namespace TtWork.Project.Controllers
             }
             // }
 
-            ImHelper.JoinChan(input.WebsocketId, input.Channel);
+            ImHelper.JoinChan(input.WebsocketId ?? AbpSession.UserId!.Value, input.Channel);
             // ImHelper.ClearChanClient(input.Channel);
             return new
             {
@@ -308,6 +308,10 @@ namespace TtWork.Project.Controllers
             input.Message = await CheckMsgText(input.Message);
             input.Message.id = Guid.NewGuid();
             input.Message.chan = input.Chan.ToString();
+            
+            // 使用后端缓存的用户头像，不依赖前端参数
+            input.Message.avatar = NormalizeAvatarUrl(cacheUser.HeadImgUrl);
+            input.Message.fromName = cacheUser.Name;
 
             var isChatAdmin = await CheckIsChatAdmin(cacheUser);
 
@@ -417,6 +421,9 @@ namespace TtWork.Project.Controllers
             input.Message = await CheckMsgText(input.Message);
             input.Message.id = Guid.NewGuid();
             input.Message.to ??= input.To;
+            
+            input.Message.avatar = NormalizeAvatarUrl(cacheUser.HeadImgUrl);
+            input.Message.fromName = cacheUser.Name;
 
             var isChatAdmin = await CheckIsChatAdmin(cacheUser);
 
@@ -582,6 +589,15 @@ namespace TtWork.Project.Controllers
             }
 
             return null;
+        }
+
+        private static string NormalizeAvatarUrl(string url)
+        {
+            if (string.IsNullOrEmpty(url)) return url;
+            
+            return url
+                .Replace("cdn.molitao.top", "image.molitao.top")
+                .Replace("http://image.molitao.top", "https://image.molitao.top");
         }
     }
 }

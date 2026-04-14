@@ -1,25 +1,34 @@
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Abp.Authorization;
 using Abp.Configuration;
+using Abp.UI;
 using Abp.Zero.Configuration;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TtWork.Abp;
 using TtWork.Abp.Applications.Dtos;
 using TtWork.Abp.Authorization.Users;
+using TtWork.Abp.Definitions;
+using TtWork.Project.Applications.Core.Authorization.Accounts.Dto;
 using TtWork.Project.Applications.Authorization.Accounts.Dto;
 using TtWork.Project.Authorization.Accounts.Dto;
 
 namespace TtWork.Project.Applications.Core.Authorization.Accounts {
+    [AbpAuthorize]
     public class AccountAppService : AbpAppServiceBase {
-        // from: http://regexlib.com/REDetails.aspx?regexp_id=1923
         public const string PasswordRegex =
             "(?=^.{8,}$)(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?!.*\\s)[0-9a-zA-Z!@#$%^&*()]*$";
 
         private readonly UserRegistrationManager _userRegistrationManager;
+        private readonly IPasswordHasher<User> _passwordHasher;
 
-        public AccountAppService(UserRegistrationManager userRegistrationManager) {
+        public AccountAppService(
+            UserRegistrationManager userRegistrationManager,
+            IPasswordHasher<User> passwordHasher) {
             _userRegistrationManager = userRegistrationManager;
+            _passwordHasher = passwordHasher;
         }
 
         public async Task<IsTenantAvailableOutput> IsTenantAvailable(IsTenantAvailableInput input) {
@@ -35,6 +44,7 @@ namespace TtWork.Project.Applications.Core.Authorization.Accounts {
             return new IsTenantAvailableOutput(TenantAvailabilityState.Available, tenant.Id);
         }
 
+        [AbpAuthorize(AppPermissions.Administration)]
         public async Task<RegisterOutput> Register(RegisterInput input) {
             var user = await _userRegistrationManager.RegisterAsync(
                 input.Name,
@@ -43,7 +53,7 @@ namespace TtWork.Project.Applications.Core.Authorization.Accounts {
                 input.UserName,
                 input.Password,
                 input.PhoneNumber,
-                true // Assumed email address is always confirmed. Change this if you want to implement email confirmation.
+                true
             );
 
             var isEmailConfirmationRequiredForLogin =
@@ -54,20 +64,57 @@ namespace TtWork.Project.Applications.Core.Authorization.Accounts {
                 { CanLogin = user.IsActive && (user.IsEmailConfirmed || !isEmailConfirmationRequiredForLogin) };
         }
 
+        [HttpPost]
+        public async Task<bool> EnablePasswordLogin([FromBody] string newPassword) {
+            var user = await GetCurrentUserAsync();
+
+            user.Password = _passwordHasher.HashPassword(user, newPassword);
+            await UserManager.UpdateAsync(user);
+
+            await CurrentUnitOfWork.SaveChangesAsync();
+            return true;
+        }
+
+        [HttpPost]
+        public async Task<bool> ChangePassword([FromBody] ChangePasswordInput input) {
+            var user = await GetCurrentUserAsync();
+
+            if (await UserManager.CheckPasswordAsync(user, input.CurrentPassword)) {
+                CheckErrors(await UserManager.ChangePasswordAsync(user, input.NewPassword));
+                await CurrentUnitOfWork.SaveChangesAsync();
+                return true;
+            }
+
+            throw new UserFriendlyException("当前密码错误");
+        }
+
+        [HttpPost]
+        public async Task<bool> DisablePasswordLogin() {
+            var user = await GetCurrentUserAsync();
+            // Database column doesn't allow null, use empty string instead
+            user.Password = string.Empty;
+            await UserManager.UpdateAsync(user);
+            await CurrentUnitOfWork.SaveChangesAsync();
+            return true;
+        }
+
+        [HttpGet]
+        public async Task<bool> CanUsePasswordLogin() {
+            var user = await GetCurrentUserAsync();
+            return !string.IsNullOrEmpty(user.Password);
+        }
 
         [HttpPost]
         public async Task<UserDto> UpdatePhone([FromBody] string phone) {
             var user = await GetCurrentUserAsync();
             CheckErrors(await UserManager.SetPhoneNumberAsync(user, phone));
             CheckErrors(await UserManager.SetUserNameAsync(user, phone));
-            //TODO:暂时为密码自动修改为手机号码后6位
             CheckErrors(await UserManager.ChangePasswordAsync(user,
                 Regex.Matches(phone, @"\d+(\d{6})\b")[0].Groups[1].Value));
             await CurrentUnitOfWork.SaveChangesAsync();
             var roles = await UserManager.GetRolesAsync(user);
             var userDto = ObjectMapper.Map<UserDto>(user);
             userDto.RoleNames = roles.ToArray();
-            //var roles = await _roleManager.Roles.Where(r => roles.Any(ur => ur.RoleId == r.Id)).Select(r => r.NormalizedName).ToListAsync();
             return userDto;
         }
     }

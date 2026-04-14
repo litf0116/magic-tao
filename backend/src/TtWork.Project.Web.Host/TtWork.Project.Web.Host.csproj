@@ -11,8 +11,8 @@
         <DockerfileContext>..\..</DockerfileContext>
     </PropertyGroup>
     <ItemGroup>
-      <Content Remove="wwwroot\cert\apiclient_cert.pem" />
-      <Content Remove="wwwroot\cert\apiclient_key.pem" />
+      <Content Remove="wwwroot\certs\apiclient_cert.pem" />
+      <Content Remove="wwwroot\certs\apiclient_key.pem" />
       <Content Remove="wwwroot\swagger\sm-crypto-v2\crypto-js.js" />
       <Content Remove="wwwroot\swagger\sm-crypto-v2\sm2.js" />
     </ItemGroup>
@@ -50,15 +50,15 @@
       </EmbeddedResource>
     </ItemGroup>
     <ItemGroup>
-      <None Include="wwwroot\cert\apiclient_cert.pem">
+      <None Include="wwwroot\certs\apiclient_cert.pem">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
-      <None Include="wwwroot\cert\apiclient_key.pem">
+      <None Include="wwwroot\certs\apiclient_key.pem">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
     </ItemGroup>
     <ItemGroup>
-      <Content Update="wwwroot\cert\apiclient_cert.p12">
+      <Content Update="wwwroot\certs\apiclient_cert.p12">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
       <Content Update="wwwroot\swagger\ui\auth.js">

@@ -89,7 +89,7 @@
                                     :showActionPopup="showActionPopup"
                                 />
 
-                                <!-- 开始拍卖 -->
+                                <!-- 开始秒杀 -->
                                 <AuctionStartMessage
                                     v-else-if="message.type === ChatMessageType.AuctionStart && message.payload"
                                     :message="message"
@@ -252,7 +252,7 @@
             <view class="action-list" style="width: 275px; padding: 10px; color: #fff">
                 <div>群等级制度，根据成交价金额自动累计</div>
                 <div v-for="x in groupChatLevel" :key="x.level">
-                    {{ x.level }}级:成交额满{{ x.amountRequired }} {{ x.name }}
+                    {{ x.level }}级:魔力值满{{ x.amountRequired }} {{ x.name }}
                 </div>
                 <div class="action-item" @click="showGroupChatRules = false">取消</div>
             </view>
@@ -296,7 +296,7 @@ import { ChatListItemType, ChatMessageType, type ChatEmojiDto, type ChatMessage 
 import type { AuctionItemDto } from '@/composables/types'
 import { getImgUrl as getImgUrl2, Tips } from '@/composables'
 import type { ChatOptions } from './types'
-import { computed, defineEmits, defineProps, reactive, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { Goto } from '@/composables/goto'
 import { convertAuctionPayload } from '@/utils/propertyConverter'
 import { convertImageUrl } from '@/utils/imageUrlConverter'
@@ -327,7 +327,10 @@ const emojiStore = useChatEmojiStore()
 const chatStore = useChatStore()
 const userStore = useUserStore()
 const auctionStore = useAuctionStore()
-const recorderManager = uni.getRecorderManager()
+
+// 定时器 ID 需要在使用前声明
+let timeId: any = null
+
 //显示群聊规则
 const showGroupChatRules = ref(false)
 //群聊等级信息
@@ -335,6 +338,7 @@ const groupChatLevel: any = ref([])
 const emojiIndex = ref(0)
 
 onLoad(async () => {
+    console.log('[ChatMain] onLoad 触发')
     delayloadhistory()
     scrollToBottom(true)
     //获取群等级信息
@@ -349,24 +353,28 @@ onUnload(() => {
     // 发送事件通知
     uni.$emit('refreshView')
     unsubscribe()
+    // #ifndef H5
     clearInterval(timeId)
+    // #endif
 })
-
-let timeId: any = null
 
 // LINK - 延迟加载服务器最新消息,不同则重连服务器
 function delayloadhistory() {
-    // console.log('delayloadhistory')
+    console.log('[ChatMain] delayloadhistory 触发')
+    // #ifndef H5
     clearInterval(timeId)
+    // #endif
     timeId = setInterval(() => {
-        // console.log('delayloadhistory执行')
+        console.log('[ChatMain] delayloadhistory setInterval 执行')
         //检查最后一条消息是否是historyMsgs的最后一条
         chatStore.getServerLastId().then((res) => {
             const hisLast = last(
                 historyMsgs.value.filter((x) => x.type !== 'Welcome' && x.type !== 'BanUser' && x.type !== 'Backout')
             )
+            console.log('[ChatMain] getServerLastId 结果:', res, 'hisLast:', hisLast?.id)
             // console.log('chatStore.getServerLastId', res, hisLast)
             if (res != api.guid && res !== hisLast?.id) {
+                console.log('[ChatMain] 服务器消息与本地不同，触发 connectServer')
                 // console.log('服务器消息与本地不同')
                 chatStore.connectServer(true).then(() => {
                     loadHistoryMessage(true)
@@ -375,6 +383,7 @@ function delayloadhistory() {
                     }
                 })
             } else {
+                console.log('[ChatMain] 服务器消息与本地相同')
                 // console.log('服务器消息与本地相同')
             }
         })
@@ -395,7 +404,7 @@ const unsubscribe = bus.on((msg: any) => {
     }
 
     if (msg.type === 'Backout' && msg.chan === '-1_auction') {
-        // console.log('拍卖行撤回')
+        // console.log('秒杀场撤回')
         auctionStore.getList()
     }
 
@@ -426,19 +435,6 @@ const emoji = ref({
     visible: false,
     decoder: new emojiDecoder(emojiStore.emojiUrl, emojiStore.emojiMap),
 })
-const audio = reactive({
-    startTime: null,
-    //语音录音中
-    recording: false,
-    //录音按钮展示
-    visible: false,
-})
-
-let audioPlayer = reactive({
-    innerAudioContext: null,
-    audio: {},
-    playingMessage: null,
-})
 
 // 展示消息删除弹出框
 const actionPopup = ref({
@@ -466,50 +462,14 @@ function catchImage(e: any, payload: any) {
         }
 
         if (list.length === 0) return
-        wx.previewImage({
-            current: list[0], // 当前显示图片的http链接
-            urls: list, // 需要预览的图片http链接列表
+        uni.previewImage({
+            current: list[0],
+            urls: list,
         })
 
         // console.log('catchImage', list)
     } catch (e) {
         // console.log('catchImage', e)
-    }
-}
-
-//语音录制按钮和键盘输入的切换
-
-function switchAudioKeyboard() {
-    audio.visible = !audio.visible
-    if (uni.authorize) {
-        uni.authorize({
-            scope: 'scope.record',
-            fail: () => {
-                uni.showModal({
-                    title: '获取录音权限失败',
-                    content: '请先授权才能发送语音消息！',
-                })
-            },
-        })
-    }
-}
-
-function onRecordStart() {
-    try {
-        recorderManager.start({})
-    } catch (e) {
-        uni.showModal({
-            title: '录音错误',
-            content: '请在app和小程序端体验录音，Uni官方明确H5不支持getRecorderManager, 详情查看Uni官方文档',
-        })
-    }
-}
-
-function onRecordEnd() {
-    try {
-        recorderManager.stop()
-    } catch (e) {
-        // console.log(e)
     }
 }
 
@@ -522,9 +482,16 @@ function showImageFullScreen(e: any) {
 
 watch(
     () => historyMsgs.value.length,
-    () => {
-        const l = historyMsgs.value.length
+    (newLength, oldLength) => {
+        // 如果消息数量没有变化，不执行任何操作
+        if (newLength === oldLength) return
+
+        console.log('[ChatMain] watch 触发 - historyMsgs.length 变化:', oldLength, '->', newLength)
+        const l = newLength
+        // H5 下不频繁设置定时器，避免频繁刷新
+        // #ifndef H5
         delayloadhistory()
+        // #endif
         if (l > 5) {
             // console.log('watchEffect', historyMsgs.value.length)
             scrollToBottom(false)
@@ -533,6 +500,8 @@ watch(
 )
 // LINK - 滚动到底部
 function scrollToBottom(t = true) {
+    console.log('[ChatMain] scrollToBottom 触发, t =', t)
+    // #ifndef H5
     // console.log('scrollToBottom')
     // nextTick(() => {})
     let query = uni.createSelectorQuery()
@@ -541,12 +510,14 @@ function scrollToBottom(t = true) {
     query.exec((res: any) => {
         if (!t) if (res[0].scrollTop + res[1].height < res[0].scrollHeight - 200) return
         setTimeout(() => {
+            console.log('[ChatMain] 执行 uni.pageScrollTo')
             uni.pageScrollTo({
                 scrollTop: 2_000_000,
                 duration: 0,
             })
         }, 100)
     })
+    // #endif
 }
 
 //解析消息
@@ -639,7 +610,28 @@ function showOtherTypesMessagePanel() {
 function sendImageMessage2() {
     upload(1).then((res) => {
         // console.log('sendImageMessage2', res)
-        emit('onSend', { type: ChatMessageType.Image, data: res })
+        // 获取图片尺寸信息并附加到 payload
+        const imageUrl = res.url
+        if (imageUrl) {
+            const fullUrl = imageUrl.startsWith('http')
+                ? imageUrl
+                : `${import.meta.env.VITE_APP_UPYUN_IMG_URL}${imageUrl}`
+            uni.getImageInfo({
+                src: fullUrl,
+                success: (info) => {
+                    emit('onSend', {
+                        type: ChatMessageType.Image,
+                        data: { ...res, width: info.width, height: info.height },
+                    })
+                },
+                fail: () => {
+                    // 获取尺寸失败时仍然发送，使用默认尺寸
+                    emit('onSend', { type: ChatMessageType.Image, data: res })
+                },
+            })
+        } else {
+            emit('onSend', { type: ChatMessageType.Image, data: res })
+        }
         otherTypesMessagePanelVisible.value = false
     })
 }
@@ -717,7 +709,7 @@ function adminSend() {
         Goto.private({
             id: `${chat.id}`,
             name: chat.name,
-            avatar: chat.avatar || convertImageUrl('https://cdn.molitao.top/avater.png'),
+            avatar: chat.avatar || convertImageUrl('https://image.molitao.top/avater.png'),
         })
         closeActionPopup()
     }
@@ -1510,6 +1502,8 @@ function getLevelStyle(userChatLevel) {
     display: block;
 }
 
+.text-content image,
+.text-content image,
 .text-content img {
     width: 50rpx;
     height: 50rpx;

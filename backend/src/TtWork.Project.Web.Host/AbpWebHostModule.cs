@@ -7,6 +7,7 @@ using Castle.MicroKernel.Registration;
 using Castle.Windsor.MsDependencyInjection;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using TtWork.Abp;
 using TtWork.Project.Web.Core;

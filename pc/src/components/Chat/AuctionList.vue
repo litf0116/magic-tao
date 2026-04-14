@@ -132,9 +132,11 @@ import type { UserLevelInfo } from '@/api/groupChatLevel'
 import api from '@/api'
 import type { UserDto } from '@/api/appService'
 import { calculateMinBidPrice } from '@/utils/auction'
+import { useRouter } from 'vue-router'
 
 let ps: PerfectScrollbar | null = null
 
+const router = useRouter()
 const userStore = useUserStore()
 
 const auctionStore = useAuctionStore()
@@ -300,6 +302,10 @@ async function bid() {
             isActive: currentUser.isActive,
         })
 
+        // 使用工具方法计算最低出价
+        const minPrice = calculateMinBidPrice(onAuctionItem.value.currentPrice, auctionStore.isKasec)
+        console.log('计算最低出价:', minPrice)
+
         // 获取用户等级信息
         console.log('正在获取用户等级信息...')
         const levelResponse = await GetUserLevelInfo(userId)
@@ -313,27 +319,33 @@ async function bid() {
             userLevelInfo: levelInfo?.userLevel,
         })
 
-        // 新用户且保证金不足的情况
         if (userLevel === 0 && deposit < 50) {
-            console.log('新用户保证金不足:', { userLevel, deposit })
-            ElMessageBox.alert(
-                `<div>
-                    新用户参与拍卖，需要缴纳51元（50元保证金+1元提现手续费）。<br/>
-                    <b>网站无法直接缴纳保证金，请扫码进入微信小程序缴纳。</b>
-                    <div style="margin:10px 0;">
-                        <img src="/images/miniapp_qrcode.png" style="width:150px;" />
-                    </div>
-                </div>`,
-                '出价须知',
-                { dangerouslyUseHTMLString: true }
-            )
+            console.log('新用户诚信履约金不足:', { userLevel, deposit })
+            ElMessageBox.confirm('新用户参与拍卖，需要缴纳 51 元（50 元诚信履约金 +1 元提现手续费）。', '出价须知', {
+                confirmButtonText: '去缴纳',
+                cancelButtonText: '取消',
+                type: 'warning',
+            })
+                .then(() => {
+                    router.push({
+                        path: '/payment',
+                        query: {
+                            type: 'deposit',
+                            returnUrl: '/chat/auction',
+                            returnContext: JSON.stringify({
+                                auctionItemId: onAuctionItem.value.id,
+                                bidPrice: minPrice,
+                            }),
+                        },
+                    })
+                })
+                .catch(() => {
+                    // 用户点击取消，不显示提示
+                })
             return
         }
 
         // 原有出价弹窗逻辑
-
-        // 使用工具方法计算最低出价
-        const minPrice = calculateMinBidPrice(onAuctionItem.value.currentPrice, auctionStore.isKasec)
 
         let message = `请输入出价金额(最低出价${minPrice})`
         let dialogTitle = '出价'

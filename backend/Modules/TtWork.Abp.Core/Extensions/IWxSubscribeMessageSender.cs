@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Abp.Dependency;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -44,15 +45,21 @@ namespace TtWork.Abp.Extensions {
             _logger = logger;
         }
 
-        public async Task<(bool, string)> SendAsync(string[] openids, string accessToken, string template_id,
-            object data, string page = "", string miniprogram_state = "formal",
-            string lang = "zh_CN") {
+public async Task<(bool, string)> SendAsync(string[] openids, string accessToken, string template_id,
+    object data, string page = "", string miniprogram_state = "formal",
+    string lang = "zh_CN") {
             var _result = (true, "");
+            _logger.LogInformation("========== 开始发送微信订阅消息 ========== TemplateId={TemplateId}, OpenIdCount={OpenIdCount}, Page={Page}", 
+                template_id, openids.Length, page);
+
             foreach (var openid in openids) {
                 var apiurl = $"https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token={accessToken}";
 
                 if (openid.IsNullOrEmptyOrWhiteSpace())
+                {
+                    _logger.LogWarning("跳过空的 openid");
                     break;
+                }
 
                 object postData = new {
                     touser = openid,
@@ -63,21 +70,27 @@ namespace TtWork.Abp.Extensions {
                     lang = lang
                 };
 
+                _logger.LogInformation("准备发送给用户: OpenId={OpenId}, AccessToken={AccessToken}, RequestData={RequestData}", 
+                    openid, accessToken.Substring(0, Math.Min(20, accessToken.Length)) + "...", JsonConvert.SerializeObject(postData));
 
                 var result = await HttpEx.PostAsync<dynamic>(apiurl, postData);
                 string wx_result = JsonConvert.SerializeObject(result);
 
                 if (result.errmsg != "ok") {
-                    _logger.LogError("小程序模版消息发送失败!{@wx_result} {@request_data}", wx_result,
-                        JsonConvert.SerializeObject(postData));
+                    var errorMessage = $"OpenId={openid}, ErrorCode={result.errcode}, ErrorMessage={result.errmsg}, FullResponse={wx_result}";
+                    _logger.LogError("========== 小程序模版消息发送失败 ========== {ErrorMessage}", errorMessage);
+                    _logger.LogError("请求数据: {RequestData}", JsonConvert.SerializeObject(postData));
                     _result.Item1 = false;
-                    _result.Item2 += result.errmsg;
+                    _result.Item2 += $"OpenId:{openid} - {result.errmsg}({result.errcode}); ";
                 }
                 else {
-                    _logger.LogInformation("小程序模版消息发送成功!{@wx_result} {@request_data}", wx_result,
-                        JsonConvert.SerializeObject(postData));
+                    _logger.LogInformation("========== 小程序模版消息发送成功 ========== OpenId={OpenId}, Response={Response}", 
+                        openid, wx_result);
                 }
             }
+
+            _logger.LogInformation("========== 微信订阅消息发送完成 ========== TemplateId={TemplateId}, Success={Success}, Errors={Errors}", 
+                template_id, _result.Item1, _result.Item2);
 
             return _result;
         }

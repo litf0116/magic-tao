@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -13,6 +14,7 @@ using TtWork.Lib;
 namespace TtWork.HttpClient.Weixin {
     public class WeixinApi(
         System.Net.Http.HttpClient client,
+        IDistributedCache cache,
         ILogger<WeixinApi> logger)
         : IWeixinApi {
         /// <summary>
@@ -22,17 +24,51 @@ namespace TtWork.HttpClient.Weixin {
         /// <param name="appSecret"></param>
         /// <returns></returns>
         public async Task<WeixinTokenResult> GetToken(string appid, string appSecret) {
-            var response =
-                await client.GetAsync($"cgi-bin/token?grant_type=client_credential&appid={appid}&secret={appSecret}");
+            var requestData = new JObject
+            {
+                { "grant_type", "client_credential" },
+                { "appid", appid },
+                { "secret", appSecret }
+            };
+
+            var content = new StringContent(requestData.ToString(), Encoding.UTF8, "application/json");
+            var response = await client.PostAsync("cgi-bin/stable_token", content);
 
             var jsonResponse = await response.Content.ReadAsStringAsync();
 
             // ip error: {"errcode":40164,"errmsg":"invalid ip 114.220.209.25 ipv6 ::ffff:114.220.209.25, not in whitelist hint: [eS4JRA00075263]"}
             // secret error :{"errcode":40013,"errmsg":"invalid appid"}
+            // access_token invalid: {"errcode":40001,"errmsg":"invalid credential, access_token is invalid or not latest"}
             // success return {"access_token":"ACCESS_TOKEN","expires_in":7200}
 
             var result = JsonConvert.DeserializeObject<WeixinTokenResult>(jsonResponse);
             return result;
+        }
+
+        /// <summary>
+        /// 取得公众号AccessToken(带缓存)
+        /// 缓存时间15分钟，剩余时间少于5分钟时自动刷新
+        /// </summary>
+        public async Task<string> GetAccessTokenAsync(string appid = null, string appSecret = null) {
+            var key = $"accesstoken:{appid}";
+            var cacheValue = await cache.GetStringAsync(key);
+
+            if (!string.IsNullOrEmpty(cacheValue)) {
+                return cacheValue;
+            }
+
+            var token = await GetToken(appid, appSecret);
+            logger.LogInformation("请求appid: AccessToken:{@AccessTokenResult}", JsonConvert.SerializeObject(token));
+            if (token == null || token.errcode != 0) {
+                throw new Exception($"AccessToken获取失败 {token.errmsg}");
+            }
+
+            var options = new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(900)
+            };
+            await cache.SetStringAsync(key, token.access_token, options);
+            return token.access_token;
         }
 
         /// <summary>
@@ -248,6 +284,29 @@ namespace TtWork.HttpClient.Weixin {
 
             return result.TryConvert<BaseWeChatReulst>();
         }
+
+        public async Task<OAuth2Result> GetOpenPlatformAccessTokenAsync(string appid, string secret, string code) {
+            var url = $"https://api.weixin.qq.com/sns/oauth2/access_token?appid={appid}&secret={secret}&code={code}&grant_type=authorization_code";
+            logger.LogInformation("请求微信开放平台 OAuth2 接口: {Url}", url);
+
+            var response = await client.GetAsync(url);
+            var result = await response.Content.ReadAsStringAsync();
+
+            logger.LogInformation("微信开放平台 OAuth2 响应: {Result}", result);
+
+            var oauthResult = result.TryConvert<OAuth2Result>();
+
+            if (oauthResult == null || !string.IsNullOrEmpty(oauthResult.errmsg)) {
+                logger.LogError("微信开放平台 OAuth2 认证失败: {ErrorCode} - {ErrorMessage}",
+                    oauthResult?.errcode, oauthResult?.errmsg);
+                throw new Exception($"微信开放平台认证失败: {oauthResult?.errmsg}");
+            }
+
+            logger.LogInformation("微信开放平台 OAuth2 认证成功: OpenId={OpenId}, UnionId={UnionId}",
+                oauthResult.openid, oauthResult.unionid);
+
+            return oauthResult;
+        }
     }
 
     public class GetQrCodeResult {
@@ -272,6 +331,12 @@ namespace TtWork.HttpClient.Weixin {
         public string openid { get; set; }
 
         public string scope { get; set; }
+
+        public string unionid { get; set; }
+
+        public int errcode { get; set; }
+
+        public string errmsg { get; set; }
     }
 
     public class MediaCheckResult : BaseWeChatReulst {

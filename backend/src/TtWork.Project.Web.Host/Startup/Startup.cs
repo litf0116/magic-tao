@@ -55,6 +55,8 @@ using TtWork.Abp;
 using TtWork.Project.Web.Host.HealthChecks;
 using TtWork.Lib;
 using TtWork.Project.Web.Host.Services;
+using TtWork.Project.Web.Host.Middleware;
+using TtWork.Project.Services.Push;
 
 namespace TtWork.Project.Web.Host.Startup
 {
@@ -75,10 +77,13 @@ namespace TtWork.Project.Web.Host.Startup
         {
             JsonExtensions.UseNewtonsoft = true;
 
+            services.AddHttpContextAccessor();
+            
             services.AddMediatR(cfg =>
                 cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
             services.Configure<RedisOptions>(_appConfiguration.GetSection("Redis"));
+            services.Configure<JPushSettings>(_appConfiguration.GetSection("JPush"));
 
             // 注册 IDistributedCache 实现（基于现有的 IRedisClient）
             services.AddSingleton<IDistributedCache, RedisDistributedCache>();
@@ -138,14 +143,27 @@ namespace TtWork.Project.Web.Host.Startup
             {
                 options.AddPolicy(DefaultCorsPolicyName, builder =>
                 {
+                    var origins = orgs
+                        .Split(",", StringSplitOptions.RemoveEmptyEntries)
+                        .ToArray();
+
                     builder
-                        .WithOrigins(
-                            (orgs)
-                            .Split(",", StringSplitOptions.RemoveEmptyEntries)
-                            // .Select(o => o.RemovePostFix("/"))
-                            .ToArray()
-                        )
+                        .WithOrigins(origins)
                         .SetIsOriginAllowedToAllowWildcardSubdomains()
+                        .SetIsOriginAllowed(origin =>
+                        {
+                            // 开发环境允许任意 localhost 端口
+                            if (_hostingEnvironment.IsDevelopment())
+                            {
+                                var uri = new Uri(origin);
+                                if (uri.Host == "localhost" || uri.Host == "127.0.0.1")
+                                {
+                                    return true;
+                                }
+                            }
+                            // 检查是否在配置的 origins 列表中
+                            return origins.Any(o => o.Equals(origin, StringComparison.OrdinalIgnoreCase));
+                        })
                         .AllowAnyHeader()
                         .AllowAnyMethod()
                         .AllowCredentials();
@@ -266,6 +284,7 @@ namespace TtWork.Project.Web.Host.Startup
             }
 
             app.UseMiddleware<RealIpMiddleware>();
+            app.UseAppFeature();
             //微信消息中间件
             // app.UseWeiXin(options: new WeiXinOptions()
             //     { Path = "/api/wx", MutilTenant = false });
@@ -277,7 +296,7 @@ namespace TtWork.Project.Web.Host.Startup
 
 #if DEBUG
                 Redis = new FreeRedis.RedisClient("127.0.0.1:6379,poolsize=10,syncTimeout=5000,abortConnect=false"),
-                Servers = ["127.0.0.1:6001"]
+                Servers = ["192.168.10.35:6001"]
 #else
                 Redis = new FreeRedis.RedisClient(
                   "8.130.178.251:6379,poolsize=10,password=7yD3Ddd34,syncTimeout=5000,abortConnect=false"),
@@ -316,6 +335,9 @@ namespace TtWork.Project.Web.Host.Startup
             //又拍云上传
             services.AddHttpClient<IUpyunApi, UpyunApi>(cfg => { cfg.BaseAddress = new Uri("https://v0.api.upyun.com/"); })
                 .ConfigurePrimaryHttpMessageHandler(_ => new HttpClientHandler { Proxy = null, UseProxy = false });
+
+            // 通用HttpClient (用于图片下载等功能)
+            services.AddHttpClient();
         }
 
 
@@ -352,17 +374,17 @@ namespace TtWork.Project.Web.Host.Startup
                     queueSizeLimit: 10000))               // 队列大小限制
                 // 文件日志 - 使用Async批量写入，减少磁盘IO对系统性能的影响
                 .WriteTo.Async(c => c.File(
-                    path: "/app/logs/api-.log",
+                    path: "logs/api-.log",
                     rollingInterval: RollingInterval.Day,
                     outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
                     retainedFileCountLimit: 7,
-                    fileSizeLimitBytes: 50_000_000,
+                    fileSizeLimitBytes: 100_000_000,
                     rollOnFileSizeLimit: true),
                     bufferSize: 1000,
                     blockWhenFull: false)
                 // Error级别文件日志 - 使用Async批量写入，但配置更频繁的刷新
                 .WriteTo.Async(c => c.File(
-                    path: "/app/logs/errors-.log",
+                    path: "logs/errors-.log",
                     restrictedToMinimumLevel: LogEventLevel.Error,
                     rollingInterval: RollingInterval.Day,
                     outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}",

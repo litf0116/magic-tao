@@ -7,6 +7,7 @@ import { uniqBy, orderBy } from 'lodash'
 import { useEventBus } from '@vueuse/core'
 import { useAuctionStore } from '@/stores/auctionStore'
 import { convertImageUrl, convertObjectImageUrls, convertObjectImageUrlsArray } from '@/utils/imageUrlConverter'
+import { Tips } from '@/composables'
 
 export const onmessageKey = Symbol('onmessageKey')
 
@@ -58,7 +59,6 @@ export const useChatStore = defineStore('chat', () => {
     const currentChat = ref(AuctionChat)
     const inputChannelMsg = ref<InputChannelMsgType>({ type: 'text', content: '' })
 
-    //聊天对象表
     const chatList: Ref<ChatListItem[]> = useLocalStorage('chatList', [AuctionChat])
     const chatMap = ref<Map<string, ChatMessage[]>>(new Map())
 
@@ -72,13 +72,31 @@ export const useChatStore = defineStore('chat', () => {
     //getter
 
     //action
+    const qrLoading = ref(false)
+    const qrError = ref('')
+
     const initQr = (str: string) => {
         if (str) {
             const qrLoginUrl = `${BASE_API_URL}/api/tokenAuth/qrLogin?state=${str}`
-            console.log('qrLoginUrl', qrLoginUrl)
+            console.log('[DEBUG initQr] qrLoginUrl:', qrLoginUrl)
+            console.log('[DEBUG initQr] BASE_API_URL:', BASE_API_URL)
             qrUrl.value = `${BASE_API_URL}/home/qr?str=${qrLoginUrl}`
+            qrLoading.value = true
+            qrError.value = ''
+            console.log('[DEBUG initQr] 调用 PubQrLogin API, state:', str)
             api.tokenAuth.pubQrLogin({ state: str }).then((res) => {
+                console.log('[DEBUG initQr] PubQrLogin 成功返回:', res)
+                console.log('[DEBUG initQr] pubQrUrl 设置为:', res)
                 pubQrUrl.value = res
+            }).catch((err) => {
+                console.error('[DEBUG initQr] PubQrLogin 失败:', err)
+                console.error('[DEBUG initQr] err.response:', err?.response)
+                console.error('[DEBUG initQr] err.response?.data:', err?.response?.data)
+                pubQrUrl.value = ''
+                qrError.value = typeof err === 'string' ? err : '获取二维码失败，请刷新重试'
+            }).finally(() => {
+                console.log('[DEBUG initQr] finally, qrLoading设为false')
+                qrLoading.value = false
             })
         } else {
             qrUrl.value = ''
@@ -323,8 +341,8 @@ export const useChatStore = defineStore('chat', () => {
             } else {
                 chatMap.value.set(`${_id}`, [msg])
             }
-        } else if (msg.type === 'Text' || msg.type === 'Image' || msg.type === 'File' || msg.type === 'AuctionDeal') {
-            //处理私聊消息
+        } else if (msg.type === 'Text' || msg.type === 'Image' || msg.type === 'File') {
+            //处理私聊消息（不包括AuctionDeal，由下面的特殊处理逻辑处理）
             const old = chatList.value.find((item) => item.id === msg.from && item.id !== currentChat.value.id)
             if (msg.from === null) return
             chatList.value = [
@@ -452,9 +470,29 @@ export const useChatStore = defineStore('chat', () => {
                     addAuctionDealUser(msg.payload, 'AuctionDeal', dealTime)
                 }
 
-                // 接收者（中拍用户）：为自己创建聊天会话
+                // 接收者（中拍用户）：为拍卖师创建聊天会话
                 if (msg.to === userStore.user.id) {
-                    addAuctionDealUser(msg.payload, 'AuctionDeal', dealTime)
+                    // 中拍用户需要看到拍卖师（msg.from），而不是自己
+                    const existingChat = chatList.value.find((item) => item.id === msg.from)
+                    if (!existingChat) {
+                        chatList.value = [
+                            {
+                                id: msg.from,
+                                name: msg.fromName!,
+                                type: ChatListItemType.user,
+                                time: dealTime,
+                                lastMsg: msg.msg,
+                                avatar: msg.avatar,
+                                unread: 0,
+                                order: 0,
+                                msg: msg,
+                            },
+                            ...chatList.value.filter((item) => item.id !== msg.from),
+                        ]
+                        if (!chatMap.value.has(`${msg.from}`)) {
+                            chatMap.value.set(`${msg.from}`, [msg])
+                        }
+                    }
                 }
             }
         }
@@ -535,6 +573,10 @@ export const useChatStore = defineStore('chat', () => {
     }
 
     const joinChannel = async (chan: string) => {
+        if (!websocketId.value || websocketId.value === 0) {
+            await connectServer()
+        }
+
         return new Promise((resolve, reject) => {
             api.ws
                 .subChannel({ body: { websocketId: websocketId.value, channel: chan } })
@@ -611,6 +653,11 @@ export const useChatStore = defineStore('chat', () => {
                 .then((res) => {
                     return resolve(res)
                 })
+                .catch((err) => {
+                    Tips.error('消息发送失败，请检查网络连接')
+                    console.error('sendChannelMsg error:', err)
+                    resolve(null)
+                })
         })
     }
 
@@ -669,6 +716,11 @@ export const useChatStore = defineStore('chat', () => {
                     }
 
                     return resolve(res)
+                })
+                .catch((err) => {
+                    Tips.error('私信发送失败，请检查网络连接')
+                    console.error('sendMsg error:', err)
+                    resolve(null)
                 })
         })
     }
@@ -827,6 +879,8 @@ export const useChatStore = defineStore('chat', () => {
         websocketId,
         qrUrl,
         pubQrUrl,
+        qrLoading,
+        qrError,
         friends,
         friends0,
         groups,

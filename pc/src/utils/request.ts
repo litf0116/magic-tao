@@ -17,6 +17,7 @@ service.interceptors.request.use(
         request.headers['Content-Type'] = 'application/json'
         // request.headers['.Aspnetcore-Culture'] = 'c=zh-Hans|uic=zh-CN'
         request.headers['Appname'] = import.meta.env.VITE_APP_AppName
+        request.headers['AppVersion'] = import.meta.env.VITE_APP_VERSION || '20260224@1.0.0'
         return request
     },
     (error: any) => {
@@ -41,7 +42,11 @@ service.interceptors.response.use(
     },
     (err: {
         response: {
-            data: { error: { validationErrors: any[]; details?: any; code?: number; message: any } }
+            data: {
+                error: { validationErrors: any[]; details?: any; code?: number; message: any }
+                unAuthorizedRequest?: boolean
+            }
+            status: number
         }
     }) => {
         console.log('%c http response error', 'color:red;')
@@ -63,9 +68,18 @@ service.interceptors.response.use(
                     type: 'error',
                 })
             } else {
-                if (err.response.data.unAuthorizedRequest) {
+                if (err.response.data.unAuthorizedRequest || err.response.status === 401) {
                     Tips.confirm('请重新登录', '错误', 'error').then(() => {
                         location.reload()
+                    })
+                    return
+                }
+
+                // 处理403权限不足错误
+                if (err.response.status === 403) {
+                    Tips.confirm('权限不足，无法访问此资源', '错误', 'error').then(() => {
+                        // 可以跳转到首页或其他合适的页面
+                        location.href = '/'
                     })
                     return
                 }
@@ -76,21 +90,34 @@ service.interceptors.response.use(
             }
             return Promise.reject(err.response.data.error)
         } else {
+            // 对于非ABP响应，也检查状态码
+            if (err.response && err.response.status === 401) {
+                Tips.confirm('请重新登录', '错误', 'error').then(() => {
+                    location.reload()
+                })
+                return
+            } else if (err.response && err.response.status === 403) {
+                Tips.confirm('权限不足，无法访问此资源', '错误', 'error').then(() => {
+                    location.href = '/'
+                })
+                return
+            }
             return Promise.reject(err)
         }
     }
 )
 
 function isAbpResponse(response: any) {
-    return response && response.data && response.data.__abp
+    if (!response?.data) return false
+    if (response.data.__abp) return true
+    if (response.data.success === true && response.data.result !== undefined) return true
+    return false
 }
 
 function doAbpResponse(response: any) {
     return new Promise((resolve, reject) => {
         if (response.data.success === true) {
-            const _response = response
-            _response.data = response.data.result
-            resolve(_response)
+            resolve(response.data.result)
         } else {
             //todo:处理ABP错误
             reject(response.data.error.message)
@@ -147,7 +174,11 @@ export function useRequest(config = baseConfig) {
         },
         (err: {
             response: {
-                data: { error: { validationErrors: any[]; details?: any; code?: number; message: any } }
+                data: {
+                    error: { validationErrors: any[]; details?: any; code?: number; message: any }
+                    unAuthorizedRequest?: boolean
+                }
+                status: number
             }
         }) => {
             console.log('%c http response error', 'color:red;')
@@ -169,9 +200,17 @@ export function useRequest(config = baseConfig) {
                         type: 'error',
                     })
                 } else {
-                    if (err.response.data.unAuthorizedRequest) {
+                    if (err.response.data.unAuthorizedRequest || err.response.status === 401) {
                         Tips.confirm('请重新登录', '错误', 'error').then(() => {
                             location.reload()
+                        })
+                        return
+                    }
+
+                    // 处理403权限不足错误
+                    if (err.response.status === 403) {
+                        Tips.confirm('权限不足，无法访问此资源', '错误', 'error').then(() => {
+                            location.href = '/'
                         })
                         return
                     }
@@ -182,6 +221,18 @@ export function useRequest(config = baseConfig) {
                 }
                 return Promise.reject(err.response.data.error)
             } else {
+                // 对于非ABP响应，也检查状态码
+                if (err.response && err.response.status === 401) {
+                    Tips.confirm('请重新登录', '错误', 'error').then(() => {
+                        location.reload()
+                    })
+                    return
+                } else if (err.response && err.response.status === 403) {
+                    Tips.confirm('权限不足，无法访问此资源', '错误', 'error').then(() => {
+                        location.href = '/'
+                    })
+                    return
+                }
                 return Promise.reject(err)
             }
         }

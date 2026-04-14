@@ -43,6 +43,24 @@ export default {
             ],
         },
         {
+            path: '/admin/app',
+            meta: { title: '应用管理', icon: 'App' },
+            children: [
+                {
+                    path: 'appRelease',
+                    name: 'appReleaseList',
+                    meta: { title: '版本发布' },
+                    component: () => import('@/views/admin/app/list.vue'),
+                },
+                {
+                    path: 'versionControl',
+                    name: 'versionControl',
+                    meta: { title: '版本控制' },
+                    component: () => import('@/views/admin/app/versionControl.vue'),
+                },
+            ],
+        },
+        {
             path: '/admin/website',
             meta: { title: '内容管理', icon: 'Monitor' },
             children: [

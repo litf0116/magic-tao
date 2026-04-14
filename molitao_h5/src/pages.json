@@ -1,0 +1,163 @@
+{
+    "easycom": {
+        "autoscan": true,
+        "custom": {
+            "^(?!z-paging-refresh|z-paging-load-more)z-paging(.*)": "z-paging/components/z-paging$1/z-paging$1.vue",
+            "^uv-(.*)": "@climblee/uv-ui/components/uv-$1/uv-$1.vue"
+        }
+    },
+    "pages": [
+        {
+            "path": "pages/tabbar/index",
+            "type": "home",
+            "layout": "main",
+            "style": {
+                "navigationBarTitleText": "魔力淘"
+            }
+        },
+        {
+            "path": "pages/index/index",
+            "type": "home",
+            "layout": "main",
+            "style": {
+                "navigationBarTitleText": "魔力淘"
+            }
+        },
+        {
+            "path": "pages/announce/list",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "公告"
+            }
+        },
+        {
+            "path": "pages/chat/auction",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "秒杀场"
+            }
+        },
+        {
+            "path": "pages/chat/contacts",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "联系人"
+            }
+        },
+        {
+            "path": "pages/chat/groupChat",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "群聊"
+            }
+        },
+        {
+            "path": "pages/chat/index",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "会话"
+            }
+        },
+        {
+            "path": "pages/chat/privateChat",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "私聊"
+            }
+        },
+        {
+            "path": "pages/index/login",
+            "type": "page",
+            "layout": "main",
+            "style": {
+                "navigationBarTitleText": "用户登录"
+            }
+        },
+        {
+            "path": "pages/index/my",
+            "type": "page",
+            "layout": "main",
+            "style": {
+                "navigationBarTitleText": "个人中心",
+                "navigationBarBackgroundColor": "#f6f6f6",
+                "navigationBarTextStyle": "black"
+            }
+        },
+        {
+            "path": "pages/user/auctionSuccessList",
+            "type": "page"
+        },
+        {
+            "path": "pages/user/balanceLog",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "余额明细",
+                "enablePullDownRefresh": true
+            }
+        },
+        {
+            "path": "pages/user/depositLog",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "魔力值明细",
+                "enablePullDownRefresh": true
+            }
+        },
+        {
+            "path": "pages/user/info",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "用户信息编辑"
+            }
+        },
+        {
+            "path": "pages/user/list",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "用户列表",
+                "enablePullDownRefresh": true
+            }
+        },
+        {
+            "path": "pages/tradingPost/index",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "交易站"
+            }
+        },
+        {
+            "path": "pages/tradingPost/addPost",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "发布帖子"
+            }
+        },
+        {
+            "path": "pages/tradingPost/postDetail",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "帖子详情"
+            }
+        },
+        {
+            "path": "pages/protocol/agreement",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "用户服务协议"
+            }
+        },
+        {
+            "path": "pages/protocol/privacy",
+            "type": "page",
+            "style": {
+                "navigationBarTitleText": "隐私政策"
+            }
+        }
+    ],
+    "globalStyle": {
+        "navigationBarTextStyle": "white",
+        "navigationBarTitleText": "魔力淘",
+        "navigationBarBackgroundColor": "#f4835a"
+    },
+    "subPackages": []
+}

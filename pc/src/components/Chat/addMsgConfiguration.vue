@@ -44,7 +44,7 @@ const formFields = reactive([
         id: 0,
         type: 1,
         msg: '',
-        label: '新用户出价保证金余额不足提示',
+        label: '新用户出价诚信履约金余额不足提示',
         prop: 'msg',
     },
 ])
@@ -56,7 +56,7 @@ const formRules = computed(() => {
     })
     return fieldRules
 })
-onMounted(() => {})
+onMounted(() => undefined)
 //提交数据
 const submitForm = () => {
     if (!formRef.value) return

@@ -17,9 +17,9 @@ import api from '@/api'
 export default defineComponent({
     setup() {
         const dataForm = ref(null as any)
-        const submit = inject('ouEditSubmit', () => {})
+        const submit = inject('ouEditSubmit', () => undefined)
         const ouList = inject('ouList', [])
-        const schema = inject('ouEditSchema', () => {})
+        const schema = inject('ouEditSchema', () => undefined)
         const data = reactive({
             roleRule: {
                 displayName: [

@@ -15,6 +15,23 @@
                         :src="chatStore.pubQrUrl"
                     />
                     <div
+                        v-if="chatStore.qrLoading && !chatStore.pubQrUrl"
+                        class="size-240px flex flex-col flex-center text-gray-400"
+                    >
+                        <div class="i-carbon:loading size-16 animate-spin" />
+                        <div class="mt-4">加载中...</div>
+                    </div>
+                    <div
+                        v-if="chatStore.qrError && !chatStore.pubQrUrl"
+                        class="size-240px flex flex-col flex-center text-red-400 text-xl"
+                    >
+                        <div class="i-carbon:error size-16" />
+                        <div class="mt-4">{{ chatStore.qrError }}</div>
+                        <div class="mt-2">
+                            <span class="cursor-pointer text-blue-400 underline" @click.stop="initQrLogin()">重试</span>
+                        </div>
+                    </div>
+                    <div
                         v-if="qrTimeout"
                         class="absolute top-0 left-0 size-240px flex flex-col flex-center text-white text-xl"
                     >
@@ -22,7 +39,7 @@
                         <div class="mt-4">二维码已过期</div>
                         <div>
                             请
-                            <span class="cursor-pointer text-blue-400 underline" @click.stop="init()">刷新</span> 后重试
+                            <span class="cursor-pointer text-blue-400 underline" @click.stop="initQrLogin()">刷新</span> 后重试
                         </div>
                     </div>
                 </div>
@@ -50,18 +67,21 @@
                         type="primary"
                         :disabled="submitDisabled"
                         @click="login"
-                        >登录</el-button
-                    >
+                        >登录
+                    </el-button>
                 </div>
                 <div class="text-blue-400 text-sm mt-6 cursor-pointer" @click="loginType = 1">使用扫码登录</div>
             </template>
         </div>
     </div>
+
+    <ProfileCompletionGuide ref="profileGuideRef" />
 </template>
 
-<script lang="ts" setup>
+<script setup lang="ts">
 import api from '@/api'
 import { ElMessage } from 'element-plus'
+import ProfileCompletionGuide from '@/components/ProfileCompletionGuide.vue'
 
 const userStore = useUserStore()
 const chatStore = useChatStore()
@@ -80,34 +100,51 @@ let interVal: number | undefined = undefined
 
 let expiredTimer: number | undefined = undefined
 
+const profileGuideRef = ref()
+
 onMounted(() => {
-    init()
+    initQrLogin()
 })
 
-function init() {
-    debounce(() => {
-        chatStore.init().then(async (res) => {
-            qrTimeout.value = false
-            await chatStore.initQr(res)
-            expiredTimer = setTimeout(() => {
-                qrTimeout.value = true
-                clearInterval(interVal)
-            }, 60_000) // 1 minute
+async function initQrLogin() {
+    console.log('[DEBUG initQrLogin] 开始初始化扫码登录')
+    clearTimeout(expiredTimer)
+    clearInterval(interVal)
+    qrTimeout.value = false
+    try {
+        const res = await chatStore.init()
+        console.log('[DEBUG initQrLogin] chatStore.init() 返回:', res)
+        console.log('[DEBUG initQrLogin] 调用 chatStore.initQr()')
+        await chatStore.initQr(res)
+        console.log('[DEBUG initQrLogin] chatStore.initQr() 完成')
+        expiredTimer = setTimeout(() => {
+            console.log('[DEBUG initQrLogin] 二维码过期定时器触发')
+            qrTimeout.value = true
+            clearInterval(interVal)
+        }, 60_000) // 1 minute
 
-            interVal = setInterval(() => {
-                api.tokenAuth.qrToken({ key: res }).then(async (res) => {
-                    if (res) {
-                        clearTimeout(expiredTimer)
-                        await userStore.SET_TOKEN(res)
-                        await userStore.getUserInfo()
-                        clearInterval(interVal)
-                        if (route.query.redirect) window.location.href = '/index.html#' + route.query.redirect
-                        else window.location.href = '/index.html'
+        interVal = setInterval(() => {
+            console.log('[DEBUG initQrLogin] 轮询 QrToken, key:', res)
+            api.tokenAuth.qrToken({ key: res }).then(async (accessToken) => {
+                console.log('[DEBUG initQrLogin] QrToken 返回:', accessToken)
+                if (accessToken) {
+                    clearTimeout(expiredTimer)
+                    await userStore.SET_TOKEN(accessToken)
+                    const userInfo = await userStore.getUserInfo()
+                    clearInterval(interVal)
+                    if (userInfo?.user?.needProfileCompletion) {
+                        profileGuideRef.value?.show(userInfo.user.id)
+                    } else {
+                        navigateToHome()
                     }
-                })
-            }, 2000)
-        })
-    }, 200)()
+                }
+            }).catch((err) => {
+                console.error('[DEBUG initQrLogin] 轮询二维码登录状态失败:', err)
+            })
+        }, 2000)
+    } catch (err) {
+        console.error('[DEBUG initQrLogin] 初始化二维码登录失败:', err)
+    }
 }
 
 const submitDisabled = computed(() => {
@@ -138,8 +175,7 @@ async function login() {
             //  console.log('login result ', token)
             await userStore.getUserInfo()
             clearInterval(interVal)
-            if (route.query.redirect) window.location.href = '/index.html#' + route.query.redirect
-            else window.location.href = '/index.html'
+            navigateToHome()
         },
         async (error: any) => {
             loading.value = false
@@ -152,6 +188,11 @@ async function login() {
             })
         }
     )
+}
+
+function navigateToHome() {
+    if (route.query.redirect) window.location.href = '/index.html#' + route.query.redirect
+    else window.location.href = '/index.html'
 }
 
 onUnmounted(() => {

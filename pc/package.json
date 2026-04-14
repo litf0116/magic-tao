@@ -1,7 +1,7 @@
 {
     "name": "admin-vite-vue3",
     "private": true,
-    "version": "0.0.0",
+    "version": "1.3.0",
     "scripts": {
         "dev": "vite",
         "build": "vite build",
@@ -9,13 +9,18 @@
         "deply": "scp -r dist/* root@8.130.178.251:/www/wwwroot/www.molitao.top/wwwroot",
         "preview": "vite preview",
         "lint:fix": "eslint src --ext .ts,.vue --fix",
-        "api": "node ./swagger/codegen.v3.js"
+        "api": "node ./swagger/codegen.v3.js",
+        "test:e2e": "npx playwright test",
+        "test:e2e:ui": "npx playwright test --ui",
+        "test:e2e:headed": "npx playwright test --headed",
+        "test:e2e:report": "npx playwright show-report"
     },
     "dependencies": {
         "@element-plus/icons-vue": "^2.3.1",
         "@iconify/utils": "^2.1.23",
         "@tinymce/tinymce-vue": "^5.1.1",
         "@types/dompurify": "^3.0.5",
+        "@types/qrcode": "^1.5.6",
         "@vue/shared": "^3.4.26",
         "@vueup/vue-quill": "^1.2.0",
         "@vueuse/core": "^10.9.0",
@@ -35,6 +40,7 @@
         "nprogress": "^0.2.0",
         "perfect-scrollbar": "^1.5.5",
         "pinia": "^2.1.7",
+        "qrcode": "^1.5.4",
         "qs": "^6.12.1",
         "quill": "^2.0.3",
         "unocss": "^0.59.4",
@@ -50,6 +56,7 @@
         "@iconify-json/icon-park-outline": "^1.1.15",
         "@iconify-json/mdi": "^1.1.66",
         "@iconify-json/ph": "^1.1.12",
+        "@playwright/test": "^1.59.1",
         "@typescript-eslint/eslint-plugin": "^5.62.0",
         "@typescript-eslint/parser": "^5.62.0",
         "@unocss/transformer-directives": "^0.59.4",

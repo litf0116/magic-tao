@@ -25,10 +25,11 @@
                 </tt-upload>
 
                 <div style="width: 75%; text-align: center">
-                    保证金：{{ form.depositBalance }}
-                    <el-button style="margin-left: 20px" type="primary" @click="withdrawDialogVisible = true">
-                        提现
-                    </el-button>
+                    诚信履约金：¥{{ form.depositBalance }}
+                    <div style="margin-top: 10px">
+                        <el-button type="success" @click="handleDeposit"> 充值 </el-button>
+                        <el-button type="primary" @click="withdrawDialogVisible = true"> 提现 </el-button>
+                    </div>
                 </div>
             </el-form-item>
 
@@ -61,7 +62,7 @@
     </el-dialog>
 
     <withdrawDialog v-model:show="withdrawDialogVisible" title="提示" :show-cancel="false" @confirm="handleConfirm">
-        <div>平台提现功能尚未完善，保证金退款，请加管理员老淡QQ：383875411，微信：18845639111，私信扫码退款。</div>
+        <div>平台提现功能尚未完善，诚信履约金退款，请加管理员老淡QQ：383875411，微信：18845639111，私信扫码退款。</div>
     </withdrawDialog>
 </template>
 
@@ -71,7 +72,9 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { UserEditDto } from '@/api/appService'
 import withdrawDialog from '@/components/CustomModal.vue'
 import api from '@/api'
+import { useRouter } from 'vue-router'
 const userStore = useUserStore()
+const router = useRouter()
 const ruleFormRef = ref<FormInstance>()
 const form = ref<UserEditDto>({
     id: -1,
@@ -140,6 +143,17 @@ const show = (e: boolean) => {
 const withdrawDialogVisible = ref(false)
 const handleConfirm = () => {
     withdrawDialogVisible.value = false
+}
+
+// 导航到统一支付页面
+const handleDeposit = () => {
+    router.push({
+        path: '/payment',
+        query: {
+            type: 'deposit',
+            returnUrl: '/settings',
+        },
+    })
 }
 
 defineExpose({

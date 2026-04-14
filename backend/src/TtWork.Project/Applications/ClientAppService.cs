@@ -4,7 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Abp.Authorization;
+using Abp.BackgroundJobs;
 using Abp.Configuration;
+using Abp.Dependency;
 using Abp.Domain.Repositories;
 using Abp.Domain.Uow;
 using Abp.Extensions;
@@ -12,6 +14,7 @@ using Abp.Json;
 using Abp.Runtime.Session;
 using Abp.UI;
 using FreeIM;
+using Hangfire;
 using MediatR;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -38,12 +41,17 @@ using TtWork.HttpClient.Weixin.Security.PlatformCertificate;
 using TtWork.Lib.Extensions;
 using TtWork.Project.Domains;
 using TtWork.Project.Domains.Pays;
+using TtWork.Project.Applications.Pays.Dto;
 using static TtWork.HttpClient.Weixin.Models.RefundOrderRequest;
 using SKIT.FlurlHttpClient.Wechat.TenpayV3.Models;
 using SKIT.FlurlHttpClient.Wechat.TenpayV3.Utilities;
 using TtWork.Project.Services;
 using TtWork.Project.Caches;
 using TtWork.Project.Caches;
+using TtWork.Project.Core;
+using TtWork.Project.Core.Session;
+using TtWork.Project.Core.Utils;
+using TtWork.Project.Jobs;
 
 namespace TtWork.Project.Applications;
 
@@ -53,12 +61,14 @@ public class ClientAppService(
     IRepository<UserFriend> userFriendRepository,
     IRepository<User, long> userRepository,
     IRepository<ChatListDelete, int> chatListDeleteRepository,
+    IRepository<ChatChannel, long> chatChannelRepository,
     ChatChannelService chatChannelService,
     ILogger<ClientAppService> logger,
     IHttpContextAccessor httpContextAccessor,
     IMediator mediator,
     ChatUserCache chatUserCache,
     IRepository<PayOrder, Ulid> payOrderRepository,
+    IRepository<UserDepositLog, Ulid> userDepositLogRepository,
     IAbpSession _abpSession,
     ISqlSugarClient _sqlSugar,
     IV3PayApi v3PayApi,
@@ -127,6 +137,31 @@ public class ClientAppService(
 
                 return p;
             }
+
+            if (type == "h5")
+            {
+                var clientIp = GetClientIp();
+                var result = await v3PayApi.CreateH5OrderAsync(new CreateOrderRequest()
+                {
+                    AppId = appid,
+                    MchId = mchid,
+                    Description = "保证金支付",
+                    OutTradeNo = payOrder.OutTradeNo,
+                    Attach = (new { payOrderId = payOrder.Id, name = "保证金支付" }).ToJsonString(false, false),
+                    NotifyUrl = app.GetValue("notifyUrl"),
+                    Amount = new CreateOrderAmountModel
+                    {
+                        Total = payOrder.Total,
+                        Currency = "CNY"
+                    },
+                    SceneInfo = new CreateOrderRequest.CreateOrderSceneInfoModel
+                    {
+                        PayerClientIp = clientIp
+                    },
+                }, certPath);
+
+                return new { h5_url = result.H5Url, out_trade_no = payOrder.OutTradeNo };
+            }
         }
         catch (Exception e)
         {
@@ -136,6 +171,189 @@ public class ClientAppService(
         }
 
         throw new UserFriendlyException($"未知的支付类型:{type}");
+    }
+
+    /// <summary>
+    /// 保证金 Native 支付（PC 端扫码支付）
+    /// </summary>
+    /// <param name="amount">支付金额，如果不指定则使用默认保证金金额</param>
+    /// <returns>包含 code_url 和订单号的对象</returns>
+    /// <exception cref="UserFriendlyException"></exception>
+    [HttpGet]
+    [AbpAuthorize]
+    public async Task<object> PayDepositNative(decimal? amount = null)
+    {
+        var app = await mediator.Send(new QueryApp("uniapp", false));
+        var appid = app.GetValue("appid");
+        var mchid = app.GetValue("mchId");
+        // 获取 wwwroot 完整路径
+        string wwwrootPath = _env.WebRootPath;
+        // 组合文件路径
+        string certPath = Path.Combine(wwwrootPath, app.GetValue("certPath").TrimStart('/', '\\'));
+
+        var finalAmount = amount ?? AppConsts.保证金;
+        var payOrder = new PayOrder();
+        payOrder.CreateDepositPay(finalAmount, AbpSession.UserId!.Value, "", app.Name, appid, mchid,
+            AbpSession.TenantId!.Value);
+        await payOrderRepository.InsertAsync(payOrder);
+        try
+        {
+            await CurrentUnitOfWork.SaveChangesAsync();
+
+            var result = await v3PayApi.CreateNativeOrderAsync(new CreateNativeOrderRequest()
+            {
+                AppId = appid,
+                MchId = mchid,
+                Description = "保证金支付",
+                OutTradeNo = payOrder.OutTradeNo,
+                Attach = (new { payOrderId = payOrder.Id, name = "保证金支付" }).ToJsonString(false, false),
+                NotifyUrl = app.GetValue("notifyUrl"),
+                Amount = new CreateOrderAmountModel
+                {
+                    Total = payOrder.Total,
+                    Currency = "CNY"
+                },
+            }, certPath);
+
+            if (!string.IsNullOrEmpty(result.Code))
+            {
+                var errMsg = $"[保证金 Native 支付]微信支付返回错误：{result.Code} - {result.Message}";
+                logger.LogError(errMsg);
+                throw new UserFriendlyException(errMsg);
+            }
+
+            if (string.IsNullOrEmpty(result.CodeUrl))
+            {
+                var errMsg = "[保证金 Native 支付]微信支付返回成功但 code_url 为空";
+                logger.LogError(errMsg);
+                throw new UserFriendlyException(errMsg);
+            }
+
+            return new
+            {
+                code_url = result.CodeUrl,
+                outTradeNo = payOrder.OutTradeNo,
+                amount = finalAmount
+            };
+        }
+        catch (Exception e)
+        {
+            var err = $"[保证金 Native 支付]支付发生错误:{e.Message}";
+            logger.LogError(e, err);
+            throw new UserFriendlyException(err);
+        }
+    }
+
+    /// <summary>
+    /// 查询支付订单状态
+    /// </summary>
+    /// <param name="outTradeNo">订单号</param>
+    /// <returns>订单状态信息</returns>
+    [HttpGet]
+    [AbpAuthorize]
+    public async Task<PayOrderStatusDto> GetPayOrderStatus(string outTradeNo)
+    {
+        if (outTradeNo.IsNullOrWhiteSpace())
+        {
+            throw new UserFriendlyException("订单号不能为空");
+        }
+
+        var payOrder = await payOrderRepository.FirstOrDefaultAsync(x =>
+            x.OutTradeNo == outTradeNo &&
+            x.CreatorUserId == AbpSession.UserId.Value
+        );
+
+        if (payOrder == null)
+        {
+            return new PayOrderStatusDto
+            {
+                Status = "NOT_FOUND",
+                Message = "订单不存在"
+            };
+        }
+
+        if (payOrder.State != PayState.已支付)
+        {
+            var app = await mediator.Send(new QueryApp(payOrder.AppName, false));
+            var mchid = app.GetValue("mchId");
+            string wwwrootPath = _env.WebRootPath;
+            string certPath = Path.Combine(wwwrootPath, app.GetValue("certPath").TrimStart('/', '\\'));
+
+            var wechatResult = await v3PayApi.QueryOrderAsync(mchid, outTradeNo, certPath);
+
+            if (!string.IsNullOrEmpty(wechatResult.Code))
+            {
+                logger.LogError($"[查询订单状态]微信返回错误：{wechatResult.Code} - {wechatResult.Message}");
+            }
+            else if (wechatResult.TradeState == "SUCCESS")
+            {
+                if (payOrder.HostType == OrderType.保证金 && payOrder.IsSuccessPay)
+                {
+                    logger.LogInformation("[GetPayOrderStatus]该订单已处理过，跳过: {OutTradeNo}", outTradeNo);
+                }
+                else
+                {
+                    payOrder.SuccessPay(wechatResult.TransactionId, wechatResult.SuccessTime);
+                    await CurrentUnitOfWork.SaveChangesAsync();
+
+                    if (payOrder.HostType == OrderType.保证金)
+                    {
+                        var existingLog = await userDepositLogRepository.GetAll()
+                            .Where(x => x.CreatorUserId == payOrder.CreatorUserId && x.IsSuccess)
+                            .Where(x => x.Reason != null && x.Reason.Contains(outTradeNo))
+                            .FirstOrDefaultAsync();
+
+                        if (existingLog != null)
+                        {
+                            logger.LogInformation("[GetPayOrderStatus]该订单已有保证金处理记录，跳过: {OutTradeNo}", outTradeNo);
+                        }
+                        else
+                        {
+                            decimal finalAmount = payOrder.Total <= 100
+                                ? payOrder.Total
+                                : payOrder.Total - 100;
+
+                            var depositLog = new UserDepositLog(BalanceLogType.支付, finalAmount / 100m)
+                            {
+                                CreatorUserId = payOrder.CreatorUserId,
+                                TenantId = payOrder.TenantId,
+                                Reason = $"保证金支付:{outTradeNo}"
+                            };
+                            await userDepositLogRepository.InsertAsync(depositLog);
+                            await CurrentUnitOfWork.SaveChangesAsync();
+
+                            BackgroundJob.Enqueue<UserDepositJob>(b => b.ExecuteAsync(depositLog));
+                            logger.LogInformation("[GetPayOrderStatus]保证金订单支付成功，触发UserDepositJob: {OutTradeNo}", outTradeNo);
+                        }
+                    }
+                }
+            }
+        }
+
+        return new PayOrderStatusDto
+        {
+            OrderId = payOrder.Id.ToString(),
+            OutTradeNo = payOrder.OutTradeNo,
+            Status = payOrder.State.ToString(),
+            Amount = payOrder.Total / 100m,
+            PaidTime = payOrder.SuccessPayTime,
+            TradeNo = payOrder.IsSuccessPay ? "TRADE_SUCCESS" : null,
+            Message = GetStatusMessage(payOrder.State)
+        };
+    }
+
+    private string GetStatusMessage(PayState state)
+    {
+        return state switch
+        {
+            PayState.未支付 => "等待支付",
+            PayState.已支付 => "支付成功",
+            PayState.取消 => "订单已取消",
+            PayState.退款中 => "退款处理中",
+            PayState.已退款 => "已退款",
+            PayState.部分退款 => "部分退款",
+            _ => "未知状态"
+        };
     }
 
     /// <summary>
@@ -252,14 +470,14 @@ public class ClientAppService(
     public async Task PayWithdrawal(WithdrawalData parameter)
     {
         var userId = _abpSession.UserId;
-        if (userId != parameter.UserId)
+        if (userId == null)
         {
-            throw new UserFriendlyException($"当前用户信息错误，请稍后重试！");
+            throw new UserFriendlyException($"请先登录！");
         }
 
         //获取用户信息
         var user = await userRepository.GetAll().AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == AbpSession.UserId!.Value);
+            .FirstOrDefaultAsync(x => x.Id == userId.Value);
         if (user == null)
         {
             throw new UserFriendlyException($"当前用户不存在！");
@@ -270,14 +488,10 @@ public class ClientAppService(
             throw new UserFriendlyException($"当前用户余额不足，无法提现！");
         }
 
-        //扣除余额
-        //var cnt = await userRepository.GetAll().Where(x => x.Id == user.Id).ExecuteUpdateAsync(setter =>
-        //     setter.SetProperty(b => b.Balance, b => b.Balance - parameter.Amount));
-        //
         await _sqlSugar.Insertable(new WithdrawalAmountEntity
         {
             Amount = parameter.Amount,
-            UserId = parameter.UserId,
+            UserId = (int)userId.Value,
             Status = 1,
             WithdrawalTime = DateTime.Now
         }).ExecuteCommandAsync();
@@ -314,8 +528,37 @@ public class ClientAppService(
     {
         var userId = AbpSession.UserId ?? 0;
         var channels = await chatChannelService.GetVisibleChannelsForUserAsync(userId);
+
+        logger.LogInformation($"[GetChatList] Step 1 - Total channels from DB: {channels.Count}");
+        logger.LogInformation(
+            $"[GetChatList] Step 2 - Channels: {string.Join(", ", channels.Select(c => $"{c.ChannelId}(Type={c.ChannelType},Active={c.IsActive},HasMsg={c.LastMessageId != null})"))}");
+
         if (channels.Count == 0)
+        {
             return new List<ChatListItem>();
+        }
+
+        // ===== 版本控制过滤逻辑（仅针对 uniapp 小程序） =====
+        // 通过 X-Platform 请求头识别平台，mp-weixin = 微信小程序
+        var platform = httpContextAccessor?.HttpContext?.Request.Headers["X-Platform"].FirstOrDefault();
+        var isMpWeixin = platform == "mp-weixin";
+
+        // 只对 uniapp 小程序请求应用版本过滤，其他平台（PC/H5）始终显示拍卖场
+        bool shouldShowAuction = true;
+        if (isMpWeixin)
+        {
+            var currentVersion = _abpSession.GetAppVersion();
+            var stableVersion = await SettingManager.GetSettingValueAsync(AppSettings.VersionControl.LatestStableVersion);
+            shouldShowAuction = VersionComparer.ShouldShowAuction(currentVersion, stableVersion);
+
+            logger.LogInformation(
+                $"[GetChatList] Step 3 - Platform: [{platform}], currentVersion: [{currentVersion}], stableVersion: [{stableVersion}], shouldShowAuction: {shouldShowAuction}");
+        }
+        else
+        {
+            logger.LogInformation($"[GetChatList] Step 3 - Platform: [{platform ?? "unknown"}], skipping version filter, shouldShowAuction: true");
+        }
+        // ===== 版本控制过滤逻辑结束 =====
 
         var privateUserIds = channels
             .Where(c => c.ChannelType == ChatChannelType.Private)
@@ -326,10 +569,21 @@ public class ClientAppService(
 
         var userInfos = await chatUserCache.GetBatchUserBasicAsync(privateUserIds);
 
-        return channels
+        var result = channels
             .Select(c => ConvertToChatListItem(c, userId, userInfos))
             .Where(x => x != null)
             .Select(x => x!)
+            .ToList();
+
+        Logger.Info(
+            $"[GetChatList] Step 4 - After ConvertToChatListItem: {result.Count} items, IDs: {string.Join(", ", result.Select(x => x.id))}");
+
+        result = result.Where(x => x.id != AppSettings.VersionControl.AuctionChannelId || shouldShowAuction).ToList();
+
+        Logger.Info(
+            $"[GetChatList] Step 5 - After version filter: {result.Count} items, AuctionChannelId={AppSettings.VersionControl.AuctionChannelId}, hasAuction={result.Any(x => x.id == AppSettings.VersionControl.AuctionChannelId)}");
+
+        return result
             .OrderByDescending(x => x.order)
             .ThenByDescending(x => x.time)
             .ToList();
@@ -344,6 +598,8 @@ public class ClientAppService(
                 id = c.ChannelId switch
                 {
                     "-1_auction" => -1,
+                    "-10_announcement" => -10,
+                    "-11_newbie" => -11,
                     _ => c.ChannelId.GetHashCode()
                 },
                 lastMsg = c.LastMessageContent ?? "",
@@ -352,13 +608,24 @@ public class ClientAppService(
                 time = c.LastMessageTime,
                 type = 0,
                 unread = 0,
-                avatar = ""
+                avatar = c.ChannelId switch
+                {
+                    "-10_announcement" => "/static/images/system-announcement.png",
+                    "-11_newbie" => "/static/images/newbie-mod-chat.png",
+                    _ => ""
+                }
             };
         }
 
         if (c.ChannelType == ChatChannelType.Private && userId > 0)
         {
             var otherId = c.GetOtherUserId(userId);
+            // 排除自己与自己的私聊
+            if (otherId == userId)
+            {
+                return null;
+            }
+
             if (otherId.HasValue && userInfos.TryGetValue(otherId.Value, out var info))
             {
                 return new()
@@ -446,6 +713,33 @@ public class ClientAppService(
             );
 
             return p;
+        }
+
+        if (type == "h5")
+        {
+            var clientIp = GetClientIp();
+            var h5Order = new CreateOrderRequest()
+            {
+                AppId = appid,
+                MchId = mchid,
+                Description = "用户充值",
+                OutTradeNo = payOrder.OutTradeNo,
+                Attach = (new { payOrderId = payOrder.Id, name = "用户充值" }).ToJsonString(false, false),
+                NotifyUrl = app.GetValue("notifyUrl"),
+                Amount = new CreateOrderAmountModel
+                {
+                    Total = payOrder.Total,
+                    Currency = "CNY"
+                },
+                SceneInfo = new CreateOrderRequest.CreateOrderSceneInfoModel
+                {
+                    PayerClientIp = clientIp
+                },
+            };
+
+            var result = await v3PayApi.CreateH5OrderAsync(h5Order, app.GetValue("certPath"));
+
+            return new { h5_url = result.H5Url, out_trade_no = payOrder.OutTradeNo };
         }
 
 
@@ -595,6 +889,19 @@ public class ClientAppService(
                 ? channels.Where(x => x.LastMessageTime > 0).Max(x => x.LastMessageTime)
                 : 0
         };
+    }
+
+    private string GetClientIp()
+    {
+        try
+        {
+            return httpContextAccessor.HttpContext.Request.Headers["X-Real-IP"].FirstOrDefault() ??
+                   httpContextAccessor.HttpContext.Request.HttpContext.Connection.RemoteIpAddress?.ToString();
+        }
+        catch
+        {
+            return "";
+        }
     }
 }
 

@@ -53,11 +53,12 @@ namespace TtWork.Project.Applications.AdvertisingSpace
         /// </summary>
         /// <returns></returns>
         [HttpGet("GetTypeList/{type}")]
-        public async Task<dynamic> GetTypeList(int type)
+        public async Task<dynamic> GetTypeList(string type)
         {
             try
             {
-                var items = await _sqlSugarClient.Queryable<AdvertisingSpaceEntity>().Where(w => w.Type == type && w.Status == 1).ToListAsync();
+                var typeValue = int.TryParse(type, out var t) ? t : 1;
+                var items = await _sqlSugarClient.Queryable<AdvertisingSpaceEntity>().Where(w => w.Type == typeValue && w.Status == 1).ToListAsync();
                 return new { items };
             }
             catch (Exception ex)

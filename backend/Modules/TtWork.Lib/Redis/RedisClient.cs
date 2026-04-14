@@ -1,5 +1,10 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using StackExchange.Redis;
+using System.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
@@ -12,6 +17,12 @@ namespace TtWork.Lib.Redis
         ConnectionMultiplexer ConnectionMultiplexer { get; }
 
         void DeleteKeysWithPartten(string pattern);
+        Task DeleteKeysWithParttenAsync(string pattern);
+
+        bool AcquireLock(string key, TimeSpan expiry);
+        Task<bool> AcquireLockAsync(string key, TimeSpan expiry);
+        void ReleaseLock(string key);
+        Task ReleaseLockAsync(string key);
     }
 
     public class RedisClient : IRedisClient, IDisposable
@@ -43,6 +54,79 @@ namespace TtWork.Lib.Redis
             catch (Exception ex)
             {
                 _logger.LogError(ex, "删除模式匹配的键失败: {Pattern}", pattern);
+            }
+        }
+
+        public async Task DeleteKeysWithParttenAsync(string pattern)
+        {
+            try
+            {
+                foreach (var ep in ConnectionMultiplexer.GetEndPoints())
+                {
+                    var server = ConnectionMultiplexer.GetServer(ep);
+                    var keys = server.Keys(database: _optionsAccessor.Value.DatabaseId, pattern: pattern).ToArray();
+                    if (keys.Length > 0)
+                    {
+                        await Database.KeyDeleteAsync(keys);
+                        _logger.LogDebug("删除了 {Count} 个匹配模式 {Pattern} 的键", keys.Length, pattern);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "删除模式匹配的键失败: {Pattern}", pattern);
+            }
+        }
+
+        public bool AcquireLock(string key, TimeSpan expiry)
+        {
+            try
+            {
+                var lockValue = Guid.NewGuid().ToString();
+                return Database.StringSet(key, lockValue, expiry, When.NotExists);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "获取锁失败: {Key}", key);
+                return false;
+            }
+        }
+
+        public async Task<bool> AcquireLockAsync(string key, TimeSpan expiry)
+        {
+            try
+            {
+                var lockValue = Guid.NewGuid().ToString();
+                return await Database.StringSetAsync(key, lockValue, expiry, When.NotExists);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "获取锁失败: {Key}", key);
+                return false;
+            }
+        }
+
+        public void ReleaseLock(string key)
+        {
+            try
+            {
+                Database.KeyDelete(key);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "释放锁失败: {Key}", key);
+            }
+        }
+
+        public async Task ReleaseLockAsync(string key)
+        {
+            try
+            {
+                await Database.KeyDeleteAsync(key);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "释放锁失败: {Key}", key);
             }
         }
 

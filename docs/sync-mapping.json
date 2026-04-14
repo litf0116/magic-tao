@@ -1,0 +1,165 @@
+{
+  "APP开发规格说明书.md": {
+    "doc_id": "BzphdlOdOoOjhnxazL8cpxOPncc",
+    "doc_url": "https://www.feishu.cn/docx/BzphdlOdOoOjhnxazL8cpxOPncc",
+    "synced_at": "2026-04-12T20:13:00+08:00"
+  },
+  "Docker-README.md": {
+    "doc_id": "NTejd6bhyoQnjJxWuGqcDtN3n6e",
+    "doc_url": "https://www.feishu.cn/docx/NTejd6bhyoQnjJxWuGqcDtN3n6e",
+    "synced_at": "2026-04-12T20:14:00+08:00"
+  },
+  "ai-code-review-guide.md": {
+    "doc_id": "AOQxd4KYdobde3xIPAZcFZiFnIh",
+    "doc_url": "https://www.feishu.cn/docx/AOQxd4KYdobde3xIPAZcFZiFnIh",
+    "synced_at": "2026-04-12T20:14:00+08:00"
+  },
+  "Android-App支持情况分析报告.md": {
+    "doc_id": "HbFfdFPCHoxMQyxeNqjcuVpdnrh",
+    "synced_at": "2026-04-12T13:33:13.049Z"
+  },
+  "App-OAuth配置说明.md": {
+    "doc_id": "SCuRdUi7UoV7Hkx3duXcBBIsnhh",
+    "synced_at": "2026-04-12T13:33:14.046Z"
+  },
+  "App-功能迁移计划.md": {
+    "doc_id": "CcfgdacyLoueDVxesVCcVrGxndc",
+    "synced_at": "2026-04-12T13:33:15.086Z"
+  },
+  "App-微信登录集成指南.md": {
+    "doc_id": "EgnPdjqGyolW2Ax4Hb1cabFLnNN",
+    "synced_at": "2026-04-12T13:33:16.172Z"
+  },
+  "BID_ELIGIBILITY_SERVICE_USAGE.md": {
+    "doc_id": "VkoTdH7E4osQbTxvO88cuwbQn9f",
+    "synced_at": "2026-04-12T13:33:17.203Z"
+  },
+  "CLI-STARTUP-GUIDE.md": {
+    "doc_id": "FQlWdfFh2oV4EbxsC76ccyOsnDg",
+    "synced_at": "2026-04-12T13:33:18.233Z"
+  },
+  "INDEX.md": {
+    "doc_id": "DTmvdBNyFoNFdyx1f0FcX8PEnNf",
+    "synced_at": "2026-04-12T13:33:19.683Z"
+  },
+  "README-SERVICES.md": {
+    "doc_id": "MgRddBEF7oZiK8xqDW9cGcuKnac",
+    "synced_at": "2026-04-12T13:33:20.702Z"
+  },
+  "README.md": {
+    "doc_id": "IvR7dTZZnoTWKYxnxexcYtxmnKh",
+    "synced_at": "2026-04-12T13:33:21.742Z"
+  },
+  "REGRESSION_TEST.md": {
+    "doc_id": "G3i2d306IoTVaRxQCySctX3Cnb3",
+    "synced_at": "2026-04-12T13:33:22.744Z"
+  },
+  "SYNC_README.md": {
+    "doc_id": "KsQsdapUQokWgpx2NoUcrYeanrR",
+    "synced_at": "2026-04-12T13:33:23.777Z"
+  },
+  "UniApp多平台开发架构方案.md": {
+    "doc_id": "P2BTdRq2eoPyYJx8dvScdM0XnDg",
+    "synced_at": "2026-04-12T13:33:24.830Z"
+  },
+  "ai-review-quick-start.md": {
+    "doc_id": "XwGedgaDFoRryIxUfVcc41fQnRh",
+    "synced_at": "2026-04-12T13:33:26.497Z"
+  },
+  "app-ui-analysis.md": {
+    "doc_id": "Mv77dgdKfoqyqTxEdTOcV35gnFf",
+    "synced_at": "2026-04-12T13:33:27.677Z"
+  },
+  "auction-api-testing-guide.md": {
+    "doc_id": "WmRsdL15hoYbRsxKzQ4cKOAzn0c",
+    "synced_at": "2026-04-12T13:33:28.770Z"
+  },
+  "auction_bid_logic_update_plan.md": {
+    "doc_id": "NUaMdUUoHo9KInx3F0HczY2an4g",
+    "synced_at": "2026-04-12T13:33:29.785Z"
+  },
+  "auction_kasec_feature.md": {
+    "doc_id": "WOU2dt3ycoSk12xbpYpcsWnTn8g",
+    "synced_at": "2026-04-12T13:33:30.779Z"
+  },
+  "auction_message_interaction.md": {
+    "doc_id": "HFsrdBSRho1Aj0xeCPkcg3oLnXe",
+    "synced_at": "2026-04-12T13:33:31.762Z"
+  },
+  "auction_status_unification.md": {
+    "doc_id": "SP9vddzsxoSytGxOdnlcTc9un6s",
+    "synced_at": "2026-04-12T13:33:32.765Z"
+  },
+  "code-quality-automation.md": {
+    "doc_id": "Azu7daFW3oGq0uxZQxpcxvXEn7e",
+    "synced_at": "2026-04-12T13:33:33.812Z"
+  },
+  "codex-vs-opencode-review.md": {
+    "doc_id": "HsmDdwVnEoZVn3xTuhTcT4DHnLc",
+    "synced_at": "2026-04-12T13:33:34.881Z"
+  },
+  "dev.md": {
+    "doc_id": "VtuKdv6CnoyBwVxbKVKcLiucn2c",
+    "synced_at": "2026-04-12T13:33:35.928Z"
+  },
+  "flutter-wechat-pay-config.md": {
+    "doc_id": "L8I0dLe3NoCSYkxFyiGc0lLjnNg",
+    "synced_at": "2026-04-12T13:33:36.954Z"
+  },
+  "git-hook-update-opencode-only.md": {
+    "doc_id": "NVwedSU7soubYWxhUw9cSMFEneg",
+    "synced_at": "2026-04-12T13:33:38.004Z"
+  },
+  "h5-test-cases.md": {
+    "doc_id": "S2CddOqXuoI0pCxy6YfcO8TUn7c",
+    "synced_at": "2026-04-12T13:33:39.061Z"
+  },
+  "min-bid-price-util.md": {
+    "doc_id": "YmO3dDyJhooZaxxMfc5cvUdlnpb",
+    "synced_at": "2026-04-12T13:33:40.097Z"
+  },
+  "nginx-cache-fix-guide.md": {
+    "doc_id": "I6hIdtP9HoXHwuxwKxVcmDzFnlg",
+    "synced_at": "2026-04-12T13:33:41.139Z"
+  },
+  "nginx-cache-fix.md": {
+    "doc_id": "FVCkdj3WmoDhgix1FrLc5Ry4nyb",
+    "synced_at": "2026-04-12T13:33:42.229Z"
+  },
+  "pwa-configuration.md": {
+    "doc_id": "N6U5d7YpToqV1wx77tJcTDianJb",
+    "synced_at": "2026-04-12T13:33:43.240Z"
+  },
+  "test-coverage-guide.md": {
+    "doc_id": "Rs6rdSFlNoj69xxCd0tcapCintd",
+    "synced_at": "2026-04-12T13:33:44.225Z"
+  },
+  "微信开放平台应用申请资料.md": {
+    "doc_id": "SGmIdEiwKolbA9xpF7xcq1XMnsb",
+    "synced_at": "2026-04-12T13:33:45.285Z"
+  },
+  "数据库清理执行指南.md": {
+    "doc_id": "BqRjdSKvRoqjH5x8l8Ecviq7n6d",
+    "synced_at": "2026-04-12T13:33:46.329Z"
+  },
+  "用户信息备份执行指南.md": {
+    "doc_id": "Zs5kdljjpoDqKRxxxAycrI4in79",
+    "synced_at": "2026-04-12T13:33:47.388Z"
+  },
+  "用户协议.md": {
+    "doc_id": "NXIMd1QfRopeh0xnj1Lc6tUWnlc",
+    "synced_at": "2026-04-12T13:33:48.422Z"
+  },
+  "申请修改应用说明.md": {
+    "doc_id": "FUqEdXe3Xo7fBlxtzUpcWS3Inig",
+    "synced_at": "2026-04-12T13:33:49.472Z"
+  },
+  "隐私政策.md": {
+    "doc_id": "VRBadv6EeoaZiHxGDIXczHqlned",
+    "synced_at": "2026-04-12T13:33:50.515Z"
+  },
+  "魔力宝贝游戏资料.md": {
+    "doc_id": "Wvy2dxmqAoZXwQxr2PEceRnynbe",
+    "synced_at": "2026-04-12T13:33:51.568Z"
+  }
+}

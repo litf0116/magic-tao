@@ -16,7 +16,7 @@ import NProgress from 'nprogress'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import '@/style.scss'
 
-const whiteList = ['/', '/index', '/auth/login', '/register', '/error-page']
+const whiteList = ['/', '/index', '/auth/login', '/register', '/error-page', '/app-download']
 const route = useRoute()
 const router = useRouter()
 const path = computed(() => route.path)

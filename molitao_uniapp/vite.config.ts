@@ -2,17 +2,41 @@ import { defineConfig } from 'vite'
 import uni from '@dcloudio/vite-plugin-uni'
 import AutoImport from 'unplugin-auto-import/vite'
 import UnoCSS from 'unocss/vite'
-// import UniPages from '@uni-helper/vite-plugin-uni-pages'
 import UniLayouts from '@uni-helper/vite-plugin-uni-layouts'
-// https://vitejs.dev/config/
+
 export default defineConfig({
+    publicDir: 'public',
+    define: {
+        __APP_VERSION__: '"20260410@1.2.1"',
+    },
+    // H5 开发服务器配置 - 解决跨域问题
+    server: {
+        port: 5175,
+        host: '0.0.0.0',
+        proxy: {
+            // 代理所有 /api 请求到本地后端服务器
+            '/api': {
+                target: 'http://127.0.0.1:12580',
+                changeOrigin: true,
+                secure: false,
+            },
+            // 代理 WebSocket
+            '/ws': {
+                target: 'ws://127.0.0.1:12580',
+                ws: true,
+                changeOrigin: true,
+            },
+        },
+    },
     build: {
         sourcemap: false,
         watch: {
             exclude: ['node_modules/**', '/__uno.css'],
         },
         rollupOptions: {
-            // external: ['@vueuse/shared'],
+            output: {
+                manualChunks: undefined,
+            },
         },
     },
     plugins: [

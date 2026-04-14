@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Abp.Domain.Repositories;
+using Abp.Domain.Repositories;
+using Abp.UI;
 using Abp.Domain.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -100,6 +102,13 @@ public class ChatChannelService : DomainService
     /// <returns>聊天频道</returns>
     public async Task<ChatChannel> GetOrCreatePrivateChannelAsync(long user1Id, long user2Id)
     {
+        // 禁止自己与自己聊天
+        if (user1Id == user2Id)
+        {
+            throw new UserFriendlyException("不能与自己聊天");
+        }
+
+
         var channelId = CreatePrivateChannelId(user1Id, user2Id);
 
         var existingChannel = await _chatChannelRepository.FirstOrDefaultAsync(x => x.ChannelId == channelId);
@@ -195,7 +204,8 @@ public class ChatChannelService : DomainService
         var query = _chatChannelRepository.GetAll()
             .AsNoTracking()
             .IgnoreQueryFilters()
-            .Where(channel => channel.IsActive && channel.LastMessageId != null)
+            .Where(channel => channel.IsActive && (channel.ChannelType == ChatChannelType.System || channel.LastMessageId != null))
+            .Where(channel => !(channel.ChannelType == ChatChannelType.Private && channel.User1Id == channel.User2Id))
             .Where(channel =>
                 // 系统频道：所有人可见
                 channel.ChannelType == ChatChannelType.System ||

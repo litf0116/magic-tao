@@ -16,7 +16,7 @@ namespace TtWork.Project.Services.Cache
         /// </summary>
         /// <param name="input">查询参数</param>
         /// <returns>拍卖品列表</returns>
-        Task<ListResultDto<AuctionItemDto>> GetAuctionListAsync(AppResultRequestDto input);
+        Task<PagedResultDto<AuctionItemDto>> GetAuctionListAsync(AppResultRequestDto input);
 
         /// <summary>
         /// 获取拍卖品详情（带缓存）
@@ -51,7 +51,7 @@ namespace TtWork.Project.Services.Cache
         /// <param name="input">查询参数</param>
         /// <param name="result">列表结果</param>
         /// <returns></returns>
-        Task SetAuctionListCacheAsync(AppResultRequestDto input, ListResultDto<AuctionItemDto> result);
+        Task SetAuctionListCacheAsync(AppResultRequestDto input, PagedResultDto<AuctionItemDto> result);
 
         /// <summary>
         /// 清除拍卖品相关缓存

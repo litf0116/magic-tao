@@ -6,11 +6,13 @@ using Abp.Dependency;
 using Abp.Modules;
 using Abp.Reflection.Extensions;
 using Castle.MicroKernel.Registration;
+using Hangfire;
 using TtWork.Abp.AppManagement;
 using TtWork.Abp.Extensions;
 using TtWork.Abp.Oss.UpYun;
 using TtWork.Project.Core;
 using TtWork.Project.Definitions;
+using TtWork.Project.Jobs;
 using TtWork.Project.Localization;
 using TtWork.Project.Services;
 using TtWork.Project.Services.Cache;
@@ -66,13 +68,13 @@ namespace TtWork.Project {
         }
 
         public override void PostInitialize() {
-            // Audit模块确保注入
-            // Configuration.Modules.AuditModule().DefinitionProviders.AddIfNotContains(
-            //     typeof(ProjectNameAuditDefinitionProvider));
-
-            // App模块确保注入
             Configuration.Modules.AppModule().DefinitionProviders.AddIfNotContains(
                 typeof(ProjectAppProvider));
+
+            RecurringJob.AddOrUpdate<CleanExpiredPayOrderJob>(
+                "clean-expired-pay-orders",
+                job => job.ExecuteAsync(new object()),
+                Cron.Daily);
         }
     }
 }

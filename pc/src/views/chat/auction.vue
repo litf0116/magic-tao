@@ -6,12 +6,12 @@
             </div>
             <chatMain ref="chatRef" @onSend="send" @loadHistoryMessage="loadHistoryMessage"></chatMain>
         </div>
-    </div>
-    <div
-        class="min-w-260px md:w-260px h-full flex flex-col border-0 border-l-1 md:border-solid md:border-gray-300 min-h-700px"
-    >
-        <!-- <GroupList /> -->
-        <AuctionList />
+        <div
+            class="min-w-260px md:w-260px h-full flex flex-col border-0 border-l-1 md:border-solid md:border-gray-300 min-h-700px"
+        >
+            <!-- <GroupList /> -->
+            <AuctionList />
+        </div>
     </div>
 </template>
 
@@ -19,7 +19,12 @@
 import { ChatMessageType } from '@/api/appService'
 import chatMain from '@/components/Chat/chatMain.vue'
 import AuctionList from '@/components/Chat/AuctionList.vue'
+import { ElMessage } from 'element-plus'
+import { GetUserLevelInfo } from '@/api/groupChatLevel'
+
 const chatStore = useChatStore()
+const userStore = useUserStore()
+const router = useRouter()
 
 const chatRef = ref<InstanceType<typeof chatMain> | null>(null)
 
@@ -55,14 +60,31 @@ async function loadHistoryMessage(force = false) {
     })
 }
 
-//LINK[epic=消息发送] - 拍卖消息发送逻辑
-function send(e: { type: ChatMessageType; data: string | object }) {
-    if (e.type === ChatMessageType.Image) {
-        chatStore.sendChannelMsg('[图片]', '', ChatMessageType.Image, e.data).then(() => {})
-    } else if (e.type === ChatMessageType.Text) {
-        chatStore.sendChannelMsg(e.data as string, '', ChatMessageType.Text).then(() => {
-            //
-        })
+async function checkDepositAndSend(e: { type: ChatMessageType; data: string | object }) {
+    const deposit = userStore.user.depositBalance || 0
+    const levelResponse = await GetUserLevelInfo(userStore.user.id!)
+    const userLevel = levelResponse?.data?.levelSettings?.level ?? 0
+
+    if (userLevel === 0 && deposit < 50) {
+        ElMessage.warning('新用户参与竞拍需要缴纳诚信履约金 (50 元)')
+        return false
     }
+
+    if (e.type === ChatMessageType.Image) {
+        chatStore.sendChannelMsg('[图片]', '', ChatMessageType.Image, e.data)
+    } else if (e.type === ChatMessageType.Text) {
+        chatStore.sendChannelMsg(e.data as string, '', ChatMessageType.Text)
+    }
+    return true
+}
+
+function send(e: { type: ChatMessageType; data: string | object }) {
+    checkDepositAndSend(e)
 }
 </script>
+
+<style>
+.chat-container {
+    @apply flex-1 flex flex-col max-h-700px h-full flex flex-col relative;
+}
+</style>

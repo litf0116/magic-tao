@@ -227,6 +227,17 @@ namespace TtWork.Project.PostBar
         {
             try
             {
+                // 严格验证用户认证状态
+                if (!_abpSession.UserId.HasValue)
+                {
+                    throw new UserFriendlyException("用户未登录或登录已过期，请重新登录");
+                }
+                
+                if (_abpSession.UserId.Value <= 0)
+                {
+                    throw new UserFriendlyException("用户身份验证异常，请重新登录");
+                }
+                
                 input.userId = _abpSession.UserId.Value;
                 await _sqlSugarClient.Insertable(input)
                     .IgnoreColumns(it => new { it.createdAt, it.updatedAt }).ExecuteCommandAsync();
@@ -261,8 +272,15 @@ namespace TtWork.Project.PostBar
                 }
 
                 // 只更新允许编辑的字段，避免覆盖其他字段
-                await _sqlSugarClient.Updateable(input)
-                    .UpdateColumns(it => new { it.categoryId, it.title, it.content })
+                // 使用 SetColumns 明确指定要更新的字段，防止 userId 等字段被错误覆盖
+                await _sqlSugarClient.Updateable<tb_post>()
+                    .SetColumns(it => new tb_post 
+                    { 
+                        categoryId = input.categoryId, 
+                        title = input.title, 
+                        content = input.content,
+                        updatedAt = DateTime.Now
+                    })
                     .Where(w => w.postId == input.postId).ExecuteCommandAsync();
             }
             catch (Exception ex)

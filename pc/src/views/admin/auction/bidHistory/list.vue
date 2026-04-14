@@ -18,7 +18,7 @@ const { imagePreview } = useFormatter()
 const _api = api.bidHistory
 
 const tableRef = ref<InstanceType<typeof PagedTable>>(null)
-onMounted(() => {})
+onMounted(() => undefined)
 
 function fetchData(params: any) {
     return _api.getAll(params)
