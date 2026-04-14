@@ -145,10 +145,10 @@ function end(item: AuctionItemDto) {
                 dialogVisible.value = false
                 await sleep(1000)
                 GetAuctionMidList({ status: 2, maxResultCount: 100 }).then((res) => {
-                    if (res.status == 200) {
+                    if (res && res.items) {
                         console.log(res)
                         auctionStore.auctionMid.length = 0
-                        auctionStore.auctionMid = res.data.items
+                        auctionStore.auctionMid = res.items
                     }
                 })
             }
@@ -188,10 +188,10 @@ function bid(id) {
                 auctionStore.bid(info!.id!, parseInt(value))
                 await sleep(1000)
                 GetAuctionMidList({ status: 2, maxResultCount: 100 }).then((res) => {
-                    if (res.status == 200) {
+                    if (res && res.items) {
                         console.log(res)
                         auctionStore.auctionMid.length = 0
-                        auctionStore.auctionMid = res.data.items
+                        auctionStore.auctionMid = res.items
                     }
                 })
             })

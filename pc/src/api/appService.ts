@@ -35,25 +35,12 @@ export const serviceOptions: ServiceOptions = {}
 // Instance selector
 export function axios(configs: IRequestConfig, resolve: (p: any) => void, reject: (p: any) => void): Promise<any> {
     if (serviceOptions.axios) {
-        console.log('[DEBUG axios] 开始请求, url:', configs.url, 'method:', configs.method)
         return serviceOptions.axios
             .request(configs)
             .then((res) => {
-                console.log('[DEBUG axios] 响应成功, res:', res)
-                console.log('[DEBUG axios] res 类型:', typeof res)
-                console.log('[DEBUG axios] res 完整结构:', JSON.stringify(res, null, 2))
-                if (res && typeof res === 'object' && res.data !== undefined) {
-                    console.log('[DEBUG axios] res.data:', res.data)
-                    resolve(res.data)
-                } else {
-                    console.log('[DEBUG axios] res 已是解析后的值，直接使用')
-                    resolve(res)
-                }
+                resolve(res)
             })
             .catch((err) => {
-                console.error('[DEBUG axios] 请求失败, err:', err)
-                console.error('[DEBUG axios] err 完整结构:', JSON.stringify(err, null, 2))
-                console.error('[DEBUG axios] err.response:', err?.response)
                 reject(err)
             })
     } else {

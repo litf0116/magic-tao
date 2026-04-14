@@ -232,8 +232,8 @@ onMounted(async () => {
     }
     //获取热词列表
     var resHotWords = await GetHotWordsList({ SkipCount: 1, MaxResultCount: 50 })
-    if (resHotWords.data) {
-        hotWordsList.value = resHotWords.data.items
+    if (resHotWords && resHotWords.items) {
+        hotWordsList.value = resHotWords.items
     }
 })
 //获取分类数据
@@ -297,8 +297,8 @@ const loadTopPosts = async () => {
     }
     try {
         var res = await GetList({ Type: activeKey.value, MaxResultCount: pageSize.value, isTop: true })
-        if (res.data) {
-            topPosts.value = res.data.items
+        if (res && res.items) {
+            topPosts.value = res.items
             // total.value = res.data.totalCount;
             topPosts.value.forEach((item, index) => {
                 if (item.categoryName) {
@@ -327,9 +327,9 @@ const loadPosts = async () => {
             MaxResultCount: pageSize.value,
             isTop: false,
         })
-        if (res.data) {
-            posts.value = res.data.items
-            total.value = res.data.totalCount
+        if (res && res.items) {
+            posts.value = res.items
+            total.value = res.totalCount
             posts.value.forEach((item, index) => {
                 if (item.categoryName) {
                     var arr = item.categoryName.split(',')
