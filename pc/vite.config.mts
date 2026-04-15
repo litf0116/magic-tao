@@ -16,9 +16,9 @@ export default defineConfig(({ command, mode }) => {
             port: 4200,
             proxy: {
                 '/api': {
-                    target: 'https://www.molitao.top',
+                    target: 'http://127.0.0.1:12580',
                     changeOrigin: true,
-                    secure: true
+                    secure: false
                 },
                 '/ws': {
                     target: 'http://127.0.0.1:12580',
