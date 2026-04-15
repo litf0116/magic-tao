@@ -131,7 +131,7 @@ export const useAuctionStore = defineStore('auction', () => {
                 // 获取拍品基本信息（只检查拍品是否存在和状态）
                 console.log('获取拍品基本信息...')
                 const detailRes = await GetDetail(auctionItemId)
-                const auctionItem = detailRes.data || detailRes
+                const auctionItem = detailRes
                 console.log('拍品基本信息:', auctionItem)
 
                 // 只检查拍品是否存在和状态
