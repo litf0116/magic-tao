@@ -61,5 +61,10 @@ namespace TtWork.Abp.Applications.Dtos
         /// 是否跳过完善个人信息引导
         /// </summary>
         public bool SkipProfileCompletion { get; set; }
+        
+        /// <summary>
+        /// 累计拍卖金额（来自用户群聊等级表）
+        /// </summary>
+        public decimal CumulativeAmount { get; set; }
     }
 }
