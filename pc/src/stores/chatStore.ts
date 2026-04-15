@@ -84,20 +84,24 @@ export const useChatStore = defineStore('chat', () => {
             qrLoading.value = true
             qrError.value = ''
             console.log('[DEBUG initQr] 调用 PubQrLogin API, state:', str)
-            api.tokenAuth.pubQrLogin({ state: str }).then((res) => {
-                console.log('[DEBUG initQr] PubQrLogin 成功返回:', res)
-                console.log('[DEBUG initQr] pubQrUrl 设置为:', res)
-                pubQrUrl.value = res
-            }).catch((err) => {
-                console.error('[DEBUG initQr] PubQrLogin 失败:', err)
-                console.error('[DEBUG initQr] err.response:', err?.response)
-                console.error('[DEBUG initQr] err.response?.data:', err?.response?.data)
-                pubQrUrl.value = ''
-                qrError.value = typeof err === 'string' ? err : '获取二维码失败，请刷新重试'
-            }).finally(() => {
-                console.log('[DEBUG initQr] finally, qrLoading设为false')
-                qrLoading.value = false
-            })
+            api.tokenAuth
+                .pubQrLogin({ state: str })
+                .then((res) => {
+                    console.log('[DEBUG initQr] PubQrLogin 成功返回:', res)
+                    console.log('[DEBUG initQr] pubQrUrl 设置为:', res)
+                    pubQrUrl.value = res
+                })
+                .catch((err) => {
+                    console.error('[DEBUG initQr] PubQrLogin 失败:', err)
+                    console.error('[DEBUG initQr] err.response:', err?.response)
+                    console.error('[DEBUG initQr] err.response?.data:', err?.response?.data)
+                    pubQrUrl.value = ''
+                    qrError.value = typeof err === 'string' ? err : '获取二维码失败，请刷新重试'
+                })
+                .finally(() => {
+                    console.log('[DEBUG initQr] finally, qrLoading设为false')
+                    qrLoading.value = false
+                })
         } else {
             qrUrl.value = ''
             pubQrUrl.value = ''

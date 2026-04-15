@@ -120,10 +120,8 @@ const handleDelete = async (row) => {
         type: 'warning',
     })
         .then(async () => {
-            var res = await DeleteGroupChatLevelSetting(row.id)
-            if (res.status === 200) {
-                pageList()
-            }
+            await DeleteGroupChatLevelSetting(row.id)
+            pageList()
             ElMessage({ type: 'success', message: '删除成功!' })
         })
         .catch(() => {
@@ -149,17 +147,14 @@ const submitForm = () => {
             // 实现提交逻辑
             console.log('表单数据：', formData)
             formData.id = formData.id == 0 ? 0 : parseInt(formData.id.toString())
-            var res
             if (formData.id == 0) {
-                res = await AddGroupChatLevelSettings(formData)
+                await AddGroupChatLevelSettings(formData)
             } else {
-                res = await EditGroupChatLevelSetting(formData)
+                await EditGroupChatLevelSetting(formData)
             }
-            if (res.status === 200) {
-                // 成功处理
-                dialogVisibleForm.value = false
-                pageList()
-            }
+            // 成功处理
+            dialogVisibleForm.value = false
+            pageList()
         }
     })
 }
@@ -168,9 +163,7 @@ const submitForm = () => {
 const pageList = async () => {
     try {
         const res = await GetList()
-        if (res.status === 200) {
-            tableData.value = res.data
-        }
+        tableData.value = res
     } catch (error) {
         console.error('获取列表失败：', error)
     }

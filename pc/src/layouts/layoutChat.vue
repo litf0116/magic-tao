@@ -219,8 +219,8 @@ function logout() {
 //获取用户好友申请列表
 const getUserFriendCount = async () => {
     var res = await GetUserFriendCount()
-    if (res.data > 0) {
-        userFriendCount.value = res.data
+    if (res > 0) {
+        userFriendCount.value = res
     } else {
         userFriendCount.value = -1
     }

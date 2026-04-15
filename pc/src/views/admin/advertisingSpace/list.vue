@@ -103,7 +103,7 @@ const onDelete = (dto: any) => {
 }
 //更新状态
 const handleChange = async (val) => {
-    var res = await UpdateState(val.id, val.status)
-    res.status === 200 ? Tips.success('操作成功') : Tips.error('操作失败')
+    await UpdateState(val.id, val.status)
+    Tips.success('操作成功')
 }
 </script>

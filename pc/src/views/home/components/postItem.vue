@@ -201,8 +201,8 @@ onMounted(() => {
 //获取分类数据
 const getData = async () => {
     var res = await GetTypeList()
-    if (res.data) {
-        res.data.forEach((item, index) => {
+    if (res && Array.isArray(res)) {
+        res.forEach((item) => {
             categoriesItems.value.push({
                 key: item.categoryId,
                 name: item.name,
@@ -249,19 +249,15 @@ const submitForm = () => {
     formRef.value.validate(async (valid) => {
         if (valid) {
             form.value.categoryId = activeKey.value.join(',')
-            var res
             if (form.value.postId == 0) {
-                res = await Add(form.value)
+                await Add(form.value)
+                Tips.success('发帖成功')
             } else {
-                res = await Edit(form.value)
+                await Edit(form.value)
+                Tips.success('修改成功')
             }
-            if (res.status === 200) {
-                Tips.success(form.value.postId == 0 ? '发帖成功' : '修改成功')
-                dialogVisible.value = false
-                emit('onSaved')
-            } else {
-                Tips.error('发帖失败，请稍后重试！')
-            }
+            dialogVisible.value = false
+            emit('onSaved')
         }
     })
 }

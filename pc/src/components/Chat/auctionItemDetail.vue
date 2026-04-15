@@ -231,10 +231,10 @@ const show = (e: boolean, id: number) => {
             //     dialogVisible.value = false;
             //     return;
             // }
-            item.value = res.data
+            item.value = res
 
             // 同步卡秒状态，确保使用最新的状态
-            if (res.data.status === '拍卖中') {
+            if (res.status === '拍卖中') {
                 auctionStore.syncKasecStatus(id).catch((error) => {
                     console.error('同步卡秒状态失败:', error)
                 })

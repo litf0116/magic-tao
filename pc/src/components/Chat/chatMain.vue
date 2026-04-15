@@ -335,8 +335,8 @@ onMounted(async () => {
     scrollToBottom(true)
     //查询群聊等级信息
     var res = await GetList()
-    if (res.data) {
-        groupChatLevel.value = res.data
+    if (res) {
+        groupChatLevel.value = res
     }
     //判断是否是私聊
     if (route.path.includes('privateChat')) {

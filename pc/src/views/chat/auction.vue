@@ -63,7 +63,7 @@ async function loadHistoryMessage(force = false) {
 async function checkDepositAndSend(e: { type: ChatMessageType; data: string | object }) {
     const deposit = userStore.user.depositBalance || 0
     const levelResponse = await GetUserLevelInfo(userStore.user.id!)
-    const userLevel = levelResponse?.data?.levelSettings?.level ?? 0
+    const userLevel = levelResponse?.levelSettings?.level ?? 0
 
     if (userLevel === 0 && deposit < 50) {
         ElMessage.warning('新用户参与竞拍需要缴纳诚信履约金 (50 元)')

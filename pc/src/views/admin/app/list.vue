@@ -149,7 +149,7 @@ async function loadData() {
     loading.value = true
     try {
         const res = await api.appRelease.getHistory(activePlatform.value)
-        list.value = res?.data?.items || []
+        list.value = res?.items || []
     } catch (e) {
         ElMessage.error('加载失败')
     } finally {
