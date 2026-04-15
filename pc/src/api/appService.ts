@@ -6190,6 +6190,9 @@ export interface UserDto {
     /**  */
     depositBalance?: number
 
+    /** 累计拍卖金额 */
+    cumulativeAmount?: number
+
     /**  */
     id?: number
 }
