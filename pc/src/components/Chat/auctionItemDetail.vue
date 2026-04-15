@@ -227,11 +227,6 @@ const show = (e: boolean, id: number) => {
     dialogVisible.value = e
     if (e) {
         GetDetail(id).then((res) => {
-            console.log('GetDetail 响应:', res)
-            console.log('GetDetail res 的类型:', typeof res)
-            console.log('GetDetail res 是否有 data:', res && res.data !== undefined)
-            console.log('GetDetail res.data:', res?.data)
-            console.log('GetDetail res.status:', res?.status)
             // if (res.status != "拍卖中" && userStore.isChatAdmin == false) {
             //     dialogVisible.value = false;
             //     return;
