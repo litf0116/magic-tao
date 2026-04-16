@@ -13,25 +13,7 @@ import { useStorageRef } from '@/composables/useStorageRef'
 import { convertImageUrl } from '@/utils/imageUrlConverter'
 
 // 测试友好：导出一个纯函数，方便单元测试历史合并逻辑
-export function mergeHistoryForChannel(
-    groupName: string,
-    newItems: ChatMessage[],
-    existing: ChatMessage[] = [],
-    reloadFlag: boolean = false
-): ChatMessage[] {
-    const t = groupName.split('_')
-    let id = parseInt(t[0])
-    if (id > 0) id = -id
-    if (newItems.length > 0) {
-        if (existing.length > 0 && !reloadFlag) {
-            return uniqBy(orderBy([...newItems, ...existing], [(m) => m.time], ['asc']), 'id')
-        }
-        return newItems
-    } else if (reloadFlag) {
-        return []
-    }
-    return existing
-}
+import { mergeHistoryForChannel } from './messageStore'
 type ChannelType = { chan: string; online: number }
 
 const AuctionChat: ChatListItem = {
@@ -44,7 +26,7 @@ const AuctionChat: ChatListItem = {
     order: 99,
 }
 
-export const CREATEGROUPEVENT = 'CREATE_GROUP_EVENT'
+import { CREATEGROUPEVENT } from './messageStore'
 export const onmessageKey = Symbol('onmessageKey')
 
 export const useChatStore = defineStore('chatStore', () => {

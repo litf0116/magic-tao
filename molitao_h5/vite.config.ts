@@ -1,10 +1,24 @@
 import { defineConfig } from 'vite'
+import path from 'path'
 import uni from '@dcloudio/vite-plugin-uni'
 import AutoImport from 'unplugin-auto-import/vite'
 import UnoCSS from 'unocss/vite'
 import UniLayouts from '@uni-helper/vite-plugin-uni-layouts'
 
 export default defineConfig(async () => ({
+    optimizeDeps: {
+        include: [
+            'z-paging',
+            'dayjs',
+            'lodash-es',
+            '@vueuse/core',
+            'pinia'
+        ],
+        exclude: ['@dcloudio/uni-ui'],
+        esbuildOptions: {
+            resolveExtensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.vue']
+        }
+    },
     publicDir: 'public',
     base: './',
     define: {
@@ -88,6 +102,13 @@ export default defineConfig(async () => ({
                 silenceDeprecations: ['import', 'global-builtin', 'legacy-js-api'],
             },
         },
+    },
+    resolve: {
+        alias: {
+            '@': path.resolve(__dirname, './src'),
+        },
+        mainFields: ['module', 'jsnext:main', 'jsnext', 'main'],
+        extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.vue'],
     },
     esbuild: {
         drop: ['console', 'debugger'],
