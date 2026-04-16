@@ -49,16 +49,6 @@ export default defineConfig(async () => ({
         watch: {
             exclude: ['node_modules/**', '/__uno.css'],
         },
-        rollupOptions: {
-            output: {
-                manualChunks: {
-                    'vendor-core': ['vue', 'pinia', '@vueuse/core'],
-                    'vendor-ui': ['@climblee/uv-ui', '@dcloudio/uni-ui'],
-                    'vendor-utils': ['dayjs', 'lodash-es'],
-                    'vendor-chat': ['z-paging'],
-                },
-            },
-        },
     },
     plugins: [
         // UniPages({
