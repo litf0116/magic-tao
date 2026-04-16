@@ -16,3 +16,12 @@ build/
 # Patrol auto-generated files
 patrol_test/
 integration_test/test_bundle.dart
+
+# Release builds (large files)
+release/
+*.apk
+*.aab
+
+# Temporary config files
+*.conf.backup
+*.conf.new

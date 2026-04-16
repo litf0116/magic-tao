@@ -1,0 +1,5 @@
+UPYUN_BUCKET="molitao"
+UPYUN_USER="molitao"
+UPYUN_PASSWORD="cHILcN0KfdVwcCkQz0Kjou7utChvtkpv"
+UPYUN_DOMAIN="http://image.molitao.top"
+API_BASE="https://www.molitao.top/api/services/app"
