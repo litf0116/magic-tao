@@ -131,7 +131,7 @@ export const useAuctionStore = defineStore('auction', () => {
                 // 获取拍品基本信息（只检查拍品是否存在和状态）
                 console.log('获取拍品基本信息...')
                 const detailRes = await GetDetail(auctionItemId)
-                const auctionItem = detailRes.data || detailRes
+                const auctionItem = detailRes
                 console.log('拍品基本信息:', auctionItem)
 
                 // 只检查拍品是否存在和状态
@@ -202,9 +202,8 @@ export const useAuctionStore = defineStore('auction', () => {
         console.log('开始获取卡秒状态，拍品ID:', auctionItemId)
         const res = await getKasecStatus(auctionItemId)
         console.log('API返回的完整响应:', res)
-        console.log('API返回的data:', res.data)
-        // 由于axios拦截器处理了ABP响应，res.data就是result值
-        const kasecStatus = !!res.data
+        // 由于axios拦截器处理了ABP响应，res就是result值
+        const kasecStatus = !!res
         console.log('解析后的卡秒状态:', kasecStatus)
         isKasec.value = kasecStatus
         console.log('设置isKasec.value为:', isKasec.value)
@@ -215,7 +214,7 @@ export const useAuctionStore = defineStore('auction', () => {
         try {
             // 获取最新的拍卖品状态
             const detailRes = await GetDetail(auctionItemId)
-            const auctionItem = detailRes.data || detailRes
+            const auctionItem = detailRes
 
             // 检查拍卖品状态
             if (!auctionItem) {
@@ -293,16 +292,14 @@ export const useAuctionStore = defineStore('auction', () => {
             //拍卖中
             if (status === 2) {
                 GetAuctionMidList({ status, maxResultCount }).then((res) => {
-                    if (res.status == 200) {
-                        console.log('=== getList 拍卖中列表 API响应 ===')
-                        console.log('返回数据条数:', res.data?.items?.length)
+                    console.log('=== getList 拍卖中列表 API响应 ===')
+                    console.log('返回数据条数:', res.items?.length)
 
-                        auctionMid.value.length = 0
-                        // 处理图片URL并计算序号
-                        const itemsWithImages = convertObjectImageUrlsArray(res.data.items, ['imageUrl'])
-                        auctionMid.value = calculateDisplayIndices(itemsWithImages)
-                        console.log('拍卖中列表已刷新，实际数据条数:', auctionMid.value.length)
-                    }
+                    auctionMid.value.length = 0
+                    // 处理图片URL并计算序号
+                    const itemsWithImages = convertObjectImageUrlsArray(res.items, ['imageUrl'])
+                    auctionMid.value = calculateDisplayIndices(itemsWithImages)
+                    console.log('拍卖中列表已刷新，实际数据条数:', auctionMid.value.length)
                     // Tips.success('拍卖列表已刷新')
                     return resolve()
                 })

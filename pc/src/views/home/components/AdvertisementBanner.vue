@@ -50,9 +50,9 @@ onMounted(async () => {
 const fetchAdvertisements = async () => {
     try {
         const res = await GetTypeList(1)
-        if (res.data && res.data.items) {
+        if (res && res.items) {
             // 获取真实数据
-            const realAds = res.data.items
+            const realAds = res.items
 
             // 创建新的数组，保持6个位置
             const updatedAds: AdvertisementItem[] = []

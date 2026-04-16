@@ -62,12 +62,10 @@ const submitForm = () => {
     if (!formRef.value) return
     formRef.value.validate(async (valid) => {
         if (valid) {
-            var res: any = await Add(formFields)
-            if (res.status == 200) {
-                Tips.success('添加成功')
-                emit('onSaved')
-                dialogVisible.value = false
-            }
+            await Add(formFields)
+            Tips.success('添加成功')
+            emit('onSaved')
+            dialogVisible.value = false
         }
     })
 }
@@ -77,8 +75,8 @@ const show = async (e: boolean, id: number) => {
     dialogVisible.value = e
     if (e) {
         var res: any = await GetList()
-        if (res?.status === 200) {
-            res.data.forEach((item, index) => {
+        if (res && Array.isArray(res)) {
+            res.forEach((item, index) => {
                 formFields[index].id = item.id
                 formFields[index].msg = item.msg
             })

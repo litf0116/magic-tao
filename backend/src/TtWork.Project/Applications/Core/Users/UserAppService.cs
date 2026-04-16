@@ -40,6 +40,8 @@ using TtWork.Project.Applications.Users.Dto;
 using TtWork.Project.Domains.Pays;
 using TtWork.Project.Roles.Dto;
 using TtWork.Project.Users.Dto;
+using TtWork.Abp.Entity;
+using SqlSugar;
 
 namespace TtWork.Project.Applications.Core.Users
 {
@@ -63,6 +65,7 @@ namespace TtWork.Project.Applications.Core.Users
         private readonly IRedisClient _redisClient;
         private readonly System.Net.Http.HttpClient _httpClient;
         private readonly ILogger<UserAppService> _logger;
+        private readonly ISqlSugarClient _sqlSugarClient;
 
         public UserAppService(
             IRedisClient redisClient,
@@ -78,7 +81,8 @@ namespace TtWork.Project.Applications.Core.Users
             ITenantCache tenantCache,
             IWeixinApi weixinApi,
             System.Net.Http.HttpClient httpClient,
-            ILogger<UserAppService> logger
+            ILogger<UserAppService> logger,
+            ISqlSugarClient sqlSugarClient
         )
             : base(repository, iocManager)
         {
@@ -94,6 +98,7 @@ namespace TtWork.Project.Applications.Core.Users
             _weixinApi = weixinApi;
             _httpClient = httpClient;
             _logger = logger;
+            _sqlSugarClient = sqlSugarClient;
 
             base.GetAllPermissionName = AppPermissions.Administration;
             base.DeletePermissionName = AppPermissions.Administration;
@@ -692,6 +697,31 @@ namespace TtWork.Project.Applications.Core.Users
                     .WhereIf(input.Status is 0, x => x.IsActive == false)
                     .WhereIf(input.Pid.HasValue, x => x.Roles.Any(y => y.RoleId == input.Pid))
                 ;
+        }
+
+        public override async Task<PagedResultDto<UserDto>> GetAllAsync(AppResultRequestDto input)
+        {
+            var result = await base.GetAllAsync(input);
+            
+            if (result.Items.Any())
+            {
+                var userIds = result.Items.Select(x => x.Id).ToList();
+                var groupLevels = await _sqlSugarClient.Queryable<UserGroupLevelEntity>()
+                    .Where(x => userIds.Contains(x.UserId))
+                    .ToListAsync();
+                
+                var groupLevelDict = groupLevels.ToDictionary(x => x.UserId);
+                
+                foreach (var item in result.Items)
+                {
+                    if (groupLevelDict.TryGetValue(item.Id, out var groupLevel))
+                    {
+                        item.CumulativeAmount = groupLevel.CumulativeAmount;
+                    }
+                }
+            }
+            
+            return result;
         }
     }
 }

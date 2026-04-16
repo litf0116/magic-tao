@@ -49,9 +49,10 @@ const httpsPromisify = <T>(fn: (opt: any) => void) => {
                     // 忽略隐藏加载状态时的错误
                 }
                 console.log('[API Response]', options!.url, { data, statusCode })
-                if (data.success) {
+                // 兼容标准格式和简化格式: success 字段判断
+                if (data && data.success === true) {
                     resolve(data.result)
-                } else {
+                } else if (data && data.success === false) {
                     // 处理 401 未授权
                     if (statusCode === 401 || data.unAuthorizedRequest) {
                         handleUnauthorized()
@@ -63,6 +64,18 @@ const httpsPromisify = <T>(fn: (opt: any) => void) => {
                     errorPrompt(err)
                     reject(err?.details || err?.message || '请求失败')
                     return
+                } else if (data && data.__abp) {
+                    // ABP 格式只有 __abp 标记
+                    if (data.success === true) {
+                        resolve(data.result)
+                    } else {
+                        const err = data.error
+                        errorPrompt(err)
+                        reject(err?.message || '请求失败')
+                    }
+                } else {
+                    // 非标准格式，直接返回 data
+                    resolve(data)
                 }
             }
             options!.fail = (err: any) => {

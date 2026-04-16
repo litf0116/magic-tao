@@ -25,6 +25,7 @@
             <el-table-column label="QQ" prop="qq" sortable />
             <el-table-column label="微信" prop="wx" sortable />
             <el-table-column label="诚信履约金" prop="depositBalance" />
+            <el-table-column label="累计消费金额" prop="cumulativeAmount" />
             <!-- <el-table-column label="手机号码" prop="phoneNumber" /> -->
             <el-table-column align="center" width="200px">
                 <template #default="scope">
@@ -241,7 +242,7 @@ const onUserGroupLevel = async (dto: any) => {
     groupChatLeve.form.userId = dto.id
     await GetUserGroupLevel(dto.id).then((res: any) => {
         groupChatLeve.show = true
-        groupChatLeve.form.cumulativeAmount = res.data != null ? res.data.cumulativeAmount : 0
+        groupChatLeve.form.cumulativeAmount = res != null ? res.cumulativeAmount : 0
     })
 }
 

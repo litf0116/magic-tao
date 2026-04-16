@@ -112,8 +112,8 @@ const postCategory = ref({}) //帖子类型
 // 获取帖子详情
 const getPostDetail = async (id) => {
     const res = await GetPostDetail(id)
-    if (res.data) {
-        post.value = res.data
+    if (res) {
+        post.value = res
         if (post.value.categoryName) {
             var arr = post.value.categoryName.split(',')
             postCategory.value = arr
@@ -171,15 +171,11 @@ const delData = async (dto) => {
         type: 'warning',
     })
         .then(async () => {
-            var res = await Delete(dto.postId)
-            if (res.status === 200) {
-                Tips.success('删除成功')
-                router.push({
-                    path: 'forum/tradingPost',
-                })
-            } else {
-                Tips.error('删除失败')
-            }
+            await Delete(dto.postId)
+            Tips.success('删除成功')
+            router.push({
+                path: 'forum/tradingPost',
+            })
         })
         .catch(() => {
             ElMessage({ type: 'info', message: '已取消删除' })
@@ -187,21 +183,13 @@ const delData = async (dto) => {
 }
 //设置置顶
 const setTop = async (dto) => {
-    var res = await SetPostTop(dto.postId)
-    if (res.status === 200) {
-        Tips.success('设置成功')
-    } else {
-        Tips.error('设置失败')
-    }
+    await SetPostTop(dto.postId)
+    Tips.success('设置成功')
 }
 //设置精华帖
 const setEssence = async (dto) => {
-    var res = await SetPostEssence(dto.postId)
-    if (res.status === 200) {
-        Tips.success('设置成功')
-    } else {
-        Tips.error('设置失败')
-    }
+    await SetPostEssence(dto.postId)
+    Tips.success('设置成功')
 }
 const showViewer = ref(false)
 const urlList = ref([])

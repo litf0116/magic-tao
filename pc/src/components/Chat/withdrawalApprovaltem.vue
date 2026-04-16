@@ -50,10 +50,8 @@ onMounted(() => undefined)
 //分页查询数据
 const pageList = () => {
     PageWithdrawalAmount({ pageNo: pageNo.value, pageSize: pageSize.value }).then((res) => {
-        if (res.status == 200) {
-            tableData.value.length = 0
-            tableData.value = res.data.item
-        }
+        tableData.value.length = 0
+        tableData.value = res.item
     })
 }
 //同意

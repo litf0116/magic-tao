@@ -222,25 +222,25 @@ onMounted(async () => {
     loadTopPosts()
     //获取最新公告
     var res = await GetLatestBulletin()
-    if (res.data) {
-        dialogContent.value = res.data.content
-        bulletinTitle.value = res.data.title
-        var text = res.data.content
+    if (res) {
+        dialogContent.value = res.content
+        bulletinTitle.value = res.title
+        var text = res.content
             .replace(/<\/p><p>/g, '</p>   <p>') // 在结束标签和开始标签之间添加空格
             .replace(/<[^>]+>/g, '') // 然后再移除所有HTML标签
         latestBulletin.value = text
     }
     //获取热词列表
     var resHotWords = await GetHotWordsList({ SkipCount: 1, MaxResultCount: 50 })
-    if (resHotWords.data) {
-        hotWordsList.value = resHotWords.data.items
+    if (resHotWords && resHotWords.items) {
+        hotWordsList.value = resHotWords.items
     }
 })
 //获取分类数据
 const getData = async () => {
     var res = await GetTypeList()
-    if (res.data) {
-        res.data.forEach((item, index) => {
+    if (res && Array.isArray(res)) {
+        res.forEach((item) => {
             postCategoryList.push({
                 key: item.categoryId,
                 name: item.name,
@@ -297,8 +297,8 @@ const loadTopPosts = async () => {
     }
     try {
         var res = await GetList({ Type: activeKey.value, MaxResultCount: pageSize.value, isTop: true })
-        if (res.data) {
-            topPosts.value = res.data.items
+        if (res && res.items) {
+            topPosts.value = res.items
             // total.value = res.data.totalCount;
             topPosts.value.forEach((item, index) => {
                 if (item.categoryName) {
@@ -327,9 +327,9 @@ const loadPosts = async () => {
             MaxResultCount: pageSize.value,
             isTop: false,
         })
-        if (res.data) {
-            posts.value = res.data.items
-            total.value = res.data.totalCount
+        if (res && res.items) {
+            posts.value = res.items
+            total.value = res.totalCount
             posts.value.forEach((item, index) => {
                 if (item.categoryName) {
                     var arr = item.categoryName.split(',')

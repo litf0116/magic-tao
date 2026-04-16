@@ -83,9 +83,9 @@ const getLatestPosts = async () => {
             isTop: false, // 不包含置顶帖
         })
 
-        if (response.data && response.data.items) {
+        if (response && response.items) {
             // 处理返回的数据
-            newsList.value = response.data.items.map((post) => ({
+            newsList.value = response.items.map((post) => ({
                 id: post.postId,
                 text: post.title,
                 date: formatDate(post.createdAt),

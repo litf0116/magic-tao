@@ -39,7 +39,8 @@
                         <div class="mt-4">二维码已过期</div>
                         <div>
                             请
-                            <span class="cursor-pointer text-blue-400 underline" @click.stop="initQrLogin()">刷新</span> 后重试
+                            <span class="cursor-pointer text-blue-400 underline" @click.stop="initQrLogin()">刷新</span>
+                            后重试
                         </div>
                     </div>
                 </div>
@@ -125,22 +126,25 @@ async function initQrLogin() {
 
         interVal = setInterval(() => {
             console.log('[DEBUG initQrLogin] 轮询 QrToken, key:', res)
-            api.tokenAuth.qrToken({ key: res }).then(async (accessToken) => {
-                console.log('[DEBUG initQrLogin] QrToken 返回:', accessToken)
-                if (accessToken) {
-                    clearTimeout(expiredTimer)
-                    await userStore.SET_TOKEN(accessToken)
-                    const userInfo = await userStore.getUserInfo()
-                    clearInterval(interVal)
-                    if (userInfo?.user?.needProfileCompletion) {
-                        profileGuideRef.value?.show(userInfo.user.id)
-                    } else {
-                        navigateToHome()
+            api.tokenAuth
+                .qrToken({ key: res })
+                .then(async (accessToken) => {
+                    console.log('[DEBUG initQrLogin] QrToken 返回:', accessToken)
+                    if (accessToken) {
+                        clearTimeout(expiredTimer)
+                        await userStore.SET_TOKEN(accessToken)
+                        const userInfo = await userStore.getUserInfo()
+                        clearInterval(interVal)
+                        if (userInfo?.user?.needProfileCompletion) {
+                            profileGuideRef.value?.show(userInfo.user.id)
+                        } else {
+                            navigateToHome()
+                        }
                     }
-                }
-            }).catch((err) => {
-                console.error('[DEBUG initQrLogin] 轮询二维码登录状态失败:', err)
-            })
+                })
+                .catch((err) => {
+                    console.error('[DEBUG initQrLogin] 轮询二维码登录状态失败:', err)
+                })
         }, 2000)
     } catch (err) {
         console.error('[DEBUG initQrLogin] 初始化二维码登录失败:', err)
