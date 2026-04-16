@@ -1,20 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-/// 表情数据模型
-class ChatEmojiDto {
-  final int? id;
-  final String? url;
-
-  const ChatEmojiDto({this.id, this.url});
-
-  factory ChatEmojiDto.fromJson(Map<String, dynamic> json) {
-    return ChatEmojiDto(id: json['id'], url: json['url']);
-  }
-
-  Map<String, dynamic> toJson() {
-    return {'id': id, 'url': url};
-  }
-}
+import '../../data/repositories/chat_emoji_repository.dart';
+import '../../data/models/chat_emoji_model.dart' as model;
 
 /// 表情 Store - 与 UniApp chatEmojiStore 保持一致
 class ChatEmojiState {
@@ -249,3 +236,90 @@ class EmojiTextSegment {
 final chatEmojiStoreProvider = Provider<ChatEmojiState>((ref) {
   return const ChatEmojiState();
 });
+
+/// 收藏表情状态
+class UserEmojiState {
+  final List<model.ChatEmojiDto> userEmoji;
+  final bool isLoading;
+
+  const UserEmojiState({this.userEmoji = const [], this.isLoading = false});
+
+  UserEmojiState copyWith({
+    List<model.ChatEmojiDto>? userEmoji,
+    bool? isLoading,
+  }) {
+    return UserEmojiState(
+      userEmoji: userEmoji ?? this.userEmoji,
+      isLoading: isLoading ?? this.isLoading,
+    );
+  }
+}
+
+/// 收藏表情 Notifier
+class UserEmojiNotifier extends StateNotifier<UserEmojiState> {
+  final ChatEmojiRepository _repository = ChatEmojiRepository();
+  bool _initialized = false;
+
+  UserEmojiNotifier() : super(const UserEmojiState());
+
+  /// 初始化获取收藏表情（首次访问时调用）
+  Future<void> ensureInitialized() async {
+    if (!_initialized) {
+      _initialized = true;
+      await fetchUserEmoji();
+    }
+  }
+
+  /// 获取用户收藏的表情列表
+  Future<void> fetchUserEmoji() async {
+    state = state.copyWith(isLoading: true);
+    try {
+      final emojis = await _repository.getAll();
+      state = UserEmojiState(userEmoji: emojis, isLoading: false);
+    } catch (e) {
+      debugPrint('[UserEmojiNotifier] 获取收藏表情失败: $e');
+      state = state.copyWith(isLoading: false);
+    }
+  }
+
+  /// 添加收藏表情
+  Future<bool> addToEmoji(String url) async {
+    try {
+      final result = await _repository.create(url);
+      if (result != null) {
+        await fetchUserEmoji();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('[UserEmojiNotifier] 添加收藏表情失败: $e');
+      return false;
+    }
+  }
+
+  /// 删除收藏表情
+  Future<bool> removeEmoji(int id) async {
+    try {
+      final success = await _repository.delete(id);
+      if (success) {
+        await fetchUserEmoji();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('[UserEmojiNotifier] 删除收藏表情失败: $e');
+      return false;
+    }
+  }
+
+  /// 重新加载
+  Future<void> reload() async {
+    await fetchUserEmoji();
+  }
+}
+
+/// 收藏表情 Provider
+final userEmojiProvider =
+    StateNotifierProvider<UserEmojiNotifier, UserEmojiState>((ref) {
+      return UserEmojiNotifier();
+    });

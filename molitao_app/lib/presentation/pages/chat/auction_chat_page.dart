@@ -15,6 +15,7 @@ import '../../../data/repositories/user_repository.dart';
 import '../../../data/services/notification_permission_service.dart';
 import '../../../data/services/upload_service.dart';
 import '../../providers/auction_provider.dart';
+import '../../providers/chat_emoji_store.dart';
 import '../../providers/chat_store.dart';
 import '../../providers/user_provider.dart';
 import '../../widgets/chat/chat_input_area.dart';
@@ -427,6 +428,8 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
               ChatInputArea(
                 onSendText: _onSendText,
                 onSelectImage: _onPickImage,
+                showFavoriteTab: true,
+                onSelectFavoriteEmoji: _onSelectFavoriteEmoji,
               ),
             ],
           ),
@@ -736,8 +739,8 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 图片消息：收藏至表情
-            if (isImage && !isSelf) ...[
+            // 图片消息：收藏至表情（与 UniApp 一致，所有图片消息都可收藏）
+            if (isImage) ...[
               ListTile(
                 leading: const Icon(Icons.favorite_border),
                 title: const Text('收藏至表情'),
@@ -917,13 +920,74 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
 
   /// 收藏至表情（图片消息）
   Future<void> _addToFavorites(ChatMessage message) async {
-    // TODO: 实现收藏至表情功能
-    // 需要参考 UniApp 的 emojiStore.addToEmoji
-    if (mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('收藏功能开发中')));
+    final payload = message.payload;
+    if (payload == null) return;
+
+    // 获取图片 URL
+    String? imageUrl;
+    if (payload is Map<String, dynamic>) {
+      imageUrl = payload['url'] as String?;
+    } else if (payload is String) {
+      imageUrl = payload;
     }
+
+    if (imageUrl == null || imageUrl.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('无法获取图片地址')));
+      }
+      return;
+    }
+
+    try {
+      // 调用收藏表情 API
+      final success = await ref
+          .read(userEmojiProvider.notifier)
+          .addToEmoji(imageUrl);
+
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('已添加到收藏表情')));
+        } else {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('添加失败，请重试')));
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('添加失败: $e')));
+      }
+    }
+  }
+
+  /// 选择收藏表情发送（发送图片消息）
+  void _onSelectFavoriteEmoji(dynamic emoji) {
+    final url = emoji.url;
+    if (url == null || url.isEmpty) return;
+
+    // 构建 payload，与 UniApp 保持一致
+    final payload = {'url': url, 'width': 200, 'height': 200};
+
+    // 发送图片消息
+    ref
+        .read(chatStoreProvider.notifier)
+        .sendChannelMsg(
+          channel: _channel,
+          message: url,
+          type: ChatMessageType.image,
+          payload: payload,
+        );
+
+    // 滚动到底部
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
+    });
   }
 
   /// 从消息中提取拍品信息并显示详情

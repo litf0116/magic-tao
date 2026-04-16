@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:molitao_app/presentation/widgets/chat/emoji_picker.dart';
+import '../../../data/models/chat_emoji_model.dart';
 
 /// 聊天输入区域组件
 /// 包含：输入框、表情按钮、更多按钮、发送按钮
@@ -14,6 +15,12 @@ class ChatInputArea extends StatefulWidget {
   /// 选择表情回调
   final void Function(String emojiCode)? onSelectEmoji;
 
+  /// 选择收藏表情回调（发送收藏的图片表情）
+  final void Function(ChatEmojiDto emoji)? onSelectFavoriteEmoji;
+
+  /// 是否显示收藏标签
+  final bool showFavoriteTab;
+
   /// 输入框占位符
   final String placeholder;
 
@@ -25,6 +32,8 @@ class ChatInputArea extends StatefulWidget {
     this.onSendText,
     this.onSelectImage,
     this.onSelectEmoji,
+    this.onSelectFavoriteEmoji,
+    this.showFavoriteTab = false,
     this.placeholder = '发送消息',
     this.maxLength = 700,
   }) : super(key: key);
@@ -257,7 +266,11 @@ class _ChatInputAreaState extends State<ChatInputArea> {
   Widget _buildEmojiPanel() {
     return SizedBox(
       height: 200,
-      child: EmojiPicker(onEmojiSelected: _selectEmoji),
+      child: EmojiPicker(
+        onEmojiSelected: _selectEmoji,
+        onFavoriteEmojiSelected: widget.onSelectFavoriteEmoji,
+        showFavoriteTab: widget.showFavoriteTab,
+      ),
     );
   }
 

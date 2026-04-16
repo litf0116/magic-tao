@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../providers/chat_emoji_store.dart';
 import '../../providers/chat_store.dart';
 import '../../providers/user_provider.dart';
 import '../../../data/models/chat_message_model.dart';
@@ -188,6 +189,27 @@ class _PrivateChatPageState extends ConsumerState<PrivateChatPage> {
     }
   }
 
+  /// 选择收藏表情发送（发送图片消息）
+  void _onSelectFavoriteEmoji(dynamic emoji) {
+    final url = emoji.url;
+    if (url == null || url.isEmpty) return;
+
+    // 构建 payload
+    final payload = {'url': url, 'width': 200, 'height': 200};
+
+    // 发送图片消息
+    ref
+        .read(chatStoreProvider.notifier)
+        .sendDirectMsg(
+          toUserId: widget.friendId,
+          message: url,
+          type: ChatMessageType.image,
+          payload: payload,
+        );
+
+    _scrollToBottom();
+  }
+
   @override
   Widget build(BuildContext context) {
     final messages = ref.watch(currentChatMessagesProvider);
@@ -216,6 +238,8 @@ class _PrivateChatPageState extends ConsumerState<PrivateChatPage> {
               ChatInputArea(
                 onSendText: _onSendText,
                 onSelectImage: _onPickImage,
+                showFavoriteTab: true,
+                onSelectFavoriteEmoji: _onSelectFavoriteEmoji,
               ),
             ],
           ),
