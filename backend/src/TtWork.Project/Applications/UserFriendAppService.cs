@@ -13,13 +13,15 @@ using TtWork.Abp;
 using TtWork.Abp.Applications.Dtos;
 using TtWork.Abp.Caches;
 using TtWork.Project.Domains;
+using TtWork.Project.Services.Messaging;
 
 namespace TtWork.Project.Applications;
 
 [AbpAuthorize]
 public class UserFriendAppService(
     IRepository<UserFriend> repository,
-    UserCache userCache
+    UserCache userCache,
+    IMessageSendingService messageSendingService
 ) : AbpAppServiceBase {
     [HttpGet]
     public async Task AddFriend(long id) {
@@ -56,10 +58,7 @@ public class UserFriendAppService(
 
         return new ListResultDto<UserDtoBase>(result);
     }
-    /// <summary>
-    /// 获取好友添加记录数量
-    /// </summary>
-    /// <returns></returns>
+
     [HttpGet]
     [DisableAuditing]
     public async Task<object> GetUserFriendCount()
@@ -77,11 +76,16 @@ public class UserFriendAppService(
         if (entity == null)
             throw new UserFriendlyException("记录不存在");
 
-        if (status == true) //同意好友
-        {
+        if (entity.Status)
+            throw new UserFriendlyException("该好友请求已处理");
+
+        var senderUser = await userCache.GetAsync(userId);
+        var friendUser = await userCache.GetAsync(id);
+        var senderName = senderUser?.Name ?? "用户";
+
+        if (status) {
             entity.Status = true;
 
-            //对方
             var t = await repository.FirstOrDefaultAsync(x => x.UserId == id && x.FriendId == userId);
             if (t != null) {
                 t.Status = true;
@@ -94,12 +98,27 @@ public class UserFriendAppService(
                 });
             }
 
-            //TODO:同意好友后发送消息
+            await CurrentUnitOfWork.SaveChangesAsync();
+
+            if (friendUser != null) {
+                await messageSendingService.SendSystemPrivateMessageAsync(id, new ChatMessage {
+                    type = ChatMessageType.Text,
+                    msg = $"\"{senderName}\" 已同意你的好友请求",
+                    to = id
+                });
+            }
         }
         else {
-            await repository.DeleteAsync(entity);
+            if (friendUser != null) {
+                await messageSendingService.SendSystemPrivateMessageAsync(id, new ChatMessage {
+                    type = ChatMessageType.Text,
+                    msg = $"\"{senderName}\" 拒绝了你的好友请求",
+                    to = id
+                });
+            }
 
-            //TODO:拒绝好友后发送消息
+            await repository.DeleteAsync(entity);
+            await CurrentUnitOfWork.SaveChangesAsync();
         }
     }
 }

@@ -434,10 +434,15 @@ namespace TtWork.Project.Controllers
             // 生成序列号
             var sequenceNumber = await messageSequenceService.GetNextSequenceNumberForPrivateAsync(input.From, input.To);
 
-            //TODO 判断是否是好友,管理员可以随便发送
-            //var loginUser = 发送者;
-            //var recieveUser = User.Get(receiveWebsocketId);
-            //if (loginUser.好友 != recieveUser) throw new Exception("不是好友");
+            if (!isChatAdmin.Item1)
+            {
+                var isFriend = await userFriendRepository.GetAll()
+                    .AnyAsync(x => x.UserId == input.From && x.FriendId == input.To && x.Status);
+                if (!isFriend)
+                {
+                    throw new UserFriendlyException("对方不是你的好友，无法发送消息");
+                }
+            }
             #region 设置用户群聊等级信息
             //群聊等级信息
             var groupChatLevel = await _sqlSugarClient.Queryable<GroupChatLevelSettingsEntity>().FirstAsync(f => f.Level == 0);
