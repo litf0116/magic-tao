@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../providers/current_route_provider.dart';
 import '../../data/services/push_service.dart';
 
@@ -73,14 +74,30 @@ class _PushNotificationBannerState
 
     debugPrint('[PushBanner] 点击查看详情: ${message.extras}');
 
-    // 根据类型跳转
     final type = message.type;
     final auctionItemId = message.auctionItemId;
+    final path = message.path;
 
-    if (auctionItemId != null && auctionItemId.isNotEmpty) {
-      // 跳转到拍品详情页
-      // TODO: 实现跳转逻辑
-      debugPrint('[PushBanner] 跳转拍品: $auctionItemId');
+    if (path != null && path.isNotEmpty) {
+      context.push(path);
+    } else if (auctionItemId != null && auctionItemId.isNotEmpty) {
+      context.push('/chat/auction');
+    } else if (type == 'auction') {
+      context.push('/chat/auction');
+    } else if (type == 'chat' && message.extras['chatId'] != null) {
+      final chatId = message.extras['chatId'];
+      final chatType = message.extras['chatType'] ?? 'private';
+      final chatName = message.extras['chatName'] ?? '聊天';
+
+      if (chatType == 'group') {
+        context.push(
+          '/chat/group/$chatId?name=${Uri.encodeComponent(chatName)}',
+        );
+      } else {
+        context.push(
+          '/chat/private/$chatId?name=${Uri.encodeComponent(chatName)}',
+        );
+      }
     }
 
     _dismiss();

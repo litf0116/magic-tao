@@ -7,6 +7,8 @@ class NavigationService {
 
   NavigationService._internal();
 
+  GoRouter? get router => _router;
+
   void setRouter(GoRouter router) {
     _router = router;
   }
