@@ -242,7 +242,7 @@ const onUserGroupLevel = async (dto: any) => {
     groupChatLeve.form.userId = dto.id
     await GetUserGroupLevel(dto.id).then((res: any) => {
         groupChatLeve.show = true
-        groupChatLeve.form.cumulativeAmount = res.data != null ? res.data.cumulativeAmount : 0
+        groupChatLeve.form.cumulativeAmount = res != null ? res.cumulativeAmount : 0
     })
 }
 
