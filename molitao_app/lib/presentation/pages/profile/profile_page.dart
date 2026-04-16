@@ -513,26 +513,6 @@ class _DepositBottomSheet extends StatefulWidget {
 }
 
 class _DepositBottomSheetState extends State<_DepositBottomSheet> {
-  final PaymentRepository _paymentRepository = PaymentRepository();
-  bool _isLoading = false;
-
-  Future<void> _handleDeposit() async {
-    setState(() => _isLoading = true);
-
-    try {
-      // TODO: Flutter App 需要先获取 openid 才能调用支付
-      // 目前显示"功能马上上线"
-      _showMessage('充值功能正在配置中，即将上线！');
-      Navigator.of(context).pop();
-    } catch (e) {
-      _showMessage('充值失败: ${e.toString()}');
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
-
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
@@ -601,11 +581,47 @@ class _DepositBottomSheetState extends State<_DepositBottomSheet> {
             ),
             const SizedBox(height: 24),
 
-            // 支付按钮
+            // PC 端充值引导
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.orange[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.orange[200]!),
+              ),
+              child: Column(
+                children: [
+                  const Icon(
+                    Icons.computer,
+                    size: 40,
+                    color: Color(0xfff4835a),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    '请前往 PC 端充值',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    '网站地址：www.molitao.top',
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '保证金金额：¥$_depositAmount',
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // 关闭按钮
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _isLoading ? null : _handleDeposit,
+                onPressed: () => Navigator.of(context).pop(),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xfff4835a),
                   foregroundColor: Colors.white,
@@ -614,25 +630,7 @@ class _DepositBottomSheetState extends State<_DepositBottomSheet> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: _isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
-                          ),
-                        ),
-                      )
-                    : const Text('确认充值', style: TextStyle(fontSize: 16)),
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Center(
-              child: Text(
-                '支付方式：微信支付',
-                style: TextStyle(color: Colors.grey, fontSize: 12),
+                child: const Text('我知道了', style: TextStyle(fontSize: 16)),
               ),
             ),
           ],
