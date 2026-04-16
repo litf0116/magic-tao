@@ -109,7 +109,7 @@
 import { onLoad, onShow, onUnload } from '@dcloudio/uni-app'
 import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
 import { Goto } from '@/composables/goto'
-import { orderBy } from 'lodash'
+import { orderBy } from 'lodash-es'
 import { getImgUrl } from '@/composables'
 import dayjs from 'dayjs'
 import type { ChatListItem, ChatMessage } from '@/composables/types'

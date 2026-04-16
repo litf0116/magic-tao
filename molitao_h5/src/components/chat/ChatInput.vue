@@ -36,12 +36,14 @@
         
         <EmojiPanel 
             v-if="showEmojiPanel" 
-            @select-emoji="insertEmoji"
+            :visible="showEmojiPanel"
+            @select="insertEmoji"
             @close="showEmojiPanel = false"
         />
         
         <ActionPanel 
             v-if="showActionPanel"
+            :visible="showActionPanel"
             @send-image="$emit('sendImage')"
             @send-file="$emit('sendFile')"
             @send-location="$emit('sendLocation')"
@@ -85,6 +87,7 @@ const toggleEmojiPanel = () => {
 
 const insertEmoji = (emoji: string) => {
     messageText.value += emoji
+    showEmojiPanel.value = false
 }
 
 const onInputFocus = () => {

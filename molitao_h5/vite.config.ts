@@ -40,7 +40,7 @@ export default defineConfig(async () => ({
                 manualChunks: {
                     'vendor-core': ['vue', 'pinia', '@vueuse/core'],
                     'vendor-ui': ['@climblee/uv-ui', '@dcloudio/uni-ui'],
-                    'vendor-utils': ['dayjs', 'lodash'],
+                    'vendor-utils': ['dayjs', 'lodash-es'],
                     'vendor-chat': ['z-paging'],
                 },
             },
