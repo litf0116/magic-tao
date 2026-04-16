@@ -500,6 +500,14 @@ export const useChatStore = defineStore('chat', () => {
                 }
             }
         }
+
+        // 处理拍卖开始消息，刷新拍品列表
+        if (msg.type === ChatMessageType.AuctionStart && msg.payload) {
+            console.log('检测到拍卖开始消息，刷新拍品列表', msg.payload)
+            if (currentChat.value.id === -1) {
+                auctionStore.getList()
+            }
+        }
     }
 
     const getGropus = function () {
