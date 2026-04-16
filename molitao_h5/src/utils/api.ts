@@ -57,7 +57,7 @@ const request = (
         url: _url,
         data: data,
         method: method,
-        timeout: 300000,
+        timeout: 30000,
         header: {
             'Abp.Tenantid': 1,
             'content-type': 'application/json',

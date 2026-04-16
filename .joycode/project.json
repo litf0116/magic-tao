@@ -1,0 +1,23 @@
+{
+  "id": 56561,
+  "name": "magic-tao",
+  "abbrName": "MA",
+  "description": "",
+  "devMode": 2,
+  "status": null,
+  "url": null,
+  "databaseHost": null,
+  "databasePort": null,
+  "databaseName": null,
+  "databaseUsername": null,
+  "databasePassword": null,
+  "projectInfo": {
+    "JOYCODE": {
+      "jd_4388e70f66d6e": [
+        {
+          "jd_4388e70f66d6e": 56561
+        }
+      ]
+    }
+  }
+}

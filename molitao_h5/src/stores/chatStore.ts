@@ -1,6 +1,6 @@
 import api from '@/utils/api'
 import { defineStore } from 'pinia'
-import { uniqBy, orderBy } from 'lodash'
+import { uniqBy, orderBy } from 'lodash-es'
 import { useEventBus } from '@vueuse/core'
 import {
     ChatMessageStatus,

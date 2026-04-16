@@ -4,7 +4,7 @@ import AutoImport from 'unplugin-auto-import/vite'
 import UnoCSS from 'unocss/vite'
 import UniLayouts from '@uni-helper/vite-plugin-uni-layouts'
 
-export default defineConfig({
+export default defineConfig(async () => ({
     publicDir: 'public',
     base: './',
     define: {
@@ -37,7 +37,12 @@ export default defineConfig({
         },
         rollupOptions: {
             output: {
-                manualChunks: undefined,
+                manualChunks: {
+                    'vendor-core': ['vue', 'pinia', '@vueuse/core'],
+                    'vendor-ui': ['@climblee/uv-ui', '@dcloudio/uni-ui'],
+                    'vendor-utils': ['dayjs', 'lodash'],
+                    'vendor-chat': ['z-paging'],
+                },
             },
         },
     },
@@ -47,12 +52,12 @@ export default defineConfig({
         // }),
         UniLayouts(),
         uni(),
-        //     {
-        //       name: "test",
-        //       configResolved(config) {
-        //         console.log("config.resolve.alias", config.resolve.alias);
-        //       },
-        //     },
+        //     {
+        //       name: "test",
+        //       configResolved(config) {
+        //         console.log("config.resolve.alias", config.resolve.alias);
+        //       },
+        //     },
         UnoCSS(),
         AutoImport({
             // targets to transform
@@ -68,7 +73,14 @@ export default defineConfig({
             // defaultExportByFilename: true,
             dts: './auto-imports.d.ts',
         }),
-    ],
+        // Bundle analyzer - only enable when needed (ESM dynamic import)
+        process.env.ANALYZE === 'true' && (await import('rollup-plugin-visualizer')).visualizer({
+            filename: './dist/stats.html',
+            open: true,
+            gzipSize: true,
+            brotliSize: true,
+        }),
+    ].filter(Boolean),
     css: {
         preprocessorOptions: {
             scss: {
@@ -78,6 +90,6 @@ export default defineConfig({
         },
     },
     esbuild: {
-        // drop: ['console', 'debugger'],
+        drop: ['console', 'debugger'],
     },
-})
+}))

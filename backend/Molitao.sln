@@ -128,4 +128,7 @@ Global
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E9F1E456-367A-49C4-B2F0-591961B5A1B4}
 	EndGlobalSection
+	GlobalSection(RiderSharedRunConfigurations) = postSolution
+		File = ..\..\casserole-system\casserole-server\.run\AdminApplication.run.xml
+	EndGlobalSection
 EndGlobal
