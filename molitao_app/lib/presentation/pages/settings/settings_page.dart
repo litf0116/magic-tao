@@ -90,7 +90,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   _buildListTile(
                     icon: Icons.info_outline,
                     title: '关于我们',
-                    onTap: () => _showAboutDialog(context),
+                    onTap: () => context.push('/profile/about'),
                     showArrow: true,
                   ),
                   _buildDivider(),
@@ -372,42 +372,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   context,
                 ).showSnackBar(const SnackBar(content: Text('缓存已清除')));
               },
-              child: const Text(
-                '确定',
-                style: TextStyle(color: Color(0xfff4835a)),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showAboutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('关于我们'),
-          content: const Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '魔力淘',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 8),
-              Text('在线拍卖交易平台'),
-              SizedBox(height: 8),
-              Text('专注于游戏虚拟物品的实时秒杀拍卖'),
-              SizedBox(height: 16),
-              Text('版本：v1.0.0'),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
               child: const Text(
                 '确定',
                 style: TextStyle(color: Color(0xfff4835a)),

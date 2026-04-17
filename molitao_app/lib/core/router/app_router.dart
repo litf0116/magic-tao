@@ -18,6 +18,7 @@ import '../../presentation/pages/user/auction_success_list_page.dart';
 import '../../presentation/pages/announce/announce_list_page.dart';
 import '../../presentation/pages/auth/login_page.dart';
 import '../../presentation/pages/settings/settings_page.dart';
+import '../../presentation/pages/about/about_page.dart';
 
 import '../../presentation/providers/auth_notifier.dart';
 
@@ -168,6 +169,11 @@ GoRouter _createRouter(AuthNotifier authNotifier) {
                     path: 'settings',
                     name: 'settings',
                     builder: (context, state) => const SettingsPage(),
+                  ),
+                  GoRoute(
+                    path: 'about',
+                    name: 'about',
+                    builder: (context, state) => const AboutPage(),
                   ),
                 ],
               ),
