@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../data/api/api_client.dart';
 import '../../../data/api/api_endpoints.dart';
 
@@ -47,7 +49,10 @@ class _AboutPageState extends ConsumerState<AboutPage> {
     try {
       final response = await ApiClient().dio.get(
         ApiEndpoints.checkUpdate,
-        queryParameters: {'platform': 'android', 'version': _appVersion},
+        queryParameters: {
+          'platform': Platform.isIOS ? 'ios' : 'android',
+          'version': _appVersion,
+        },
       );
 
       if (response.data != null && response.data['success'] == true) {
@@ -187,22 +192,42 @@ class _AboutPageState extends ConsumerState<AboutPage> {
     );
   }
 
-  void _downloadUpdate() {
+  Future<void> _downloadUpdate() async {
     final downloadUrl = _updateInfo?['downloadUrl'];
     if (downloadUrl != null && downloadUrl.toString().isNotEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('正在跳转到下载页面...'),
-          backgroundColor: Color(0xfff4835a),
-        ),
-      );
+      try {
+        final uri = Uri.parse(downloadUrl.toString());
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('无法打开下载链接'),
+                backgroundColor: Color(0xffF44336),
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('下载失败: $e'),
+              backgroundColor: const Color(0xffF44336),
+            ),
+          );
+        }
+      }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('暂无下载地址，请稍后重试'),
-          backgroundColor: Color(0xffFF9800),
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('暂无下载地址，请稍后重试'),
+            backgroundColor: Color(0xffFF9800),
+          ),
+        );
+      }
     }
   }
 

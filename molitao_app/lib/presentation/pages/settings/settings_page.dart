@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'dart:io';
 import '../../providers/user_provider.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
@@ -12,8 +16,84 @@ class SettingsPage extends ConsumerStatefulWidget {
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
   bool _pushNotificationEnabled = true;
-  String _cacheSize = '12.5MB';
-  final String _appVersion = 'v1.0.0';
+  String _cacheSize = '计算中...';
+  String _appVersion = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+    _calculateCacheSize();
+    _loadAppVersion();
+  }
+
+  Future<void> _loadAppVersion() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      if (mounted) {
+        setState(() {
+          _appVersion = 'v${packageInfo.version}';
+        });
+      }
+    } catch (e) {
+      debugPrint('Failed to get package info: $e');
+    }
+  }
+
+  Future<void> _loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _pushNotificationEnabled =
+          prefs.getBool('push_notification_enabled') ?? true;
+    });
+  }
+
+  Future<void> _savePushNotificationSetting(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('push_notification_enabled', value);
+  }
+
+  Future<void> _calculateCacheSize() async {
+    try {
+      final cacheDir = await getTemporaryDirectory();
+      final size = await _getDirSize(cacheDir);
+      setState(() {
+        _cacheSize = _formatBytes(size);
+      });
+    } catch (e) {
+      setState(() {
+        _cacheSize = '未知';
+      });
+    }
+  }
+
+  Future<int> _getDirSize(Directory dir) async {
+    int size = 0;
+    try {
+      if (await dir.exists()) {
+        await for (final entity in dir.list(
+          recursive: true,
+          followLinks: false,
+        )) {
+          if (entity is File) {
+            size += await entity.length();
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error calculating cache size: $e');
+    }
+    return size;
+  }
+
+  String _formatBytes(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    if (bytes < 1024 * 1024 * 1024) {
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    }
+    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,6 +146,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       setState(() {
                         _pushNotificationEnabled = value;
                       });
+                      _savePushNotificationSetting(value);
                     },
                   ),
                 ],
@@ -314,16 +395,24 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                oldPasswordController.dispose();
-                newPasswordController.dispose();
-                confirmPasswordController.dispose();
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
               child: const Text('取消'),
             ),
             TextButton(
               onPressed: () {
+                if (newPasswordController.text.isEmpty ||
+                    oldPasswordController.text.isEmpty) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('请填写完整信息')));
+                  return;
+                }
+                if (newPasswordController.text.length < 6) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('密码长度不能少于6位')));
+                  return;
+                }
                 if (newPasswordController.text !=
                     confirmPasswordController.text) {
                   ScaffoldMessenger.of(
@@ -331,9 +420,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   ).showSnackBar(const SnackBar(content: Text('两次输入的密码不一致')));
                   return;
                 }
-                oldPasswordController.dispose();
-                newPasswordController.dispose();
-                confirmPasswordController.dispose();
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(
                   context,
@@ -347,7 +433,43 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ],
         );
       },
-    );
+    ).then((_) {
+      oldPasswordController.dispose();
+      newPasswordController.dispose();
+      confirmPasswordController.dispose();
+    });
+  }
+
+  Future<void> _clearCache() async {
+    try {
+      final cacheDir = await getTemporaryDirectory();
+      if (await cacheDir.exists()) {
+        await for (final entity in cacheDir.list(
+          recursive: true,
+          followLinks: false,
+        )) {
+          if (entity is File) {
+            try {
+              await entity.delete();
+            } catch (e) {
+              debugPrint('Failed to delete file: $e');
+            }
+          }
+        }
+      }
+      await _calculateCacheSize();
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('缓存已清除')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('清除缓存失败: $e')));
+      }
+    }
   }
 
   void _showClearCacheDialog(BuildContext context) {
@@ -356,7 +478,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('清除缓存'),
-          content: const Text('确定要清除缓存吗？'),
+          content: Text('确定要清除缓存吗？\n当前缓存: $_cacheSize'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -365,12 +487,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                setState(() {
-                  _cacheSize = '0.0MB';
-                });
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text('缓存已清除')));
+                _clearCache();
               },
               child: const Text(
                 '确定',
