@@ -1,0 +1,65 @@
+功能模块,功能名称,功能描述,后端API/服务,前端页面/组件,优先级,状态
+拍卖核心,创建拍卖商品,创建新的拍卖商品，包含名称、图片、描述、起拍价、卖家信息,AuctionItemAppService.CreateAsync, AuctionItemCreateOrUpdateDto,高,已完成
+拍卖核心,上架拍卖商品,将拍卖商品状态设置为上架/拍卖中,AuctionItemAppService.UpdateAsync, AuctionItemCreateOrUpdateDto,高,已完成
+拍卖核心,获取拍卖列表,获取所有拍卖商品列表（含分页、筛选）,AuctionItemAppService.GetAllAsync,AuctionList.vue/auctionList.vue,高,已完成
+拍卖核心,获取拍卖详情,获取单个拍卖商品的详细信息,AuctionItemAppService.GetDetail,auctionItemDetail.vue,高,已完成
+拍卖核心,出价,用户对拍卖商品进行出价,Bid + AuctionItemAppService.Bid,BidHistoryCreateDto,高,已完成
+拍卖核心,取消出价,取消当前出价并回退到上一出价人,RollBackAuctionEvent,暂无,中,待实现
+拍卖核心,定时结束拍卖,定时任务自动结束拍卖,Scheduler + AuctionItemAppService.Callback,无,高,已完成
+拍卖核心,手动结束拍卖,管理手动结束拍卖,AuctionItemAppService.EndAuction,无,高,已完成
+拍卖核心,卡秒功能,卡秒模式下最后5分钟出价延长的特殊规则,KasecMode + MemoryCache,无,高,已完成
+拍卖核心,流拍处理,无人出价时自动回退到上架状态,AuctionItemAppService.Callback,无,高,已完成
+拍卖核心,拍卖状态管理,拍卖状态流转：草稿->上架->拍卖中->已成交->交易成功,AuctionStatusEnum,无,高,已完成
+拍卖核心,出价资格检查服务,检查用户是否有出价资格,BidEligibilityService.CheckBidEligibilityAsync,BidEligibilityInput,高,已完成
+拍卖核心,出价记录查询,获取拍卖出价历史记录,BidHistoryAppService.GetAllAsync,BidHistoryDto,中,已完成
+用户系统,用户注册/登录,微信一键登录,UserAppService + WechatAuth,user/login,高,已完成
+用户系统,用户信息管理,获取/更新用户信息,UserAppService.GetAsync,user/profile,高,已完成
+用户系统,用户群聊等级,根据累计出价金额自动升级群聊等级,GroupChatLevelSettingsService + AuctionItemAppService.AddUserGroupChatLevelIncrement,GroupChatLevelSettingsEntity,高,已完成
+用户系统,群聊等级设置管理,配置不同的群聊等级及其所需金额,GroupChatLevelSettingsService,暂无,高,已完成
+用户系统,用户黑名单,禁止被拉黑用户参与拍卖,AuctionItemAppService.BanedUserRepository,暂无,中,已完成
+用户系统,出价通知订阅,订阅拍卖开拍/出价通知,AuctionItemAppService.SubStartNotify,订阅按钮,中,已完成
+支付系统,保证金支付,缴纳参与拍卖的保证金,PayOrder.CreateDepositPay + TenPayNotifyJob,deposit/pay,中,待实现
+支付系统,充值,用户账户充值,PayOrder.CreateTopUpPay + TenPayNotifyJob,recharge,中,待实现
+支付系统,支付订单创建,创建微信支付订单,PayOrder + WechatPayNotify,无,高,已完成
+支付系统,支付回调处理,微信支付成功回调通知,PayNotifyAppService + TenPayNotifyJob,无,高,已完成
+支付系统,退款处理,支持退款/部分退款/全额退款,PayOrder.Refund/RefundComplate,无,中,待实现
+支付系统,订单状态管理,支付订单状态流转：未支付->已支付/退款中/已退款,PayState,无,高,已完成
+消息通知,微信模板消息,发送微信服务号模板消息,MessageSendCommand.WechatTemplate,订阅通知,高,已完成
+消息通知,极光推送,App端推送通知,JPushService.SendByAliasAsync,推送通知,高,已完成
+消息通知,WebPush,H5端浏览器推送通知,WebPushService.SendPushAsync,推送通知,高,已完成
+消息通知,拍卖开始通知,拍卖开始时通知订阅用户,AuctionItemAppService.Notify,无,高,已完成
+消息通知,出价通知,有人出价时通知订阅用户,AuctionItemAppService.Notify,无,高,已完成
+消息通知,拍卖成功消息,拍卖成交时发送群通知,ChatMessageType.AuctionEnd,auction_end_message.vue,高,已完成
+消息通知,拍卖成功私信,拍卖成交后发送私信给买家,ChatMessageType.AuctionDeal,auction_deal_message.vue,高,已完成
+消息通知,卡秒状态变更,卡秒开启/关闭时发送通知,ChatMessageType.KasecStatusChanged,无,高,已完成
+消息通知,SignalR实时消息,实时推送聊天消息,MessageAppService.SendChannelMessageAsync,无,高,已完成
+消息通知,消息已读未读,标记消息已读状态,ChatListCacheService,暂无,中,已完成
+消息通知,消息删除,标记删除聊天记录,ChatListDeleteRepository,暂无,中,已完成
+即时聊天,私聊消息,用户之间的私聊消息,MessageAppService.SendPrivateMessageAsync,chat/private,高,已完成
+即时聊天,群聊消息,拍卖专区的群聊消息,MessageAppService.SendChannelMessageAsync,chat/auction,高,已完成
+即时聊天,聊天记录查询,查询历史聊天记录,MessageAppService.GetListAsync,chat/history,高,已完成
+即时聊天,WebSocket连接,实时消息推送,WebsocketController + SignalR,无,高,已完成
+即时聊天,聊天列表管理,获取用户的聊天列表,ChatListCacheService,chat/list,高,已完成
+缓存系统,拍卖商品缓存,拍卖商品详情缓存,AuctionItemCacheService.GetAuctionDetailAsync,无,高,已完成
+缓存系统,拍卖列表缓存,拍卖商品列表缓存,AuctionItemCacheService.GetAuctionListAsync,无,高,已完成
+缓存系统,用户群聊等级缓存,群聊等级缓存,GroupChatLevelCacheService,无,高,已完成
+缓存系统,用户信息缓存,用户信息缓存,UserCache,无,高,已完成
+缓存系统,缓存清理机制,出价/结束拍卖时清除相关缓存,AuctionItemCacheManager,无,高,已完成
+后台管理,拍卖商品管理,后台增删改查拍卖商品,AuctionItemAppService.CRUD,admin/auction,高,已完成
+后台管理,拍卖统计,拍卖数据统计分析,暂无,admin/statistics,中,待实现
+后台管理,用户管理,后台用户管理,UserAppService,admin/user,高,已完成
+后台管理,角色管理,管理员/拍卖师角色管理,RoleAppService,admin/role,高,已完成
+后台管理,权限管理,基于ABP的权限系统,AppPermissions,admin/permission,高,已完成
+商品管理,商品图片,拍卖商品主图支持多图,AuctionItem.ImageUrl,auction/image,高,已完成
+商品管理,商品描述,拍卖商品详细介绍,AuctionItem.Description,auction/description,高,已完成
+商品管理,卖家信息,拍卖卖家联系方式,AuctionItem.SellerInfo,auction/sellerInfo,高,已完成
+商品管理,排序字段,控制拍卖商品显示顺序,AuctionItem.Order,无,高,已完成
+小程序,首页拍卖列表,小程序端拍卖列表页,UniApp API,pages/chat/auction,高,已完成
+小程序,拍卖详情页,小程序端拍卖详情页,UniApp API,pages/chat/auction,高,已完成
+小程序,我的拍卖成功,小程序端拍卖成功列表,UniApp API,pages/user/auctionSuccessList,高,已完成
+PC端,PC端拍卖列表,PC端拍卖列表页,PC API,pc/src/views/chat/auction.vue,高,已完成
+PC端,PC端拍卖详情,PC端拍卖详情页,PC API,pc/src/components/Chat/auctionItemDetail.vue,高,已完成
+H5端,H5端拍卖列表,H5端拍卖列表页,H5 API,molitao_h5/pages/chat/auction,高,已完成
+H5端,H5端拍卖详情,H5端拍卖详情页,H5 API,molitao_h5/components/chat/auctionList,高,已完成
+App端,Flutter拍卖列表,App端拍卖列表页,Flutter API,molitao_app/lib/presentation/pages/chat/auction_chat_page.dart,高,已完成
+App端,Flutter拍卖消息,App端拍卖相关消息组件,Flutter API,molitao_app/lib/presentation/widgets/chat/messages/*,高,已完成
