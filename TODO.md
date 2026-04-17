@@ -64,7 +64,7 @@
 
 | 编号 | 功能 | 文件位置 | 问题描述 | 预估工时 |
 |:----:|------|----------|----------|:--------:|
-| A-007 | 群设置页面 | `presentation/pages/chat/group_chat_page.dart:246` | 群聊管理功能未实现 | 4h |
+| A-007 | 群设置页面 | `presentation/pages/chat/group_chat_page.dart:268` | ⏸️ 搁置 - 后端缺少群公告、禁言、管理员权限等功能，暂不需要 | 待后端扩展 |
 | A-008 | 收藏表情功能 | `presentation/pages/chat/auction_chat_page.dart:920` | ✅ 已完成 - 支持长按图片收藏、表情面板发送、长按删除 | 3h |
 | A-009 | 设置页面 | `presentation/pages/settings/settings_page.dart` | ✅ 已完成 - 账户管理、消息通知、通用设置、退出登录 | 完成 |
 | A-010 | 关于我们页面 | `presentation/pages/about/about_page.dart` | ✅ 已完成 - 应用信息、版本号、检查更新、用户协议、隐私政策 | 完成 |
