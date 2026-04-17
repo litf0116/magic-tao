@@ -67,8 +67,8 @@
 | A-007 | 群设置页面 | `presentation/pages/chat/group_chat_page.dart:246` | 群聊管理功能未实现 | 4h |
 | A-008 | 收藏表情功能 | `presentation/pages/chat/auction_chat_page.dart:920` | ✅ 已完成 - 支持长按图片收藏、表情面板发送、长按删除 | 3h |
 | A-009 | 设置页面 | `presentation/pages/settings/settings_page.dart` | ✅ 已完成 - 账户管理、消息通知、通用设置、退出登录 | 完成 |
-| A-010 | 关于我们页面 | 缺失 | 应用信息、版本号、联系方式 | 2h |
-| A-011 | 版本更新提示 | 缺少 UI | checkUpdate API 已有，缺提示 UI | 3h |
+| A-010 | 关于我们页面 | `presentation/pages/about/about_page.dart` | ✅ 已完成 - 应用信息、版本号、检查更新、用户协议、隐私政策 | 完成 |
+| A-011 | 版本更新提示 | `presentation/pages/about/about_page.dart` | ✅ 已完成 - 检查更新 API 集成、更新弹窗 UI、强制更新支持 | 完成 |
 | A-012 | 表情包选择器 | `presentation/widgets/chat/emoji_picker.dart` | ✅ 已完成 - 支持系统表情和收藏表情切换 | 4h |
 
 **中优先级小计：16 项，预估 67 小时**
