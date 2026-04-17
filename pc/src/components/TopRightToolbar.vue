@@ -134,11 +134,7 @@
 
                     <div class="panel-content">
                         <div class="qr-wrapper">
-                            <img
-                                src="https://image.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png!w300"
-                                alt="扫码下载"
-                                class="qr-code"
-                            />
+                            <img :src="downloadQrCode" alt="扫码下载" class="qr-code" />
                             <span class="qr-hint">扫码下载</span>
                         </div>
                         <el-button type="primary" class="goto-btn" @click="goToDownloadPage">
@@ -217,7 +213,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import {
     Wallet,
@@ -254,6 +250,12 @@ const countdown = ref(300)
 const error = ref('')
 const orderNo = ref('')
 const latestVersion = ref<VersionInfo | null>(null)
+
+// 下载页面二维码
+const downloadQrCode = computed(() => {
+    const pageUrl = `${window.location.origin}/app-download`
+    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(pageUrl)}`
+})
 
 // 定时器
 let pollTimer: number | null = null

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -6,9 +7,12 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../data/models/announce_model.dart';
 import '../../../data/models/auction_item_model.dart';
 import '../../../data/models/chat_message_model.dart';
+import '../../../data/repositories/announce_repository.dart';
 import '../../../data/repositories/chat_repository.dart';
 import '../../../data/repositories/friend_repository.dart';
 import '../../../data/repositories/user_repository.dart';
@@ -36,12 +40,19 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   final ScrollController _scrollController = ScrollController();
   final ImagePicker _imagePicker = ImagePicker();
   final UploadService _uploadService = UploadService();
+  final AnnounceRepository _announceRepository = AnnounceRepository();
 
   // UI 状态
   bool _showAuctionList = false;
   bool _showUnreadNotification = false;
   bool _isUploadingImage = false;
   bool _isLoadingMessages = false;
+
+  // 公告相关状态
+  AnnounceDto? _currentAnnounce;
+  bool _showAnnouncementDialog = false;
+  static const String _auctionNoticeKey = 'auctionNotice';
+  static const int _announceCategoryId = 2;
 
   // 历史消息加载状态
   bool _isLoadingHistory = false;
@@ -96,6 +107,9 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
           .setCurrentChatId(_channelId, name: _channelName);
 
       await ref.read(chatStoreProvider.notifier).joinChannel(_channel);
+
+      // 获取秒杀场公告
+      _loadAnnouncement();
 
       setState(() => _isLoadingMessages = true);
       await ref.read(chatStoreProvider.notifier).getGroupHistory(_channel);
@@ -308,80 +322,174 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
     }
   }
 
-  void _showBidDialog() {
+  /// 计算最低出价（与 UniApp calculateMinBidPrice 保持一致）
+  int _calculateMinBidPrice(double currentPrice, bool isKasec) {
+    int minPrice = 5;
+
+    if (currentPrice > 0) {
+      if (currentPrice < 100) {
+        minPrice = (currentPrice + 5).toInt();
+      } else if (currentPrice < 1000) {
+        minPrice = (currentPrice + 5).toInt();
+      } else if (currentPrice < 2000) {
+        minPrice = (currentPrice + 10).toInt();
+      } else if (currentPrice < 5000) {
+        minPrice = (currentPrice + 20).toInt();
+      } else if (currentPrice < 10000) {
+        minPrice = (currentPrice + 50).toInt();
+      } else {
+        minPrice = (currentPrice + 100).toInt();
+      }
+    }
+
+    // 卡秒模式下，最低价格增幅为普通模式的3倍
+    if (isKasec) {
+      minPrice = (currentPrice + (minPrice - currentPrice) * 3).toInt();
+    }
+
+    return minPrice;
+  }
+
+  /// 显示出价对话框（参照 UniApp auction.vue bid() 函数）
+  Future<void> _showBidDialog() async {
     final auctionState = ref.read(auctionProvider);
     final onAuctionItem = auctionState.onAuctionItem;
 
-    if (onAuctionItem == null) {
+    if (onAuctionItem == null || onAuctionItem.id == null) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('没有正在秒杀的商品')));
       return;
     }
 
-    final currentPrice =
-        onAuctionItem.currentPrice ?? onAuctionItem.startingPrice ?? 0;
-    final minPrice = auctionState.isKasec
-        ? (currentPrice * 3).ceil()
-        : (currentPrice + 5).ceil();
+    final auctionItemId = onAuctionItem.id!;
 
-    final TextEditingController priceController = TextEditingController();
-
+    // 显示加载中
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(auctionState.isKasec ? '卡秒出价' : '出价'),
-        content: TextField(
-          controller: priceController,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            hintText: auctionState.isKasec
-                ? '卡秒模式-需三倍加价(最低$minPrice R)'
-                : '请输入出价金额(最低$minPrice R)',
-            suffixText: 'R',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () async {
-              final price = int.tryParse(priceController.text);
-              if (price == null) {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text('请输入数字')));
-                return;
-              }
-
-              if (price < 5) {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text('最低出价为5R')));
-                return;
-              }
-
-              Navigator.pop(context);
-
-              final success = await ref
-                  .read(auctionProvider.notifier)
-                  .bid(onAuctionItem.id!, price.toDouble());
-
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(success ? '出价成功: $price R' : '出价失败，请重试'),
-                  ),
-                );
-              }
-            },
-            child: const Text('确定'),
-          ),
-        ],
-      ),
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
+
+    try {
+      // 1. 获取实时的秒杀商品详情
+      final auctionItemDetail = await ref
+          .read(auctionProvider.notifier)
+          .getAuctionDetail(auctionItemId);
+
+      if (auctionItemDetail == null) {
+        if (mounted) {
+          Navigator.pop(context); // 关闭加载框
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('获取商品信息失败，请稍后重试')));
+        }
+        return;
+      }
+
+      // 2. 验证商品状态
+      if (auctionItemDetail.status != AuctionStatusEnum.auctioning) {
+        if (mounted) {
+          Navigator.pop(context); // 关闭加载框
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('商品不在秒杀中')));
+        }
+        return;
+      }
+
+      // 3. 同步卡秒状态
+      final isKasecMode = await ref
+          .read(auctionProvider.notifier)
+          .syncKasecStatus(auctionItemId);
+
+      // 4. 计算最低出价
+      final currentPrice =
+          auctionItemDetail.currentPrice ??
+          auctionItemDetail.startingPrice ??
+          0;
+      final minPrice = _calculateMinBidPrice(currentPrice, isKasecMode);
+
+      if (!mounted) return;
+      Navigator.pop(context); // 关闭加载框
+
+      // 5. 显示出价对话框
+      final TextEditingController priceController = TextEditingController();
+
+      showDialog(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(isKasecMode ? '卡秒出价' : '出价'),
+          content: TextField(
+            controller: priceController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              hintText: isKasecMode
+                  ? '⚠️ 卡秒模式-需三倍加价(最低出价$minPrice R)'
+                  : '请输入出价金额(最低出价$minPrice R)',
+              suffixText: 'R',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('取消'),
+            ),
+            TextButton(
+              onPressed: () async {
+                final price = int.tryParse(priceController.text);
+                if (price == null) {
+                  ScaffoldMessenger.of(
+                    dialogContext,
+                  ).showSnackBar(const SnackBar(content: Text('请输入数字')));
+                  return;
+                }
+
+                if (price < 5) {
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(
+                    const SnackBar(content: Text('最低出价为5R，请重新出价')),
+                  );
+                  return;
+                }
+
+                if (isKasecMode && price < minPrice) {
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(
+                    SnackBar(content: Text('卡秒模式需要三倍加价，最低出价为$minPrice')),
+                  );
+                  return;
+                }
+
+                Navigator.pop(dialogContext);
+
+                final success = await ref
+                    .read(auctionProvider.notifier)
+                    .bid(auctionItemId, price.toDouble());
+
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(success ? '出价成功: $price R' : '出价失败，请重试'),
+                    ),
+                  );
+                  // 出价成功后刷新拍卖列表
+                  if (success) {
+                    ref.read(auctionProvider.notifier).loadAuctions();
+                  }
+                }
+              },
+              child: const Text('确定'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // 关闭加载框
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('获取商品信息失败，请稍后重试')));
+      }
+    }
   }
 
   void _toggleAuctionList() {
@@ -402,6 +510,15 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
     final chatState = ref.watch(chatStoreProvider);
     final auctionState = ref.watch(auctionProvider);
     final onAuctionItem = auctionState.onAuctionItem;
+
+    // 自动显示公告弹窗
+    if (_showAnnouncementDialog && _currentAnnounce != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_showAnnouncementDialog && mounted) {
+          _displayAnnouncementDialog();
+        }
+      });
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -597,22 +714,182 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   }
 
   Widget _buildAnnouncementBar() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: const Color(0xFFFF7144),
-      child: const Row(
-        children: [
-          Icon(Icons.campaign, color: Colors.white, size: 16),
-          SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              '欢迎来到秒杀场！点击右侧"秒杀榜"查看拍品',
-              style: TextStyle(color: Colors.white, fontSize: 13),
-              overflow: TextOverflow.ellipsis,
+    // 如果没有公告，不显示通知栏
+    if (_currentAnnounce == null) {
+      return const SizedBox.shrink();
+    }
+
+    final content = _currentAnnounce!.content ?? '';
+    final displayText = content.length > 18
+        ? '${content.substring(0, 18)}...'
+        : content;
+
+    return GestureDetector(
+      onTap: _onAnnouncementTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        color: const Color(0xFFFF7144),
+        child: Row(
+          children: [
+            const Icon(Icons.campaign, color: Colors.white, size: 16),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                displayText,
+                style: const TextStyle(color: Colors.white, fontSize: 13),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
+            const Icon(Icons.chevron_right, color: Colors.white, size: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 加载秒杀场公告
+  Future<void> _loadAnnouncement() async {
+    try {
+      final announce = await _announceRepository.getLatestAnnounce(
+        categoryId: _announceCategoryId,
+      );
+      if (announce != null && mounted) {
+        setState(() {
+          _currentAnnounce = announce;
+        });
+        // 检查是否需要显示弹窗
+        await _checkAndShowAnnouncementDialog(announce);
+      }
+    } catch (e) {
+      debugPrint('[AuctionChat] 加载公告失败: $e');
+    }
+  }
+
+  /// 检查并显示公告弹窗（首次进入时）
+  Future<void> _checkAndShowAnnouncementDialog(AnnounceDto announce) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final storedNotice = prefs.getString(_auctionNoticeKey);
+
+      if (storedNotice == null || storedNotice.isEmpty) {
+        // 从未显示过公告，弹窗显示
+        if (mounted) {
+          setState(() {
+            _showAnnouncementDialog = true;
+          });
+        }
+      } else {
+        // 检查存储的公告 ID 是否与当前一致
+        final storedData = jsonDecode(storedNotice) as Map<String, dynamic>;
+        final storedId = storedData['id'];
+        if (storedId != announce.id) {
+          // 公告有更新，显示弹窗
+          if (mounted) {
+            setState(() {
+              _showAnnouncementDialog = true;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('[AuctionChat] 检查公告弹窗失败: $e');
+    }
+  }
+
+  /// 点击公告通知栏
+  void _onAnnouncementTap() {
+    // 跳转到公告列表页
+    context.push('/announce/list?categoryId=$_announceCategoryId');
+  }
+
+  /// 显示公告弹窗对话框
+  void _displayAnnouncementDialog() {
+    if (_currentAnnounce == null) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          '公告',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // 公告图片
+              if (_currentAnnounce!.imageUrl != null &&
+                  _currentAnnounce!.imageUrl!.isNotEmpty)
+                GestureDetector(
+                  onTap: () => _previewImage(_currentAnnounce!.imageUrl!),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: CachedNetworkImage(
+                      imageUrl: _currentAnnounce!.imageUrl!,
+                      fit: BoxFit.contain,
+                      height: 200,
+                      placeholder: (_, __) =>
+                          const Center(child: CircularProgressIndicator()),
+                      errorWidget: (_, __, ___) => const Icon(
+                        Icons.broken_image,
+                        size: 64,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                ),
+              if (_currentAnnounce!.imageUrl != null &&
+                  _currentAnnounce!.imageUrl!.isNotEmpty)
+                const SizedBox(height: 16),
+              // 公告内容
+              Text(
+                _currentAnnounce!.content ?? '',
+                style: const TextStyle(fontSize: 14, height: 1.5),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              _closeAnnouncementDialog();
+              Navigator.pop(context);
+            },
+            child: const Text('确定'),
           ),
         ],
+      ),
+    );
+  }
+
+  /// 关闭公告弹窗并保存状态
+  Future<void> _closeAnnouncementDialog() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final noticeData = jsonEncode(_currentAnnounce!.toJson());
+      await prefs.setString(_auctionNoticeKey, noticeData);
+      if (mounted) {
+        setState(() {
+          _showAnnouncementDialog = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('[AuctionChat] 保存公告状态失败: $e');
+    }
+  }
+
+  /// 预览图片
+  void _previewImage(String url) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            _ImagePreviewPage(imageUrls: [url], initialIndex: 0),
       ),
     );
   }

@@ -20,9 +20,12 @@ class AnnounceRepository {
     }
   }
 
-  Future<AnnounceDto?> getLatestAnnounce() async {
+  Future<AnnounceDto?> getLatestAnnounce({int? categoryId}) async {
     try {
-      final response = await _apiClient.dio.get(ApiEndpoints.getLatestAnnounce);
+      final response = await _apiClient.dio.get(
+        ApiEndpoints.getLatestAnnounce,
+        queryParameters: categoryId != null ? {'id': categoryId} : null,
+      );
       if (response.data != null) {
         return AnnounceDto.fromJson(response.data);
       }

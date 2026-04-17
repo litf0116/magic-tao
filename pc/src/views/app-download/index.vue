@@ -28,104 +28,22 @@
                 <div class="description-content">{{ latestVersion.description }}</div>
             </div>
 
-            <!-- 平台选择 -->
-            <div class="platform-tabs">
-                <div
-                    class="tab-item"
-                    :class="{ active: currentPlatform === 'android' }"
-                    @click="switchPlatform('android')"
-                >
-                    <svg class="platform-icon" viewBox="0 0 24 24" fill="currentColor">
-                        <path
-                            d="M17.6 11.48V8a1.52 1.52 0 0 0-3 0v3.48h-5.2V8a1.52 1.52 0 0 0-3 0v3.48H4v6.4h16v-6.4h-2.4zM7.6 16.4a1.2 1.2 0 1 1 0-2.4 1.2 1.2 0 0 1 0 2.4zm8.8 0a1.2 1.2 0 1 1 0-2.4 1.2 1.2 0 0 1 0 2.4z"
-                        />
-                        <path d="M6.4 5.2l1.4 2.4h8.4l1.4-2.4-2.2-2.2.8-.8-1-.8-.8.8H10l-.8-.8-1 .8.8.8L6.4 5.2z" />
-                    </svg>
-                    <span>Android</span>
-                </div>
-                <div class="tab-item" :class="{ active: currentPlatform === 'ios' }" @click="switchPlatform('ios')">
-                    <svg class="platform-icon" viewBox="0 0 24 24" fill="currentColor">
-                        <path
-                            d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"
-                        />
-                    </svg>
-                    <span>iOS</span>
-                </div>
-            </div>
-
             <!-- 二维码区域 -->
             <div class="qr-section">
-                <div class="qr-title">
-                    <template v-if="currentPlatform === 'android'"> 扫码下载 Android APK </template>
-                    <template v-else> 扫码访问 H5 网页 </template>
-                </div>
+                <div class="qr-title">扫码下载 Android APK</div>
                 <div class="qr-code">
-                    <img :src="currentQrCode" :alt="currentPlatform === 'android' ? 'Android 下载' : 'iOS H5 访问'" />
+                    <img :src="qrCode" alt="Android 下载" />
                 </div>
-                <div class="qr-hint">
-                    <template v-if="currentPlatform === 'android'"> 使用手机浏览器或微信扫码下载 APK 安装包 </template>
-                    <template v-else> 扫码在 Safari 中打开，可添加到桌面 </template>
-                </div>
-            </div>
-
-            <!-- iOS 添加到桌面说明 -->
-            <div v-if="currentPlatform === 'ios'" class="ios-guide">
-                <h3 class="guide-title">
-                    <el-icon><InfoFilled /></el-icon>
-                    如何将网页添加到桌面
-                </h3>
-                <div class="guide-steps">
-                    <div class="step">
-                        <div class="step-number">1</div>
-                        <div class="step-content">
-                            <div class="step-title">在 Safari 中打开</div>
-                            <div class="step-desc">使用 iPhone 自带的 Safari 浏览器打开本页面</div>
-                        </div>
-                    </div>
-                    <div class="step">
-                        <div class="step-number">2</div>
-                        <div class="step-content">
-                            <div class="step-title">点击分享按钮</div>
-                            <div class="step-desc">点击底部工具栏的「分享」按钮</div>
-                        </div>
-                    </div>
-                    <div class="step">
-                        <div class="step-number">3</div>
-                        <div class="step-content">
-                            <div class="step-title">选择「添加到主屏幕」</div>
-                            <div class="step-desc">在弹出的菜单中找到并点击「添加到主屏幕」选项</div>
-                        </div>
-                    </div>
-                    <div class="step">
-                        <div class="step-number">4</div>
-                        <div class="step-content">
-                            <div class="step-title">确认添加</div>
-                            <div class="step-desc">点击右上角「添加」完成操作，桌面上会出现魔力淘图标</div>
-                        </div>
-                    </div>
-                </div>
+                <div class="qr-hint">使用手机浏览器或微信扫码下载 APK 安装包</div>
             </div>
 
             <!-- 下载按钮 -->
             <div class="download-section">
-                <el-button
-                    v-if="currentPlatform === 'android'"
-                    type="primary"
-                    size="large"
-                    :loading="downloading"
-                    @click="downloadAndroid"
-                >
+                <el-button type="primary" size="large" :loading="downloading" @click="downloadAndroid">
                     <template #icon>
                         <el-icon><Download /></el-icon>
                     </template>
                     {{ downloading ? '下载中...' : '直接下载 APK' }}
-                </el-button>
-
-                <el-button v-else type="primary" size="large" @click="openH5">
-                    <template #icon>
-                        <el-icon><Link /></el-icon>
-                    </template>
-                    在浏览器中打开 H5
                 </el-button>
 
                 <el-button size="large" @click="showHistoryDialog = true">
@@ -134,6 +52,12 @@
                     </template>
                     历史版本
                 </el-button>
+            </div>
+
+            <!-- 其他平台提示 -->
+            <div class="other-platforms">
+                <span class="other-platforms-text">下载遇到了问题？</span>
+                <a href="https://www.molitao.top/h5/" target="_blank" class="other-platforms-link">打开 H5 网页</a>
             </div>
         </div>
 
@@ -165,7 +89,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Download, Iphone, Clock, InfoFilled, Link } from '@element-plus/icons-vue'
+import { Download, Clock } from '@element-plus/icons-vue'
 import appReleaseAPI from '@/api/appRelease'
 import logoImage from '@/assets/images/logo.png'
 
@@ -194,41 +118,25 @@ interface HistoryVersion {
     downloadUrl: string
 }
 
-const currentPlatform = ref<'android' | 'ios'>('android')
 const latestVersion = ref<VersionInfo | null>(null)
 const historyVersions = ref<HistoryVersion[]>([])
 const showHistoryDialog = ref(false)
 const downloading = ref(false)
 const downloadingVersionId = ref<number | null>(null)
 
-// Android APK 下载二维码
-const androidQrCode = computed(() => {
-    if (latestVersion.value?.downloadUrl) {
-        // 使用二维码服务生成二维码
-        const url = latestVersion.value.downloadUrl.startsWith('http')
-            ? latestVersion.value.downloadUrl
-            : window.location.origin + latestVersion.value.downloadUrl
-        return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`
-    }
-    // 默认二维码
-    return 'https://image.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png!w300'
-})
-
-// iOS H5 访问二维码
-const iosQrCode = computed(() => {
-    // H5 移动端地址
-    const h5Url = 'https://www.molitao.top/h5/'
-    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(h5Url)}`
-})
-
-// 当前显示的二维码
-const currentQrCode = computed(() => {
-    return currentPlatform.value === 'android' ? androidQrCode.value : iosQrCode.value
-})
-
-const switchPlatform = (platform: 'android' | 'ios') => {
-    currentPlatform.value = platform
+// 检测设备类型
+function getDeviceType(): 'android' | 'ios' | 'desktop' {
+    const ua = navigator.userAgent
+    if (/android/i.test(ua)) return 'android'
+    if (/iPhone|iPad|iPod/i.test(ua)) return 'ios'
+    return 'desktop'
 }
+
+// 二维码指向当前页面（扫码后根据设备类型展示不同内容）
+const qrCode = computed(() => {
+    const pageUrl = `${window.location.origin}/app-download`
+    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(pageUrl)}`
+})
 
 const downloadAndroid = () => {
     if (!latestVersion.value?.downloadUrl) {
@@ -255,11 +163,14 @@ const downloadAndroid = () => {
     }
 }
 
-const openH5 = () => {
-    window.open('https://www.molitao.top/h5/', '_blank')
-}
-
 onMounted(async () => {
+    // 检测设备类型，iOS 设备跳转到 H5
+    const device = getDeviceType()
+    if (device === 'ios') {
+        window.location.href = 'https://www.molitao.top/h5/'
+        return
+    }
+
     await loadLatestVersion()
 })
 
