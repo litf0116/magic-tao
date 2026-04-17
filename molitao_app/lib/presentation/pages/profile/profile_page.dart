@@ -194,14 +194,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                           ),
                         ],
                       ),
-                      // Settings icon (only when logged in)
                       if (userState.isLoggedIn && userState.user != null)
                         Positioned(
                           right: 0,
                           top: 0,
                           child: IconButton(
                             icon: const Icon(Icons.settings),
-                            onPressed: () => context.push('/profile/user-info'),
+                            onPressed: () => context.push('/profile/settings'),
                           ),
                         ),
                     ],
