@@ -1,12 +1,17 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Abp.Authorization;
+using Abp.Authorization.Users;
 using Abp.Configuration;
+using Abp.Domain.Repositories;
 using Abp.UI;
 using Abp.Zero.Configuration;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TtWork.Abp;
 using TtWork.Abp.Applications.Dtos;
 using TtWork.Abp.Authorization.Users;
@@ -14,6 +19,11 @@ using TtWork.Abp.Definitions;
 using TtWork.Project.Applications.Core.Authorization.Accounts.Dto;
 using TtWork.Project.Applications.Authorization.Accounts.Dto;
 using TtWork.Project.Authorization.Accounts.Dto;
+using TtWork.Project.Domains;
+using TtWork.Project.Services;
+using ProjectConsts = TtWork.Abp.Consts;
+using TtWork.Project.Services;
+using Consts = TtWork.Abp.Consts;
 
 namespace TtWork.Project.Applications.Core.Authorization.Accounts {
     [AbpAuthorize]
@@ -23,12 +33,19 @@ namespace TtWork.Project.Applications.Core.Authorization.Accounts {
 
         private readonly UserRegistrationManager _userRegistrationManager;
         private readonly IPasswordHasher<User> _passwordHasher;
+        private readonly IRepository<UserLogin, long> _userLoginRepository;
+        private readonly ISmsVerificationCodeService _smsVerificationCodeService;
 
         public AccountAppService(
             UserRegistrationManager userRegistrationManager,
-            IPasswordHasher<User> passwordHasher) {
+            IPasswordHasher<User> passwordHasher,
+            IRepository<UserLogin, long> userLoginRepository,
+            ISmsVerificationCodeService smsVerificationCodeService)
+        {
             _userRegistrationManager = userRegistrationManager;
             _passwordHasher = passwordHasher;
+            _userLoginRepository = userLoginRepository;
+            _smsVerificationCodeService = smsVerificationCodeService;
         }
 
         public async Task<IsTenantAvailableOutput> IsTenantAvailable(IsTenantAvailableInput input) {
@@ -116,6 +133,151 @@ namespace TtWork.Project.Applications.Core.Authorization.Accounts {
             var userDto = ObjectMapper.Map<UserDto>(user);
             userDto.RoleNames = roles.ToArray();
             return userDto;
+        }
+
+        [HttpPost]
+        public async Task<bool> BindPhone([FromBody] BindPhoneInput input)
+        {
+            var user = await GetCurrentUserAsync();
+            var purpose = SmsCodePurpose.BindPhone;
+
+            var isValid = await _smsVerificationCodeService.VerifyCodeAsync(input.PhoneNumber, input.Code, purpose);
+            if (!isValid)
+            {
+                throw new UserFriendlyException("验证码错误或已过期");
+            }
+
+            var existingBinding = await _userLoginRepository.GetAll()
+                .FirstOrDefaultAsync(x =>
+                    x.LoginProvider == ProjectConsts.LoginProvider.Phone &&
+                    x.ProviderKey == input.PhoneNumber);
+
+            if (existingBinding != null)
+            {
+                if (existingBinding.UserId == user.Id)
+                {
+                    throw new UserFriendlyException("该手机号已绑定当前账号");
+                }
+
+                throw new UserFriendlyException("该手机号已被其他账号绑定，请使用该手机号登录后在设置中合并账号");
+            }
+
+            var currentPhoneBinding = await _userLoginRepository.GetAll()
+                .FirstOrDefaultAsync(x =>
+                    x.UserId == user.Id &&
+                    x.LoginProvider == ProjectConsts.LoginProvider.Phone);
+
+            if (currentPhoneBinding != null)
+            {
+                await _userLoginRepository.DeleteAsync(currentPhoneBinding);
+            }
+
+            await _userLoginRepository.InsertAsync(new UserLogin(
+                user.TenantId, user.Id,
+                ProjectConsts.LoginProvider.Phone, input.PhoneNumber));
+
+            user.PhoneNumber = input.PhoneNumber;
+            user.IsPhoneNumberConfirmed = true;
+            await UserManager.UpdateAsync(user);
+
+            await CurrentUnitOfWork.SaveChangesAsync();
+            return true;
+        }
+
+        [HttpGet]
+        public async Task<LoginBindingListOutput> GetLoginBindings()
+        {
+            var user = await GetCurrentUserAsync();
+            var bindings = await _userLoginRepository.GetAll()
+                .Where(x => x.UserId == user.Id)
+                .ToListAsync();
+
+            var result = new List<LoginBindingDto>();
+
+            var phoneBinding = bindings.FirstOrDefault(x => x.LoginProvider == ProjectConsts.LoginProvider.Phone);
+            result.Add(new LoginBindingDto
+            {
+                LoginProvider = ProjectConsts.LoginProvider.Phone,
+                ProviderKey = user.PhoneNumber ?? "",
+                DisplayName = "手机号",
+                Icon = "phone",
+                IsBound = phoneBinding != null || !string.IsNullOrEmpty(user.PhoneNumber),
+                BoundTime = null
+            });
+
+            var wechatBinding = bindings.FirstOrDefault(x =>
+                x.LoginProvider == Consts.LoginProvider.WeChatUnionId ||
+                x.LoginProvider == Consts.LoginProvider.WeChatApp ||
+                x.LoginProvider.StartsWith("WeChat"));
+            if (wechatBinding != null)
+            {
+                result.Add(new LoginBindingDto
+                {
+                    LoginProvider = Consts.LoginProvider.WeChatUnionId,
+                    ProviderKey = wechatBinding.ProviderKey ?? "",
+                    DisplayName = "微信",
+                    Icon = "wechat",
+                    IsBound = true,
+                    BoundTime = null
+                });
+            }
+
+            result.Add(new LoginBindingDto
+            {
+                LoginProvider = Consts.LoginProvider.Password,
+                ProviderKey = "",
+                DisplayName = "登录密码",
+                Icon = "lock",
+                IsBound = !string.IsNullOrEmpty(user.Password),
+                BoundTime = null
+            });
+
+            return new LoginBindingListOutput
+            {
+                Items = result
+            };
+        }
+
+        [HttpPost]
+        public async Task<bool> UnbindLogin([FromBody] UnbindLoginInput input)
+        {
+            var user = await GetCurrentUserAsync();
+            var bindings = await _userLoginRepository.GetAll()
+                .Where(x => x.UserId == user.Id)
+                .ToListAsync();
+
+            if (input.LoginProvider == Consts.LoginProvider.Password)
+            {
+                throw new UserFriendlyException("密码登录无法解绑，如需关闭请设置空密码");
+            }
+
+            var hasPassword = !string.IsNullOrEmpty(user.Password);
+            var hasPhoneBinding = bindings.Any(x => x.LoginProvider == ProjectConsts.LoginProvider.Phone);
+            var hasWechatBinding = bindings.Any(x =>
+                x.LoginProvider == Consts.LoginProvider.WeChatUnionId ||
+                x.LoginProvider == Consts.LoginProvider.WeChatApp ||
+                x.LoginProvider.StartsWith("WeChat"));
+            var effectiveBindingCount = (hasPhoneBinding ? 1 : 0) + (hasWechatBinding ? 1 : 0);
+
+            if (!hasPassword && effectiveBindingCount <= 1)
+            {
+                throw new UserFriendlyException("至少需要保留一种登录方式，请先设置密码后再解绑");
+            }
+
+            var binding = bindings.FirstOrDefault(x => x.LoginProvider == input.LoginProvider);
+            if (binding != null)
+            {
+                await _userLoginRepository.DeleteAsync(binding);
+            }
+
+            if (input.LoginProvider == ProjectConsts.LoginProvider.Phone && !string.IsNullOrEmpty(user.PhoneNumber))
+            {
+                user.PhoneNumber = null;
+                await UserManager.UpdateAsync(user);
+            }
+
+            await CurrentUnitOfWork.SaveChangesAsync();
+            return true;
         }
     }
 }

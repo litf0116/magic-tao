@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +9,8 @@ import '../../../data/services/storage_service.dart';
 import '../../../data/services/wechat_service.dart';
 import '../../providers/user_provider.dart';
 
+enum LoginTab { password, sms }
+
 class LoginPage extends ConsumerStatefulWidget {
   final String? redirectPath;
 
@@ -17,10 +20,16 @@ class LoginPage extends ConsumerStatefulWidget {
   ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends ConsumerState<LoginPage> {
+class _LoginPageState extends ConsumerState<LoginPage>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
+  final _phoneController = TextEditingController();
+  final _smsCodeController = TextEditingController();
+  final _passwordFormKey = GlobalKey<FormState>();
+  final _smsFormKey = GlobalKey<FormState>();
   final _authRepository = AuthRepository();
   final _storageService = StorageService();
   final _wechatService = WeChatService();
@@ -28,12 +37,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   String? _focusedField;
+  int _countdown = 0;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     _initWeChat();
     _loadRememberedUsername();
+    _restoreSmsCountdown();
   }
 
   Future<void> _loadRememberedUsername() async {
@@ -43,19 +56,49 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     }
   }
 
+  Future<void> _restoreSmsCountdown() async {
+    final endTime = await _storageService.getSmsCountdownEndTime();
+    if (endTime != null) {
+      final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final remaining = endTime - now;
+      if (remaining > 0) {
+        setState(() => _countdown = remaining);
+        _startTimerFromRemaining();
+      } else {
+        await _storageService.clearSmsCountdownEndTime();
+      }
+    }
+  }
+
+  void _startTimerFromRemaining() {
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_countdown > 0) {
+        setState(() => _countdown--);
+      } else {
+        timer.cancel();
+        _storageService.clearSmsCountdownEndTime();
+      }
+    });
+  }
+
   Future<void> _initWeChat() async {
     await _wechatService.initialize();
   }
 
   @override
   void dispose() {
+    _tabController.dispose();
+    _timer?.cancel();
     _usernameController.dispose();
     _passwordController.dispose();
+    _phoneController.dispose();
+    _smsCodeController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleLogin() async {
-    if (!_formKey.currentState!.validate()) return;
+  Future<void> _handlePasswordLogin() async {
+    if (!_passwordFormKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
@@ -65,25 +108,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         _passwordController.text,
       );
 
-      print('[LoginPage] 登录结果:');
-      print(
-        '[LoginPage] - accessToken: ${result.accessToken != null ? "存在" : "null"}',
-      );
-      print('[LoginPage] - user: ${result.user}');
-      print('[LoginPage] - user.id: ${result.user?.id}');
-      print('[LoginPage] - user.userName: ${result.user?.userName}');
-      print('[LoginPage] - user.fullName: ${result.user?.fullName}');
-
       if (result.accessToken != null && result.user != null && mounted) {
-        // Save username for next login
         await _storageService.setRememberedUsername(
           _usernameController.text.trim(),
         );
 
-        // 保存用户状态
-        await ref
-            .read(userProvider.notifier)
-            .login(
+        await ref.read(userProvider.notifier).login(
               result.accessToken!,
               User(
                 id: result.user!.id,
@@ -98,19 +128,132 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               roles: result.roles,
             );
 
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('登录成功')),
+          );
+        }
         context.go(widget.redirectPath ?? '/home');
       } else {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('登录失败，请检查账号密码')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('登录失败，请重试')),
+          );
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('登录失败: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('登录失败，请重试')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _handleSendSmsCode() async {
+    final phone = _phoneController.text.trim();
+    if (phone.isEmpty || !_isValidPhone(phone)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('请输入正确的手机号')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      await _authRepository.sendSmsCode(phone);
+      _startCountdown();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('验证码已发送')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('发送验证码失败')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _startCountdown() {
+    setState(() => _countdown = 60);
+    final endTime = DateTime.now().millisecondsSinceEpoch ~/ 1000 + 60;
+    _storageService.setSmsCountdownEndTime(endTime);
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_countdown > 0) {
+        setState(() => _countdown--);
+      } else {
+        timer.cancel();
+        _storageService.clearSmsCountdownEndTime();
+      }
+    });
+  }
+
+  bool _isValidPhone(String phone) {
+    return RegExp(r'^1[3-9]\d{9}$').hasMatch(phone);
+  }
+
+  Future<void> _handleSmsLogin() async {
+    if (!_smsFormKey.currentState!.validate()) return;
+
+    final code = _smsCodeController.text.trim();
+    if (code.length != 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('请输入6位验证码')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final result = await _authRepository.phoneAuthenticate(
+        _phoneController.text.trim(),
+        code,
+      );
+
+      if (result.accessToken != null && result.user != null && mounted) {
+        await ref.read(userProvider.notifier).login(
+              result.accessToken!,
+              User(
+                id: result.user!.id,
+                userName: result.user!.userName,
+                fullName: result.user!.fullName,
+                phoneNumber: result.user!.phoneNumber,
+                headImgUrl: result.user!.headImgUrl,
+                depositBalance: result.user!.depositBalance?.toDouble(),
+                permissions: result.user!.permissions ?? [],
+                roleNames: result.user!.roleNames ?? [],
+              ),
+              roles: result.roles,
+            );
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('登录成功')),
+          );
+        }
+        context.go(widget.redirectPath ?? '/home');
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('登录失败，请重试')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('登录失败，请重试')),
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -124,31 +267,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       final installed = await _wechatService.checkWeChatInstalled();
       if (!installed) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('请先安装微信')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('请先安装微信')),
+          );
         }
         return;
       }
 
-      // Add subscriber to listen for WeChat auth response
       late WeChatResponseSubscriber subscriber;
       subscriber = (WeChatResponse response) async {
         _wechatService.removeSubscriber(subscriber);
 
-        print('[WeChatLogin] Response received:');
-        print('[WeChatLogin] - type: ${response.runtimeType}');
-        print('[WeChatLogin] - errCode: ${response.errCode}');
-        print('[WeChatLogin] - errStr: ${response.errStr}');
-
         if (response is WeChatAuthResponse) {
-          print('[WeChatLogin] - code: ${response.code}');
-          print('[WeChatLogin] - isSuccessful: ${response.isSuccessful}');
-
           if (response.isSuccessful && response.code != null) {
-            print('[WeChatLogin] 准备发送授权码到后端: ${response.code}');
             try {
-              // 微信 App 登录
               final result = await _authRepository.weixinAppLogin(
                 response.code!,
               );
@@ -156,9 +288,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               if (result.accessToken != null &&
                   result.user != null &&
                   mounted) {
-                await ref
-                    .read(userProvider.notifier)
-                    .login(
+                await ref.read(userProvider.notifier).login(
                       result.accessToken!,
                       User(
                         id: result.user!.id,
@@ -166,31 +296,37 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         fullName: result.user!.fullName,
                         phoneNumber: result.user!.phoneNumber,
                         headImgUrl: result.user!.headImgUrl,
-                        depositBalance: result.user!.depositBalance?.toDouble(),
+                        depositBalance:
+                            result.user!.depositBalance?.toDouble(),
                         permissions: result.user!.permissions ?? [],
                         roleNames: result.user!.roleNames ?? [],
                       ),
                       roles: result.roles,
                     );
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('登录成功')),
+                  );
+                }
                 context.go(widget.redirectPath ?? '/home');
               } else {
                 if (mounted) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(const SnackBar(content: Text('微信登录失败')));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('微信登录失败')),
+                  );
                 }
               }
             } catch (e) {
               if (mounted) {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text('微信登录失败: $e')));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('微信登录失败')),
+                );
               }
             }
           } else if (response.errCode != 0) {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('微信登录失败: ${response.errStr}')),
+                const SnackBar(content: Text('微信登录失败')),
               );
             }
           }
@@ -203,9 +339,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       await _wechatService.login();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('微信登录失败: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('微信登录失败')),
+        );
       }
       if (mounted) setState(() => _isLoading = false);
     }
@@ -221,7 +357,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           child: Column(
             children: [
               const SizedBox(height: 40),
-              // Logo
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Image.network(
@@ -242,7 +377,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ),
               ),
               const SizedBox(height: 40),
-              // Form Card
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(24),
@@ -257,111 +391,52 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ),
                   ],
                 ),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      _buildInputField(
-                        controller: _usernameController,
-                        hintText: '请输入账号',
-                        fieldName: 'account',
+                child: Column(
+                  children: [
+                    _buildTabBar(),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      height: 280,
+                      child: TabBarView(
+                        controller: _tabController,
+                        children: [
+                          _buildPasswordLoginForm(),
+                          _buildSmsLoginForm(),
+                        ],
                       ),
-                      const SizedBox(height: 20),
-                      _buildInputField(
-                        controller: _passwordController,
-                        hintText: '请输入密码',
-                        fieldName: 'password',
-                        obscureText: _obscurePassword,
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                            color: AppColors.textHint,
-                            size: 20,
-                          ),
-                          onPressed: () => setState(
-                            () => _obscurePassword = !_obscurePassword,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () {},
-                          child: const Text(
-                            '忘记密码？',
+                    ),
+                    const SizedBox(height: 8),
+                    const Row(
+                      children: [
+                        Expanded(child: Divider()),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            '其他登录方式',
                             style: TextStyle(color: AppColors.textSecondary),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                      // Login Button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 48,
-                        child: ElevatedButton(
-                          onPressed: _isLoading ? null : _handleLogin,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                          ),
-                          child: _isLoading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Text(
-                                  '登录',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
+                        Expanded(child: Divider()),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    GestureDetector(
+                      onTap: _isLoading ? null : _handleWeChatLogin,
+                      child: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: const BoxDecoration(
+                          color: Color(0xff07c160),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.chat,
+                          color: Colors.white,
+                          size: 24,
                         ),
                       ),
-                      const SizedBox(height: 24),
-                      const Row(
-                        children: [
-                          Expanded(child: Divider()),
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 12),
-                            child: Text(
-                              '其他登录方式',
-                              style: TextStyle(color: AppColors.textSecondary),
-                            ),
-                          ),
-                          Expanded(child: Divider()),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      // WeChat OAuth
-                      GestureDetector(
-                        onTap: _isLoading ? null : _handleWeChatLogin,
-                        child: Container(
-                          width: 44,
-                          height: 44,
-                          decoration: const BoxDecoration(
-                            color: Color(0xff07c160),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.chat,
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 24),
@@ -376,12 +451,199 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
+  Widget _buildTabBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xfff5f5f5),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: TabBar(
+        controller: _tabController,
+        labelColor: Colors.white,
+        unselectedLabelColor: AppColors.textSecondary,
+        indicator: BoxDecoration(
+          color: AppColors.primary,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        indicatorSize: TabBarIndicatorSize.tab,
+        dividerColor: Colors.transparent,
+        labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        tabs: const [
+          Tab(text: '密码登录'),
+          Tab(text: '验证码登录'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPasswordLoginForm() {
+    return Form(
+      key: _passwordFormKey,
+      child: Column(
+        children: [
+          _buildInputField(
+            controller: _usernameController,
+            hintText: '请输入账号',
+            fieldName: 'account',
+          ),
+          const SizedBox(height: 20),
+          _buildInputField(
+            controller: _passwordController,
+            hintText: '请输入密码',
+            fieldName: 'password',
+            obscureText: _obscurePassword,
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                color: AppColors.textHint,
+                size: 20,
+              ),
+              onPressed: () => setState(
+                () => _obscurePassword = !_obscurePassword,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: () {},
+              child: const Text(
+                '忘记密码？',
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton(
+              onPressed: _isLoading ? null : _handlePasswordLogin,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
+              ),
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text(
+                      '登录',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSmsLoginForm() {
+    return Form(
+      key: _smsFormKey,
+      child: Column(
+        children: [
+          _buildInputField(
+            controller: _phoneController,
+            hintText: '请输入手机号',
+            fieldName: 'phone',
+            keyboardType: TextInputType.phone,
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: _buildInputField(
+                  controller: _smsCodeController,
+                  hintText: '请输入验证码',
+                  fieldName: 'smsCode',
+                  keyboardType: TextInputType.number,
+                ),
+              ),
+              const SizedBox(width: 12),
+              SizedBox(
+                width: 100,
+                height: 44,
+                child: TextButton(
+                  onPressed: _countdown > 0 || _isLoading
+                      ? null
+                      : _handleSendSmsCode,
+                  style: TextButton.styleFrom(
+                    backgroundColor: _countdown > 0
+                        ? AppColors.divider
+                        : AppColors.primary.withValues(alpha: 0.1),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    _countdown > 0 ? '${_countdown}s' : '获取验证码',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: _countdown > 0
+                          ? AppColors.textHint
+                          : AppColors.primary,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 44),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton(
+              onPressed: _isLoading ? null : _handleSmsLogin,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
+              ),
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text(
+                      '登录',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildInputField({
     required TextEditingController controller,
     required String hintText,
     required String fieldName,
     bool obscureText = false,
     Widget? suffixIcon,
+    TextInputType? keyboardType,
   }) {
     final isFocused = _focusedField == fieldName;
     return Container(
@@ -397,6 +659,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       child: TextFormField(
         controller: controller,
         obscureText: obscureText,
+        keyboardType: keyboardType,
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: const TextStyle(fontSize: 15, color: AppColors.textHint),
@@ -407,7 +670,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         onTap: () => setState(() => _focusedField = fieldName),
         validator: (value) {
           if (value == null || value.isEmpty) {
-            return '请输入${fieldName == 'account' ? '账号' : '密码'}';
+            switch (fieldName) {
+              case 'account':
+                return '请输入账号';
+              case 'password':
+                return '请输入密码';
+              case 'phone':
+                return '请输入手机号';
+              case 'smsCode':
+                return '请输入验证码';
+            }
+          }
+          if (fieldName == 'phone' && !_isValidPhone(value!)) {
+            return '请输入正确的手机号';
           }
           return null;
         },

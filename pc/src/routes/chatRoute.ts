@@ -61,5 +61,10 @@ export default {
             meta: { title: '账户' },
             component: () => import('@/views/chat/account.vue'),
         },
+        {
+            path: 'accountSecurity',
+            meta: { title: '账号与安全' },
+            component: () => import('@/views/chat/accountSecurity.vue'),
+        },
     ],
 } as RouteRecordRaw

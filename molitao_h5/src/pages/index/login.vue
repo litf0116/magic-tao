@@ -10,34 +10,82 @@
             </view>
 
             <view class="form-card">
-                <view class="input-wrap">
-                    <input
-                        v-model="form.userNameOrEmailAddress"
-                        placeholder="请输入账号"
-                        class="input"
-                        placeholder-class="input-placeholder"
-                        @focus="focusField = 'account'"
-                        @blur="focusField = ''"
-                    />
-                    <view class="input-underline" :class="{ active: focusField === 'account' }"></view>
+                <view class="tabs">
+                    <view class="tab-item" :class="{ active: loginTab === 'password' }" @tap="loginTab = 'password'">
+                        <text>密码登录</text>
+                    </view>
+                    <view class="tab-item" :class="{ active: loginTab === 'sms' }" @tap="loginTab = 'sms'">
+                        <text>验证码登录</text>
+                    </view>
                 </view>
 
-                <view class="input-wrap">
-                    <input
-                        v-model="form.password"
-                        placeholder="请输入密码"
-                        type="password"
-                        class="input"
-                        placeholder-class="input-placeholder"
-                        @focus="focusField = 'password'"
-                        @blur="focusField = ''"
-                    />
-                    <view class="input-underline" :class="{ active: focusField === 'password' }"></view>
-                </view>
+                <template v-if="loginTab === 'password'">
+                    <view class="input-wrap">
+                        <input
+                            v-model="form.userNameOrEmailAddress"
+                            placeholder="请输入账号"
+                            class="input"
+                            placeholder-class="input-placeholder"
+                            @focus="focusField = 'account'"
+                            @blur="focusField = ''"
+                        />
+                        <view class="input-underline" :class="{ active: focusField === 'account' }"></view>
+                    </view>
 
-                <view class="action-row">
-                    <text class="forgot-link" @tap="toForgotPassword">忘记密码？</text>
-                </view>
+                    <view class="input-wrap">
+                        <input
+                            v-model="form.password"
+                            placeholder="请输入密码"
+                            type="password"
+                            class="input"
+                            placeholder-class="input-placeholder"
+                            @focus="focusField = 'password'"
+                            @blur="focusField = ''"
+                        />
+                        <view class="input-underline" :class="{ active: focusField === 'password' }"></view>
+                    </view>
+
+                    <view class="action-row">
+                        <text class="forgot-link" @tap="toForgotPassword">忘记密码？</text>
+                    </view>
+                </template>
+
+                <template v-else>
+                    <view class="input-wrap">
+                        <input
+                            v-model="smsForm.phoneNumber"
+                            placeholder="请输入手机号"
+                            type="number"
+                            maxlength="11"
+                            class="input"
+                            placeholder-class="input-placeholder"
+                            @focus="focusField = 'phone'"
+                            @blur="focusField = ''"
+                        />
+                        <view class="input-underline" :class="{ active: focusField === 'phone' }"></view>
+                    </view>
+
+                    <view class="input-wrap sms-input-wrap">
+                        <input
+                            v-model="smsForm.code"
+                            placeholder="请输入验证码"
+                            type="number"
+                            maxlength="6"
+                            class="input sms-input"
+                            placeholder-class="input-placeholder"
+                            @focus="focusField = 'code'"
+                            @blur="focusField = ''"
+                        />
+                        <view
+                            class="sms-btn"
+                            :class="{ disabled: smsCountdown > 0 || !isValidPhone }"
+                            @tap="sendSmsCode"
+                        >
+                            <text>{{ smsCountdown > 0 ? `${smsCountdown}s` : '获取验证码' }}</text>
+                        </view>
+                        <view class="input-underline" :class="{ active: focusField === 'code' }"></view>
+                    </view>
+                </template>
 
                 <view class="login-btn" :class="{ disabled: isLoading || !agreePrivacy }" @tap="handleLogin">
                     <text class="login-btn-text">{{ isLoading ? '登录中' : '登录' }}</text>
@@ -57,6 +105,17 @@
                     </view>
                 </view>
 
+                <view class="divider">
+                    <text class="divider-text">其他登录方式</text>
+                </view>
+
+                <view class="other-login">
+                    <view class="wechat-btn" @tap="handleWechatLogin">
+                        <text class="wechat-icon">💬</text>
+                        <text class="wechat-text">微信授权登录</text>
+                    </view>
+                </view>
+
                 <view class="home-link" @tap="toHome">
                     <text class="home-link-text">返回首页</text>
                 </view>
@@ -66,14 +125,56 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
+import api from '@/utils/api'
 
 const userStore = useUserStore()
 const isLoading = ref(false)
 const focusField = ref('')
 const agreePrivacy = ref(false)
+const loginTab = ref<'password' | 'sms'>('password')
 
 const { toHome, toForgotPassword } = useTo()
+
+const form = ref({
+    userNameOrEmailAddress: '',
+    password: '',
+})
+
+const smsForm = ref({
+    phoneNumber: '',
+    code: '',
+})
+
+const smsCountdown = ref(0)
+let smsTimer: number | undefined = undefined
+
+const SMS_COUNTDOWN_KEY = 'sms_countdown_end_time'
+
+const restoreSmsCountdown = () => {
+    const endTime = uni.getStorageSync(SMS_COUNTDOWN_KEY)
+    if (endTime) {
+        const remaining = Math.floor((parseInt(endTime) - Date.now()) / 1000)
+        if (remaining > 0) {
+            smsCountdown.value = remaining
+            startSmsTimer()
+        } else {
+            uni.removeStorageSync(SMS_COUNTDOWN_KEY)
+        }
+    }
+}
+
+const startSmsTimer = () => {
+    smsTimer = setInterval(() => {
+        smsCountdown.value--
+        if (smsCountdown.value <= 0) {
+            clearInterval(smsTimer)
+            uni.removeStorageSync(SMS_COUNTDOWN_KEY)
+        }
+    }, 1000)
+}
+
+const isValidPhone = computed(() => /^1[3-9]\d{9}$/.test(smsForm.value.phoneNumber))
 
 const checkPrivacyAgreement = () => {
     if (!agreePrivacy.value) {
@@ -91,16 +192,36 @@ const navigateAfterLogin = () => {
     uni.redirectTo({ url: '/pages/tabbar/index' })
 }
 
-const form = ref({
-    userNameOrEmailAddress: '',
-    password: '',
-})
+const sendSmsCode = async () => {
+    if (smsCountdown.value > 0 || !isValidPhone.value) return
+
+    try {
+        await api.tokenAuth.sendSmsCode({ phoneNumber: smsForm.value.phoneNumber })
+        uni.showToast({ title: '验证码已发送', icon: 'success' })
+        smsCountdown.value = 60
+        uni.setStorageSync(SMS_COUNTDOWN_KEY, (Date.now() + 60000).toString())
+        startSmsTimer()
+    } catch (error: any) {
+        uni.showToast({
+            title: error?.message || '发送验证码失败',
+            icon: 'none',
+        })
+    }
+}
 
 const handleLogin = async () => {
     if (isLoading.value) return
 
     if (!checkPrivacyAgreement()) return
 
+    if (loginTab.value === 'password') {
+        await handlePasswordLogin()
+    } else {
+        await handleSmsLogin()
+    }
+}
+
+const handlePasswordLogin = async () => {
     if (!form.value.userNameOrEmailAddress?.trim()) {
         uni.showToast({ title: '请输入账号', icon: 'none' })
         return
@@ -131,6 +252,59 @@ const handleLogin = async () => {
     }
 }
 
+const handleSmsLogin = async () => {
+    if (!isValidPhone.value) {
+        uni.showToast({ title: '请输入正确的手机号', icon: 'none' })
+        return
+    }
+
+    if (!smsForm.value.code || smsForm.value.code.length !== 6) {
+        uni.showToast({ title: '请输入6位验证码', icon: 'none' })
+        return
+    }
+
+    isLoading.value = true
+
+    try {
+        const res = (await api.tokenAuth.phoneAuthenticate({
+            phoneNumber: smsForm.value.phoneNumber,
+            code: smsForm.value.code,
+        })) as any
+
+        if (res?.accessToken) {
+            uni.setStorageSync('token', res.accessToken)
+            await userStore.getUserInfo()
+            uni.showToast({ title: '登录成功', icon: 'success' })
+            uni.$emit('refreshView')
+            setTimeout(() => {
+                navigateAfterLogin()
+            }, 500)
+        }
+    } catch (error: any) {
+        uni.showToast({
+            title: error?.message || '登录失败',
+            icon: 'none',
+            duration: 2000,
+        })
+    } finally {
+        isLoading.value = false
+    }
+}
+
+const handleWechatLogin = () => {
+    // #ifdef H5
+    const appId = 'YOUR_WECHAT_APP_ID'
+    const redirectUri = encodeURIComponent(window.location.origin + '/pages/index/wechatCallback')
+    const state = Date.now().toString()
+    uni.setStorageSync('wechat_login_state', state)
+    window.location.href = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${appId}&redirect_uri=${redirectUri}&response_type=code&scope=snsapi_userinfo&state=${state}#wechat_redirect`
+    // #endif
+
+    // #ifndef H5
+    uni.showToast({ title: '请在微信环境中使用微信登录', icon: 'none' })
+    // #endif
+}
+
 const toAgreement = () => {
     uni.navigateTo({ url: '/pages/protocol/agreement' })
 }
@@ -138,6 +312,14 @@ const toAgreement = () => {
 const toPrivacy = () => {
     uni.navigateTo({ url: '/pages/protocol/privacy' })
 }
+
+onUnmounted(() => {
+    if (smsTimer) {
+        clearInterval(smsTimer)
+    }
+})
+
+restoreSmsCountdown()
 </script>
 
 <style lang="scss" scoped>
@@ -173,6 +355,38 @@ const toPrivacy = () => {
     box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
 }
 
+.tabs {
+    display: flex;
+    margin-bottom: 40rpx;
+    border-bottom: 2rpx solid #ebebeb;
+}
+
+.tab-item {
+    flex: 1;
+    text-align: center;
+    padding: 24rpx 0;
+    font-size: 30rpx;
+    color: #999999;
+    position: relative;
+
+    &.active {
+        color: #f4835a;
+        font-weight: 500;
+
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: -2rpx;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60rpx;
+            height: 4rpx;
+            background: #f4835a;
+            border-radius: 2rpx;
+        }
+    }
+}
+
 .input-wrap {
     margin-bottom: 32rpx;
     position: relative;
@@ -185,6 +399,28 @@ const toPrivacy = () => {
     font-size: 30rpx;
     color: #333333;
     background: transparent;
+}
+
+.sms-input-wrap {
+    display: flex;
+    align-items: center;
+}
+
+.sms-input {
+    flex: 1;
+}
+
+.sms-btn {
+    padding: 16rpx 24rpx;
+    background: #f4835a;
+    border-radius: 8rpx;
+    font-size: 26rpx;
+    color: #ffffff;
+    white-space: nowrap;
+
+    &.disabled {
+        background: #cccccc;
+    }
 }
 
 .input-placeholder {
@@ -260,6 +496,46 @@ const toPrivacy = () => {
 .agreement-link {
     font-size: 24rpx;
     color: #f4835a;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    margin: 40rpx 0 32rpx;
+}
+
+.divider-text {
+    font-size: 24rpx;
+    color: #cccccc;
+    padding: 0 24rpx;
+}
+
+.other-login {
+    display: flex;
+    justify-content: center;
+}
+
+.wechat-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12rpx;
+    padding: 24rpx 48rpx;
+    background: #07c160;
+    border-radius: 48rpx;
+
+    &:active {
+        opacity: 0.85;
+    }
+}
+
+.wechat-icon {
+    font-size: 36rpx;
+}
+
+.wechat-text {
+    font-size: 28rpx;
+    color: #ffffff;
 }
 
 .home-link {

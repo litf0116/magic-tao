@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
@@ -52,6 +52,8 @@ using TtWork.Project.Web.Authentication.JwtBearer;
 using TtWork.Project.Web.Core.Identity;
 using TtWork.Project.Web.Core.Models.TokenAuth;
 using TtWork.Project.Web.Models.TokenAuth;
+using TtWork.Project.Services;
+using TtWork.Project.Domains;
 using Consts = TtWork.Abp.Consts;
 
 namespace TtWork.Project.Web.Controllers
@@ -76,11 +78,13 @@ namespace TtWork.Project.Web.Controllers
         IRepository<User, long> userRepository,
         IRepository<UserLogin, long> userLoginRepository,
         AbpUserClaimsPrincipalFactory<User, Role> claimsPrincipalFactory,
-         IPasswordHasher<User> passwordHasher
+        IPasswordHasher<User> passwordHasher,
+        ISmsVerificationCodeService smsVerificationCodeService
     )
         : AbpControllerBase
     {
         private readonly IdentityOptions _identityOptions = identityOptions.Value;
+        private readonly ISmsVerificationCodeService _smsVerificationCodeService = smsVerificationCodeService;
 
         private async Task<AbpLoginResult<Tenant, User>> GetLoginResultAsync(string usernameOrEmailAddress,
             string password, string tenancyName)
@@ -624,8 +628,7 @@ namespace TtWork.Project.Web.Controllers
         {
             try
             {
-                using var uow = unitOfWorkManager.Begin(TransactionScopeOption.RequiresNew);
-                // using var uow = unitOfWorkManager.Begin();
+                using var uow = unitOfWorkManager.Begin();
                 if (!await userLoginRepository.GetAll().AsNoTracking()
                         .AnyAsync(x => x.ProviderKey == userLogin.ProviderKey && x.TenantId == userLogin.TenantId))
                 {
@@ -638,7 +641,6 @@ namespace TtWork.Project.Web.Controllers
             {
                 if (e.InnerException is MySqlException { ErrorCode: MySqlErrorCode.DuplicateKeyEntry })
                 {
-                    //已插入过不处理
                     return;
                 }
 
@@ -869,11 +871,11 @@ namespace TtWork.Project.Web.Controllers
         }
 
         [HttpGet]
+        [AbpAuthorize(AppPermissions.Administration)]
         public string GenerateHashedPassword(string plainPassword = "123456")
         {
-            var user = new User(); // 创建一个空的 User 实例
+            var user = new User();
             var hashedPassword = passwordHasher.HashPassword(user, plainPassword);
-            Log.Information($"Hashed password: {hashedPassword}");
             return hashedPassword;
         }
 
@@ -935,6 +937,7 @@ namespace TtWork.Project.Web.Controllers
         /// <param name="input">生成token请求</param>
         /// <returns>token信息</returns>
         [HttpPost]
+        [AbpAuthorize(AppPermissions.Administration)]
         public async Task<GenerateTokenForUserResult> GenerateTokenForUser([FromBody] GenerateTokenForUserInput input)
         {
             try
@@ -1033,6 +1036,89 @@ namespace TtWork.Project.Web.Controllers
                 Logger.Error("为用户生成token失败，用户ID: " + input.UserId, ex);
                 throw new UserFriendlyException("生成token失败: " + ex.Message);
             }
+        }
+
+        [HttpPost]
+        public async Task SendSmsCode([FromBody] SendSmsCodeInput input)
+        {
+            var purpose = input.Purpose?.ToLower() switch
+            {
+                "bindphone" => SmsCodePurpose.BindPhone,
+                "resetpassword" => SmsCodePurpose.ResetPassword,
+                _ => SmsCodePurpose.Login
+            };
+
+            await _smsVerificationCodeService.SendCodeAsync(input.PhoneNumber, purpose);
+        }
+
+        [HttpPost]
+        public async Task<ExternalAuthenticateResultModel> PhoneAuthenticate([FromBody] PhoneAuthenticateInput input)
+        {
+            var purpose = SmsCodePurpose.Login;
+            var isValid = await _smsVerificationCodeService.VerifyCodeAsync(input.PhoneNumber, input.Code, purpose);
+            if (!isValid)
+            {
+                throw new UserFriendlyException("验证码错误或已过期");
+            }
+
+            var userLogin = await userLoginRepository.GetAll()
+                .FirstOrDefaultAsync(x =>
+                    x.LoginProvider == Consts.LoginProvider.Phone &&
+                    x.ProviderKey == input.PhoneNumber);
+
+            User user;
+            if (userLogin != null)
+            {
+                user = await userManager.GetUserByIdAsync(userLogin.UserId);
+                if (!user.IsActive)
+                {
+                    throw new UserFriendlyException("用户已被禁用");
+                }
+            }
+            else
+            {
+                if (AbpSession.UserId.HasValue)
+                {
+                    user = await userManager.GetUserByIdAsync(AbpSession.UserId.Value);
+                    await TryAddUserLogin(new UserLogin(AbpSession.TenantId, user.Id,
+                        Consts.LoginProvider.Phone, input.PhoneNumber));
+                    user.PhoneNumber = input.PhoneNumber;
+                    user.IsPhoneNumberConfirmed = true;
+                    await userManager.UpdateAsync(user);
+                }
+                else
+                {
+                    var randomPassword = Guid.NewGuid().ToString("N");
+                    user = await userRegistrationManager.RegisterAsync(
+                        input.PhoneNumber,
+                        input.PhoneNumber,
+                        $"{input.PhoneNumber}@molitao.top",
+                        input.PhoneNumber,
+                        randomPassword,
+                        input.PhoneNumber,
+                        false,
+                        true);
+
+                    await TryAddUserLogin(new UserLogin(AbpSession?.TenantId, user.Id,
+                        Consts.LoginProvider.Phone, input.PhoneNumber));
+                }
+            }
+
+            var loginResult = await logInManager.LoginAsync(
+                new UserLoginInfo(Consts.LoginProvider.Phone, input.PhoneNumber, Consts.LoginProvider.Phone),
+                GetTenancyNameOrNull());
+
+            if (loginResult.Result != AbpLoginResultType.Success)
+            {
+                throw abpLoginResultTypeHelper.CreateExceptionForFailedLoginAttempt(
+                    loginResult.Result, input.PhoneNumber, GetTenancyNameOrNull());
+            }
+
+            return await ExternalAuthenticateResultModel(loginResult, new ExternalAuthUserInfo(), new ExternalAuthenticateModel
+            {
+                AuthProvider = Consts.LoginProvider.Phone,
+                ProviderKey = input.PhoneNumber
+            });
         }
     }
 }

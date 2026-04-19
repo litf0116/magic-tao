@@ -89,4 +89,22 @@ class StorageService {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_rememberedUsernameKey);
   }
+
+  // SMS countdown persistence
+  static const String _smsCountdownKey = 'sms_countdown_end_time';
+
+  Future<void> setSmsCountdownEndTime(int endTime) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_smsCountdownKey, endTime);
+  }
+
+  Future<int?> getSmsCountdownEndTime() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_smsCountdownKey);
+  }
+
+  Future<void> clearSmsCountdownEndTime() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_smsCountdownKey);
+  }
 }

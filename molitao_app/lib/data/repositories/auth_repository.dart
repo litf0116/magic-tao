@@ -166,10 +166,70 @@ class AuthRepository {
       await _storageService.clearUserData();
       return true;
     } on DioException {
-      // 即使 API 调用失败，也清除本地数据
       await _storageService.clearToken();
       await _storageService.clearUserData();
       return true;
+    }
+  }
+
+  /// 发送短信验证码
+  Future<bool> sendSmsCode(String phoneNumber, {String purpose = 'login'}) async {
+    try {
+      await _apiClient.dio.post(
+        ApiEndpoints.sendSmsCode,
+        data: {'phoneNumber': phoneNumber, 'purpose': purpose},
+      );
+      return true;
+    } on DioException catch (e) {
+      throw Exception('发送验证码失败: ${e.message}');
+    }
+  }
+
+  /// 手机号验证码登录
+  Future<LoginResult> phoneAuthenticate(String phoneNumber, String code) async {
+    try {
+      _debugLog('[AuthRepository] ===== 手机号验证码登录请求 =====');
+      _debugLog('[AuthRepository] phoneNumber: $phoneNumber');
+
+      final response = await _apiClient.dio.post(
+        ApiEndpoints.phoneAuthenticate,
+        data: {'phoneNumber': phoneNumber, 'code': code},
+      );
+
+      _debugLog('[AuthRepository] 手机号登录响应: ${jsonEncode(response.data)}');
+
+      if (response.data != null) {
+        final data = response.data as Map<String, dynamic>;
+        final accessToken = data['accessToken'] as String?;
+
+        if (accessToken != null) {
+          await _storageService.setToken(accessToken);
+        }
+
+        UserDto? user;
+        List<String>? roles;
+        if (accessToken != null) {
+          try {
+            _debugLog('[AuthRepository] 开始获取用户信息...');
+            final userInfo = await getCurrentLoginInformations();
+            if (userInfo != null) {
+              user = userInfo['user'] != null
+                  ? UserDto.fromJson(userInfo['user'] as Map<String, dynamic>)
+                  : null;
+              roles = (userInfo['roles'] as List<dynamic>?)
+                  ?.map((e) => e.toString())
+                  .toList();
+            }
+          } catch (e) {
+            _debugLog('[AuthRepository] 获取用户信息失败: $e');
+          }
+        }
+
+        return LoginResult(accessToken: accessToken, user: user, roles: roles);
+      }
+      return const LoginResult();
+    } on DioException catch (e) {
+      throw Exception('手机号登录失败: ${e.message}');
     }
   }
 }

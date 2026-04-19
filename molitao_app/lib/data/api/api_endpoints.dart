@@ -4,6 +4,8 @@ class ApiEndpoints {
   static const String authenticateWeixinApp =
       '/api/TokenAuth/AuthenticateWeixinApp';
   static const String logout = '/api/TokenAuth/Logout';
+  static const String sendSmsCode = '/api/TokenAuth/SendSmsCode';
+  static const String phoneAuthenticate = '/api/TokenAuth/PhoneAuthenticate';
 
   // User
   static const String getUser = '/api/services/app/User/Get';
@@ -138,4 +140,10 @@ class ApiEndpoints {
 
   // ContentSecurity
   static const String checkMedia = '/api/ContentSecurity/CheckMedia';
+
+  // LoginBinding
+  static const String getLoginBindings =
+      '/api/services/app/LoginBinding/GetLoginBindings';
+  static const String bindPhone = '/api/services/app/LoginBinding/BindPhone';
+  static const String unbindLogin = '/api/services/app/LoginBinding/UnbindLogin';
 }

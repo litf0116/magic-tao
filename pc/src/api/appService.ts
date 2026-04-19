@@ -90,13 +90,49 @@ export class PagedResultDto<T = any> implements IPagedResult<T> {
     items?: T[]
 }
 
+export interface LoginBindingDto {
+    loginProvider: string
+    providerKey: string
+    providerDisplayName: string
+    bindTime?: string
+}
+
 // customer definition
 // empty
 
 export class AccountService {
-    /**
-     *
-     */
+    static getLoginBindings(options: IRequestOptions = {}): Promise<{ items: LoginBindingDto[] }> {
+        return new Promise((resolve, reject) => {
+            let url = basePath + '/api/services/app/Account/GetLoginBindings'
+            const configs: IRequestConfig = getConfigs('get', 'application/json', url, options)
+            axios(configs, resolve, reject)
+        })
+    }
+
+    static bindPhone(
+        params: { body?: { phoneNumber: string; code: string } } = {} as any,
+        options: IRequestOptions = {}
+    ): Promise<any> {
+        return new Promise((resolve, reject) => {
+            let url = basePath + '/api/services/app/Account/BindPhone'
+            const configs: IRequestConfig = getConfigs('post', 'application/json', url, options)
+            configs.data = params.body
+            axios(configs, resolve, reject)
+        })
+    }
+
+    static unbindLogin(
+        params: { body?: { loginProvider: string; providerKey?: string } } = {} as any,
+        options: IRequestOptions = {}
+    ): Promise<any> {
+        return new Promise((resolve, reject) => {
+            let url = basePath + '/api/services/app/Account/UnbindLogin'
+            const configs: IRequestConfig = getConfigs('post', 'application/json', url, options)
+            configs.data = params.body
+            axios(configs, resolve, reject)
+        })
+    }
+
     static isTenantAvailable(
         params: {
             /** requestBody */
@@ -3540,6 +3576,46 @@ export class TokenAuthService {
     ): Promise<ExternalAuthenticateResultModel> {
         return new Promise((resolve, reject) => {
             let url = basePath + '/api/TokenAuth/WeixinMiniPhoneAuthenticate'
+
+            const configs: IRequestConfig = getConfigs('post', 'application/json', url, options)
+
+            let data = params.body
+
+            configs.data = data
+
+            axios(configs, resolve, reject)
+        })
+    }
+
+    static sendSmsCode(
+        params: {
+            /** requestBody */
+            body?: { phoneNumber: string; purpose?: string }
+        } = {} as any,
+        options: IRequestOptions = {}
+    ): Promise<any> {
+        return new Promise((resolve, reject) => {
+            let url = basePath + '/api/TokenAuth/SendSmsCode'
+
+            const configs: IRequestConfig = getConfigs('post', 'application/json', url, options)
+
+            let data = params.body
+
+            configs.data = data
+
+            axios(configs, resolve, reject)
+        })
+    }
+
+    static phoneAuthenticate(
+        params: {
+            /** requestBody */
+            body?: { phoneNumber: string; code: string }
+        } = {} as any,
+        options: IRequestOptions = {}
+    ): Promise<ExternalAuthenticateResultModel> {
+        return new Promise((resolve, reject) => {
+            let url = basePath + '/api/TokenAuth/PhoneAuthenticate'
 
             const configs: IRequestConfig = getConfigs('post', 'application/json', url, options)
 

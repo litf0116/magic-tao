@@ -11,6 +11,13 @@ import type {
 import utils from './utils'
 import { getAppVersion } from './version'
 
+export interface LoginBindingDto {
+    loginProvider: string
+    providerKey: string
+    providerDisplayName: string
+    bindTime?: string
+}
+
 let host: string = 'https://www.molitao.top'
 
 // #ifdef H5
@@ -88,6 +95,12 @@ export default {
         pubQrLogin: (state: string) => request('GET', `/api/TokenAuth/PubQrLogin?state=${state}`) as Promise<string>,
         /** H5 微信扫码登录 - 轮询检查扫码结果，返回 token 或空字符串 */
         qrToken: (key: string) => request('GET', `/api/TokenAuth/QrToken?key=${key}`) as Promise<string>,
+        /** 发送短信验证码 */
+        sendSmsCode: (data: { phoneNumber: string; purpose?: string }) =>
+            request('POST', `/api/TokenAuth/SendSmsCode`, data),
+        /** 手机号验证码登录 */
+        phoneAuthenticate: (data: { phoneNumber: string; code: string }) =>
+            request('POST', `/api/TokenAuth/PhoneAuthenticate`, data),
     },
 
     authenticate: (data: any) => request('POST', `/api/TokenAuth/Authenticate`, data),
@@ -117,6 +130,12 @@ export default {
             }) as Promise<boolean>,
         disablePasswordLogin: () =>
             request('POST', `/api/services/app/Account/DisablePasswordLogin`) as Promise<boolean>,
+        getLoginBindings: () =>
+            request('GET', `/api/services/app/Account/GetLoginBindings`) as Promise<{ items: LoginBindingDto[] }>,
+        bindPhone: (data: { phoneNumber: string; code: string }) =>
+            request('POST', `/api/services/app/Account/BindPhone`, data),
+        unbindLogin: (data: { loginProvider: string; providerKey?: string }) =>
+            request('POST', `/api/services/app/Account/UnbindLogin`, data),
     },
 
     ws: {

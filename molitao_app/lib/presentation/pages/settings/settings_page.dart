@@ -127,6 +127,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   ),
                   _buildDivider(),
                   _buildListTile(
+                    icon: Icons.security_outlined,
+                    title: '账号安全',
+                    onTap: () => context.push('/profile/account-security'),
+                    showArrow: true,
+                  ),
+                  _buildDivider(),
+                  _buildListTile(
                     icon: Icons.lock_outline,
                     title: '修改密码',
                     onTap: () => _showChangePasswordDialog(context),
