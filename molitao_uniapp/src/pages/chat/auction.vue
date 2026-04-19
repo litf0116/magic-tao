@@ -6,7 +6,7 @@
                 bgColor="#f4835a"
                 color="#ffffff"
                 :text="announceContent"
-                :url="`/pages/announce/list?id=2`"
+                @click="showAnnouncementDetail"
             ></uv-notice-bar>
         </view>
 
@@ -210,6 +210,13 @@ function onBidRulesConfirm() {
 const onConfirm = () => {
     uni.setStorageSync('auctionNotice', item.value)
     popupShowRef.value?.close()
+}
+
+//跳转到公告列表页面
+const showAnnouncementDetail = () => {
+    uni.navigateTo({
+        url: '/pages/announce/list?id=2',
+    })
 }
 //获取用户信息
 const userId = computed(() => {
