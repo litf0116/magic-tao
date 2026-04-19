@@ -2,15 +2,9 @@
     <view class="chat-input">
         <view class="input-toolbar">
             <view class="toolbar-left">
-                <button 
-                    class="emoji-btn" 
-                    @click="toggleEmojiPanel"
-                    :class="{ active: showEmojiPanel }"
-                >
-                    😊
-                </button>
+                <button class="emoji-btn" :class="{ active: showEmojiPanel }" @click="toggleEmojiPanel">😊</button>
             </view>
-            
+
             <view class="input-area">
                 <textarea
                     v-model="messageText"
@@ -22,26 +16,20 @@
                     @blur="onInputBlur"
                 />
             </view>
-            
+
             <view class="toolbar-right">
-                <button 
-                    class="send-btn" 
-                    @click="sendMessage"
-                    :disabled="!canSend"
-                >
-                    发送
-                </button>
+                <button class="send-btn" :disabled="!canSend" @click="sendMessage">发送</button>
             </view>
         </view>
-        
-        <EmojiPanel 
-            v-if="showEmojiPanel" 
+
+        <EmojiPanel
+            v-if="showEmojiPanel"
             :visible="showEmojiPanel"
             @select="insertEmoji"
             @close="showEmojiPanel = false"
         />
-        
-        <ActionPanel 
+
+        <ActionPanel
             v-if="showActionPanel"
             :visible="showActionPanel"
             @send-image="$emit('sendImage')"
@@ -74,7 +62,7 @@ const canSend = computed(() => {
 
 const sendMessage = () => {
     if (!canSend.value) return
-    
+
     emit('sendMessage', messageText.value.trim())
     messageText.value = ''
     showEmojiPanel.value = false

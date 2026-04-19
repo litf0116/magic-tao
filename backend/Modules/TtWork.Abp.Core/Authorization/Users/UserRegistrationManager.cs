@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -37,6 +37,7 @@ namespace TtWork.Abp.Authorization.Users
             _passwordHasher = passwordHasher;
 
             AbpSession = NullAbpSession.Instance;
+            LocalizationSourceName = Consts.LocalizationSourceName;
         }
 
         public async Task<User> RegisterAsync(

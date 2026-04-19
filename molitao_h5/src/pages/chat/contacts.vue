@@ -26,7 +26,7 @@
                     </view>
                 </view>
                 <view class="contacts-container">
-                <!-- <view class="user-list">
+                    <!-- <view class="user-list">
                 <view class="user-list-item" v-for="(group, id) in groups" :key="id">
                     <view class="user-item-avatar">
                         <image :src="group.avatar" />
@@ -36,51 +36,51 @@
                     </view>
                 </view>
             </view> -->
-                <template v-if="chatStore.friends0 && chatStore.friends0.length">
-                    <view class="contacts-title">好友申请</view>
+                    <template v-if="chatStore.friends0 && chatStore.friends0.length">
+                        <view class="contacts-title">好友申请</view>
+                        <view class="user-list">
+                            <view v-for="friend in chatStore.friends0" :key="friend.id" class="user-list-item">
+                                <view class="user-item-avatar">
+                                    <image :src="getImgUrl(friend.headImgUrl!, true)" mode="aspectFill"></image>
+                                </view>
+                                <view class="user-item-info">
+                                    <span class="user-item-info__name">{{ friend.name }}</span>
+                                </view>
+                                <view class="flex mr-2 space-x-1">
+                                    <uv-button
+                                        type="success"
+                                        size="small"
+                                        text="同意"
+                                        @click="agree(friend.id!, true)"
+                                    ></uv-button>
+                                    <uv-button
+                                        type="default"
+                                        :plain="true"
+                                        size="small"
+                                        text="拒绝"
+                                        @click="agree(friend.id!, false)"
+                                    ></uv-button>
+                                </view>
+                            </view>
+                        </view>
+                    </template>
+                    <view class="contacts-title">好友</view>
                     <view class="user-list">
-                        <view v-for="friend in chatStore.friends0" :key="friend.id" class="user-list-item">
+                        <view
+                            v-for="friend in (chatStore.friends || []).filter((x) => x.name.indexOf(filterText) > -1)"
+                            :key="friend.id"
+                            class="user-list-item"
+                            @click="privateChat(friend)"
+                        >
                             <view class="user-item-avatar">
                                 <image :src="getImgUrl(friend.headImgUrl!, true)" mode="aspectFill"></image>
                             </view>
                             <view class="user-item-info">
                                 <span class="user-item-info__name">{{ friend.name }}</span>
                             </view>
-                            <view class="flex mr-2 space-x-1">
-                                <uv-button
-                                    type="success"
-                                    size="small"
-                                    text="同意"
-                                    @click="agree(friend.id!, true)"
-                                ></uv-button>
-                                <uv-button
-                                    type="default"
-                                    :plain="true"
-                                    size="small"
-                                    text="拒绝"
-                                    @click="agree(friend.id!, false)"
-                                ></uv-button>
-                            </view>
-                        </view>
-                    </view>
-                </template>
-                <view class="contacts-title">好友</view>
-                <view class="user-list">
-                    <view
-                        v-for="friend in (chatStore.friends || []).filter((x) => x.name.indexOf(filterText) > -1)"
-                        :key="friend.id"
-                        class="user-list-item"
-                        @click="privateChat(friend)"
-                    >
-                        <view class="user-item-avatar">
-                            <image :src="getImgUrl(friend.headImgUrl!, true)" mode="aspectFill"></image>
-                        </view>
-                        <view class="user-item-info">
-                            <span class="user-item-info__name">{{ friend.name }}</span>
                         </view>
                     </view>
                 </view>
-            </view>
             </template>
         </scroll-view>
     </view>

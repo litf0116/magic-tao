@@ -195,7 +195,11 @@
                     <view class="size-6 text-red i-mdi:close"></view>
                 </view>
                 <view class="more-icon">
-                    <image class="operation-icon" src="../../static/images/picture.png" @click="sendImageMessage2()"></image>
+                    <image
+                        class="operation-icon"
+                        src="../../static/images/picture.png"
+                        @click="sendImageMessage2()"
+                    ></image>
                     <view class="operation-title">图片</view>
                 </view>
             </view>

@@ -301,16 +301,19 @@ async function topUp() {
     // #endif
 
     // #ifdef H5
-    api.client.TopUp({ amount: _value, type: 'h5' }).then((res: any) => {
-        if (res.h5_url) {
-            const redirectUrl = encodeURIComponent(window.location.origin + '/pages/index/my?from=h5pay')
-            window.location.href = res.h5_url + '&redirect_url=' + redirectUrl
-        } else {
-            Tips.error('获取支付链接失败')
-        }
-    }).catch(() => {
-        Tips.info('用户取消支付')
-    })
+    api.client
+        .TopUp({ amount: _value, type: 'h5' })
+        .then((res: any) => {
+            if (res.h5_url) {
+                const redirectUrl = encodeURIComponent(window.location.origin + '/pages/index/my?from=h5pay')
+                window.location.href = res.h5_url + '&redirect_url=' + redirectUrl
+            } else {
+                Tips.error('获取支付链接失败')
+            }
+        })
+        .catch(() => {
+            Tips.info('用户取消支付')
+        })
     // #endif
 
     // #ifdef APP-PLUS

@@ -28,26 +28,11 @@
             v-else-if="message.type === ChatMessageType.AuctionDeal && message.payload"
             :message="message"
         />
-        <AudioMessage
-            v-else-if="message.type === ChatMessageType.Audio"
-            :message="message"
-        />
-        <FileMessage
-            v-else-if="message.type === ChatMessageType.File"
-            :message="message"
-        />
-        <LocationMessage
-            v-else-if="message.type === ChatMessageType.Location"
-            :message="message"
-        />
-        <VideoMessage
-            v-else-if="message.type === ChatMessageType.Video"
-            :message="message"
-        />
-        <OrderMessage
-            v-else-if="message.type === ChatMessageType.Order && message.payload"
-            :message="message"
-        />
+        <AudioMessage v-else-if="message.type === ChatMessageType.Audio" :message="message" />
+        <FileMessage v-else-if="message.type === ChatMessageType.File" :message="message" />
+        <LocationMessage v-else-if="message.type === ChatMessageType.Location" :message="message" />
+        <VideoMessage v-else-if="message.type === ChatMessageType.Video" :message="message" />
+        <OrderMessage v-else-if="message.type === ChatMessageType.Order && message.payload" :message="message" />
     </view>
 </template>
 

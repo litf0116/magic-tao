@@ -1,27 +1,16 @@
 <template>
-    <view 
+    <view
         class="message-item"
         :class="{
             'system-center': isSystemMessage,
-            'self': isSelfMessage
+            self: isSelfMessage,
         }"
     >
-        <WelcomeMessage 
-            v-if="message.type === ChatMessageType.Welcome" 
-            :fromName="message.fromName" 
-        />
-        
-        <SystemMessage
-            v-else-if="message.type === ChatMessageType.BanUser"
-            type="BanUser"
-            :msg="message.msg"
-        />
-        
-        <SystemMessage
-            v-else-if="message.type === ChatMessageType.Backout"
-            type="Backout"
-            :msg="message.msg"
-        />
+        <WelcomeMessage v-if="message.type === ChatMessageType.Welcome" :fromName="message.fromName" />
+
+        <SystemMessage v-else-if="message.type === ChatMessageType.BanUser" type="BanUser" :msg="message.msg" />
+
+        <SystemMessage v-else-if="message.type === ChatMessageType.Backout" type="Backout" :msg="message.msg" />
 
         <view v-else class="message-item-content">
             <view class="avatar" @tap="$emit('showAction', message)">
@@ -29,20 +18,20 @@
             </view>
 
             <view class="content">
-                <UserInfo 
+                <UserInfo
                     :message="message"
                     :chat-type="chatType"
                     :show-rules="showGroupChatRules"
                     @toggle-rules="showGroupChatRules = !showGroupChatRules"
                 />
-                
-                <MessageContent 
+
+                <MessageContent
                     :message="message"
                     @show-detail="$emit('showDetail', message)"
                     @show-image="$emit('showImage', message)"
                     @auction-action="$emit('auctionAction', $event)"
                 />
-                
+
                 <MessageStatus :message="message" />
             </view>
         </view>
@@ -74,11 +63,7 @@ const emit = defineEmits<{
 }>()
 
 const isSystemMessage = computed(() => {
-    return [
-        ChatMessageType.Welcome,
-        ChatMessageType.BanUser,
-        ChatMessageType.Backout
-    ].includes(props.message.type)
+    return [ChatMessageType.Welcome, ChatMessageType.BanUser, ChatMessageType.Backout].includes(props.message.type)
 })
 
 const isSelfMessage = computed(() => {

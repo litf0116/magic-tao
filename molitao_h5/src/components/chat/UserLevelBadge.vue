@@ -1,6 +1,6 @@
 <template>
-    <view 
-        v-if="level" 
+    <view
+        v-if="level"
         class="user-level-badge"
         :class="{
             'level-7-premium': level.level === 7,
@@ -33,7 +33,7 @@ const getLevelStyle = (level: any) => {
     return {
         color: level.color || '#fff',
         backgroundColor: level.backgroundColor || '#333',
-        marginRight: '10rpx'
+        marginRight: '10rpx',
     }
 }
 </script>
@@ -63,8 +63,14 @@ const getLevelStyle = (level: any) => {
 }
 
 @keyframes rainbow-bg {
-    0% { background-position: 0 0; }
-    50% { background-position: 400% 0; }
-    100% { background-position: 0 0; }
+    0% {
+        background-position: 0 0;
+    }
+    50% {
+        background-position: 400% 0;
+    }
+    100% {
+        background-position: 0 0;
+    }
 }
 </style>

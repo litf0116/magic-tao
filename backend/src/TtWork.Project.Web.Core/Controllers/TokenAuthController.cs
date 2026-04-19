@@ -1041,6 +1041,12 @@ namespace TtWork.Project.Web.Controllers
         [HttpPost]
         public async Task SendSmsCode([FromBody] SendSmsCodeInput input)
         {
+            if (string.IsNullOrWhiteSpace(input.PhoneNumber) || 
+                !System.Text.RegularExpressions.Regex.IsMatch(input.PhoneNumber, @"^1[3-9]\d{9}$"))
+            {
+                throw new UserFriendlyException("请输入正确的手机号");
+            }
+
             var purpose = input.Purpose?.ToLower() switch
             {
                 "bindphone" => SmsCodePurpose.BindPhone,
@@ -1054,6 +1060,12 @@ namespace TtWork.Project.Web.Controllers
         [HttpPost]
         public async Task<ExternalAuthenticateResultModel> PhoneAuthenticate([FromBody] PhoneAuthenticateInput input)
         {
+            if (string.IsNullOrWhiteSpace(input.PhoneNumber) || 
+                !System.Text.RegularExpressions.Regex.IsMatch(input.PhoneNumber, @"^1[3-9]\d{9}$"))
+            {
+                throw new UserFriendlyException("请输入正确的手机号");
+            }
+
             var purpose = SmsCodePurpose.Login;
             var isValid = await _smsVerificationCodeService.VerifyCodeAsync(input.PhoneNumber, input.Code, purpose);
             if (!isValid)

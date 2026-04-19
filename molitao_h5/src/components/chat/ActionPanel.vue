@@ -1,5 +1,5 @@
 <template>
-    <view class="action-panel" v-if="visible">
+    <view v-if="visible" class="action-panel">
         <view class="panel-header">
             <text>更多功能</text>
             <view class="close-btn" @click="close">✕</view>

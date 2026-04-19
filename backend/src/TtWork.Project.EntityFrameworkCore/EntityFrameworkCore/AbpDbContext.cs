@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Abp.Application.Editions;
 using Abp.Application.Features;
 using Abp.Domain.Entities;
@@ -49,6 +49,8 @@ namespace TtWork.Project.EntityFrameworkCore {
         public DbSet<WechatPaymentNotification> WechatPaymentNotification { get; set; }
 
         public DbSet<AppRelease> AppReleases { get; set; }
+
+        public DbSet<SmsVerificationCode> SmsVerificationCodes { get; set; }
 
 
         #region TtWork.Abp.AppManagement

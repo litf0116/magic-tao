@@ -1,5 +1,5 @@
 <template>
-    <view class="action-popup" v-if="visible">
+    <view v-if="visible" class="action-popup">
         <view class="popup-mask" @click="close"></view>
         <view class="popup-content">
             <view class="popup-header">
@@ -7,12 +7,7 @@
                 <view class="close-btn" @click="close">✕</view>
             </view>
             <view class="popup-body">
-                <view 
-                    v-for="action in actions" 
-                    :key="action.key"
-                    class="action-item"
-                    @click="handleAction(action.key)"
-                >
+                <view v-for="action in actions" :key="action.key" class="action-item" @click="handleAction(action.key)">
                     <text>{{ action.label }}</text>
                 </view>
             </view>
@@ -44,7 +39,7 @@ const actions = ref<Action[]>([
     { key: 'copy', label: '复制' },
     { key: 'delete', label: '删除' },
     { key: 'reply', label: '回复' },
-    { key: 'forward', label: '转发' }
+    { key: 'forward', label: '转发' },
 ])
 
 const close = () => {

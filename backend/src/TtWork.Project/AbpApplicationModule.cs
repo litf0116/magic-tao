@@ -65,6 +65,10 @@ namespace TtWork.Project {
                     .ImplementedBy<HttpClientService>()
                     .LifestyleSingleton()
             );
+
+            // 注册短信验证码服务
+            IocManager.Register<ISmsVerificationCodeService, SmsVerificationCodeService>(
+                DependencyLifeStyle.Transient);
         }
 
         public override void PostInitialize() {

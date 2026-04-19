@@ -11,21 +11,17 @@
             @show-image="showImageFullScreen"
             @auction-action="onAuctionStartAction"
         />
-        
+
         <ChatInput
             @send-message="sendTextMessage"
             @send-image="handleImageUpload"
             @send-file="handleFileUpload"
             @send-location="handleLocationSend"
         />
-        
+
         <!-- 原有的弹窗和状态保持不变 -->
-        <userProfile 
-            ref="popupDetailRef" 
-            :show-item="showItem" 
-            :chat-options="chatOptions" 
-        />
-        
+        <userProfile ref="popupDetailRef" :show-item="showItem" :chat-options="chatOptions" />
+
         <!-- 群聊规则弹窗 -->
         <view v-if="showGroupChatRules" class="modal-mask" @tap="showGroupChatRules = false">
             <view class="modal-content" @tap.stop>
@@ -38,10 +34,10 @@
                 </view>
             </view>
         </view>
-        
+
         <!-- 动作弹窗 -->
-        <ActionPopup 
-            v-if="showActionPopupVisible" 
+        <ActionPopup
+            v-if="showActionPopupVisible"
             :message="selectedMessage"
             :current-user-id="userStore.user.id"
             @close="showActionPopupVisible = false"
@@ -90,7 +86,7 @@ const chatOptions = computed(() => props.options)
 const historyMsgs = computed(() => chatStore.currentHistoryMsgs)
 const history = computed(() => ({
     loading: chatStore.historyLoading,
-    allLoaded: chatStore.historyAllLoaded
+    allLoaded: chatStore.historyAllLoaded,
 }))
 
 // 方法定义
@@ -143,15 +139,19 @@ const handleAction = (action: string) => {
 }
 
 // 监听消息变化，自动滚动到底部
-watch(historyMsgs, () => {
-    nextTick(() => {
-        // 滚动到最新消息的逻辑
-        const scrollView = document.getElementById('scrollview')
-        if (scrollView) {
-            scrollView.scrollTop = scrollView.scrollHeight
-        }
-    })
-}, { deep: true })
+watch(
+    historyMsgs,
+    () => {
+        nextTick(() => {
+            // 滚动到最新消息的逻辑
+            const scrollView = document.getElementById('scrollview')
+            if (scrollView) {
+                scrollView.scrollTop = scrollView.scrollHeight
+            }
+        })
+    },
+    { deep: true }
+)
 </script>
 
 <style scoped>

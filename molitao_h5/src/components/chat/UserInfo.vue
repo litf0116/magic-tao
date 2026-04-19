@@ -1,17 +1,15 @@
 <template>
     <view class="user-info" style="display: flex" :class="[message.fromAdmin ? ' !text-red-500' : '']">
         <div v-if="chatType === 'private'">
-            <span
-                v-if="message.fromAdmin && message.fromTag"
-                :class="[message.tagClass ? message.tagClass : '']"
-            >{{ message.fromTag }}</span>
+            <span v-if="message.fromAdmin && message.fromTag" :class="[message.tagClass ? message.tagClass : '']">{{
+                message.fromTag
+            }}</span>
         </div>
         <div v-else>
-            <span
-                v-if="message.fromAdmin && message.fromTag"
-                :class="[message.tagClass ? message.tagClass : '']"
-            >{{ message.fromTag }}</span>
-            <UserLevelBadge 
+            <span v-if="message.fromAdmin && message.fromTag" :class="[message.tagClass ? message.tagClass : '']">{{
+                message.fromTag
+            }}</span>
+            <UserLevelBadge
                 v-else-if="message.userChatLevel"
                 :level="message.userChatLevel"
                 @click="$emit('toggleRules')"

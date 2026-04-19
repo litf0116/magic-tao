@@ -63,17 +63,17 @@ export const useMessageStore = defineStore('messageStore', () => {
     const formatMessageTime = (timestamp: number): string => {
         const now = Date.now()
         const diff = now - timestamp
-        
+
         if (diff < 60 * 1000) return '刚刚'
         if (diff < 60 * 60 * 1000) return `${Math.floor(diff / (60 * 1000))}分钟前`
         if (diff < 24 * 60 * 60 * 1000) return `${Math.floor(diff / (60 * 60 * 1000))}小时前`
-        
+
         const date = new Date(timestamp)
         return date.toLocaleString('zh-CN', {
             month: 'short',
             day: 'numeric',
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
         })
     }
 
@@ -86,7 +86,7 @@ export const useMessageStore = defineStore('messageStore', () => {
     const setCurrentChat = (chat: ChatListItem | null) => {
         currentChat.value = chat
         if (chat) {
-            const chatItem = chatList.value.find(item => item.id === chat.id && item.type === chat.type)
+            const chatItem = chatList.value.find((item) => item.id === chat.id && item.type === chat.type)
             if (chatItem) {
                 chatItem.unread = 0
             }
@@ -96,19 +96,19 @@ export const useMessageStore = defineStore('messageStore', () => {
     const addMessage = (chatItem: ChatListItem, message: ChatMessage) => {
         const key = getChatKey(chatItem)
         const existingMessages = chatMap.value.get(key) || []
-        
-        if (existingMessages.some(msg => msg.id === message.id)) {
+
+        if (existingMessages.some((msg) => msg.id === message.id)) {
             return
         }
 
         const newMessages = [...existingMessages, message]
         chatMap.value.set(key, newMessages)
 
-        const chatListItem = chatList.value.find(item => item.id === chatItem.id && item.type === chatItem.type)
+        const chatListItem = chatList.value.find((item) => item.id === chatItem.id && item.type === chatItem.type)
         if (chatListItem) {
             chatListItem.lastMsg = message.msg
             chatListItem.time = message.time
-            
+
             if (currentChat.value?.id !== chatItem.id || currentChat.value?.type !== chatItem.type) {
                 chatListItem.unread = (chatListItem.unread || 0) + 1
             }
@@ -118,7 +118,7 @@ export const useMessageStore = defineStore('messageStore', () => {
     const addMessages = (chatItem: ChatListItem, messages: ChatMessage[], reload = false) => {
         const key = getChatKey(chatItem)
         const existingMessages = chatMap.value.get(key) || []
-        
+
         const mergedMessages = mergeHistoryForChannel(key, messages, existingMessages, reload)
         chatMap.value.set(key, mergedMessages)
     }
@@ -126,8 +126,8 @@ export const useMessageStore = defineStore('messageStore', () => {
     const updateMessageStatus = (chatItem: ChatListItem, messageId: string, status: ChatMessageStatus) => {
         const key = getChatKey(chatItem)
         const messages = chatMap.value.get(key) || []
-        
-        const message = messages.find(msg => msg.id === messageId)
+
+        const message = messages.find((msg) => msg.id === messageId)
         if (message) {
             message.status = status
         }
@@ -140,37 +140,37 @@ export const useMessageStore = defineStore('messageStore', () => {
 
     const loadHistoryMessages = async (chatItem: ChatListItem, lastTime?: number, size = 20) => {
         historyLoading.value = true
-        
+
         try {
             let messages: ChatMessage[] = []
-            
+
             if (chatItem.type === ChatListItemType.private) {
                 const res = await api.message.getPrivateHistory({
                     id: chatItem.id,
                     lastTime,
-                    size
+                    size,
                 })
                 messages = res.items || []
             } else {
                 const res = await api.message.getChanHistory({
                     chan: `group_${chatItem.id}_${chatItem.name}`,
                     lastTime,
-                    size
+                    size,
                 })
                 messages = res.items || []
             }
-            
+
             addMessages(chatItem, messages, !lastTime)
-            
+
             if (messages.length < size) {
-                const chatListItem = chatList.value.find(item => 
-                    item.id === chatItem.id && item.type === chatItem.type
+                const chatListItem = chatList.value.find(
+                    (item) => item.id === chatItem.id && item.type === chatItem.type
                 )
                 if (chatListItem) {
                     chatListItem.allLoaded = true
                 }
             }
-            
+
             return messages
         } catch (error) {
             console.error('Failed to load history messages:', error)
@@ -181,20 +181,16 @@ export const useMessageStore = defineStore('messageStore', () => {
     }
 
     const markAsRead = (chatItem: ChatListItem) => {
-        const chatListItem = chatList.value.find(item => 
-            item.id === chatItem.id && item.type === chatItem.type
-        )
+        const chatListItem = chatList.value.find((item) => item.id === chatItem.id && item.type === chatItem.type)
         if (chatListItem) {
             chatListItem.unread = 0
         }
     }
 
     const deleteChat = (chatItem: ChatListItem) => {
-        chatList.value = chatList.value.filter(item => 
-            !(item.id === chatItem.id && item.type === chatItem.type)
-        )
+        chatList.value = chatList.value.filter((item) => !(item.id === chatItem.id && item.type === chatItem.type))
         clearChatMessages(chatItem)
-        
+
         if (currentChat.value?.id === chatItem.id && currentChat.value?.type === chatItem.type) {
             setCurrentChat(null)
         }
@@ -206,7 +202,7 @@ export const useMessageStore = defineStore('messageStore', () => {
             chatList.value = res.map((item: any) => ({
                 ...item,
                 unread: item.unread || 0,
-                allLoaded: false
+                allLoaded: false,
             }))
         } catch (error) {
             console.error('Failed to initialize chat list:', error)
@@ -222,7 +218,7 @@ export const useMessageStore = defineStore('messageStore', () => {
         historyLoading: computed(() => historyLoading.value),
         historyAllLoaded: computed(() => historyAllLoaded.value),
         unreadCount: computed(() => totalUnreadCount.value),
-        
+
         setCurrentChat,
         addMessage,
         addMessages,
@@ -233,6 +229,6 @@ export const useMessageStore = defineStore('messageStore', () => {
         deleteChat,
         initializeChatList,
         formatMessageTime,
-        shouldShowTimeDivider
+        shouldShowTimeDivider,
     }
 })

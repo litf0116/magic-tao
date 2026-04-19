@@ -3,21 +3,14 @@
         <view v-if="history.loading" class="history-loaded">
             <image src="../../static/images/loading.svg" />
         </view>
-        <view 
-            v-else 
-            :class="history.allLoaded ? 'history-loaded' : 'load'" 
-            @click="$emit('loadHistory', false)"
-        >
+        <view v-else :class="history.allLoaded ? 'history-loaded' : 'load'" @click="$emit('loadHistory', false)">
             <view>{{ history.allLoaded ? '已经没有更多的历史消息' : '点击获取历史消息' }}</view>
         </view>
 
         <view v-for="(message, index) in messages" :key="message.id">
-            <TimeDivider 
-                v-if="shouldShowTime(message, index)" 
-                :time="formatTime(message.time)" 
-            />
-            
-            <MessageItem 
+            <TimeDivider v-if="shouldShowTime(message, index)" :time="formatTime(message.time)" />
+
+            <MessageItem
                 :message="message"
                 :previous-message="messages[index - 1]"
                 :current-user-id="currentUserId"

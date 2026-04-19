@@ -18,7 +18,7 @@ export const useWebSocketStore = defineStore('webSocketStore', () => {
         isConnected: false,
         websocketId: 0,
         reconnectAttempts: 0,
-        reconnectTimer: undefined
+        reconnectTimer: undefined,
     })
 
     const messageHandlers = ref<Array<(message: any) => void>>([])
@@ -35,7 +35,7 @@ export const useWebSocketStore = defineStore('webSocketStore', () => {
     }
 
     const notifyHandlers = (message: any) => {
-        messageHandlers.value.forEach(handler => {
+        messageHandlers.value.forEach((handler) => {
             try {
                 handler(message)
             } catch (error) {
@@ -45,7 +45,7 @@ export const useWebSocketStore = defineStore('webSocketStore', () => {
     }
 
     const sleep = (ms: number): Promise<void> => {
-        return new Promise(resolve => setTimeout(resolve, ms))
+        return new Promise((resolve) => setTimeout(resolve, ms))
     }
 
     const shouldReconnect = (): boolean => {
@@ -74,7 +74,7 @@ export const useWebSocketStore = defineStore('webSocketStore', () => {
                 url: res.server,
                 success: (result) => {
                     console.log('WebSocket connection initiated:', result)
-                }
+                },
             })
 
             state.value.socket.onMessage((e: any) => {
@@ -154,7 +154,7 @@ export const useWebSocketStore = defineStore('webSocketStore', () => {
                 },
                 fail: (error) => {
                     console.error('Failed to send message:', error)
-                }
+                },
             })
             return true
         } catch (error) {
@@ -167,11 +167,11 @@ export const useWebSocketStore = defineStore('webSocketStore', () => {
         socket: computed(() => state.value.socket),
         isConnected: computed(() => state.value.isConnected),
         websocketId: computed(() => state.value.websocketId),
-        
+
         connect,
         disconnect,
         sendMessage,
         addMessageHandler,
-        removeMessageHandler
+        removeMessageHandler,
     }
 })

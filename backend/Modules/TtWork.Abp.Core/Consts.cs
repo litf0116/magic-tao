@@ -1,4 +1,4 @@
-﻿namespace TtWork.Abp {
+namespace TtWork.Abp {
     public class Consts {
         public const string LocalizationSourceName = "Core";
 
@@ -12,6 +12,9 @@
             public const string WeChatUnionId = "WeChatUnionId";
             public const string WeChatMiniPhone = "WeChatMiniPhone";
             public const string WeChatApp = "WeChatApp";
+
+            public const string Phone = "Phone";
+            public const string Password = "Password";
         }
     }
 }

@@ -138,6 +138,12 @@ namespace TtWork.Project.Applications.Core.Authorization.Accounts {
         [HttpPost]
         public async Task<bool> BindPhone([FromBody] BindPhoneInput input)
         {
+            if (string.IsNullOrWhiteSpace(input.PhoneNumber) || 
+                !System.Text.RegularExpressions.Regex.IsMatch(input.PhoneNumber, @"^1[3-9]\d{9}$"))
+            {
+                throw new UserFriendlyException("请输入正确的手机号");
+            }
+
             var user = await GetCurrentUserAsync();
             var purpose = SmsCodePurpose.BindPhone;
 
