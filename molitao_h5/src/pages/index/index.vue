@@ -16,14 +16,13 @@
                         :src="convertImageUrl('https://image.molitao.top/banners/jyz.png')"
                         @tap="gotoTradingPost"
                     />
-                    <!-- #endif -->
-                    <!-- 秒杀场入口：仅当用户有权限时显示 -->
+                    <!-- 秒杀场入口 -->
                     <image
-                        v-if="showAuctionEntrance"
                         class="mt-1 w-full h-270rpx"
                         :src="convertImageUrl('https://image.molitao.top/banners/pmh.png')"
                         @tap="Goto.auction()"
                     />
+                    <!-- #endif -->
                 </view>
                 <view class="mt-2 w-full">
                     <uv-swiper
@@ -79,10 +78,6 @@ const userStore = useUserStore()
 const chatStore = useChatStore()
 
 const { navTo } = useTo()
-
-const showAuctionEntrance = computed(() => {
-    return chatStore.chatList.some((chat) => chat.id === -1)
-})
 
 // 跳转到交易站
 const gotoTradingPost = () => {
