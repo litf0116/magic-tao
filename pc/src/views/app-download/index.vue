@@ -132,10 +132,15 @@ function getDeviceType(): 'android' | 'ios' | 'desktop' {
     return 'desktop'
 }
 
-// 二维码指向当前页面（扫码后根据设备类型展示不同内容）
+// 二维码指向最新 APK 下载地址（扫码直接下载）
 const qrCode = computed(() => {
-    const pageUrl = `${window.location.origin}/app-download`
-    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(pageUrl)}`
+    if (!latestVersion.value?.downloadUrl) {
+        return ''
+    }
+    const downloadUrl = latestVersion.value.downloadUrl.startsWith('http')
+        ? latestVersion.value.downloadUrl
+        : `${window.location.origin}${latestVersion.value.downloadUrl}`
+    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(downloadUrl)}`
 })
 
 const downloadAndroid = () => {
