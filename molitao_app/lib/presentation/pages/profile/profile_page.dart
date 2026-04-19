@@ -194,15 +194,27 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                           ),
                         ],
                       ),
-                      if (userState.isLoggedIn && userState.user != null)
-                        Positioned(
-                          right: 0,
-                          top: 0,
-                          child: IconButton(
-                            icon: const Icon(Icons.settings),
-                            onPressed: () => context.push('/profile/settings'),
-                          ),
-                        ),
+                       Positioned(
+                         right: 0,
+                         top: 0,
+                         child: IconButton(
+                           icon: const Icon(
+                             Icons.settings,
+                             color: Colors.black87,
+                             size: 28,
+                           ),
+                           tooltip: '个人信息设置',
+                           onPressed: () {
+                             if (userState.isLoggedIn && userState.user != null) {
+                               context.push('/profile/user-info');
+                             } else {
+                               ScaffoldMessenger.of(context).showSnackBar(
+                                 const SnackBar(content: Text('请先登录')),
+                               );
+                             }
+                           },
+                         ),
+                       ),
                     ],
                   ),
                 ),

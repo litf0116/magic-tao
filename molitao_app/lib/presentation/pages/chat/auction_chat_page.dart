@@ -51,6 +51,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   // 公告相关状态
   AnnounceDto? _currentAnnounce;
   bool _showAnnouncementDialog = false;
+  bool _isShowingAnnouncementDialog = false; // 防止重复弹窗
   static const String _auctionNoticeKey = 'auctionNotice';
   static const int _announceCategoryId = 2;
 
@@ -131,8 +132,15 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
         // 消息数量增加且不在加载历史消息，说明有新消息
         if (next.length > previous!.length && !_isLoadingHistory) {
           print('[AuctionChat] ✅ 检测到新消息，准备滚动到底部');
-          // 直接调用 _scrollToBottom，内部已有 addPostFrameCallback
-          _scrollToBottom();
+          // 添加额外检查，确保组件已挂载且不在加载状态
+          if (mounted && !_isLoadingMessages) {
+            // 延迟执行，确保新消息已经渲染到界面上
+            Future.delayed(const Duration(milliseconds: 100), () {
+              if (mounted) {
+                _scrollToBottom();
+              }
+            });
+          }
         } else {
           print('[AuctionChat] ❌ 不满足滚动条件');
         }
@@ -191,22 +199,20 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
       '[AuctionChat] _scrollController.hasClients = ${_scrollController.hasClients}',
     );
 
-    if (!_scrollController.hasClients) {
-      print('[AuctionChat] ❌ _scrollController.hasClients = false，跳过滚动');
-      return;
-    }
+    // 使用更安全的滚动策略 - 添加额外延迟确保组件完全构建
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (!mounted) {
+          print('[AuctionChat] ❌ 组件已卸载，跳过滚动');
+          return;
+        }
 
-    try {
-      // 使用 addPostFrameCallback 确保在当前帧渲染完成后执行
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        print('[AuctionChat] addPostFrameCallback 触发');
+        if (!_scrollController.hasClients) {
+          print('[AuctionChat] ❌ hasClients = false，无法滚动');
+          return;
+        }
 
         try {
-          if (!_scrollController.hasClients) {
-            print('[AuctionChat] ❌ callback: hasClients = false，无法滚动');
-            return;
-          }
-
           final currentPixels = _scrollController.position.pixels;
           final extent = _scrollController.position.maxScrollExtent;
           final viewportDimension =
@@ -219,22 +225,24 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
           print('[AuctionChat] 是否需要滚动 = ${currentPixels < extent}');
           print('[AuctionChat] =====================================');
 
-          _scrollController.animateTo(
-            extent,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-          );
-          print('[AuctionChat] ✅ 已调用 animateTo 滚动到 $extent');
+          // 只在有内容需要滚动时才滚动
+          if (currentPixels < extent) {
+            _scrollController.animateTo(
+              extent,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+            print('[AuctionChat] ✅ 已调用 animateTo 滚动到 $extent');
+          } else {
+            print('[AuctionChat] ℹ️ 无需滚动，已在底部或内容不足');
+          }
         } catch (e, stackTrace) {
-          print('[AuctionChat] ❌ callback 执行异常: $e');
+          print('[AuctionChat] ❌ 滚动异常: $e');
           print('[AuctionChat] StackTrace: $stackTrace');
         }
       });
-      print('[AuctionChat] addPostFrameCallback 已注册');
-    } catch (e, stackTrace) {
-      print('[AuctionChat] ❌ 注册 addPostFrameCallback 异常: $e');
-      print('[AuctionChat] StackTrace: $stackTrace');
-    }
+    });
+    print('[AuctionChat] 滚动请求已注册，等待渲染完成');
   }
 
   Future<void> _onSendText(String text) async {
@@ -511,10 +519,14 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
     final auctionState = ref.watch(auctionProvider);
     final onAuctionItem = auctionState.onAuctionItem;
 
-    // 自动显示公告弹窗
-    if (_showAnnouncementDialog && _currentAnnounce != null) {
+    // 自动显示公告弹窗 - 添加防重复检查
+    if (_showAnnouncementDialog &&
+        _currentAnnounce != null &&
+        !_isShowingAnnouncementDialog) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_showAnnouncementDialog && mounted) {
+        if (_showAnnouncementDialog &&
+            mounted &&
+            !_isShowingAnnouncementDialog) {
           _displayAnnouncementDialog();
         }
       });
@@ -537,9 +549,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
               Expanded(
                 child: Container(
                   color: const Color(0xFFFAF1F0),
-                  child: messages.isEmpty
-                      ? _buildEmptyState()
-                      : _buildMessageList(messages),
+                   child: _buildUnifiedMessageList(messages),
                 ),
               ),
               ChatInputArea(
@@ -805,7 +815,9 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
 
   /// 显示公告弹窗对话框
   void _displayAnnouncementDialog() {
-    if (_currentAnnounce == null) return;
+    if (_currentAnnounce == null || _isShowingAnnouncementDialog) return;
+
+    _isShowingAnnouncementDialog = true; // 设置正在显示状态
 
     showDialog(
       context: context,
@@ -910,13 +922,16 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
     );
   }
 
-  Widget _buildMessageList(List<ChatMessage> messages) {
+  Widget _buildUnifiedMessageList(List<ChatMessage> messages) {
     return ListView.builder(
-      controller: _scrollController,
+      controller: _scrollController, // 始终绑定滚动控制器
       // 底部预留输入框高度（56px）+ 额外空间，避免消息被遮挡
       padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 16),
-      itemCount: messages.length,
+      itemCount: messages.isEmpty ? 1 : messages.length,
       itemBuilder: (context, index) {
+        if (messages.isEmpty) {
+          return _buildEmptyState(); // 返回空状态组件
+        }
         final message = messages[index];
         return _buildMessageItem(message);
       },
