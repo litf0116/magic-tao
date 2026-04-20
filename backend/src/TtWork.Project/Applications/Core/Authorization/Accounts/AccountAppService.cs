@@ -168,6 +168,14 @@ namespace TtWork.Project.Applications.Core.Authorization.Accounts {
                 throw new UserFriendlyException("该手机号已被其他账号绑定，请使用该手机号登录后在设置中合并账号");
             }
 
+            var existingUserWithPhone = await UserManager.Users
+                .FirstOrDefaultAsync(x => x.PhoneNumber == input.PhoneNumber && x.Id != user.Id);
+
+            if (existingUserWithPhone != null)
+            {
+                throw new UserFriendlyException("该手机号已被其他账号绑定，请使用该手机号登录后在设置中合并账号");
+            }
+
             var currentPhoneBinding = await _userLoginRepository.GetAll()
                 .FirstOrDefaultAsync(x =>
                     x.UserId == user.Id &&
