@@ -10,6 +10,17 @@ import type {
 } from '@/composables/types'
 import utils from './utils'
 import { getAppVersion } from './version'
+import {
+    getToken,
+    getRefreshToken,
+    isTokenExpiringSoon,
+    refreshAccessToken,
+    getIsRefreshing,
+    setIsRefreshing,
+    onTokenRefreshed,
+    subscribeTokenRefresh,
+    clearAuthTokens,
+} from './tokenManager'
 
 export interface LoginBindingDto {
     loginProvider: string
@@ -36,7 +47,7 @@ host = 'https://www.molitao.top'
 
 const getRequest = utils.httpsPromisify(uni.request)
 
-const request = (
+const request = async (
     method: 'OPTIONS' | 'GET' | 'HEAD' | 'POST' | 'PUT' | 'DELETE' | 'TRACE' | 'CONNECT',
     url: string,
     data?: string | object | ArrayBuffer | undefined,
@@ -55,8 +66,17 @@ const request = (
     }
 
     const _url = url.startsWith('http') ? url : host + url
-
     const appVersion = getAppVersion()
+
+    // Token 自动续期逻辑
+    if (isTokenExpiringSoon(3600) && getRefreshToken() && !getIsRefreshing()) {
+        setIsRefreshing(true)
+        const newToken = await refreshAccessToken()
+        setIsRefreshing(false)
+        if (newToken) {
+            onTokenRefreshed(newToken)
+        }
+    }
 
     console.log('[API 请求]', { method, url: _url, data })
 
@@ -68,7 +88,7 @@ const request = (
         header: {
             'Abp.Tenantid': 1,
             'content-type': 'application/json',
-            Authorization: `Bearer ${uni.getStorageSync('token') || ''}`,
+            Authorization: `Bearer ${getToken() || ''}`,
             AppName: 'uniapp',
             AppVersion: appVersion,
         },
@@ -77,6 +97,58 @@ const request = (
             if (res && res.statusCode !== undefined) {
                 console.log('[API 响应]', { url: _url, statusCode: res.statusCode, data: res.data })
             }
+            
+            // 处理 401 错误，尝试刷新 token
+            if (res.statusCode === 401 && getRefreshToken() && !getIsRefreshing()) {
+                setIsRefreshing(true)
+                return refreshAccessToken().then((newToken) => {
+                    setIsRefreshing(false)
+                    if (newToken) {
+                        // 重试原请求
+                        return getRequest({
+                            url: _url,
+                            data: data,
+                            method: method,
+                            timeout: 30000,
+                            header: {
+                                'Abp.Tenantid': 1,
+                                'content-type': 'application/json',
+                                Authorization: `Bearer ${newToken}`,
+                                AppName: 'uniapp',
+                                AppVersion: appVersion,
+                            },
+                        })
+                    }
+                    clearAuthTokens()
+                    uni.navigateTo({ url: '/pages/index/login' })
+                    return Promise.reject(res.data)
+                }).catch(() => {
+                    setIsRefreshing(false)
+                    clearAuthTokens()
+                    uni.navigateTo({ url: '/pages/index/login' })
+                    return Promise.reject(res.data)
+                })
+            } else if (res.statusCode === 401 && getIsRefreshing()) {
+                // 如果正在刷新，订阅刷新完成后重试
+                return new Promise((resolve, reject) => {
+                    subscribeTokenRefresh((token: string) => {
+                        getRequest({
+                            url: _url,
+                            data: data,
+                            method: method,
+                            timeout: 30000,
+                            header: {
+                                'Abp.Tenantid': 1,
+                                'content-type': 'application/json',
+                                Authorization: `Bearer ${token}`,
+                                AppName: 'uniapp',
+                                AppVersion: appVersion,
+                            },
+                        }).then(resolve).catch(reject)
+                    })
+                })
+            }
+            
             return res
         })
         .catch((err: any) => {
