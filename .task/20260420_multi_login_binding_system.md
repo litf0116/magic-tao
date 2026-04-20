@@ -83,11 +83,21 @@
   - 微信 App 登录功能已实现
   - 账号安全管理页面已实现
 
-**测试总结：**
-- ✅ 后端 API 全部测试通过（16/16）
-- ✅ PC 端测试通过
-- ✅ H5 端测试通过
-- ✅ APP 端测试通过
+**Token 自动续期功能（已完成）：**
+- ✅ PC 端：已实现（参考 request.ts 和 cookies.ts）
+- ✅ 小程序端：已实现（参考 tokenManager.ts）
+- ✅ H5 端：已实现
+  - 新增 tokenManager.ts 工具类
+  - 在 api.ts 中集成自动续期逻辑
+- ✅ APP 端（Flutter）：已实现
+  - 扩展 StorageService 支持 refreshToken 和 expireTime
+  - 在 AuthInterceptor 中实现自动续期
+
+**功能特性：**
+- Token 即将过期时（默认 1 小时内）自动刷新
+- 401 错误时尝试使用 refreshToken 刷新
+- 刷新期间请求排队等待，避免并发刷新
+- 刷新失败后清理 token 并跳转登录页
 
 ## Relevant files / directories
 
