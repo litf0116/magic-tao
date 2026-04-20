@@ -255,41 +255,39 @@ namespace TtWork.Project.Applications.Core.Authorization.Accounts {
         [HttpPost]
         public async Task<bool> UnbindLogin([FromBody] UnbindLoginInput input)
         {
-            var user = await GetCurrentUserAsync();
-            var bindings = await _userLoginRepository.GetAll()
-                .Where(x => x.UserId == user.Id)
-                .ToListAsync();
+            if (input.LoginProvider == ProjectConsts.LoginProvider.Phone)
+            {
+                throw new UserFriendlyException("手机号不支持解绑，如需更换手机号请使用更换功能");
+            }
 
             if (input.LoginProvider == Consts.LoginProvider.Password)
             {
                 throw new UserFriendlyException("密码登录无法解绑，如需关闭请设置空密码");
             }
 
-            var hasPassword = !string.IsNullOrEmpty(user.Password);
-            var hasPhoneBinding = bindings.Any(x => x.LoginProvider == ProjectConsts.LoginProvider.Phone);
-            var hasWechatBinding = bindings.Any(x =>
-                x.LoginProvider == Consts.LoginProvider.WeChatUnionId ||
-                x.LoginProvider == Consts.LoginProvider.WeChatApp ||
-                x.LoginProvider.StartsWith("WeChat"));
-            var effectiveBindingCount = (hasPhoneBinding ? 1 : 0) + (hasWechatBinding ? 1 : 0);
-
-            if (!hasPassword && effectiveBindingCount <= 1)
-            {
-                throw new UserFriendlyException("至少需要保留一种登录方式，请先设置密码后再解绑");
-            }
+            var user = await GetCurrentUserAsync();
+            var bindings = await _userLoginRepository.GetAll()
+                .Where(x => x.UserId == user.Id)
+                .ToListAsync();
 
             var binding = bindings.FirstOrDefault(x => x.LoginProvider == input.LoginProvider);
-            if (binding != null)
+            if (binding == null)
             {
-                await _userLoginRepository.DeleteAsync(binding);
+                return true;
             }
 
-            if (input.LoginProvider == ProjectConsts.LoginProvider.Phone && !string.IsNullOrEmpty(user.PhoneNumber))
+            var hasPassword = !string.IsNullOrEmpty(user.Password);
+            var hasPhoneBinding = bindings.Any(x => x.LoginProvider == ProjectConsts.LoginProvider.Phone);
+            var hasOtherBinding = bindings.Any(x => 
+                x.LoginProvider != input.LoginProvider && 
+                x.LoginProvider != ProjectConsts.LoginProvider.Phone);
+
+            if (!hasPassword && !hasPhoneBinding && !hasOtherBinding)
             {
-                user.PhoneNumber = null;
-                await UserManager.UpdateAsync(user);
+                throw new UserFriendlyException("至少需要保留一种登录方式");
             }
 
+            await _userLoginRepository.DeleteAsync(binding);
             await CurrentUnitOfWork.SaveChangesAsync();
             return true;
         }
