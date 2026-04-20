@@ -1,5 +1,13 @@
 import { defineStore } from 'pinia'
-import { getToken, removeToken, setToken } from '../utils/cookies'
+import {
+    getToken,
+    removeToken,
+    setToken,
+    setRefreshToken,
+    removeRefreshToken,
+    setTokenExpireTime,
+    removeTokenExpireTime,
+} from '../utils/cookies'
 import { usePermissionStore } from './permissionStore'
 import api from '@/api'
 import { UserLoginInfoDto } from '@/api/appService'
@@ -65,6 +73,12 @@ export const useUserStore = defineStore('user', () => {
                     async (res: any) => {
                         token.value = res.accessToken!
                         setToken(res.accessToken!)
+                        if (res.refreshToken) {
+                            setRefreshToken(res.refreshToken)
+                        }
+                        if (res.expireInSeconds) {
+                            setTokenExpireTime(res.expireInSeconds)
+                        }
                         resolve(res.accessToken!)
                     },
                     ({ error }) => {
@@ -89,6 +103,8 @@ export const useUserStore = defineStore('user', () => {
 
     function RESET_TOKEN() {
         removeToken()
+        removeRefreshToken()
+        removeTokenExpireTime()
         SET_TOKEN('')
     }
 

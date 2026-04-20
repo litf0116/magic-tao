@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { pushService } from '@/utils/push'
 import { isApp } from '@/utils/platform'
+import { setToken, setRefreshToken, setTokenExpireTime, clearAuthTokens } from '@/utils/tokenManager'
 
 export interface IUser {
     id?: number
@@ -53,7 +54,7 @@ export const useUserStore = defineStore('userStore', () => {
 
     const _logout = () => {
         // console.log("mutaction:LOGOUT")
-        uni.removeStorageSync('token')
+        clearAuthTokens()
         uni.removeStorageSync('userInfo')
         uni.removeStorageSync('userid')
         uni.removeStorageSync('sessionKey')
@@ -156,7 +157,13 @@ export const useUserStore = defineStore('userStore', () => {
                     .then(async (res: any) => {
                         if (res.accessToken) {
                             token.value = res.accessToken
-                            uni.setStorageSync('token', res.accessToken)
+                            setToken(res.accessToken)
+                            if (res.refreshToken) {
+                                setRefreshToken(res.refreshToken)
+                            }
+                            if (res.expireInSeconds) {
+                                setTokenExpireTime(res.expireInSeconds)
+                            }
 
                             if (res.extension) {
                                 if (res.extension.openid) {
@@ -232,7 +239,13 @@ export const useUserStore = defineStore('userStore', () => {
                                     if (res.accessToken) {
                                         console.log('[APP OAuth] 获取到 accessToken，开始存储')
                                         token.value = res.accessToken
-                                        uni.setStorageSync('token', res.accessToken)
+                                        setToken(res.accessToken)
+                                        if (res.refreshToken) {
+                                            setRefreshToken(res.refreshToken)
+                                        }
+                                        if (res.expireInSeconds) {
+                                            setTokenExpireTime(res.expireInSeconds)
+                                        }
 
                                         if (res.user) {
                                             SET_USER(res.user)
@@ -280,7 +293,13 @@ export const useUserStore = defineStore('userStore', () => {
                 .then(async (res: any) => {
                     if (res.accessToken) {
                         token.value = res.accessToken
-                        uni.setStorageSync('token', res.accessToken)
+                        setToken(res.accessToken)
+                        if (res.refreshToken) {
+                            setRefreshToken(res.refreshToken)
+                        }
+                        if (res.expireInSeconds) {
+                            setTokenExpireTime(res.expireInSeconds)
+                        }
                         await checkLogin()
                         await registerPushAlias()
                         return resolve(res)
@@ -342,7 +361,13 @@ export const useUserStore = defineStore('userStore', () => {
                         async (res: any) => {
                             if (res.accessToken) {
                                 token.value = res.accessToken
-                                uni.setStorageSync('token', res.accessToken)
+                                setToken(res.accessToken)
+                                if (res.refreshToken) {
+                                    setRefreshToken(res.refreshToken)
+                                }
+                                if (res.expireInSeconds) {
+                                    setTokenExpireTime(res.expireInSeconds)
+                                }
 
                                 // if (res.user) {
                                 //     SET_USER(res.user)

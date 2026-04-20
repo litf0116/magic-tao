@@ -1,6 +1,48 @@
 import axios from 'axios'
-import { getToken } from './cookies'
+import {
+    getToken,
+    getRefreshToken,
+    setToken,
+    setRefreshToken,
+    setTokenExpireTime,
+    isTokenExpiringSoon,
+    clearAuthTokens,
+} from './cookies'
 import { ElMessage } from 'element-plus'
+import api from '@/api'
+
+let isRefreshing = false
+let refreshSubscribers: ((token: string) => void)[] = []
+
+function subscribeTokenRefresh(cb: (token: string) => void) {
+    refreshSubscribers.push(cb)
+}
+
+function onTokenRefreshed(token: string) {
+    refreshSubscribers.forEach((cb) => cb(token))
+    refreshSubscribers = []
+}
+
+async function refreshAccessToken(): Promise<string | null> {
+    const refreshToken = getRefreshToken()
+    if (!refreshToken) {
+        return null
+    }
+
+    try {
+        const res = await api.tokenAuth.refreshToken({ refreshToken })
+        if (res.accessToken) {
+            setToken(res.accessToken!)
+            setTokenExpireTime(res.expireInSeconds || 604800)
+            return res.accessToken
+        }
+    } catch (error) {
+        console.error('Refresh token failed:', error)
+        clearAuthTokens()
+        window.location.href = '/login'
+    }
+    return null
+}
 
 export const BASE_API_URL = (import.meta.env.VITE_APP_BASE_API || '/') + ''
 
@@ -143,13 +185,23 @@ const service = axios.create({
 
 //请求拦截器
 service.interceptors.request.use(
-    (request) => {
+    async (request) => {
         request.headers['Abp.Tenantid'] = 1
         request.headers['Authorization'] = `Bearer ${getToken() || ''}`
         request.headers['Content-Type'] = 'application/json'
-        // request.headers['.Aspnetcore-Culture'] = 'c=zh-Hans|uic=zh-CN'
         request.headers['Appname'] = import.meta.env.VITE_APP_AppName
         request.headers['AppVersion'] = import.meta.env.VITE_APP_VERSION || '20260224@1.0.0'
+
+        if (isTokenExpiringSoon(3600) && getRefreshToken() && !isRefreshing) {
+            isRefreshing = true
+            const newToken = await refreshAccessToken()
+            isRefreshing = false
+            if (newToken) {
+                request.headers['Authorization'] = `Bearer ${newToken}`
+                onTokenRefreshed(newToken)
+            }
+        }
+
         return request
     },
     (error: any) => {
@@ -192,9 +244,38 @@ service.interceptors.response.use(
                     type: 'error',
                 })
             } else if (status === 401 || errorData.unAuthorizedRequest) {
-                Tips.confirm('请重新登录', '错误', 'error').then(() => {
-                    location.reload()
-                })
+                if (getRefreshToken() && !isRefreshing) {
+                    isRefreshing = true
+                    return refreshAccessToken()
+                        .then((newToken) => {
+                            isRefreshing = false
+                            if (newToken) {
+                                err.config.headers['Authorization'] = `Bearer ${newToken}`
+                                return service(err.config)
+                            }
+                            clearAuthTokens()
+                            window.location.href = '/login'
+                            return Promise.reject(errorData)
+                        })
+                        .catch(() => {
+                            isRefreshing = false
+                            clearAuthTokens()
+                            window.location.href = '/login'
+                            return Promise.reject(errorData)
+                        })
+                } else if (isRefreshing) {
+                    return new Promise((resolve, reject) => {
+                        subscribeTokenRefresh((token: string) => {
+                            err.config.headers['Authorization'] = `Bearer ${token}`
+                            resolve(service(err.config))
+                        })
+                    })
+                } else {
+                    clearAuthTokens()
+                    Tips.confirm('请重新登录', '错误', 'error').then(() => {
+                        location.reload()
+                    })
+                }
             } else if (status === 403) {
                 Tips.confirm('权限不足，无法访问此资源', '错误', 'error').then(() => {
                     location.href = '/'

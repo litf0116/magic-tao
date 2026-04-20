@@ -167,7 +167,24 @@ onLoad(() => {
         nextTick(() => {
             var noticeInfo = uni.getStorageSync('auctionNotice')
             if (noticeInfo === '' || noticeInfo.id != res.id) {
-                popupShowRef.value.open()
+                // 添加防御性检查，确保popupShowRef已初始化
+                if (!popupShowRef.value) {
+                    console.warn('[auction.onLoad] popupShowRef 未初始化，延迟重试')
+                    setTimeout(() => {
+                        if (popupShowRef.value) {
+                            popupShowRef.value.open()
+                        } else {
+                            console.error('[auction.onLoad] popupShowRef 初始化失败')
+                        }
+                    }, 100)
+                    return
+                }
+
+                try {
+                    popupShowRef.value.open()
+                } catch (error) {
+                    console.error('[auction.onLoad] 打开公告弹窗失败:', error)
+                }
             }
         })
     })
@@ -320,7 +337,26 @@ function send(e: { type: ChatMessageType; data: string | object }) {
 }
 
 function showGoods() {
-    popupRef.value.open()
+    // 添加防御性检查，确保popupRef已初始化
+    if (!popupRef.value) {
+        console.warn('[auction.showGoods] popupRef 未初始化，延迟重试')
+        setTimeout(() => {
+            if (popupRef.value) {
+                popupRef.value.open()
+            } else {
+                console.error('[auction.showGoods] popupRef 初始化失败')
+                Tips.error('弹窗初始化失败，请重试')
+            }
+        }, 100)
+        return
+    }
+
+    try {
+        popupRef.value.open()
+    } catch (error) {
+        console.error('[auction.showGoods] 打开弹窗失败:', error)
+        Tips.error('打开弹窗失败，请重试')
+    }
 }
 
 function doPayment(
