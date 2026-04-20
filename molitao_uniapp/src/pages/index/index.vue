@@ -254,8 +254,8 @@ const font = ref({ size: '2em' })
 
     .header {
         @apply w-full text-center h-[160px] flex flex-col justify-end items-center;
-        background: url(https://image.molitao.top/20250330/04j40l4ynlbh3v3h4bgfe7j2pxiqjg8d.png) no-repeat
-            center -60rpx / cover;
+        background: url(https://image.molitao.top/20250330/04j40l4ynlbh3v3h4bgfe7j2pxiqjg8d.png) no-repeat center -60rpx /
+            cover;
 
         .logo2 {
             @apply mb-1 w-462rpx h-212rpx;

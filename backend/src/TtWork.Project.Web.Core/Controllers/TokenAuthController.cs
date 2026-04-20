@@ -628,14 +628,14 @@ namespace TtWork.Project.Web.Controllers
         {
             try
             {
-                using var uow = unitOfWorkManager.Begin();
-                if (!await userLoginRepository.GetAll().AsNoTracking()
-                        .AnyAsync(x => x.ProviderKey == userLogin.ProviderKey && x.TenantId == userLogin.TenantId))
+                var exists = await userLoginRepository.GetAll().AsNoTracking()
+                    .AnyAsync(x => x.ProviderKey == userLogin.ProviderKey && x.TenantId == userLogin.TenantId);
+                
+                if (!exists)
                 {
                     await userLoginRepository.InsertAsync(userLogin);
+                    await CurrentUnitOfWork.SaveChangesAsync();
                 }
-
-                await uow.CompleteAsync();
             }
             catch (Exception e)
             {

@@ -8,11 +8,13 @@
         <view class="p-4 -mt-4">
             <view class="bg-white rounded-xl p-4 mb-4 shadow-sm">
                 <view class="flex items-center mb-3">
-                    <view class="w-6 h-6 rounded-full bg-[#F4835A] flex flex-center text-white text-sm font-bold mr-2">1</view>
+                    <view class="w-6 h-6 rounded-full bg-[#F4835A] flex flex-center text-white text-sm font-bold mr-2"
+                        >1</view
+                    >
                     <text class="font-bold text-[#333]">选择宠物</text>
                 </view>
-                
-                <picker :value="petIndex" :range="petList" range-key="name" @change="onPetChange" class="w-full">
+
+                <picker :value="petIndex" :range="petList" range-key="name" class="w-full" @change="onPetChange">
                     <view class="border border-[#e5e5e5] rounded-lg p-3 flex justify-between items-center">
                         <text :class="selectedPet ? 'text-[#333]' : 'text-[#999]'">
                             {{ selectedPet ? selectedPet.name : '请选择宠物' }}
@@ -43,13 +45,20 @@
 
             <view class="bg-white rounded-xl p-4 mb-4 shadow-sm">
                 <view class="flex items-center mb-3">
-                    <view class="w-6 h-6 rounded-full bg-[#00AAFF] flex flex-center text-white text-sm font-bold mr-2">2</view>
+                    <view class="w-6 h-6 rounded-full bg-[#00AAFF] flex flex-center text-white text-sm font-bold mr-2"
+                        >2</view
+                    >
                     <text class="font-bold text-[#333]">输入宠物属性</text>
                 </view>
 
                 <view class="mb-3">
                     <text class="text-sm text-[#666] mb-1 block">宠物等级</text>
-                    <input v-model="formData.level" type="number" placeholder="请输入等级" class="border border-[#e5e5e5] rounded-lg p-3 w-full" />
+                    <input
+                        v-model="formData.level"
+                        type="number"
+                        placeholder="请输入等级"
+                        class="border border-[#e5e5e5] rounded-lg p-3 w-full"
+                    />
                 </view>
 
                 <view class="mb-3">
@@ -57,39 +66,74 @@
                     <view class="grid grid-cols-2 gap-3">
                         <view>
                             <text class="text-xs text-[#999] mb-1 block">生命</text>
-                            <input v-model="formData.hp" type="number" placeholder="生命" class="border border-[#e5e5e5] rounded-lg p-2 w-full text-sm" />
+                            <input
+                                v-model="formData.hp"
+                                type="number"
+                                placeholder="生命"
+                                class="border border-[#e5e5e5] rounded-lg p-2 w-full text-sm"
+                            />
                         </view>
                         <view>
                             <text class="text-xs text-[#999] mb-1 block">魔力</text>
-                            <input v-model="formData.mp" type="number" placeholder="魔力" class="border border-[#e5e5e5] rounded-lg p-2 w-full text-sm" />
+                            <input
+                                v-model="formData.mp"
+                                type="number"
+                                placeholder="魔力"
+                                class="border border-[#e5e5e5] rounded-lg p-2 w-full text-sm"
+                            />
                         </view>
                         <view>
                             <text class="text-xs text-[#999] mb-1 block">攻击</text>
-                            <input v-model="formData.atk" type="number" placeholder="攻击" class="border border-[#e5e5e5] rounded-lg p-2 w-full text-sm" />
+                            <input
+                                v-model="formData.atk"
+                                type="number"
+                                placeholder="攻击"
+                                class="border border-[#e5e5e5] rounded-lg p-2 w-full text-sm"
+                            />
                         </view>
                         <view>
                             <text class="text-xs text-[#999] mb-1 block">防御</text>
-                            <input v-model="formData.def" type="number" placeholder="防御" class="border border-[#e5e5e5] rounded-lg p-2 w-full text-sm" />
+                            <input
+                                v-model="formData.def"
+                                type="number"
+                                placeholder="防御"
+                                class="border border-[#e5e5e5] rounded-lg p-2 w-full text-sm"
+                            />
                         </view>
                         <view>
                             <text class="text-xs text-[#999] mb-1 block">敏捷</text>
-                            <input v-model="formData.agi" type="number" placeholder="敏捷" class="border border-[#e5e5e5] rounded-lg p-2 w-full text-sm" />
+                            <input
+                                v-model="formData.agi"
+                                type="number"
+                                placeholder="敏捷"
+                                class="border border-[#e5e5e5] rounded-lg p-2 w-full text-sm"
+                            />
                         </view>
                         <view>
                             <text class="text-xs text-[#999] mb-1 block">精神</text>
-                            <input v-model="formData.spi" type="number" placeholder="精神" class="border border-[#e5e5e5] rounded-lg p-2 w-full text-sm" />
+                            <input
+                                v-model="formData.spi"
+                                type="number"
+                                placeholder="精神"
+                                class="border border-[#e5e5e5] rounded-lg p-2 w-full text-sm"
+                            />
                         </view>
                     </view>
                 </view>
             </view>
 
-            <view class="bg-gradient-to-r from-[#F4835A] to-[#FF6B6B] rounded-xl p-4 text-center text-white font-bold text-lg shadow-lg" @tap="calculateGrade">
+            <view
+                class="bg-gradient-to-r from-[#F4835A] to-[#FF6B6B] rounded-xl p-4 text-center text-white font-bold text-lg shadow-lg"
+                @tap="calculateGrade"
+            >
                 开始计算档位
             </view>
 
             <view v-if="result" class="bg-white rounded-xl p-4 mt-4 shadow-sm">
                 <view class="flex items-center mb-3">
-                    <view class="w-6 h-6 rounded-full bg-[#10B981] flex flex-center text-white text-sm font-bold mr-2">✓</view>
+                    <view class="w-6 h-6 rounded-full bg-[#10B981] flex flex-center text-white text-sm font-bold mr-2"
+                        >✓</view
+                    >
                     <text class="font-bold text-[#333]">计算结果</text>
                 </view>
 
@@ -124,7 +168,9 @@
                 </view>
 
                 <view class="flex gap-2 mt-4">
-                    <view class="flex-1 bg-[#f6f6f6] rounded-lg p-2 text-center text-sm text-[#666]" @tap="resetForm">重置</view>
+                    <view class="flex-1 bg-[#f6f6f6] rounded-lg p-2 text-center text-sm text-[#666]" @tap="resetForm"
+                        >重置</view
+                    >
                 </view>
             </view>
 
@@ -156,7 +202,7 @@ const formData = ref({
     atk: '',
     def: '',
     agi: '',
-    spi: ''
+    spi: '',
 })
 
 const petList = ref([
@@ -164,7 +210,7 @@ const petList = ref([
     { name: '黄蜂', race: '昆虫系', totalGrowth: 115, growth: { hp: 14, atk: 35, def: 18, agi: 38, mag: 10 } },
     { name: '水龙蜥', race: '龙系', totalGrowth: 125, growth: { hp: 38, atk: 32, def: 28, agi: 18, mag: 9 } },
     { name: '僵尸', race: '不死系', totalGrowth: 125, growth: { hp: 42, atk: 28, def: 32, agi: 15, mag: 8 } },
-    { name: '哥布林', race: '人形系', totalGrowth: 105, growth: { hp: 20, atk: 30, def: 22, agi: 25, mag: 8 } }
+    { name: '哥布林', race: '人形系', totalGrowth: 105, growth: { hp: 20, atk: 30, def: 22, agi: 25, mag: 8 } },
 ])
 
 const selectedPet = computed(() => petList.value[petIndex.value])
@@ -182,29 +228,41 @@ function calculateGrade() {
 
     const pet = selectedPet.value
     const baseGrowth = pet.growth
-    
+
     const dropVit = Math.floor(Math.random() * 5)
     const dropStr = Math.floor(Math.random() * 5)
     const dropDef = Math.floor(Math.random() * 5)
     const dropAgi = Math.floor(Math.random() * 5)
     const dropMag = Math.floor(Math.random() * 5)
-    
+
     const totalDrop = dropVit + dropStr + dropDef + dropAgi + dropMag
     const actualGrowth = pet.totalGrowth - totalDrop
-    
+
     let rating = 5
     let ratingText = '极品'
-    if (totalDrop <= 4) { rating = 5; ratingText = '极品' }
-    else if (totalDrop <= 8) { rating = 4; ratingText = '优秀' }
-    else if (totalDrop <= 12) { rating = 3; ratingText = '良好' }
-    else if (totalDrop <= 16) { rating = 2; ratingText = '一般' }
-    else { rating = 1; ratingText = '较差' }
+    if (totalDrop <= 4) {
+        rating = 5
+        ratingText = '极品'
+    } else if (totalDrop <= 8) {
+        rating = 4
+        ratingText = '优秀'
+    } else if (totalDrop <= 12) {
+        rating = 3
+        ratingText = '良好'
+    } else if (totalDrop <= 16) {
+        rating = 2
+        ratingText = '一般'
+    } else {
+        rating = 1
+        ratingText = '较差'
+    }
 
-    let suggestion = totalDrop <= 4 
-        ? `这只${pet.name}掉档很少，是极品的培养胚子！`
-        : totalDrop <= 8 
-        ? `这只${pet.name}档次不错，可以作为主力宠物培养。`
-        : `这只${pet.name}档次一般，建议根据掉档情况选择培养方向。`
+    let suggestion =
+        totalDrop <= 4
+            ? `这只${pet.name}掉档很少，是极品的培养胚子！`
+            : totalDrop <= 8
+            ? `这只${pet.name}档次不错，可以作为主力宠物培养。`
+            : `这只${pet.name}档次一般，建议根据掉档情况选择培养方向。`
 
     result.value = {
         petName: pet.name,
@@ -213,7 +271,7 @@ function calculateGrade() {
         dropRate: totalDrop,
         rating,
         ratingText,
-        suggestion
+        suggestion,
     }
 
     uni.showToast({ title: '计算完成', icon: 'success' })

@@ -70,6 +70,7 @@ function ring17() {
 
 <template>
     <!-- 微信小程序专用 -->
+    <view></view>
 </template>
 
 <style>
