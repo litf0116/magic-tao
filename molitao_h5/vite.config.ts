@@ -8,13 +8,11 @@ import UniLayouts from '@uni-helper/vite-plugin-uni-layouts'
 export default defineConfig(async () => ({
     optimizeDeps: {
         include: [
-            'z-paging',
             'dayjs',
             'lodash-es',
-            '@vueuse/core',
-            'pinia'
+            '@vueuse/core'
         ],
-        exclude: ['@dcloudio/uni-ui'],
+        exclude: ['@dcloudio/uni-ui', 'z-paging', 'pinia'],
         esbuildOptions: {
             resolveExtensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.vue']
         }
@@ -40,9 +38,9 @@ export default defineConfig(async () => ({
             },
         },
         // 修复 Service Worker MIME 类型问题
-        headers: {
-            'Content-Type': 'application/javascript; charset=utf-8',
-        },
+        // headers: {
+        //     'Content-Type': 'application/javascript; charset=utf-8',
+        // },
     },
     build: {
         sourcemap: false,
