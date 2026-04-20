@@ -92,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import chatMain from '@/components/chat/chatMain.vue'
 import { getImgUrl, Tips } from '@/composables'
 import { convertImageUrl } from '@/utils/imageUrlConverter'
@@ -104,16 +104,17 @@ import { calculateMinBidPrice } from '@/utils/auction'
 import { onLoad, onShow, onReady } from '@dcloudio/uni-app'
 import { ChatMessageType } from '@/composables/types'
 import { nextTick, onUnmounted } from 'vue'
+import { pushService } from '@/utils/push'
 
 // import AuctionList from '@/components/chat/AuctionList.vue'
 const chatStore = useChatStore()
 const userStore = useUserStore()
 const auctionStore = useAuctionStore()
 const chatRef = ref<InstanceType<typeof chatMain> | null>(null)
-const popupRef = ref<any>(null)
+const popupRef = ref(null)
 //公告信息跟弹窗
 const item = ref<AnnounceDto | null>(null)
-const popupShowRef = ref<any>(null)
+const popupShowRef = ref(null)
 
 // 出价规则弹窗相关
 const bidRulesModalVisible = ref(false)
@@ -166,24 +167,7 @@ onLoad(() => {
         nextTick(() => {
             var noticeInfo = uni.getStorageSync('auctionNotice')
             if (noticeInfo === '' || noticeInfo.id != res.id) {
-                // 添加防御性检查，确保popupShowRef已初始化
-                if (!popupShowRef.value) {
-                    console.warn('[auction.onLoad] popupShowRef 未初始化，延迟重试')
-                    setTimeout(() => {
-                        if (popupShowRef.value) {
-                            popupShowRef.value.open()
-                        } else {
-                            console.error('[auction.onLoad] popupShowRef 初始化失败')
-                        }
-                    }, 100)
-                    return
-                }
-
-                try {
-                    popupShowRef.value.open()
-                } catch (error) {
-                    console.error('[auction.onLoad] 打开公告弹窗失败:', error)
-                }
+                popupShowRef.value.open()
             }
         })
     })
@@ -267,21 +251,21 @@ const init = async (name: string) => {
     await loadHistoryMessage(true)
 }
 
-function sub(auctionItem: AuctionItemDto) {
+function sub(e: AuctionItemDto) {
     // 小程序：使用订阅消息
     const msgId = 'ZuYTYzw2cM0LVhF5ybH5iATMaDl6lZ82OC6cczsglEA'
     uni.requestSubscribeMessage({
         tmplIds: [msgId],
-        success: () => {
+        success: (res) => {
             // console.log(res);
         },
-        fail: () => {
+        fail(res) {
             // console.log('requestSubscribeMessage fail', res)
         },
         complete: (res: any) => {
             // console.log(res)
             if (res[msgId] !== 'reject') {
-                auctionStore.startNotify(auctionItem.id!, 'miniprogram', userStore.openid).then(() => {
+                auctionStore.startNotify(e.id!, 'miniprogram', userStore.openid).then(() => {
                     Tips.success('订阅成功')
                 })
             } else {
@@ -312,9 +296,9 @@ async function loadHistoryMessage(force = false) {
             }
         }
 
-        const messages = await chatStore.getGroupHistory('-1_auction', lastTime, force)
+        const res = await chatStore.getGroupHistory('-1_auction', lastTime, force)
         chatRef.value!.history.loading = false
-        if (messages.length < 20) {
+        if (res.length < 20) {
             chatRef.value!.history.allLoaded = true
         }
     } catch (e) {
@@ -336,27 +320,7 @@ function send(e: { type: ChatMessageType; data: string | object }) {
 }
 
 function showGoods() {
-    // 添加防御性检查，确保popupRef已初始化
-    if (!popupRef.value) {
-        console.warn('[auction.showGoods] popupRef 未初始化，延迟重试')
-        // 延迟重试，确保组件已挂载
-        setTimeout(() => {
-            if (popupRef.value) {
-                popupRef.value.open()
-            } else {
-                console.error('[auction.showGoods] popupRef 初始化失败')
-                Tips.error('弹窗初始化失败，请重试')
-            }
-        }, 100)
-        return
-    }
-
-    try {
-        popupRef.value.open()
-    } catch (error) {
-        console.error('[auction.showGoods] 打开弹窗失败:', error)
-        Tips.error('打开弹窗失败，请重试')
-    }
+    popupRef.value.open()
 }
 
 function doPayment(
@@ -418,6 +382,7 @@ async function bid() {
         const levelResponse = await api.userGroupLevel.getUserLevelInfo(userId!)
         const levelInfo = levelResponse.data
         const userLevel = levelInfo?.levelSettings?.level ?? 0
+        const cumulativeAmount = levelInfo?.userLevel?.cumulativeAmount ?? 0
 
         // 新用户且魔力值不足的情况
         if (userLevel === 0 && deposit < 50) {
@@ -592,20 +557,20 @@ const convertFields = (obj: any) => {
     return newObj
 }
 
-// function showImgPreview(url: string) {
-//     url = getImgUrl(url, false)
-//     uni.previewImage({
-//         current: url, // 当前显示图片的http链接
-//         urls: [url], // 需要预览的图片http链接列表
-//     })
-// }
+function showImgPreview(url: string) {
+    url = getImgUrl(url, false)
+    uni.previewImage({
+        current: url, // 当前显示图片的http链接
+        urls: [url], // 需要预览的图片http链接列表
+    })
+}
 
 const showItem = ref<AuctionItemDto | null>(null)
-const popup = ref<any>(null)
+const popup = ref(null as any)
 
-function popChange(event: { show: boolean; type: string }) {
+function popChange(e: { show: boolean; type: string }) {
     // console.log(e)
-    if (event.show === false) {
+    if (e.show === false) {
         showItem.value = null
     }
 }
@@ -705,7 +670,7 @@ const navigateToAdminChat = (status: 'pending' | 'record_provided') => {
         success: () => {
             // console.log('跳转到管理员私信页面成功', { params })
         },
-        fail: () => {
+        fail: (err: any) => {
             // console.error('跳转失败:', err)
             Tips.error('跳转失败，请重试')
             // 清除状态

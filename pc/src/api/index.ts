@@ -20,6 +20,7 @@ import {
     ChatGroupService,
     ChatEmojiService,
     ClientService,
+    AccountService,
 } from './appService'
 
 import appRelease from './appRelease'
@@ -45,6 +46,7 @@ const upload = UploadService
 const user = UserService
 const userFriend = UserFriendService
 const ws = WebSocketService
+const account = AccountService
 
 export default {
     guid: '00000000-0000-0000-0000-000000000000',
@@ -68,4 +70,5 @@ export default {
     user,
     userFriend,
     ws,
+    account,
 }
