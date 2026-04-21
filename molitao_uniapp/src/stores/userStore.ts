@@ -152,6 +152,16 @@ export const useUserStore = defineStore('userStore', () => {
                         code: code,
                     })
                     .then(async (res: any) => {
+                        // 需要绑定手机号
+                        if (res.needPhoneBinding) {
+                            return resolve({
+                                needPhoneBinding: true,
+                                bindToken: res.bindToken,
+                                userId: res.userId,
+                                userName: res.userName,
+                            })
+                        }
+
                         if (res.accessToken) {
                             token.value = res.accessToken
                             uni.setStorageSync('token', res.accessToken)
@@ -180,6 +190,30 @@ export const useUserStore = defineStore('userStore', () => {
                         return resolve(res)
                     })
             })
+        })
+    }
+
+    // 绑定手机号（微信登录后完善信息）
+    const bindPhoneWithPassword = async (phoneNumber: string, password: string, bindToken: string) => {
+        return new Promise(async (resolve, reject) => {
+            await api.account
+                .bindPhoneWithPassword({ phoneNumber, password, bindToken })
+                .then(async (res: any) => {
+                    if (res.success) {
+                        // 绑定成功，保存 token
+                        if (res.result && res.result.accessToken) {
+                            token.value = res.result.accessToken
+                            uni.setStorageSync('token', res.result.accessToken)
+                            await checkLogin()
+                        }
+                        return resolve(res)
+                    } else {
+                        reject(res.error || '绑定失败')
+                    }
+                })
+                .catch((err: any) => {
+                    reject(err.error || '绑定失败')
+                })
         })
     }
 
@@ -334,5 +368,6 @@ export const useUserStore = defineStore('userStore', () => {
         phoneLogin,
         checkLogin,
         needLogin,
+        bindPhoneWithPassword,
     }
 })

@@ -64,6 +64,12 @@ export default {
     getPhone: (data: any) => request('POST', `/api/app/weixin/getPhone`, data),
     code2session: (data: any) => request('GET', `/api/services/app/Client/minicode2session`, data),
 
+    // account
+    account: {
+        bindPhoneWithPassword: (data: { phoneNumber: string; password: string; bindToken: string }) =>
+            request('POST', `/api/services/app/Account/BindPhoneWithPassword`, data),
+    },
+
     // user
     getCurrentLoginInformations: () => request('GET', `/api/services/app/Session/GetCurrentLoginInformations`),
 

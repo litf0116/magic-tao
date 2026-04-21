@@ -136,7 +136,57 @@ namespace TtWork.Project.Applications.Core.Authorization.Accounts {
         }
 
         [HttpPost]
-        public async Task<bool> BindPhone([FromBody] BindPhoneInput input)
+        public async Task<BindPhoneResult> BindPhoneWithPassword([FromBody] BindPhoneWithPasswordInput input)
+        {
+            if (string.IsNullOrWhiteSpace(input.PhoneNumber) ||
+                !System.Text.RegularExpressions.Regex.IsMatch(input.PhoneNumber, @"^1[3-9]\d{9}$"))
+            {
+                throw new UserFriendlyException("请输入正确的手机号");
+            }
+
+            if (string.IsNullOrWhiteSpace(input.Password) || input.Password.Length < 8)
+            {
+                throw new UserFriendlyException("密码至少8位");
+            }
+
+            var existingBinding = await _userLoginRepository.GetAll()
+                .FirstOrDefaultAsync(x =>
+                    x.LoginProvider == ProjectConsts.LoginProvider.Phone &&
+                    x.ProviderKey == input.PhoneNumber);
+
+            if (existingBinding != null)
+            {
+                throw new UserFriendlyException("该手机号已被注册，请使用手机号密码登录");
+            }
+
+            var existingUserWithPhone = await UserManager.Users
+                .FirstOrDefaultAsync(x => x.PhoneNumber == input.PhoneNumber);
+
+            if (existingUserWithPhone != null)
+            {
+                throw new UserFriendlyException("该手机号已被注册，请使用手机号密码登录");
+            }
+
+            var user = await GetCurrentUserAsync();
+
+            var hashedPassword = _passwordHasher.HashPassword(user, input.Password);
+            user.Password = hashedPassword;
+            user.PhoneNumber = input.PhoneNumber;
+            user.IsPhoneNumberConfirmed = true;
+            await UserManager.UpdateAsync(user);
+
+            await _userLoginRepository.InsertAsync(new UserLogin(
+                user.TenantId, user.Id,
+                ProjectConsts.LoginProvider.Phone, input.PhoneNumber));
+
+            await CurrentUnitOfWork.SaveChangesAsync();
+
+            return new BindPhoneResult
+            {
+                UserId = user.Id,
+                UserName = user.UserName
+            };
+        }
         {
             if (string.IsNullOrWhiteSpace(input.PhoneNumber) || 
                 !System.Text.RegularExpressions.Regex.IsMatch(input.PhoneNumber, @"^1[3-9]\d{9}$"))

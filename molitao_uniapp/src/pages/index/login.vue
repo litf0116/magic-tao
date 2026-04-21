@@ -44,9 +44,14 @@ const form = ref({
 })
 
 function wxLogin(back: boolean) {
-    userStore.wxLogin().then(() => {
+    userStore.wxLogin().then((res: any) => {
+        if (res.needPhoneBinding) {
+            uni.navigateTo({
+                url: `/pages/user/bind-phone?bindToken=${res.bindToken}&userId=${res.userId}&userName=${res.userName}`,
+            })
+            return
+        }
         if (back) {
-            // 发送事件通知
             uni.$emit('refreshView')
             uni.navigateBack({})
         }

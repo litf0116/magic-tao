@@ -1,4 +1,4 @@
-﻿namespace TtWork.Project.Models.TokenAuth
+namespace TtWork.Project.Models.TokenAuth
 {
     public class ExternalAuthenticateResultModel
     {
@@ -29,5 +29,20 @@
         /// 用户ID
         /// </summary>
         public long UserId { get; set; }
+
+        /// <summary>
+        /// 是否需要绑定手机号（微信登录后必须绑定）
+        /// </summary>
+        public bool NeedPhoneBinding { get; set; }
+
+        /// <summary>
+        /// 临时Token，用于绑定手机号流程
+        /// </summary>
+        public string BindToken { get; set; }
+
+        /// <summary>
+        /// 用户名（用于绑定页显示）
+        /// </summary>
+        public string UserName { get; set; }
     }
 }

@@ -676,17 +676,32 @@ namespace TtWork.Project.Web.Controllers
             var needProfileCompletion = string.IsNullOrEmpty(user.PhoneNumber)
                                        && !user.SkipProfileCompletion;
 
+            if (string.IsNullOrEmpty(user.PhoneNumber))
+            {
+                return new ExternalAuthenticateResultModel
+                {
+                    NeedPhoneBinding = true,
+                    BindToken = accessToken,
+                    EncryptedAccessToken = GetEncrpyedAccessToken(accessToken),
+                    ExpireInSeconds = (int)tokenAuthConfiguration.Expiration.TotalSeconds,
+                    RefreshToken = refreshToken.key,
+                    RefreshTokenExpireInSeconds = (int)tokenAuthConfiguration.RefreshTokenExpiration.TotalSeconds,
+                    UserId = user.Id,
+                    UserName = user.UserName
+                };
+            }
+
             return new ExternalAuthenticateResultModel
             {
                 AccessToken = accessToken,
                 EncryptedAccessToken = GetEncrpyedAccessToken(accessToken),
                 ExpireInSeconds = (int)tokenAuthConfiguration.Expiration.TotalSeconds,
                 RefreshToken = refreshToken.key,
+                RefreshTokenExpireInSeconds = (int)tokenAuthConfiguration.RefreshTokenExpiration.TotalSeconds,
                 Extension = externalUser.Extension,
-                NeedProfileCompletion = needProfileCompletion,
-                UserId = user.Id
-                // User = externalUser,
-                // RoleNames = roles.ToArray()
+                NeedProfileCompletion = false,
+                UserId = user.Id,
+                UserName = user.UserName
             };
         }
 
