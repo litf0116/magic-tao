@@ -1,9 +1,9 @@
 <template>
-    <page-container>
+    <tui-page>
         <slot></slot>
-    </page-container>
+    </tui-page>
 </template>
 
 <script setup>
-import PageContainer from '@/components/page-container/page-container.vue'
+import TuiPage from '@/components/tui-page/tui-page.vue'
 </script>

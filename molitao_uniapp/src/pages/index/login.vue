@@ -1,5 +1,5 @@
 <template>
-    <page-container>
+    <tui-page>
         <view class="h-[100vh] px-4 relative flex flex-col">
             <view class="flex-1 flex flex-col items-center flex-center">
                 <image
@@ -22,7 +22,7 @@
 
             <button class="w-full mb-32 rounded-6" :disabled="isloading" @tap="toHome">返回</button>
         </view>
-    </page-container>
+    </tui-page>
 </template>
 
 <script setup lang="ts">
