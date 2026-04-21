@@ -14,9 +14,9 @@ import { getAppVersion } from './version'
 let host: string = 'https://www.molitao.top'
 
 // 根据环境动态设置开发/生产服务器地址
-// if ((import.meta as any).env?.VITE_APP_ENV === 'development') {
+if (import.meta.env.DEV && import.meta.env.VITE_APP_ENV !== 'mp-weixin') {
     host = 'http://localhost:12580'
-// }
+}
 
 const getRequest = utils.httpsPromisify(uni.request)
 
