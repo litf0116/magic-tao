@@ -10,8 +10,8 @@ import {
     ChatMessageType,
 } from '../composables/types'
 import { useStorageRef } from '@/composables/useStorageRef'
+import { useAuctionStore } from './auctionStore'
 import { convertImageUrl } from '@/utils/imageUrlConverter'
-import { useAppFeatureStore } from './appFeatureStore'
 
 // 测试友好：导出一个纯函数，方便单元测试历史合并逻辑
 export function mergeHistoryForChannel(
@@ -60,11 +60,8 @@ export const useChatStore = defineStore('chatStore', () => {
     const groups = ref<ChannelType[]>([])
     const currentChat = ref(AuctionChat)
 
-    //聊天对象表 - 根据审核版本决定是否包含秒杀场频道
-    const appFeatureStore = useAppFeatureStore()
-    const chatList: Ref<ChatListItem[]> = useStorageRef<ChatListItem[]>('chatList', 
-        appFeatureStore.isReviewMode ? [] : [AuctionChat]
-    )
+    //聊天对象表
+    const chatList: Ref<ChatListItem[]> = useStorageRef<ChatListItem[]>('chatList', [AuctionChat])
     const chatMap = ref<Map<string, ChatMessage[]>>(new Map())
 
     //LINK - ChatStore Getter
@@ -83,20 +80,14 @@ export const useChatStore = defineStore('chatStore', () => {
         return new Promise((resolve) => setTimeout(resolve, ms))
     }
 
-    async function getChatList() {
-        try {
-            const res = await api.client.getChatList()
-            // 根据审核版本过滤秒杀场频道（id === -1）
-            const appFeatureStore = useAppFeatureStore()
-            if (appFeatureStore.isReviewMode) {
-                chatList.value = res.filter((item: ChatListItem) => item.id !== -1)
-            } else {
+    function getChatList() {
+        return new Promise<void>((resolve, reject) => {
+            api.client.getChatList().then((res: any) => {
                 chatList.value = res
-            }
-        } catch (err) {
-            console.error('[getChatList] 获取会话列表失败:', err)
-            throw err
-        }
+                return resolve()
+            })
+            return resolve()
+        })
     }
 
     const connectServer = (reconnect = false) => {
@@ -181,8 +172,9 @@ export const useChatStore = defineStore('chatStore', () => {
         })
     }
 
+    const auctionStore = useAuctionStore()
+
     const onmessage = function (msg: ChatMessage) {
-        const auctionStore = useAuctionStore()
         // 转换消息类型：将数值类型转换为字符串类型
         if (typeof msg.type === 'number') {
             const typeMap: { [key: number]: ChatMessageType } = {
@@ -409,9 +401,9 @@ export const useChatStore = defineStore('chatStore', () => {
                     addAuctionDealUser(msg.payload, 'AuctionDeal', dealTime)
                 }
 
-                // 接收者（中标用户）：为秒杀师创建聊天会话
+                // 接收者（中拍用户）：为拍卖师创建聊天会话
                 if (msg.to === userStore.user.id) {
-                    // 中标用户需要看到秒杀师（msg.from），而不是自己
+                    // 中拍用户需要看到拍卖师（msg.from），而不是自己
                     const existingChat = chatList.value.find((item) => item.id === msg.from)
                     if (!existingChat) {
                         chatList.value = [
@@ -661,7 +653,7 @@ export const useChatStore = defineStore('chatStore', () => {
                 payload: payload,
             }
 
-            return api.ws
+            await api.ws
                 .sendChannelMsg({
                     from: websocketId.value,
                     chan: chan,
@@ -669,9 +661,6 @@ export const useChatStore = defineStore('chatStore', () => {
                 })
                 .then((res) => {
                     return resolve(res)
-                })
-                .catch((err) => {
-                    return resolve(null)
                 })
         })
     }
@@ -730,7 +719,7 @@ export const useChatStore = defineStore('chatStore', () => {
     }
 
     const getUserAvatar = (id: number) => {
-        return convertImageUrl('https://image.molitao.top/avater.png')
+        return convertImageUrl('https://cdn.molitao.top/avater.png')
     }
 
     const getUserFriends = (status = true) => {
@@ -833,7 +822,7 @@ export const useChatStore = defineStore('chatStore', () => {
             type: ChatListItemType.user,
             time: msgTime || auctionResult.time || new Date().getTime(),
             lastMsg: lastMsg,
-            avatar: convertImageUrl(dealUserAvatar || 'https://image.molitao.top/avater.png'),
+            avatar: convertImageUrl(dealUserAvatar || 'https://cdn.molitao.top/avater.png'),
             unread: 0,
             order: 0,
             msg: {

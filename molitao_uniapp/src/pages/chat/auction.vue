@@ -6,7 +6,7 @@
                 bgColor="#f4835a"
                 color="#ffffff"
                 :text="announceContent"
-                @click="showAnnouncementDetail"
+                :url="`/pages/announce/list?id=2`"
             ></uv-notice-bar>
         </view>
 
@@ -104,7 +104,6 @@ import { calculateMinBidPrice } from '@/utils/auction'
 import { onLoad, onShow, onReady } from '@dcloudio/uni-app'
 import { ChatMessageType } from '@/composables/types'
 import { nextTick, onUnmounted } from 'vue'
-import { pushService } from '@/utils/push'
 
 // import AuctionList from '@/components/chat/AuctionList.vue'
 const chatStore = useChatStore()
@@ -127,15 +126,12 @@ const unread = ref('')
 const showUnread = ref(false)
 
 onLoad(() => {
-    // 版本控制检查：验证用户是否有访问秒杀频道的权限
-    console.log('[Auction] onLoad, chatList:', JSON.stringify(chatStore.chatList))
+    // 版本控制检查：验证用户是否有访问拍卖频道的权限
     const hasAccess = chatStore.chatList.some((chat) => chat.id === -1)
-    console.log('[Auction] hasAccess:', hasAccess)
 
     if (!hasAccess) {
-        console.log('[Auction] hasAccess false, redirecting...')
         uni.showToast({
-            title: '秒杀功能暂未开放',
+            title: '拍卖功能暂未开放',
             icon: 'none',
             duration: 2000,
         })
@@ -152,39 +148,17 @@ onLoad(() => {
         return
     }
 
-    chatStore
-        .connectServer()
-        .then(async () => {
-            console.log('[Auction] connectServer success, calling init')
-            init('-1_auction')
-        })
-        .catch((err) => {
-            console.error('[Auction] connectServer error:', err)
-        })
+    chatStore.connectServer().then(async () => {
+        //todo
+        init('-1_auction')
+    })
     //获取最新公告
     api.announce.getLatest({ id: 2 }).then((res) => {
         item.value = res
         nextTick(() => {
             var noticeInfo = uni.getStorageSync('auctionNotice')
             if (noticeInfo === '' || noticeInfo.id != res.id) {
-                // 添加防御性检查，确保popupShowRef已初始化
-                if (!popupShowRef.value) {
-                    console.warn('[auction.onLoad] popupShowRef 未初始化，延迟重试')
-                    setTimeout(() => {
-                        if (popupShowRef.value) {
-                            popupShowRef.value.open()
-                        } else {
-                            console.error('[auction.onLoad] popupShowRef 初始化失败')
-                        }
-                    }, 100)
-                    return
-                }
-
-                try {
-                    popupShowRef.value.open()
-                } catch (error) {
-                    console.error('[auction.onLoad] 打开公告弹窗失败:', error)
-                }
+                popupShowRef.value.open()
             }
         })
     })
@@ -228,13 +202,6 @@ const onConfirm = () => {
     uni.setStorageSync('auctionNotice', item.value)
     popupShowRef.value?.close()
 }
-
-//跳转到公告列表页面
-const showAnnouncementDetail = () => {
-    uni.navigateTo({
-        url: '/pages/announce/list?id=2',
-    })
-}
 //获取用户信息
 const userId = computed(() => {
     return userStore.user.id
@@ -269,7 +236,6 @@ const init = async (name: string) => {
 }
 
 function sub(e: AuctionItemDto) {
-    // 小程序：使用订阅消息
     const msgId = 'ZuYTYzw2cM0LVhF5ybH5iATMaDl6lZ82OC6cczsglEA'
     uni.requestSubscribeMessage({
         tmplIds: [msgId],
@@ -282,9 +248,11 @@ function sub(e: AuctionItemDto) {
         complete: (res: any) => {
             // console.log(res)
             if (res[msgId] !== 'reject') {
-                auctionStore.startNotify(e.id!, 'miniprogram', userStore.openid).then(() => {
+                auctionStore.startNotify(e.id!).then(() => {
                     Tips.success('订阅成功')
                 })
+
+                // chatStore.sendChannelMsg('订阅成功', '', ChatMessageType.Text).then(() => {})
             } else {
                 Tips.info('请允许接受通知')
             }
@@ -337,41 +305,79 @@ function send(e: { type: ChatMessageType; data: string | object }) {
 }
 
 function showGoods() {
-    // 添加防御性检查，确保popupRef已初始化
-    if (!popupRef.value) {
-        console.warn('[auction.showGoods] popupRef 未初始化，延迟重试')
-        setTimeout(() => {
-            if (popupRef.value) {
-                popupRef.value.open()
-            } else {
-                console.error('[auction.showGoods] popupRef 初始化失败')
-                Tips.error('弹窗初始化失败，请重试')
-            }
-        }, 100)
-        return
-    }
-
-    try {
-        popupRef.value.open()
-    } catch (error) {
-        console.error('[auction.showGoods] 打开弹窗失败:', error)
-        Tips.error('打开弹窗失败，请重试')
-    }
+    popupRef.value.open()
 }
 
 function doPayment(
     params: { amount: number; type: string; from: string },
     callback: { success: () => void; fail: () => void }
 ) {
-    // 小程序端暂时引导用户去PC端充值
-    uni.showModal({
-        title: '充值提示',
-        content:
-            '小程序充值功能正在升级维护中\n\n请登录PC端完成魔力值充值：\nwww.molitao.top\n\n💡 操作步骤：\n1. 登录PC端\n2. 点击右上角用户名\n3. 选择"保证金充值"\n4. 扫码支付\n\n支持微信扫码支付哦~',
-        showCancel: false,
-        confirmText: '我知道了',
-    })
-    callback.fail()
+    api.client
+        .payDeposit({ openid: userStore.openid, amount: params.amount })
+        .then((res: any) => {
+            wx.requestPayment({
+                provider: 'wxpay',
+                timeStamp: `${res.timeStamp}`,
+                nonceStr: res.nonceStr,
+                package: res.package,
+                signType: res.signType,
+                paySign: res.paySign,
+                success: async (res) => {
+                    // console.log('支付成功:', JSON.stringify(res))
+
+                    // 清除支付状态
+                    uni.removeStorageSync('depositStatus')
+
+                    // 更新用户信息
+                    try {
+                        await userStore.checkLogin(false, true)
+                        // console.log('用户信息更新成功')
+                    } catch (error) {
+                        // console.error('更新用户信息失败:', error)
+                    }
+
+                    callback.success()
+                    Tips.success('支付成功，魔力值已到账')
+
+                    // 支付成功后，询问用户是否立即出价
+                    setTimeout(() => {
+                        uni.showModal({
+                            title: '支付成功',
+                            content: '魔力值已到账，是否立即出价？',
+                            showCancel: true,
+                            confirmText: '立即出价',
+                            cancelText: '稍后出价',
+                            success: (modalRes) => {
+                                if (modalRes.confirm) {
+                                    // 延迟一下再调用出价，确保用户信息已更新
+                                    setTimeout(() => {
+                                        bid()
+                                    }, 500)
+                                }
+                            },
+                        })
+                    }, 1500)
+                },
+                fail: (err) => {
+                    // console.log('支付失败:', JSON.stringify(err))
+
+                    // 清除支付状态
+                    uni.removeStorageSync('depositStatus')
+
+                    callback.fail()
+                    Tips.info('用户取消支付')
+                },
+            })
+        })
+        .catch((error) => {
+            // console.error('获取支付参数失败:', error)
+
+            // 清除支付状态
+            uni.removeStorageSync('depositStatus')
+
+            callback.fail()
+            Tips.error('获取支付参数失败，请重试')
+        })
 }
 
 //出价
@@ -631,7 +637,7 @@ function getStartContent(item: AuctionItemDto) {
         </div>`
     }
     // console.log('description', description)
-    // description <img data-url="https://image.molitao.top/molitao/2025-09-20/upload_rper34g17578vqs2ri9y08zhcg8iph51.png" src="https://image.molitao.top/molitao/2025-09-20/upload_rper34g17578vqs2ri9y08zhcg8iph51.png!w300" style="max-width: 200px; max-height: 200px;"><div><span>120级02101水龙5胞胎队！纯血满树海！</span><br></div>
+    // description <img data-url="https://cdn.molitao.top/molitao/2025-09-20/upload_rper34g17578vqs2ri9y08zhcg8iph51.png" src="https://cdn.molitao.top/molitao/2025-09-20/upload_rper34g17578vqs2ri9y08zhcg8iph51.png!w300" style="max-width: 200px; max-height: 200px;"><div><span>120级02101水龙5胞胎队！纯血满树海！</span><br></div>
     // 其中的图片链接需要转换
     // 使用正则表达式替换所有 img 标签的 data-url 属性
     const updatedDescription = description.replace(/<img[^>]+data-url=['"]([^'"]+)['"][^>]*>/g, (match, p1) => {
@@ -639,7 +645,7 @@ function getStartContent(item: AuctionItemDto) {
         return match.replace(p1, convertedUrl)
     })
     // console.log('updatedDescription', updatedDescription)
-    // src = "https://image.molitao.top/molitao/2025-09-20/upload_rper34g17578vqs2ri9y08zhcg8iph51.png!w300" 也要修改
+    // src = "https://cdn.molitao.top/molitao/2025-09-20/upload_rper34g17578vqs2ri9y08zhcg8iph51.png!w300" 也要修改
     // 使用正则表达式替换所有 img 标签的 src 属性
     const finalDescription = updatedDescription.replace(/<img[^>]+src=['"]([^'"]+)['"][^>]*>/g, (match, p1) => {
         const cleanUrl = p1.replace(/!w300$/, '') // 移除缩略图参数

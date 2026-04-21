@@ -2,6 +2,7 @@
     "easycom": {
         "autoscan": true,
         "custom": {
+            "^page-(.*)": "@/components/page-$1/page-$1.vue",
             "^(?!z-paging-refresh|z-paging-load-more)z-paging(.*)": "z-paging/components/z-paging$1/z-paging$1.vue",
             "^uv-(.*)": "@climblee/uv-ui/components/uv-$1/uv-$1.vue"
         }
@@ -34,7 +35,7 @@
             "path": "pages/chat/auction",
             "type": "page",
             "style": {
-                "navigationBarTitleText": "秒杀场"
+                navigationBarTitleText: "秒杀场"
             }
         },
         {
@@ -58,6 +59,13 @@
                 "navigationBarTitleText": "会话"
             }
         },
+        // {
+        // 	"path": "pages/chat/lobby",
+        // 	"type": "page",
+        // 	"style": {
+        // 		"navigationBarTitleText": "勇者招募所"
+        // 	}
+        // },
         {
             "path": "pages/chat/privateChat",
             "type": "page",
@@ -117,48 +125,6 @@
                 "navigationBarTitleText": "用户列表",
                 "enablePullDownRefresh": true
             }
-        },
-        {
-            "path": "pages/tradingPost/index",
-            "type": "page",
-            "style": {
-                "navigationBarTitleText": "交易站"
-            }
-        },
-        {
-            "path": "pages/tradingPost/addPost",
-            "type": "page",
-            "style": {
-                "navigationBarTitleText": "发布帖子"
-            }
-        },
-        {
-            "path": "pages/tradingPost/postDetail",
-            "type": "page",
-            "style": {
-                "navigationBarTitleText": "帖子详情"
-            }
-        },
-        {
-            "path": "pages/protocol/agreement",
-            "type": "page",
-            "style": {
-                "navigationBarTitleText": "用户服务协议"
-            }
-        },
-        {
-            "path": "pages/protocol/privacy",
-            "type": "page",
-            "style": {
-                "navigationBarTitleText": "隐私政策"
-            }
-        },
-        {
-            "path": "pages/tools/petCalculator",
-            "type": "page",
-            "style": {
-                "navigationBarTitleText": "宠物算档器"
-            }
         }
     ],
     "globalStyle": {
@@ -166,5 +132,34 @@
         "navigationBarTitleText": "魔力淘",
         "navigationBarBackgroundColor": "#f4835a"
     },
+    // "tabBar": {
+    // 	"custom": true,
+    // 	"backgroundColor": "#ffffff",
+    // 	"selectedColor": "#F4835a",
+    // 	"color": "#999999",
+    // 	"borderStyle": "black",
+    // 	"list": [
+    // 		{
+    // 			"pagePath": "pages/index/index",
+    // 			"text": "首页"
+    // 		},
+    // 		{
+    // 			"pagePath": "pages/chat/index",
+    // 			"text": "会话列表"
+    // 		},
+    // 		{
+    // 			"pagePath": "pages/tradingPost/index",
+    // 			"text": "交易站"
+    // 		},
+    // 		{
+    // 			"pagePath": "pages/chat/contacts",
+    // 			"text": "通讯录"
+    // 		},
+    // 		{
+    // 			"pagePath": "pages/index/my",
+    // 			"text": "个人中心"
+    // 		}
+    // 	]
+    // },
     "subPackages": []
 }

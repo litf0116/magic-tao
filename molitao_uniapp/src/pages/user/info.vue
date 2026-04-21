@@ -111,53 +111,32 @@ const isUploading = computed(() => {
 })
 
 function submit() {
-    // 智能头像处理：已有头像则不需要上传新头像
-    // 只有在完全没有头像的情况下才要求上传
+    // 智能头像处理：新用户需要上传头像，老用户可以保留或更换头像
     if (!form.value.headImgUrl && !fileList1.value.length) {
         return Tips.info('请上传头像')
     }
 
-    // 只有在用户确实上传了新头像时才验证上传状态
-    if (fileList1.value.length > 0 && !form.value.headImgUrl) {
+    // 如果上传了新头像，验证上传状态和URL格式
+    if (fileList1.value.length > 0) {
         const fileItem = fileList1.value[0]
 
-        // 🔍 DEBUG: 打印 fileItem 详情
-        console.log(
-            '[DEBUG submit] fileItem:',
-            JSON.stringify({
-                url: fileItem.url,
-                status: fileItem.status,
-                message: fileItem.message,
-                fullItem: fileItem,
-            })
-        )
-
         // 检查上传状态
-        if (fileItem.status === 'uploading') {
+        if (fileItem.status !== 'success') {
             Tips.info('图片正在上传中，请稍候...')
             return
         }
 
-        if (fileItem.status !== 'success') {
-            Tips.error('头像上传失败，请重新上传')
-            // 清空 fileList，让用户重新上传
-            fileList1.value = []
+        // 检查URL格式，必须是CDN地址
+        if (!fileItem.url || !fileItem.url.startsWith('http://image.molitao.top')) {
+            Tips.info('头像上传未完成，请重新上传')
             return
         }
 
-        // 头像地址检查交给后端处理，前端不做限制
         form.value.headImgUrl = fileItem.url
     }
-
-    // 🔍 DEBUG: 打印完整表单数据
-    console.log('[DEBUG submit] form.value:', JSON.stringify(form.value))
-    console.log('[DEBUG submit] fileList1:', JSON.stringify(fileList1.value))
-
     formRef.value
         .validate()
         .then(() => {
-            // 🔍 DEBUG: 打印验证通过后的 form
-            console.log('[DEBUG submit] 验证通过，准备提交:', JSON.stringify(form.value))
             debounce(realSave, 300)()
         })
         .catch(() => {
@@ -167,10 +146,6 @@ function submit() {
 
 function realSave() {
     isSaving.value = true
-    // 🔍 DEBUG: 打印实际提交到后端的数据
-    console.log('[DEBUG realSave] 实际提交的数据:', JSON.stringify(form.value))
-    console.log('[DEBUG realSave] headImgUrl 字段:', form.value.headImgUrl)
-
     api.user
         .update(form.value)
         .then(() => {
@@ -179,19 +154,6 @@ function realSave() {
                     url: '/pages/index/my',
                 })
             })
-        })
-        .catch((err: any) => {
-            // 处理后端审核失败等错误
-            const errorMsg = err?.error?.message || err?.message || '修改失败'
-
-            // 如果是内容审核失败，清空头像让用户重新上传
-            if (errorMsg.includes('违规') || errorMsg.includes('不合规')) {
-                fileList1.value = []
-                form.value.headImgUrl = ''
-                Tips.error('头像内容不合规，请更换后重试')
-            } else {
-                Tips.error(errorMsg)
-            }
         })
         .finally(() => {
             isSaving.value = false
@@ -253,17 +215,24 @@ const afterRead = async (event: any) => {
         try {
             const uploadResult = await uploadImage(lists[i].url)
 
-            // 🔍 DEBUG: 打印上传结果详情
-            console.log(
-                '[DEBUG afterRead] uploadImage 返回结果:',
-                JSON.stringify({
-                    uploadResult,
-                    type: typeof uploadResult,
-                    listsUrl: lists[i].url,
-                })
-            )
+            // 图片上传成功后，调用审核接口
+            try {
+                const auditResult = await api.imageAudit.check({ url: uploadResult })
 
-            // 设置上传成功状态（头像地址检查交给后端处理）
+                // 审核不通过，删除图片并提示
+                if (!auditResult.pass) {
+                    fileList1.value.splice(fileListLen, 1)
+                    Tips.error(auditResult.message || '图片内容不合规，请更换头像')
+                    fileListLen++
+                    continue
+                }
+            } catch (auditErr: any) {
+                // 审核接口调用失败时，跳过审核直接使用图片
+                console.warn('审核接口调用失败，跳过审核:', auditErr)
+                // 不 return，继续执行
+            }
+
+            console.log('设置上传状态为 success, fileListLen:', fileListLen, 'uploadResult:', uploadResult)
             let item = fileList1.value[fileListLen]
             // 确保索引有效
             if (!item) {
@@ -271,9 +240,6 @@ const afterRead = async (event: any) => {
                 Tips.error('头像上传失败，请重试')
                 continue
             }
-
-            console.log('设置上传状态为 success, fileListLen:', fileListLen, 'uploadResult:', uploadResult)
-
             fileList1.value.splice(
                 fileListLen,
                 1,

@@ -1,5 +1,9 @@
 <template>
-    <tui-page :topBg="false">
+    <page-container :topBg="false">
         <slot></slot>
-    </tui-page>
+    </page-container>
 </template>
+
+<script setup>
+import PageContainer from '@/components/page-container/page-container.vue'
+</script>

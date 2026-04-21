@@ -1,6 +1,5 @@
 <template>
     <view class="roll-container">
-        <!-- #ifndef H5 -->
         <view class="roll-wrap">
             <view
                 class="roll-main"
@@ -22,33 +21,11 @@
                 >
             </view>
         </view>
-        <!-- #endif -->
-        <!-- #ifdef H5 -->
-        <view class="roll-wrap h5-roll-wrap">
-            <view
-                class="roll-main h5-roll-main"
-                :style="{
-                    animationDuration: `${duration}s`,
-                }"
-            >
-                <text
-                    v-for="(item, index) in displayList"
-                    :key="index"
-                    class="text-item"
-                    :style="{
-                        fontSize: `${fontSize}rpx`,
-                        color: color,
-                    }"
-                    >{{ item }}</text
-                >
-            </view>
-        </view>
-        <!-- #endif -->
     </view>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { getCurrentInstance } from 'vue'
 
 const props = defineProps({
@@ -70,12 +47,9 @@ const props = defineProps({
     },
 })
 
-// 公共的 displayList，所有平台都需要
-const displayList = computed(() => [...props.list, ...props.list])
-
-// #ifndef H5
 const translateX = ref(0)
 const isTransition = ref(false)
+const displayList = computed(() => [...props.list, ...props.list])
 
 let wrapWidth = 0
 let contentWidth = 0
@@ -91,6 +65,8 @@ const startScroll = () => {
 const resetPosition = () => {
     isTransition.value = false
     translateX.value = 0
+
+    // 使用 nextTick 确保状态更新后再开始新的滚动
     nextTick(() => {
         setTimeout(() => {
             startScroll()
@@ -121,7 +97,8 @@ const initSize = () => {
                         setTimeout(initSize, 3000)
                         return
                     }
-                    contentWidth = contentRect.width / 2
+                    contentWidth = contentRect.width / 2 // 因为内容复制了一份
+                    // 只有当内容宽度大于容器宽度时才滚动
                     if (contentWidth > wrapWidth) {
                         startScroll()
                     }
@@ -131,6 +108,7 @@ const initSize = () => {
         .exec()
 }
 
+// 监听列表变化
 watch(
     () => props.list,
     (newVal) => {
@@ -153,11 +131,11 @@ onMounted(() => {
     }
 })
 
+// 组件销毁时清理
 onBeforeUnmount(() => {
     isTransition.value = false
     translateX.value = 0
 })
-// #endif
 </script>
 
 <style lang="scss" scoped>
@@ -187,24 +165,5 @@ onBeforeUnmount(() => {
 .text-item {
     display: inline-block;
     padding: 0 30rpx;
-}
-
-/* H5 CSS动画模式 */
-.h5-roll-wrap {
-    overflow: hidden;
-}
-
-.h5-roll-main {
-    white-space: nowrap;
-    animation: h5RollMove linear infinite;
-}
-
-@keyframes h5RollMove {
-    0% {
-        transform: translateX(0);
-    }
-    100% {
-        transform: translateX(-50%);
-    }
 }
 </style>

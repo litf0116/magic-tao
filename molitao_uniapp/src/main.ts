@@ -9,7 +9,6 @@ import '@/css/app.scss'
 export function createApp() {
     const app = createSSRApp(App)
     app.use(Pinia.createPinia())
-
     return {
         app,
         Pinia,

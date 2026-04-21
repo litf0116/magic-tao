@@ -34,15 +34,9 @@ function getImageHeight(width: number, height: number) {
 
 function getImgUrl(message: any, thub = true) {
     let payload = message.payload
-    if (!payload) return ''
     if (typeof payload === 'string') {
-        try {
-            payload = JSON.parse(payload)
-        } catch {
-            return ''
-        }
+        payload = JSON.parse(payload)
     }
-    if (!payload.url) return ''
     if (payload.url.startsWith('http')) {
         return payload.url + (thub ? '!w300' : '')
     }
@@ -53,16 +47,10 @@ const imgUrl = computed(() => getImgUrl(props.message, true))
 const originUrl = computed(() => getImgUrl(props.message, false))
 const imageHeight = computed(() => {
     let payload = props.message.payload
-    if (!payload) return 300
     if (typeof payload === 'string') {
-        try {
-            payload = JSON.parse(payload)
-        } catch {
-            return 300
-        }
+        payload = JSON.parse(payload)
     }
-    const h = getImageHeight(payload.width, payload.height)
-    return h || 300
+    return getImageHeight(payload.width, payload.height)
 })
 </script>
 

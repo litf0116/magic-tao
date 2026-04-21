@@ -1,17 +1,26 @@
 import Upyun from './upyun-wxapp-sdk.js'
-
-// 统一使用正式服务器地址
-const baseApi = 'https://www.molitao.top'
-
 const upyun = new Upyun.Upyun({
     bucket: 'molitao',
     operator: 'molitao',
-    domainHost: 'https://image.molitao.top',
-    getSignatureUrl: baseApi + '/api/services/app/Upload/GetSignature',
+    domainHost: 'http://image.molitao.top',
+    getSignatureUrl: import.meta.env.VITE_APP_BASE_API + '/api/services/app/Upload/GetSignature',
 })
 
 export function uploadImage(file) {
     return new Promise((resolve, reject) => {
+        // 验证文件类型
+        const fileName = file.toString()
+        const fileExtension = fileName.split('.').pop()?.toLowerCase()
+        const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp']
+
+        if (!fileExtension || !allowedExtensions.includes(fileExtension)) {
+            uni.showToast({
+                title: '只支持 JPG、PNG、GIF、WEBP 格式的图片!',
+                icon: 'none',
+            })
+            return reject('只支持 JPG、PNG、GIF、WEBP 格式的图片!')
+        }
+
         const imageSrc = file
         // 使用时间戳+随机字符串作为路径，避免unionid/openid为空导致undefined
         const timestamp = Date.now()
@@ -52,6 +61,20 @@ export function upload(count = 1) {
             //成功
             success: (res) => {
                 const imageSrc = res!.tempFilePaths![0]
+
+                // 验证文件类型
+                const fileName = imageSrc.toString()
+                const fileExtension = fileName.split('.').pop()?.toLowerCase()
+                const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp']
+
+                if (!fileExtension || !allowedExtensions.includes(fileExtension)) {
+                    uni.showToast({
+                        title: '只支持 JPG、PNG、GIF、WEBP 格式的图片!',
+                        icon: 'none',
+                    })
+                    return reject('只支持 JPG、PNG、GIF、WEBP 格式的图片!')
+                }
+
                 upyun.upload({
                     localPath: imageSrc,
                     success: (res: any) => {

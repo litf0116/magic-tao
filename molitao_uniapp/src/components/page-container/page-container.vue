@@ -45,7 +45,7 @@ onLoad(() => {
 
 <style lang="scss">
 .topBg {
-    background: url('https://image.molitao.top/20250330/097jzbhb3jq364wcrsyjw61qb0bj9xob.png');
+    background: url('https://cdn.molitao.top/20250330/097jzbhb3jq364wcrsyjw61qb0bj9xob.png');
     background-size: contain;
     // background-attachment: fixed;
     background-size: 100% 100%;

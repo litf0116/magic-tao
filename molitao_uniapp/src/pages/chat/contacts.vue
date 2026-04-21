@@ -11,35 +11,20 @@
             fast-deceleration
             @refresherrefresh="onRefresh"
         >
-            <!-- 未登录时显示游客提示 -->
-            <view v-if="!isLoggedIn" class="guest-container">
-                <view class="guest-content">
-                    <view class="guest-icon-text">
-                        <text>👥</text>
-                    </view>
-                    <text class="guest-title">登录后查看通讯录</text>
-                    <text class="guest-desc">添加好友、查看好友列表</text>
-                    <view class="guest-btn" @tap="goLogin">
-                        <text>立即登录</text>
-                    </view>
+            <view class="flex items-center bg-white">
+                <view class="flex-1 m-2">
+                    <uv-input
+                        ref="searchInput"
+                        v-model="filterText"
+                        shape="circle"
+                        placeholder="搜索联系人"
+                        prefixIcon="search"
+                        prefixIconStyle="font-size: 22px;color: #909399"
+                    ></uv-input>
                 </view>
             </view>
-            <!-- 已登录时显示通讯录 -->
-            <template v-else>
-                <view class="flex items-center bg-white">
-                    <view class="flex-1 m-2">
-                        <uv-input
-                            ref="searchInput"
-                            v-model="filterText"
-                            shape="circle"
-                            placeholder="搜索联系人"
-                            prefixIcon="search"
-                            prefixIconStyle="font-size: 22px;color: #909399"
-                        ></uv-input>
-                    </view>
-                </view>
-                <view class="contacts-container">
-                    <!-- <view class="user-list">
+            <view class="contacts-container">
+                <!-- <view class="user-list">
                 <view class="user-list-item" v-for="(group, id) in groups" :key="id">
                     <view class="user-item-avatar">
                         <image :src="group.avatar" />
@@ -49,64 +34,62 @@
                     </view>
                 </view>
             </view> -->
-                    <template v-if="chatStore.friends0 && chatStore.friends0.length">
-                        <view class="contacts-title">好友申请</view>
-                        <view class="user-list">
-                            <view v-for="friend in chatStore.friends0" :key="friend.id" class="user-list-item">
-                                <view class="user-item-avatar">
-                                    <image :src="getImgUrl(friend.headImgUrl!, true)" mode="aspectFill"></image>
-                                </view>
-                                <view class="user-item-info">
-                                    <span class="user-item-info__name">{{ friend.name }}</span>
-                                </view>
-                                <view class="flex mr-2 space-x-1">
-                                    <uv-button
-                                        type="success"
-                                        size="small"
-                                        text="同意"
-                                        @click="agree(friend.id!, true)"
-                                    ></uv-button>
-                                    <uv-button
-                                        type="default"
-                                        :plain="true"
-                                        size="small"
-                                        text="拒绝"
-                                        @click="agree(friend.id!, false)"
-                                    ></uv-button>
-                                </view>
-                            </view>
-                        </view>
-                    </template>
-                    <view class="contacts-title">好友</view>
+                <template v-if="chatStore.friends0 && chatStore.friends0.length">
+                    <view class="contacts-title">好友申请</view>
                     <view class="user-list">
-                        <view
-                            v-for="friend in (chatStore.friends || []).filter((x) => x.name.indexOf(filterText) > -1)"
-                            :key="friend.id"
-                            class="user-list-item"
-                            @click="privateChat(friend)"
-                        >
+                        <view v-for="friend in chatStore.friends0" :key="friend.id" class="user-list-item">
                             <view class="user-item-avatar">
                                 <image :src="getImgUrl(friend.headImgUrl!, true)" mode="aspectFill"></image>
                             </view>
                             <view class="user-item-info">
                                 <span class="user-item-info__name">{{ friend.name }}</span>
                             </view>
+                            <view class="flex mr-2 space-x-1">
+                                <uv-button
+                                    type="success"
+                                    size="small"
+                                    text="同意"
+                                    @click="agree(friend.id!, true)"
+                                ></uv-button>
+                                <uv-button
+                                    type="default"
+                                    :plain="true"
+                                    size="small"
+                                    text="拒绝"
+                                    @click="agree(friend.id!, false)"
+                                ></uv-button>
+                            </view>
+                        </view>
+                    </view>
+                </template>
+                <view class="contacts-title">好友</view>
+                <view class="user-list">
+                    <view
+                        v-for="friend in (chatStore.friends || []).filter((x) => x.name.indexOf(filterText) > -1)"
+                        :key="friend.id"
+                        class="user-list-item"
+                        @click="privateChat(friend)"
+                    >
+                        <view class="user-item-avatar">
+                            <image :src="getImgUrl(friend.headImgUrl!, true)" mode="aspectFill"></image>
+                        </view>
+                        <view class="user-item-info">
+                            <span class="user-item-info__name">{{ friend.name }}</span>
                         </view>
                     </view>
                 </view>
-            </template>
+            </view>
         </scroll-view>
     </view>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
 import type { UserDtoBase } from '@/composables/types'
 import api from '@/utils/api'
 import { getImgUrl } from '@/composables'
 // 创建子组件的引用
 const chatStore = useChatStore()
-const userStore = useUserStore()
 const filterText = ref('')
 const refresh = ref(false)
 const profile = ref({
@@ -114,29 +97,10 @@ const profile = ref({
     group: null,
 })
 
-// 登录状态
-const isLoggedIn = computed(() => !!userStore.token)
-
-// 跳转登录页（用户主动选择）
-const goLogin = () => {
-    uni.navigateTo({
-        url: '/pages/index/login',
-    })
-}
-
 var emit = defineEmits(['refreshCurrentVal'])
 
-//初始化
-const init = () => {
-    // 移除强制登录检查，改为游客浏览模式
-    if (!userStore.token) {
-        return
-    }
-    fetchFriends()
-}
-
 onMounted(() => {
-    init()
+    fetchFriends()
 })
 //下拉刷新
 const onRefresh = async () => {
@@ -171,68 +135,13 @@ function agree(id: number, s: boolean) {
         emit('refreshCurrentVal')
     })
 }
-
-defineExpose({
-    init,
-})
 </script>
 
 <style lang="scss" scoped>
 .scroll-container {
     height: 100vh;
     width: 100%;
-}
 
-// 游客空状态样式
-.guest-container {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 60rpx 40rpx;
-}
-
-.guest-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-}
-
-.guest-icon-text {
-    width: 200rpx;
-    height: 200rpx;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 120rpx;
-    margin-bottom: 40rpx;
-}
-
-.guest-title {
-    font-size: 36rpx;
-    color: #333;
-    font-weight: 500;
-    margin-bottom: 20rpx;
-}
-
-.guest-desc {
-    font-size: 28rpx;
-    color: #999;
-    margin-bottom: 60rpx;
-}
-
-.guest-btn {
-    background: #f4835a;
-    color: #fff;
-    padding: 24rpx 80rpx;
-    border-radius: 48rpx;
-    font-size: 32rpx;
-}
-
-.scroll-container {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
 }
