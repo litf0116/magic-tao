@@ -37,6 +37,8 @@
                         </view>
                         <text class="pt-2 text-sm font-500">宠物算档器</text>
                     </view>
+                    <!-- 以下功能开发中，暂时隐藏 -->
+                    <!--
                     <view class="flex flex-col flex-center py-3" @tap="onFeatureDeveloping">
                         <view class="bg-[#f6f6f6] size-12 rounded-full flex flex-center">
                             <view class="size-7 i-icon-park-outline:calculator"></view>
@@ -55,6 +57,7 @@
                         </view>
                         <text class="pt-2 text-sm font-500">敬请期待</text>
                     </view>
+                    -->
                 </view>
 
                 <view v-if="!appFeatureStore.isReviewMode" class="mt-2 w-full">
