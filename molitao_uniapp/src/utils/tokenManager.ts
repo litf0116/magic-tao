@@ -81,7 +81,7 @@ export const refreshAccessToken = async (): Promise<string | null> => {
     try {
         const res = await new Promise<any>((resolve, reject) => {
             uni.request({
-                url: 'https://www.molitao.top/api/TokenAuth/RefreshToken',
+                url: 'http://localhost:12580/api/TokenAuth/RefreshToken',
                 method: 'POST',
                 data: { refreshToken },
                 header: {
