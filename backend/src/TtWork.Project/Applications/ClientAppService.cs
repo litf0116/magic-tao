@@ -538,28 +538,6 @@ public class ClientAppService(
             return new List<ChatListItem>();
         }
 
-        // ===== 版本控制过滤逻辑（仅针对 uniapp 小程序） =====
-        // 通过 X-Platform 请求头识别平台，mp-weixin = 微信小程序
-        var platform = httpContextAccessor?.HttpContext?.Request.Headers["X-Platform"].FirstOrDefault();
-        var isMpWeixin = platform == "mp-weixin";
-
-        // 只对 uniapp 小程序请求应用版本过滤，其他平台（PC/H5）始终显示拍卖场
-        bool shouldShowAuction = true;
-        if (isMpWeixin)
-        {
-            var currentVersion = _abpSession.GetAppVersion();
-            var stableVersion = await SettingManager.GetSettingValueAsync(AppSettings.VersionControl.LatestStableVersion);
-            shouldShowAuction = VersionComparer.ShouldShowAuction(currentVersion, stableVersion);
-
-            logger.LogInformation(
-                $"[GetChatList] Step 3 - Platform: [{platform}], currentVersion: [{currentVersion}], stableVersion: [{stableVersion}], shouldShowAuction: {shouldShowAuction}");
-        }
-        else
-        {
-            logger.LogInformation($"[GetChatList] Step 3 - Platform: [{platform ?? "unknown"}], skipping version filter, shouldShowAuction: true");
-        }
-        // ===== 版本控制过滤逻辑结束 =====
-
         var privateUserIds = channels
             .Where(c => c.ChannelType == ChatChannelType.Private)
             .Select(c => c.GetOtherUserId(userId) ?? 0)
@@ -578,10 +556,8 @@ public class ClientAppService(
         Logger.Info(
             $"[GetChatList] Step 4 - After ConvertToChatListItem: {result.Count} items, IDs: {string.Join(", ", result.Select(x => x.id))}");
 
-        result = result.Where(x => x.id != AppSettings.VersionControl.AuctionChannelId || shouldShowAuction).ToList();
-
-        Logger.Info(
-            $"[GetChatList] Step 5 - After version filter: {result.Count} items, AuctionChannelId={AppSettings.VersionControl.AuctionChannelId}, hasAuction={result.Any(x => x.id == AppSettings.VersionControl.AuctionChannelId)}");
+        // 移除了后台对秒杀场频道的过滤逻辑
+        // 前端通过审核版本自行控制展示与否
 
         return result
             .OrderByDescending(x => x.order)

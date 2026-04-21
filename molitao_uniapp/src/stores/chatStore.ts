@@ -11,6 +11,7 @@ import {
 } from '../composables/types'
 import { useStorageRef } from '@/composables/useStorageRef'
 import { convertImageUrl } from '@/utils/imageUrlConverter'
+import { useAppFeatureStore } from './appFeatureStore'
 
 // 测试友好：导出一个纯函数，方便单元测试历史合并逻辑
 export function mergeHistoryForChannel(
@@ -59,8 +60,11 @@ export const useChatStore = defineStore('chatStore', () => {
     const groups = ref<ChannelType[]>([])
     const currentChat = ref(AuctionChat)
 
-    //聊天对象表
-    const chatList: Ref<ChatListItem[]> = useStorageRef<ChatListItem[]>('chatList', [AuctionChat])
+    //聊天对象表 - 根据审核版本决定是否包含秒杀场频道
+    const appFeatureStore = useAppFeatureStore()
+    const chatList: Ref<ChatListItem[]> = useStorageRef<ChatListItem[]>('chatList', 
+        appFeatureStore.isReviewMode ? [] : [AuctionChat]
+    )
     const chatMap = ref<Map<string, ChatMessage[]>>(new Map())
 
     //LINK - ChatStore Getter
@@ -82,7 +86,13 @@ export const useChatStore = defineStore('chatStore', () => {
     async function getChatList() {
         try {
             const res = await api.client.getChatList()
-            chatList.value = res
+            // 根据审核版本过滤秒杀场频道（id === -1）
+            const appFeatureStore = useAppFeatureStore()
+            if (appFeatureStore.isReviewMode) {
+                chatList.value = res.filter((item: ChatListItem) => item.id !== -1)
+            } else {
+                chatList.value = res
+            }
         } catch (err) {
             console.error('[getChatList] 获取会话列表失败:', err)
             throw err
