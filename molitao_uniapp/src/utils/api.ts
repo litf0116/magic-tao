@@ -20,9 +20,7 @@ if (import.meta.env.DEV) {
 // #endif
 
 // #ifdef MP-WEIXIN
-// 本地开发测试使用 localhost:12580
-host = 'http://localhost:12580'
-// 生产环境使用: host = 'https://www.molitao.top'
+host = 'https://www.molitao.top'
 // #endif
 
 // #ifdef APP-PLUS
