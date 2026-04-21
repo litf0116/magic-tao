@@ -11,7 +11,7 @@
                 <view v-if="showAuctionEntrance" class="flex flex-col">
                     <image class="mt-1 w-full h-270rpx" src="../../static/pmh.png" @tap="Goto.auction()" />
                 </view>
-                <view class="mt-2 w-full">
+                <view v-if="!appFeatureStore.isReviewMode" class="mt-2 w-full">
                     <uv-swiper
                         :height="200"
                         :interval="5000"
@@ -22,7 +22,7 @@
                         :display-multiple-items="0"
                     ></uv-swiper>
                 </view>
-                <view class="advertisingSpace">
+                <view v-if="!appFeatureStore.isReviewMode" class="advertisingSpace">
                     <div v-for="(item, index) in advertisingSpaceList" :key="index" class="advertisingSpace-item">
                         <image class="logo2" :src="convertImageUrl(item.imageUrl, false)" />
                         <div
@@ -55,16 +55,19 @@ import { onShow, onPullDownRefresh, onShareAppMessage, onShareTimeline, onLoad }
 const appStore = useAppStore()
 const userStore = useUserStore()
 const chatStore = useChatStore()
+const appFeatureStore = useAppFeatureStore()
 
 const { navTo } = useTo()
 
 const showAuctionEntrance = computed(() => {
+    if (appFeatureStore.isReviewMode) return false
     return chatStore.chatList.some((chat) => chat.id === -1)
 })
 //广告位信息
 const advertisingSpaceList: any = ref([])
 const emit = defineEmits(['refreshCurrentVal'])
 onMounted(() => {
+    appFeatureStore.loadFeatureSwitch()
     fetchCmsData()
     advertisingSpace()
 })

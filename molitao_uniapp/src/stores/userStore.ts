@@ -152,8 +152,12 @@ export const useUserStore = defineStore('userStore', () => {
                         code: code,
                     })
                     .then(async (res: any) => {
-                        // 需要绑定手机号
+                        // 需要绑定手机号 - 也需要保存 token
                         if (res.needPhoneBinding) {
+                            if (res.bindToken) {
+                                token.value = res.bindToken
+                                uni.setStorageSync('token', res.bindToken)
+                            }
                             return resolve({
                                 needPhoneBinding: true,
                                 bindToken: res.bindToken,
@@ -194,27 +198,13 @@ export const useUserStore = defineStore('userStore', () => {
     }
 
     // 绑定手机号（微信登录后完善信息）
-    const bindPhoneWithPassword = async (phoneNumber: string, password: string, bindToken: string) => {
-        return new Promise(async (resolve, reject) => {
-            await api.account
-                .bindPhoneWithPassword({ phoneNumber, password, bindToken })
-                .then(async (res: any) => {
-                    if (res.success) {
-                        // 绑定成功，保存 token
-                        if (res.result && res.result.accessToken) {
-                            token.value = res.result.accessToken
-                            uni.setStorageSync('token', res.result.accessToken)
-                            await checkLogin()
-                        }
-                        return resolve(res)
-                    } else {
-                        reject(res.error || '绑定失败')
-                    }
-                })
-                .catch((err: any) => {
-                    reject(err.error || '绑定失败')
-                })
-        })
+    const bindPhoneWithPassword = async (phoneNumber: string, password: string) => {
+        const res = await api.account.bindPhoneWithPassword({ phoneNumber, password })
+        if (res.success) {
+            await checkLogin(false, false)
+            return res
+        }
+        throw new Error(res.error?.message || '绑定失败')
     }
 
     // ANCHOR - 帐号密码登录

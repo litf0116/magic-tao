@@ -1,17 +1,12 @@
 <template>
     <tui-page>
-        <view class="h-[100vh] px-4 relative flex flex-col">
-            <view class="flex-1 flex flex-col items-center flex-center">
-                <image
-                    src="https://cdn.molitao.top/20250330/gg4hck6wkx2ndrn46dbw0lcxwh5ik0hi.png"
-                    class="h-[10vh]"
-                    mode="aspectFit"
-                />
-                <text class="font-bold text-lg mt-4">完善信息</text>
-                <text class="text-gray-500 text-sm mt-2">绑定手机号后即可使用完整功能</text>
+        <view class="h-[100vh] px-4 flex flex-col">
+            <view class="pt-8 text-center">
+                <text class="font-bold text-xl">完善信息</text>
+                <text class="text-gray-500 text-sm mt-2 block">绑定手机号后即可使用完整功能</text>
             </view>
 
-            <view class="w-full">
+            <view class="flex-1 flex flex-col justify-center">
                 <view class="bg-white rounded-lg p-4 mb-4">
                     <view class="flex items-center border-b border-gray-100 pb-3">
                         <text class="text-gray-600 w-20">手机号</text>
@@ -51,8 +46,6 @@
 </template>
 
 <script setup lang="ts">
-import { onLoad } from '@dcloudio/uni-app'
-
 const userStore = useUserStore()
 
 const form = ref({
@@ -63,43 +56,26 @@ const form = ref({
 const showPassword = ref(false)
 const isLoading = ref(false)
 
-let bindToken = ''
-let userId = 0
-let userName = ''
-
-onLoad((options: any) => {
-    if (options.bindToken) {
-        bindToken = options.bindToken
-    }
-    if (options.userId) {
-        userId = Number(options.userId)
-    }
-    if (options.userName) {
-        userName = options.userName
-    }
-})
-
 async function handleBind() {
     if (!/^1\d{10}$/.test(form.value.phoneNumber)) {
         uni.showToast({ icon: 'none', title: '请输入正确的手机号码' })
         return
     }
 
-    if (!/^[^ ]{6,32}$/.test(form.value.password)) {
-        uni.showToast({ icon: 'none', title: '密码长度6-32位，不能包含空格' })
+    if (!/^[^ ]{8,32}$/.test(form.value.password)) {
+        uni.showToast({ icon: 'none', title: '密码长度8-32位，不能包含空格' })
         return
     }
 
     isLoading.value = true
     try {
-        await userStore.bindPhoneWithPassword(form.value.phoneNumber, form.value.password, bindToken)
+        await userStore.bindPhoneWithPassword(form.value.phoneNumber, form.value.password)
         uni.showToast({ icon: 'success', title: '绑定成功' })
-        setTimeout(() => {
-            uni.$emit('refreshView')
-            uni.navigateBack({})
-        }, 1500)
+        await new Promise(resolve => setTimeout(resolve, 1500))
+        uni.$emit('refreshView')
+        uni.navigateBack({})
     } catch (err: any) {
-        uni.showToast({ icon: 'none', title: err.error || '绑定失败' })
+        uni.showToast({ icon: 'none', title: err.message || '绑定失败' })
     } finally {
         isLoading.value = false
     }

@@ -66,7 +66,7 @@ export default {
 
     // account
     account: {
-        bindPhoneWithPassword: (data: { phoneNumber: string; password: string; bindToken: string }) =>
+        bindPhoneWithPassword: (data: { phoneNumber: string; password: string }) =>
             request('POST', `/api/services/app/Account/BindPhoneWithPassword`, data),
     },
 
@@ -200,6 +200,9 @@ export default {
 
     upload: {
         getSignature: `/api/services/app/Upload/GetSignature`,
+    },
+    appFeature: {
+        getFeatureSwitch: () => request('GET', `/api/services/app/AppFeature/GetFeatureSwitch`),
     },
     /** 获取群聊等级信息列表**/
     groupChatLevelSettings: {

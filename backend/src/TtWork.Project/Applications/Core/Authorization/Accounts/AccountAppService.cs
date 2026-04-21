@@ -187,66 +187,6 @@ namespace TtWork.Project.Applications.Core.Authorization.Accounts {
                 UserName = user.UserName
             };
         }
-        {
-            if (string.IsNullOrWhiteSpace(input.PhoneNumber) || 
-                !System.Text.RegularExpressions.Regex.IsMatch(input.PhoneNumber, @"^1[3-9]\d{9}$"))
-            {
-                throw new UserFriendlyException("请输入正确的手机号");
-            }
-
-            var user = await GetCurrentUserAsync();
-            var purpose = SmsCodePurpose.BindPhone;
-
-            var isValid = await _smsVerificationCodeService.VerifyCodeAsync(input.PhoneNumber, input.Code, purpose);
-            if (!isValid)
-            {
-                throw new UserFriendlyException("验证码错误或已过期");
-            }
-
-            var existingBinding = await _userLoginRepository.GetAll()
-                .FirstOrDefaultAsync(x =>
-                    x.LoginProvider == ProjectConsts.LoginProvider.Phone &&
-                    x.ProviderKey == input.PhoneNumber);
-
-            if (existingBinding != null)
-            {
-                if (existingBinding.UserId == user.Id)
-                {
-                    throw new UserFriendlyException("该手机号已绑定当前账号");
-                }
-
-                throw new UserFriendlyException("该手机号已被其他账号绑定，请使用该手机号登录后在设置中合并账号");
-            }
-
-            var existingUserWithPhone = await UserManager.Users
-                .FirstOrDefaultAsync(x => x.PhoneNumber == input.PhoneNumber && x.Id != user.Id);
-
-            if (existingUserWithPhone != null)
-            {
-                throw new UserFriendlyException("该手机号已被其他账号绑定，请使用该手机号登录后在设置中合并账号");
-            }
-
-            var currentPhoneBinding = await _userLoginRepository.GetAll()
-                .FirstOrDefaultAsync(x =>
-                    x.UserId == user.Id &&
-                    x.LoginProvider == ProjectConsts.LoginProvider.Phone);
-
-            if (currentPhoneBinding != null)
-            {
-                await _userLoginRepository.DeleteAsync(currentPhoneBinding);
-            }
-
-            await _userLoginRepository.InsertAsync(new UserLogin(
-                user.TenantId, user.Id,
-                ProjectConsts.LoginProvider.Phone, input.PhoneNumber));
-
-            user.PhoneNumber = input.PhoneNumber;
-            user.IsPhoneNumberConfirmed = true;
-            await UserManager.UpdateAsync(user);
-
-            await CurrentUnitOfWork.SaveChangesAsync();
-            return true;
-        }
 
         [HttpGet]
         public async Task<LoginBindingListOutput> GetLoginBindings()

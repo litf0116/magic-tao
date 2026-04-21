@@ -67,10 +67,15 @@
             </view> -->
         </view>
 
-        <view v-if="userStore.user.phoneNumber" class="my-4">
-            <uv-button @tap="logout">退出登录</uv-button>
+        <view v-if="userStore.isLogin" class="my-4 mx-4">
+            <view
+                class="py-3 px-4 bg-white rounded-lg text-center text-red-500 text-sm font-500 active:bg-gray-50"
+                @tap="logout"
+            >
+                <text>退出登录</text>
+            </view>
         </view>
-        <view class="text-center w-full text-gray-300">{{ appVersion }}</view>
+        <view class="text-center w-full text-gray-300 pb-4">{{ appVersion }}</view>
 
         <custom-modal
             v-model:show="modalVisible"

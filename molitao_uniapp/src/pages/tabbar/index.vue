@@ -129,9 +129,10 @@ onShow(() => {
     if (userStore.token) {
         getUserFriendCount()
     }
-    // 启动定时器 - 每5秒执行一次
     timer.value = setInterval(() => {
-        getUserFriendCount()
+        if (userStore.token) {
+            getUserFriendCount()
+        }
     }, 30000)
 })
 onUnload(() => {
