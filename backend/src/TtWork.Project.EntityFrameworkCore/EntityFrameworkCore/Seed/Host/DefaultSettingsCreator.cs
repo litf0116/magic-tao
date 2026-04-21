@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Abp.Configuration;
 using Abp.Localization;
@@ -41,22 +41,22 @@ namespace TtWork.Project.EntityFrameworkCore.Seed.Host
                 tenantId
             );
 
-            // Feature Switch
+            // Feature Switch - 审核版本号
             AddSettingIfNotExists(
-                TtWork.Project.Core.AppSettings.FeatureSwitch.ShowAuctionMaxVersionMpWeixin,
-                "20260401@1.1.9",
+                AppSettings.FeatureSwitch.ReviewVersionMpWeixin,
+                "",
                 tenantId
             );
 
             AddSettingIfNotExists(
-                TtWork.Project.Core.AppSettings.FeatureSwitch.ShowTradingPostMaxVersionMpWeixin,
-                "20260401@1.1.9",
+                AppSettings.FeatureSwitch.ReviewVersionAppPlus,
+                "",
                 tenantId
             );
 
             AddSettingIfNotExists(
-                TtWork.Project.Core.AppSettings.FeatureSwitch.ShowBannerMaxVersionMpWeixin,
-                "20260401@1.1.9",
+                AppSettings.FeatureSwitch.ReviewVersionH5,
+                "",
                 tenantId
             );
         }

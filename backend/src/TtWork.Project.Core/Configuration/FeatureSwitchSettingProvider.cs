@@ -10,19 +10,19 @@ public class FeatureSwitchSettingProvider : SettingProvider
         return new[]
         {
             new SettingDefinition(
-                AppSettings.FeatureSwitch.ShowAuctionMaxVersionMpWeixin,
+                AppSettings.FeatureSwitch.ReviewVersionMpWeixin,
                 "",
                 scopes: SettingScopes.Application,
                 isVisibleToClients: true
             ),
             new SettingDefinition(
-                AppSettings.FeatureSwitch.ShowTradingPostMaxVersionMpWeixin,
+                AppSettings.FeatureSwitch.ReviewVersionAppPlus,
                 "",
                 scopes: SettingScopes.Application,
                 isVisibleToClients: true
             ),
             new SettingDefinition(
-                AppSettings.FeatureSwitch.ShowBannerMaxVersionMpWeixin,
+                AppSettings.FeatureSwitch.ReviewVersionH5,
                 "",
                 scopes: SettingScopes.Application,
                 isVisibleToClients: true

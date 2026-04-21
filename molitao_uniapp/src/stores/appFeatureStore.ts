@@ -4,7 +4,7 @@ import api from '@/utils/api'
 const FEATURE_CACHE_KEY = 'app_feature_switch'
 
 export const useAppFeatureStore = defineStore('appFeatureStore', () => {
-    const features = ref<Record<string, boolean>>({})
+    const isReviewMode = ref(false)
     const platform = ref('')
     const version = ref('')
     const isLoaded = ref(false)
@@ -17,7 +17,7 @@ export const useAppFeatureStore = defineStore('appFeatureStore', () => {
         try {
             const res: any = await api.appFeature.getFeatureSwitch()
             if (res) {
-                features.value = res.features ?? {}
+                isReviewMode.value = res.isReviewMode ?? false
                 platform.value = res.platform || ''
                 version.value = res.version || ''
                 uni.setStorageSync(FEATURE_CACHE_KEY, res)
@@ -25,38 +25,18 @@ export const useAppFeatureStore = defineStore('appFeatureStore', () => {
             }
         } catch (err) {
             const cached = uni.getStorageSync(FEATURE_CACHE_KEY)
-            if (cached && cached.features) {
-                features.value = cached.features
+            if (cached) {
+                isReviewMode.value = cached.isReviewMode ?? false
             }
             console.error('[AppFeature] 加载功能开关失败:', err)
         }
     }
 
-    function isFeatureEnabled(featureName: string): boolean {
-        return features.value[featureName] ?? false
-    }
-
-    function getShowAuction(): boolean {
-        return isFeatureEnabled('ShowAuction')
-    }
-
-    function getShowTradingPost(): boolean {
-        return isFeatureEnabled('ShowTradingPost')
-    }
-
-    function getShowBanner(): boolean {
-        return isFeatureEnabled('ShowBanner')
-    }
-
     return {
-        features,
+        isReviewMode,
         platform,
         version,
         isLoaded,
         loadFeatureSwitch,
-        isFeatureEnabled,
-        getShowAuction,
-        getShowTradingPost,
-        getShowBanner,
     }
 })

@@ -11,7 +11,7 @@
                 <view class="flex flex-col">
                     <!-- 交易站入口 -->
                     <image
-                        v-if="appFeatureStore.getShowTradingPost()"
+                        v-if="!appFeatureStore.isReviewMode"
                         class="w-full h-270rpx"
                         :src="convertImageUrl('https://image.molitao.top/banners/jyz.png')"
                         @tap="gotoTradingPost"
@@ -57,7 +57,7 @@
                     </view>
                 </view>
 
-                <view v-if="appFeatureStore.getShowBanner()" class="mt-2 w-full">
+                <view v-if="!appFeatureStore.isReviewMode" class="mt-2 w-full">
                     <uv-swiper
                         :height="200"
                         :interval="5000"
@@ -70,7 +70,7 @@
                 </view>
 
                 <view
-                    v-if="appFeatureStore.getShowBanner() && advertisingSpaceList.length > 0"
+                    v-if="!appFeatureStore.isReviewMode && advertisingSpaceList.length > 0"
                     class="advertisingSpace"
                 >
                     <div v-for="(item, index) in advertisingSpaceList" :key="index" class="advertisingSpace-item">
@@ -118,7 +118,7 @@ const appFeatureStore = useAppFeatureStore()
 const { navTo } = useTo()
 
 const showAuctionEntrance = computed(() => {
-    return appFeatureStore.getShowAuction()
+    return !appFeatureStore.isReviewMode
 })
 
 // 跳转到交易站

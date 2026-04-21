@@ -58,6 +58,12 @@ export default {
                     meta: { title: '版本控制' },
                     component: () => import('@/views/admin/app/versionControl.vue'),
                 },
+                {
+                    path: 'reviewVersion',
+                    name: 'reviewVersion',
+                    meta: { title: '审核版本' },
+                    component: () => import('@/views/admin/app/reviewVersion.vue'),
+                },
             ],
         },
         {

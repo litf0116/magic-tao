@@ -1,4 +1,6 @@
-﻿using System.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Abp.Dependency;
 using Abp.Domain.Entities.Caching;
@@ -34,10 +36,14 @@ public class UserCache(
         if (user != null) {
             var userDto = MapToCacheItem(user);
 
-            userDto.RoleNames = (await userManager.GetRolesAsync(user)).ToArray();
+            // 初始化 Permissions 列表
+            userDto.Permissions = new List<string>();
+            
+            var roles = await userManager.GetRolesAsync(user);
+            userDto.RoleNames = roles.ToArray();
 
             foreach (var role in userDto.RoleNames) {
-                var grantedPermissions = (await roleManager.GetGrantedPermissionsAsync(role)).ToArray();
+                var grantedPermissions = await roleManager.GetGrantedPermissionsAsync(role);
                 foreach (var p in grantedPermissions) {
                     if (userDto.Permissions.All(z => z != p.Name)) {
                         userDto.Permissions.Add(p.Name);

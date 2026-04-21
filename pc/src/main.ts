@@ -1,9 +1,10 @@
-import { createApp } from 'vue'
+import { createApp, watch } from 'vue'
 import { createPinia } from 'pinia'
 import { MotionPlugin } from '@vueuse/motion'
 import screenShort from 'vue-web-screen-shot'
 import App from './App.vue'
 import router from './routes/index'
+import { useUserStore } from './stores/userStore'
 
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
@@ -51,14 +52,46 @@ app.config.globalProperties.$filters = {
 app.directive('permission', {
     mounted(el: any, binding: any) {
         const useStore: any = useUserStore()
-        const permission = binding.value // 获取到 v-permission的值
-        if (permission) {
-            const permissions = computed(() => useStore.permissions || [])
-            const hasPermission = !!~permissions.value.indexOf(permission)
+        const permission = binding.value
+        if (!permission) return
+
+        // 初始检查
+        const checkPermission = () => {
+            const permissions = useStore.permissions || []
+            const hasPermission = permissions.includes(permission)
             if (!hasPermission) {
-                // 没有权限 移除Dom元素
-                el.parentNode && el.parentNode.removeChild(el)
+                el.style.display = 'none'
+            } else {
+                el.style.display = ''
             }
+        }
+
+        checkPermission()
+
+        // 监听权限变化
+        el._permissionWatcher = watch(
+            () => useStore.permissions,
+            () => checkPermission(),
+            { deep: true }
+        )
+    },
+    updated(el: any, binding: any) {
+        const useStore: any = useUserStore()
+        const permission = binding.value
+        if (!permission) return
+
+        const permissions = useStore.permissions || []
+        const hasPermission = permissions.includes(permission)
+        if (!hasPermission) {
+            el.style.display = 'none'
+        } else {
+            el.style.display = ''
+        }
+    },
+    unmounted(el: any) {
+        // 清理 watcher
+        if (el._permissionWatcher) {
+            el._permissionWatcher()
         }
     },
 })

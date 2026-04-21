@@ -16,8 +16,8 @@ public static class AppSettings
 
     public static class FeatureSwitch
     {
-        public const string ShowAuctionMaxVersionMpWeixin = "AppFeatures.ShowAuction.MaxVersion.mp-weixin";
-        public const string ShowTradingPostMaxVersionMpWeixin = "AppFeatures.ShowTradingPost.MaxVersion.mp-weixin";
-        public const string ShowBannerMaxVersionMpWeixin = "AppFeatures.ShowBanner.MaxVersion.mp-weixin";
+        public const string ReviewVersionMpWeixin = "AppFeatures.ReviewVersion.mp-weixin";
+        public const string ReviewVersionAppPlus = "AppFeatures.ReviewVersion.app-plus";
+        public const string ReviewVersionH5 = "AppFeatures.ReviewVersion.h5";
     }
 }

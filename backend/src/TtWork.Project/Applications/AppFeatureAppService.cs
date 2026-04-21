@@ -8,10 +8,6 @@ using TtWork.Abp.Definitions;
 
 namespace TtWork.Project.Applications;
 
-/// <summary>
-/// 功能开关服务 - 兼容前端路径 /api/services/app/AppFeature/
-/// 代理转发到 AppFeatureSwitchAppService
-/// </summary>
 [Route("api/services/app/[controller]/[action]")]
 public class AppFeatureAppService : ApplicationService
 {
@@ -30,15 +26,15 @@ public class AppFeatureAppService : ApplicationService
     }
 
     [HttpGet]
-    public Task<Dictionary<string, bool>> GetFeatureConfig()
+    public Task<string> GetReviewVersionConfig()
     {
-        return _featureSwitchService.GetFeatureConfig();
+        return _featureSwitchService.GetReviewVersionConfig();
     }
 
     [HttpGet]
-    public Task<Dictionary<string, string>> GetFeatureVersionConfig()
+    public Task<Dictionary<string, string>> GetAllReviewVersions()
     {
-        return _featureSwitchService.GetFeatureVersionConfig();
+        return _featureSwitchService.GetAllReviewVersions();
     }
 
     [HttpGet]
@@ -49,8 +45,8 @@ public class AppFeatureAppService : ApplicationService
 
     [HttpPost]
     [AbpAuthorize(AppPermissions.Administration)]
-    public Task UpdateFeatureSwitch([FromBody] UpdateFeatureSwitchInput input)
+    public Task UpdateReviewVersion([FromBody] UpdateReviewVersionInput input)
     {
-        return _featureSwitchService.UpdateFeatureSwitch(input);
+        return _featureSwitchService.UpdateReviewVersion(input);
     }
 }

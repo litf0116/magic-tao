@@ -25,6 +25,7 @@ import {
 
 import appRelease from './appRelease'
 import versionControl from './versionControl'
+import appFeature from './appFeature'
 
 serviceOptions.axios = request
 
@@ -53,6 +54,7 @@ export default {
     announce,
     appRelease,
     versionControl,
+    appFeature,
     auctionItem,
     bidHistory,
     banedUser,
