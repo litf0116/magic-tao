@@ -2,8 +2,8 @@
     "name" : "魔力淘",
     "appid" : "__UNI__BE7D07D",
     "description" : "",
-    "versionName" : "1.3.0",
-    "versionCode" : 130,
+    "versionName" : "1.4.0",
+    "versionCode" : 140,
     "transformPx" : false,
     /* 5+App特有相关 */
     "app-plus" : {

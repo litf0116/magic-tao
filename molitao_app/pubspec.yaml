@@ -2,7 +2,7 @@ name: molitao_app
 description: "魔力淘 - 在线拍卖交易平台"
 publish_to: 'none'
 
-version: 1.4.1
+version: 1.4.0
 
 environment:
   sdk: ^3.9.0
