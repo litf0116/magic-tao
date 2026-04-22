@@ -286,8 +286,8 @@ namespace TtWork.Project.Web.Host.Startup
             app.UseMiddleware<RealIpMiddleware>();
             app.UseAppFeature();
             //微信消息中间件
-            // app.UseWeiXin(options: new WeiXinOptions()
-            //     { Path = "/api/wx", MutilTenant = false });
+            app.UseWeiXin(options: new WeiXinOptions()
+                { Path = "/api/wx", MutilTenant = false });
 
 
             ImHelper.Initialization(new ImClientOptions
@@ -317,7 +317,7 @@ namespace TtWork.Project.Web.Host.Startup
 
         private void SetupHttpClient(IServiceCollection services)
         {
-            // services.AddScoped<IWeiXinProvider, AbpWeiXinProvider>();
+            services.AddScoped<IWeiXinProvider, AbpWeiXinProvider>();
 
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
