@@ -7,7 +7,7 @@ import '../api/api_endpoints.dart';
 /// 图片上传服务
 /// 上传图片到又拍云存储
 class UploadService {
-  static const String _upyunDomain = 'http://image.molitao.top';
+  static const String _upyunDomain = 'https://image.molitao.top';
   static const String _upyunBucket = 'molitao';
   static const String _upyunOperator = 'molitao';
 

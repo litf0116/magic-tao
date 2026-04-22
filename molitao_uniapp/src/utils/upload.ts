@@ -2,7 +2,7 @@ import Upyun from './upyun-wxapp-sdk.js'
 const upyun = new Upyun.Upyun({
     bucket: 'molitao',
     operator: 'molitao',
-    domainHost: 'http://image.molitao.top',
+    domainHost: 'https://image.molitao.top',
     getSignatureUrl: import.meta.env.VITE_APP_BASE_API + '/api/services/app/Upload/GetSignature',
 })
 
