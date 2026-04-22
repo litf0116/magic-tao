@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -354,25 +354,10 @@ namespace TtWork.Project.Applications.Core.Users
                     .AnyAsync(x => x.UserName == input.UserName && x.Id != input.Id))
                 throw new UserFriendlyException(1, "登录用户名已存在!");
 
-// 🔒 URL格式验证 - 阻止本地临时文件路径
             if (!string.IsNullOrEmpty(input.HeadImgUrl) &&
                 input.HeadImgUrl != user.HeadImgUrl)
             {
-                // 检查是否为本地临时文件路径
-                if (input.HeadImgUrl.StartsWith("wxfile://", StringComparison.OrdinalIgnoreCase) ||
-                    input.HeadImgUrl.StartsWith("http://tmp_", StringComparison.OrdinalIgnoreCase) ||
-                    input.HeadImgUrl.StartsWith("file://", StringComparison.OrdinalIgnoreCase))
-                {
-                    throw new UserFriendlyException($"头像地址格式错误: {input.HeadImgUrl}");
-                }
-
-                // 检查是否为CDN地址（允许的格式，支持HTTP和HTTPS）
-                if (!input.HeadImgUrl.StartsWith("https://cdn.molitao.top", StringComparison.OrdinalIgnoreCase) &&
-                    !input.HeadImgUrl.StartsWith("http://image.molitao.top", StringComparison.OrdinalIgnoreCase) &&
-                    !input.HeadImgUrl.StartsWith("https://image.molitao.top", StringComparison.OrdinalIgnoreCase))
-                {
-                    throw new UserFriendlyException($"头像地址不正确: {input.HeadImgUrl}，请使用CDN地址");
-                }
+                ValidateHeadImgUrl(input.HeadImgUrl);
             }
 
             // 🔐 头像安全检查
@@ -480,6 +465,44 @@ namespace TtWork.Project.Applications.Core.Users
                 _logger.LogError(ex, "下载图片异常: {Url}", imageUrl);
                 return null;
             }
+        }
+
+        private static readonly string[] BlockedHeadImgUrlPrefixes =
+        {
+            "wxfile://",
+            "http://tmp_",
+            "file://"
+        };
+
+        private static readonly string[] AllowedHeadImgUrlPrefixes =
+        {
+            "https://cdn.molitao.top",
+            "http://image.molitao.top",
+            "https://image.molitao.top",
+            "https://thirdwx.qlogo.cn",
+            "https://wx.qlogo.cn"
+        };
+
+        private void ValidateHeadImgUrl(string headImgUrl)
+        {
+            if (string.IsNullOrEmpty(headImgUrl))
+                return;
+
+            foreach (var prefix in BlockedHeadImgUrlPrefixes)
+            {
+                if (headImgUrl.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new UserFriendlyException($"头像地址格式错误: {headImgUrl}");
+                }
+            }
+
+            foreach (var prefix in AllowedHeadImgUrlPrefixes)
+            {
+                if (headImgUrl.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                    return;
+            }
+
+            throw new UserFriendlyException($"头像地址不正确: {headImgUrl}，请使用CDN地址或微信头像地址");
         }
 
         /// <summary>

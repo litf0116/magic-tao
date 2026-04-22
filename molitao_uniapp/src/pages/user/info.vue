@@ -116,19 +116,13 @@ function submit() {
         return Tips.info('请上传头像')
     }
 
-    // 如果上传了新头像，验证上传状态和URL格式
+    // 如果上传了新头像，验证上传状态
     if (fileList1.value.length > 0) {
         const fileItem = fileList1.value[0]
 
         // 检查上传状态
         if (fileItem.status !== 'success') {
             Tips.info('图片正在上传中，请稍候...')
-            return
-        }
-
-        // 检查URL格式，必须是CDN地址（支持http和https）
-        if (!fileItem.url || !fileItem.url.match(/^https?:\/\/image\.molitao\.top/)) {
-            Tips.info('头像上传未完成，请重新上传')
             return
         }
 
