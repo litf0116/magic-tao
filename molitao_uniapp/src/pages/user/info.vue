@@ -126,8 +126,8 @@ function submit() {
             return
         }
 
-        // 检查URL格式，必须是CDN地址
-        if (!fileItem.url || !fileItem.url.startsWith('http://image.molitao.top')) {
+        // 检查URL格式，必须是CDN地址（支持http和https）
+        if (!fileItem.url || !fileItem.url.match(/^https?:\/\/image\.molitao\.top/)) {
             Tips.info('头像上传未完成，请重新上传')
             return
         }
