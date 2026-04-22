@@ -11,6 +11,26 @@
                 <view v-if="showAuctionEntrance" class="flex flex-col">
                     <image class="mt-1 w-full h-270rpx" src="../../static/pmh.png" @tap="Goto.auction()" />
                 </view>
+
+                <!-- 功能模块区域 -->
+                <view class="my-4 flex items-center">
+                    <view class="h-3 w-4px mr-2 bg-[#ccc] rounded-full"></view>
+                    <text>常用工具</text>
+                </view>
+                <view class="myCard py-4 grid grid-cols-4 mb-4 text-[#171717]">
+                    <view class="flex flex-col flex-center zoom-in" @tap="gotoPetCalculator">
+                        <view class="bg-[#f6f6f6] size-12 rounded-full flex flex-center">
+                            <view class="size-7 i-icon-park-outline:dog"></view>
+                        </view>
+                        <text class="pt-2 text-sm font-500">宠物算档器</text>
+                    </view>
+                    <view class="flex flex-col flex-center" @tap="onFeatureDeveloping">
+                        <view class="bg-[#f6f6f6] size-12 rounded-full flex flex-center">
+                            <view class="size-7 i-icon-park-outline:more-app"></view>
+                        </view>
+                        <text class="pt-2 text-sm font-500">敬请期待</text>
+                    </view>
+                </view>
                 <view v-if="!appFeatureStore.isReviewMode" class="mt-2 w-full">
                     <uv-swiper
                         :height="200"
@@ -58,6 +78,16 @@ const chatStore = useChatStore()
 const appFeatureStore = useAppFeatureStore()
 
 const { navTo } = useTo()
+
+// 跳转到宠物算档器
+const gotoPetCalculator = () => {
+    uni.navigateTo({ url: '/pages/tools/petCalculator' })
+}
+
+// 功能开发中提示
+const onFeatureDeveloping = () => {
+    uni.showToast({ title: '功能开发中', icon: 'none' })
+}
 
 const showAuctionEntrance = computed(() => {
     if (appFeatureStore.isReviewMode) return false
