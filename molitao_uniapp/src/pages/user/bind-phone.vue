@@ -46,6 +46,8 @@
 </template>
 
 <script setup lang="ts">
+import { onLoad } from '@dcloudio/uni-app'
+
 const userStore = useUserStore()
 const appStore = useAppStore()
 
