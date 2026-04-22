@@ -10,16 +10,7 @@
             </view>
 
             <view class="form-card">
-                <view class="tabs">
-                    <view class="tab-item" :class="{ active: loginTab === 'password' }" @tap="loginTab = 'password'">
-                        <text>密码登录</text>
-                    </view>
-                    <view class="tab-item" :class="{ active: loginTab === 'sms' }" @tap="loginTab = 'sms'">
-                        <text>验证码登录</text>
-                    </view>
-                </view>
-
-                <template v-if="loginTab === 'password'">
+                <template v-if="true">
                     <view class="input-wrap">
                         <input
                             v-model="form.userNameOrEmailAddress"
@@ -102,17 +93,6 @@
                             和
                             <text class="agreement-link" @tap.stop="toPrivacy">《隐私政策》</text>
                         </text>
-                    </view>
-                </view>
-
-                <view class="divider">
-                    <text class="divider-text">其他登录方式</text>
-                </view>
-
-                <view class="other-login">
-                    <view class="wechat-btn" @tap="handleWechatLogin">
-                        <text class="wechat-icon">💬</text>
-                        <text class="wechat-text">微信授权登录</text>
                     </view>
                 </view>
 
@@ -289,20 +269,6 @@ const handleSmsLogin = async () => {
     } finally {
         isLoading.value = false
     }
-}
-
-const handleWechatLogin = () => {
-    // #ifdef H5
-    const appId = 'YOUR_WECHAT_APP_ID'
-    const redirectUri = encodeURIComponent(window.location.origin + '/pages/index/wechatCallback')
-    const state = Date.now().toString()
-    uni.setStorageSync('wechat_login_state', state)
-    window.location.href = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${appId}&redirect_uri=${redirectUri}&response_type=code&scope=snsapi_userinfo&state=${state}#wechat_redirect`
-    // #endif
-
-    // #ifndef H5
-    uni.showToast({ title: '请在微信环境中使用微信登录', icon: 'none' })
-    // #endif
 }
 
 const toAgreement = () => {
@@ -496,46 +462,6 @@ restoreSmsCountdown()
 .agreement-link {
     font-size: 24rpx;
     color: #f4835a;
-}
-
-.divider {
-    display: flex;
-    align-items: center;
-    margin: 40rpx 0 32rpx;
-}
-
-.divider-text {
-    font-size: 24rpx;
-    color: #cccccc;
-    padding: 0 24rpx;
-}
-
-.other-login {
-    display: flex;
-    justify-content: center;
-}
-
-.wechat-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12rpx;
-    padding: 24rpx 48rpx;
-    background: #07c160;
-    border-radius: 48rpx;
-
-    &:active {
-        opacity: 0.85;
-    }
-}
-
-.wechat-icon {
-    font-size: 36rpx;
-}
-
-.wechat-text {
-    font-size: 28rpx;
-    color: #ffffff;
 }
 
 .home-link {

@@ -27,14 +27,9 @@ export default defineConfig(async () => ({
         host: '0.0.0.0',
         proxy: {
             '/api': {
-                target: 'http://127.0.0.1:12580',
+                target: 'https://www.molitao.top',
                 changeOrigin: true,
-                secure: true,
-            },
-            '/ws': {
-                target: 'ws://127.0.0.1:12580',
-                ws: true,
-                changeOrigin: true,
+                secure: false,
             },
         },
         // 修复 Service Worker MIME 类型问题

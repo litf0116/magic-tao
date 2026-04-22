@@ -505,9 +505,21 @@ watch(
 // LINK - 滚动到底部
 function scrollToBottom(t = true) {
     console.log('[ChatMain] scrollToBottom 触发, t =', t)
+    // #ifdef H5
+    // H5 环境下的滚动实现
+    nextTick(() => {
+        setTimeout(() => {
+            console.log('[ChatMain] H5 执行 uni.pageScrollTo')
+            uni.pageScrollTo({
+                scrollTop: 2_000_000,
+                duration: 0,
+            })
+        }, 100)
+    })
+    // #endif
+
     // #ifndef H5
-    // console.log('scrollToBottom')
-    // nextTick(() => {})
+    // 非 H5 环境（小程序）
     let query = uni.createSelectorQuery()
     query.selectViewport().scrollOffset()
     query.selectViewport().boundingClientRect()

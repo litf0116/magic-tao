@@ -133,8 +133,7 @@ upload_to_cdn() {
     
     log_info "文件信息: MD5=$FILE_MD5, Size=$FILE_SIZE bytes"
     
-    # 生成又拍云签名
-    DATE=$(date -u +"%a, %d %b %Y %H:%M:%S GMT")
+    DATE=$(LC_TIME=en_US.UTF-8 date -u +"%a, %d %b %Y %H:%M:%S GMT")
     PASSWORD_MD5=$(echo -n "$UPYUN_PASSWORD" | md5 -q 2>/dev/null || echo -n "$UPYUN_PASSWORD" | md5sum | awk '{print $1}')
     STRING_TO_SIGN="POST&/$UPYUN_BUCKET$CDN_PATH&$DATE&$FILE_SIZE&$PASSWORD_MD5"
     SIGNATURE=$(echo -n "$STRING_TO_SIGN" | md5 -q 2>/dev/null || echo -n "$STRING_TO_SIGN" | md5sum | awk '{print $1}')
