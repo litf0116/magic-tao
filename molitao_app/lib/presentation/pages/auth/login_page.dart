@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:fluwx/fluwx.dart';
+import 'package:fluwx/fluwx.dart' as fluwx;
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../data/services/storage_service.dart';
@@ -43,7 +45,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 1, vsync: this);
     _initWeChat();
     _loadRememberedUsername();
     _restoreSmsCountdown();
@@ -274,11 +276,11 @@ class _LoginPageState extends ConsumerState<LoginPage>
         return;
       }
 
-      late WeChatResponseSubscriber subscriber;
-      subscriber = (WeChatResponse response) async {
+      late fluwx.WeChatResponseSubscriber subscriber;
+      subscriber = (fluwx.WeChatResponse response) async {
         _wechatService.removeSubscriber(subscriber);
 
-        if (response is WeChatAuthResponse) {
+        if (response is fluwx.WeChatAuthResponse) {
           if (response.isSuccessful && response.code != null) {
             try {
               final result = await _authRepository.weixinAppLogin(
@@ -401,7 +403,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
                         controller: _tabController,
                         children: [
                           _buildPasswordLoginForm(),
-                          _buildSmsLoginForm(),
                         ],
                       ),
                     ),
@@ -425,14 +426,20 @@ class _LoginPageState extends ConsumerState<LoginPage>
                       child: Container(
                         width: 44,
                         height: 44,
-                        decoration: const BoxDecoration(
-                          color: Color(0xff07c160),
+                        decoration: BoxDecoration(
+                          color: const Color(0xff07c160),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
-                          Icons.chat,
-                          color: Colors.white,
-                          size: 24,
+                        child: Center(
+                          child: SvgPicture.asset(
+                            'assets/images/wechat-icon.svg',
+                            width: 28,
+                            height: 28,
+                            colorFilter: const ColorFilter.mode(
+                              Colors.white,
+                              BlendMode.srcIn,
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -470,7 +477,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
         labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
         tabs: const [
           Tab(text: '密码登录'),
-          Tab(text: '验证码登录'),
         ],
       ),
     );
