@@ -3,10 +3,22 @@ import uni from '@dcloudio/vite-plugin-uni'
 import AutoImport from 'unplugin-auto-import/vite'
 import UnoCSS from 'unocss/vite'
 import UniLayouts from '@uni-helper/vite-plugin-uni-layouts'
+import { readFileSync } from 'fs'
+import { resolve } from 'path'
+
+function getAppVersion(): string {
+    try {
+        const manifestPath = resolve(__dirname, 'src/manifest.json')
+        const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'))
+        return manifest.versionName || '1.0.0'
+    } catch {
+        return '1.0.0'
+    }
+}
 
 export default defineConfig({
     define: {
-        __APP_VERSION__: '"20260310@1.1.22"',
+        __APP_VERSION__: JSON.stringify(getAppVersion()),
     },
     build: {
         sourcemap: false,
