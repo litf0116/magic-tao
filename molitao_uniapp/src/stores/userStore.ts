@@ -200,11 +200,8 @@ export const useUserStore = defineStore('userStore', () => {
     // 绑定手机号（微信登录后完善信息）
     const bindPhoneWithPassword = async (phoneNumber: string, password: string) => {
         const res = await api.account.bindPhoneWithPassword({ phoneNumber, password })
-        if (res.success) {
-            await checkLogin(false, false)
-            return res
-        }
-        throw new Error(res.error?.message || '绑定失败')
+        await checkLogin(false, false)
+        return res
     }
 
     // ANCHOR - 帐号密码登录

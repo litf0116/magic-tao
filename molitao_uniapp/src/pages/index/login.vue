@@ -43,11 +43,12 @@ const form = ref({
     password: '',
 })
 
-function wxLogin(back: boolean) {
+function wxLogin(back: boolean, callbackUrl = '/') {
     userStore.wxLogin().then((res: any) => {
         if (res.needPhoneBinding) {
+            const encodedCallback = encodeURIComponent(callbackUrl)
             uni.navigateTo({
-                url: `/pages/user/bind-phone?bindToken=${res.bindToken}&userId=${res.userId}&userName=${res.userName}`,
+                url: `/pages/user/bind-phone?bindToken=${res.bindToken}&userId=${res.userId}&userName=${res.userName}&callbackUrl=${encodedCallback}`,
             })
             return
         }

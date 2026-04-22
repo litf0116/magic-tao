@@ -149,10 +149,14 @@ namespace TtWork.Project.Applications.Core.Authorization.Accounts {
                 throw new UserFriendlyException("密码至少8位");
             }
 
+            var user = await GetCurrentUserAsync();
+
+            // 检查手机号是否已被其他用户绑定
             var existingBinding = await _userLoginRepository.GetAll()
                 .FirstOrDefaultAsync(x =>
                     x.LoginProvider == ProjectConsts.LoginProvider.Phone &&
-                    x.ProviderKey == input.PhoneNumber);
+                    x.ProviderKey == input.PhoneNumber &&
+                    x.UserId != user.Id);
 
             if (existingBinding != null)
             {
@@ -160,14 +164,19 @@ namespace TtWork.Project.Applications.Core.Authorization.Accounts {
             }
 
             var existingUserWithPhone = await UserManager.Users
-                .FirstOrDefaultAsync(x => x.PhoneNumber == input.PhoneNumber);
+                .FirstOrDefaultAsync(x => x.PhoneNumber == input.PhoneNumber && x.Id != user.Id);
 
             if (existingUserWithPhone != null)
             {
                 throw new UserFriendlyException("该手机号已被注册，请使用手机号密码登录");
             }
 
-            var user = await GetCurrentUserAsync();
+            // 如果当前用户的手机号已绑定（从abpuserlogins查到），只更新密码
+            var currentUserBinding = await _userLoginRepository.GetAll()
+                .FirstOrDefaultAsync(x =>
+                    x.LoginProvider == ProjectConsts.LoginProvider.Phone &&
+                    x.ProviderKey == input.PhoneNumber &&
+                    x.UserId == user.Id);
 
             var hashedPassword = _passwordHasher.HashPassword(user, input.Password);
             user.Password = hashedPassword;
@@ -175,9 +184,13 @@ namespace TtWork.Project.Applications.Core.Authorization.Accounts {
             user.IsPhoneNumberConfirmed = true;
             await UserManager.UpdateAsync(user);
 
-            await _userLoginRepository.InsertAsync(new UserLogin(
-                user.TenantId, user.Id,
-                ProjectConsts.LoginProvider.Phone, input.PhoneNumber));
+            // 只有新绑定手机号时才插入 login 记录
+            if (currentUserBinding == null)
+            {
+                await _userLoginRepository.InsertAsync(new UserLogin(
+                    user.TenantId, user.Id,
+                    ProjectConsts.LoginProvider.Phone, input.PhoneNumber));
+            }
 
             await CurrentUnitOfWork.SaveChangesAsync();
 

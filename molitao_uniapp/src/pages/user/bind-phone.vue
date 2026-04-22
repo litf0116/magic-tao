@@ -6,7 +6,7 @@
                 <text class="text-gray-500 text-sm mt-2 block">绑定手机号后即可使用完整功能</text>
             </view>
 
-            <view class="flex-1 flex flex-col justify-center">
+            <view class="flex-1 flex flex-col justify-start pt-4">
                 <view class="bg-white rounded-lg p-4 mb-4">
                     <view class="flex items-center border-b border-gray-100 pb-3">
                         <text class="text-gray-600 w-20">手机号</text>
@@ -47,6 +47,15 @@
 
 <script setup lang="ts">
 const userStore = useUserStore()
+const appStore = useAppStore()
+
+let bindToken = ''
+let callbackUrl = '/'
+
+onLoad((options: any) => {
+    if (options.bindToken) bindToken = options.bindToken
+    if (options.callbackUrl) callbackUrl = decodeURIComponent(options.callbackUrl)
+})
 
 const form = ref({
     phoneNumber: '',
@@ -73,7 +82,11 @@ async function handleBind() {
         uni.showToast({ icon: 'success', title: '绑定成功' })
         await new Promise(resolve => setTimeout(resolve, 1500))
         uni.$emit('refreshView')
-        uni.navigateBack({})
+        if (callbackUrl && callbackUrl !== '/') {
+            uni.redirectTo({ url: callbackUrl })
+        } else {
+            uni.switchTab({ url: '/pages/tabbar/index' })
+        }
     } catch (err: any) {
         uni.showToast({ icon: 'none', title: err.message || '绑定失败' })
     } finally {
