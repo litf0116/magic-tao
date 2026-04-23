@@ -6,57 +6,92 @@ on:
   pull_request:
     branches: [ main, master ]
 
+env:
+  DOTNET_VERSION: '8.0.x'
+
 jobs:
   backend-build:
     name: Backend (.NET 8)
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+      with:
+        fetch-depth: 0
+
     - name: Setup .NET 8
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x'
-    
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
     - name: Restore dependencies
       run: dotnet restore backend/Molitao.sln
-    
+
     - name: Build
       run: dotnet build backend/Molitao.sln --configuration Release --no-restore
-    
-    - name: Run tests
-      run: dotnet test backend/Molitao.sln --no-build --verbosity normal
+
+    - name: Test with coverage
+      run: |
+        dotnet test backend/Molitao.sln \
+          --configuration Release \
+          --no-build \
+          --verbosity normal \
+          --collect:"XPlat Code Coverage" \
+          /p:Threshold=50 \
+          /p:ExcludeByAttribute="ObsoleteAttribute" \
+          /p:IncludeTestAssembly=false
+
+    - name: Install SonarScanner
+      run: dotnet tool install --global dotnet-sonarscanner
+
+    - name: SonarQube Scan
+      if: github.event_name == 'pull_request'
+      env:
+        SONAR_HOST_URL: ${{ secrets.SONARQUBE_URL }}
+      run: |
+        dotnet sonarscanner begin \
+          /k:"magic-tao" \
+          /n:"Magic Tao Backend" \
+          /v:"${{ github.run_number }}" \
+          /d:sonar.host.url="${{ secrets.SONARQUBE_URL }}" \
+          /d:sonar.token="${{ secrets.SONARQUBE_TOKEN }}" \
+          /d:sonar.cs.opencover.reportsPaths=**/coverage.opencover.xml \
+          /d:sonar.coverage.jacoco.xmlReportsPaths=**/coverage.cobertura.xml \
+          /d:sonar.sourceEncoding=UTF-8
+
+        dotnet build backend/Molitao.sln --configuration Release --no-restore
+
+        dotnet sonarscanner end /d:sonar.token="${{ secrets.SONARQUBE_TOKEN }}"
 
   pc-build:
     name: PC Web (Vue 3)
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
         cache: 'npm'
         cache-dependency-path: pc/package-lock.json
-    
+
     - name: Install dependencies
       working-directory: ./pc
       run: npm ci
-    
+
     - name: Run lint
       working-directory: ./pc
       run: npm run lint:fix
       continue-on-error: true
-    
+
     - name: Build
       working-directory: ./pc
       run: npm run build:prod
-    
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -67,36 +102,36 @@ jobs:
   uniapp-build:
     name: UniApp (小程序)
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
         cache: 'npm'
         cache-dependency-path: molitao_uniapp/package-lock.json
-    
+
     - name: Install dependencies
       working-directory: ./molitao_uniapp
       run: npm ci
-    
+
     - name: Type check
       working-directory: ./molitao_uniapp
       run: npm run type-check
       continue-on-error: true
-    
+
     - name: Run lint
       working-directory: ./molitao_uniapp
       run: npm run lint:fix
       continue-on-error: true
-    
+
     - name: Build WeChat Mini Program
       working-directory: ./molitao_uniapp
       run: npm run build:mp-weixin
-    
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
