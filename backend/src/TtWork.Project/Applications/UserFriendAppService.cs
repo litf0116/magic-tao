@@ -71,13 +71,12 @@ public class UserFriendAppService(
     [HttpGet]
     public async Task Agree(long id, bool status) {
         var userId = AbpSession.UserId!.Value;
+        // 查询 id 发给我的申请（UserId=被申请人, FriendId=申请人）
         var entity = await repository.FirstOrDefaultAsync(x => x.UserId == userId &&
-                                                               x.FriendId == id);
+                                                               x.FriendId == id &&
+                                                               x.Status == false);
         if (entity == null)
             throw new UserFriendlyException("记录不存在");
-
-        if (entity.Status)
-            throw new UserFriendlyException("该好友请求已处理");
 
         var senderUser = await userCache.GetAsync(userId);
         var friendUser = await userCache.GetAsync(id);

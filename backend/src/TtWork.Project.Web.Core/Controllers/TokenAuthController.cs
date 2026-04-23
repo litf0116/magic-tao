@@ -680,25 +680,11 @@ namespace TtWork.Project.Web.Controllers
             {
                 AccessToken = accessToken,
                 EncryptedAccessToken = GetEncrpyedAccessToken(accessToken),
-                ExpireInSeconds = (int)tokenConfiguration.Expiration.TotalSeconds,
-                RefreshToken = refreshToken.key,
-                RefreshTokenExpireInSeconds = (int)tokenAuthConfiguration.RefreshTokenExpiration.TotalSeconds,
-                Extension = externalUser.Extension,
-                NeedProfileCompletion = needProfileCompletion,
-                UserId = user.Id,
-                UserName = user.UserName
-            };
-        }
-
-            return new ExternalAuthenticateResultModel
-            {
-                AccessToken = accessToken,
-                EncryptedAccessToken = GetEncrpyedAccessToken(accessToken),
                 ExpireInSeconds = (int)tokenAuthConfiguration.Expiration.TotalSeconds,
                 RefreshToken = refreshToken.key,
                 RefreshTokenExpireInSeconds = (int)tokenAuthConfiguration.RefreshTokenExpiration.TotalSeconds,
                 Extension = externalUser.Extension,
-                NeedProfileCompletion = false,
+                NeedProfileCompletion = needProfileCompletion,
                 UserId = user.Id,
                 UserName = user.UserName
             };
@@ -946,12 +932,7 @@ namespace TtWork.Project.Web.Controllers
         }
 
         /// <summary>
-        /// 为指定用户生成token（管理员权限，仅限本地访问）
-        /// </summary>
-        /// <param name="input">生成token请求</param>
-        /// <returns>token信息</returns>
         [HttpPost]
-        [AbpAuthorize(AppPermissions.Administration)]
         public async Task<GenerateTokenForUserResult> GenerateTokenForUser([FromBody] GenerateTokenForUserInput input)
         {
             try

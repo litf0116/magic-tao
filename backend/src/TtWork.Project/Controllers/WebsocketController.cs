@@ -437,7 +437,7 @@ namespace TtWork.Project.Controllers
             if (!isChatAdmin.Item1)
             {
                 var isFriend = await userFriendRepository.GetAll()
-                    .AnyAsync(x => x.UserId == input.From && x.FriendId == input.To && x.Status);
+                    .AnyAsync(x => x.UserId == input.To && x.FriendId == input.From && x.Status);
                 if (!isFriend)
                 {
                     throw new UserFriendlyException("对方不是你的好友，无法发送消息");
