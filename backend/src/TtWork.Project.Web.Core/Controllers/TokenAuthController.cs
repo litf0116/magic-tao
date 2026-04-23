@@ -680,11 +680,25 @@ namespace TtWork.Project.Web.Controllers
             {
                 AccessToken = accessToken,
                 EncryptedAccessToken = GetEncrpyedAccessToken(accessToken),
-                ExpireInSeconds = (int)tokenAuthConfiguration.Expiration.TotalSeconds,
+                ExpireInSeconds = (int)tokenConfiguration.Expiration.TotalSeconds,
                 RefreshToken = refreshToken.key,
                 RefreshTokenExpireInSeconds = (int)tokenAuthConfiguration.RefreshTokenExpiration.TotalSeconds,
                 Extension = externalUser.Extension,
                 NeedProfileCompletion = needProfileCompletion,
+                UserId = user.Id,
+                UserName = user.UserName
+            };
+        }
+
+            return new ExternalAuthenticateResultModel
+            {
+                AccessToken = accessToken,
+                EncryptedAccessToken = GetEncrpyedAccessToken(accessToken),
+                ExpireInSeconds = (int)tokenAuthConfiguration.Expiration.TotalSeconds,
+                RefreshToken = refreshToken.key,
+                RefreshTokenExpireInSeconds = (int)tokenAuthConfiguration.RefreshTokenExpiration.TotalSeconds,
+                Extension = externalUser.Extension,
+                NeedProfileCompletion = false,
                 UserId = user.Id,
                 UserName = user.UserName
             };
