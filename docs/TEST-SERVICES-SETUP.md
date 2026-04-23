@@ -2,11 +2,27 @@
 
 ## 概述
 
-已为 magic-tao 配置本地 SonarQube 代码质量扫描服务（无限免费）。
+已为 magic-tao 配置测试覆盖率收集服务。
 
-## 1. SonarQube 本地部署
+## 1. CI 测试覆盖率
 
-### 1.1 快速启动
+CI 工作流已配置 Coverlet 覆盖率收集：
+- 每次 push/PR 自动运行测试
+- 生成覆盖率报告（cobertura.xml）
+- 报告保存在 GitHub Actions Artifacts 中（保留 7 天）
+
+### 查看覆盖率报告
+
+1. 进入 PR 或 commit 的 GitHub Actions
+2. 点击 `backend-build` job
+3. 找到 `Upload coverage reports` step
+4. 下载 `coverage-reports` artifact
+
+## 2. 本地 SonarQube（可选）
+
+如需代码质量扫描，可在本地部署 SonarQube。
+
+### 2.1 快速启动
 
 ```bash
 cd deploy/docker-compose
@@ -15,57 +31,48 @@ docker-compose -f docker-compose-sonarqube.yml up -d
 
 访问 http://localhost:9000，初始账号：admin / admin
 
-### 1.2 创建项目和 Token
+### 2.2 本地扫描
 
-1. 首次访问 http://localhost:9000，修改默认密码
-2. 创建项目：Projects > Create Project > Manual
-3. 配置：
-   - Project Key: `magic-tao`
-   - Display Name: `Magic Tao Backend`
-4. 生成 Token：My Account > Security > Tokens
-
-## 2. GitHub Secrets 配置
-
-在 GitHub 仓库 Settings > Secrets and variables > Actions 中添加：
-
-| Secret 名称 | 值 |
-|-------------|-----|
-| SONARQUBE_URL | http://localhost:9000 或公网地址 |
-| SONARQUBE_TOKEN | 从 SonarQube 生成的 Token |
-
-## 3. CI 配置
-
-CI 工作流已配置 SonarScanner：
-- 每次 PR 自动运行代码质量扫描
-- 覆盖率收集（Coverlet + OpenCover）
-
-## 4. 公网访问方案
-
-SonarQube 需要公网访问才能用于 GitHub Actions：
-
-**方案 1：内网穿透**
 ```bash
-ngrok http 9000
+dotnet tool install --global dotnet-sonarscanner
+
+cd backend
+dotnet sonarscanner begin \
+  /k:"magic-tao" \
+  /n:"Magic Tao Backend" \
+  /d:sonar.host.url="http://localhost:9000"
+
+dotnet build Molitao.sln --configuration Release
+
+dotnet sonarscanner end
 ```
 
-**方案 2：部署到公网服务器**
-```bash
-ssh your-server
-cd magic-tao/deploy/docker-compose
-docker-compose -f docker-compose-sonarqube.yml up -d
-```
+## 3. 本地测试覆盖率
 
-## 5. 本地测试覆盖率
+### 3.1 运行测试并收集覆盖率
 
 ```bash
 cd backend
 dotnet test --configuration Release --collect:"XPlat Code Coverage"
 ```
 
-## 6. 常见问题
+### 3.2 查看覆盖率报告
+
+报告生成在 `backend/**/TestResults/` 目录：
+- `coverage.cobertura.xml` - Cobertura 格式
+
+### 3.3 生成 HTML 覆盖率报告
+
+```bash
+dotnet tool install -g dotnet-reportgenerator-globaltool
+reportgenerator -reports:**/coverage.cobertura.xml -targetdir:coverage-report -reporttypes:Html
+# 打开 coverage-report/index.html
+```
+
+## 4. 常见问题
 
 | 问题 | 解决方案 |
 |------|----------|
-| SonarQube 启动失败 | 检查 Docker 是否运行，端口 9000 是否被占用 |
-| CI 无法连接 | 确保 SONARQUBE_URL 是公网可访问地址 |
 | 覆盖率 0% | 确保使用 `--collect:"XPlat Code Coverage"` |
+| SonarQube 启动失败 | 检查 Docker 是否运行，端口 9000 是否被占用 |
+| SonarScanner 连接失败 | 确保 SonarQube 运行在 localhost:9000 |

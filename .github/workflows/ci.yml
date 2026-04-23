@@ -42,27 +42,13 @@ jobs:
           /p:ExcludeByAttribute="ObsoleteAttribute" \
           /p:IncludeTestAssembly=false
 
-    - name: Install SonarScanner
-      run: dotnet tool install --global dotnet-sonarscanner
-
-    - name: SonarQube Scan
-      if: github.event_name == 'pull_request'
-      env:
-        SONAR_HOST_URL: ${{ secrets.SONARQUBE_URL }}
-      run: |
-        dotnet sonarscanner begin \
-          /k:"magic-tao" \
-          /n:"Magic Tao Backend" \
-          /v:"${{ github.run_number }}" \
-          /d:sonar.host.url="${{ secrets.SONARQUBE_URL }}" \
-          /d:sonar.token="${{ secrets.SONARQUBE_TOKEN }}" \
-          /d:sonar.cs.opencover.reportsPaths=**/coverage.opencover.xml \
-          /d:sonar.coverage.jacoco.xmlReportsPaths=**/coverage.cobertura.xml \
-          /d:sonar.sourceEncoding=UTF-8
-
-        dotnet build backend/Molitao.sln --configuration Release --no-restore
-
-        dotnet sonarscanner end /d:sonar.token="${{ secrets.SONARQUBE_TOKEN }}"
+    - name: Upload coverage reports
+      uses: actions/upload-artifact@v4
+      if: success() || failure()
+      with:
+        name: coverage-reports
+        path: ${{ github.workspace }}/**/coverage.cobertura.xml
+        retention-days: 7
 
   pc-build:
     name: PC Web (Vue 3)
