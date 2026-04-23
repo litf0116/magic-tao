@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Abp.Application.Services.Dto;
@@ -61,11 +61,11 @@ public class UserFriendAppService(
 
     [HttpGet]
     [DisableAuditing]
-    public async Task<object> GetUserFriendCount()
+    public async Task<int> GetUserFriendCount()
     {
         var userId = AbpSession.UserId!.Value;
-        var count = await repository.GetAll().AsNoTracking().CountAsync(x => x.UserId == userId && x.Status == false);
-        return new { count };
+        var count = await repository.GetAll().AsNoTracking().CountAsync(x => x.FriendId == userId && x.Status == false);
+        return count;
     }
 
     [HttpGet]
