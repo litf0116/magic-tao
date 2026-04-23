@@ -244,6 +244,148 @@ curl -s "http://localhost:12580/api/services/app/UserFriend/AddFriend?id=7509" \
 
 ---
 
+### TC-011: 申请添加自己（应被拒绝）
+
+**前置条件**: 清理好友关系
+
+**操作步骤**:
+```bash
+# 用户14 申请添加自己为好友
+curl -s "http://localhost:12580/api/services/app/UserFriend/AddFriend?id=14" \
+  -H "Authorization: Bearer $TOKEN_14"
+```
+
+**预期结果**:
+1. 接口返回 `{"success": true}`
+2. 数据库无新记录（代码中有 `if (id != AbpSession.UserId)` 判断）
+
+**说明**: 代码中已有判断，自己不能添加自己为好友
+
+---
+
+### TC-012: 管理员发消息给非好友（跳过好友校验）
+
+**前置条件**: 清理好友关系
+
+**操作步骤**:
+```bash
+# 用户14（管理员）给用户7509发送消息
+curl -s -X POST "http://localhost:12580/ws/send-msg" \
+  -H "Authorization: Bearer $TOKEN_14" \
+  -H "Content-Type: application/json" \
+  -d '{"from": 14, "to": 7509, "message": {"type": 1, "msg": "管理员消息"}}'
+```
+
+**预期结果**:
+```json
+{"success": true}
+```
+
+**说明**: 管理员（拍卖师）有特殊权限，可以跳过好友校验直接发送消息
+
+---
+
+### TC-013: 拒绝后重新申请
+
+**前置条件**: 执行 TC-001 和 TC-008（申请后被拒绝）
+
+**操作步骤**:
+```bash
+# 用户14 重新申请添加用户7509
+curl -s "http://localhost:12580/api/services/app/UserFriend/AddFriend?id=7509" \
+  -H "Authorization: Bearer $TOKEN_14"
+```
+
+**预期结果**:
+1. 接口返回 `{"success": true}`
+2. 数据库插入新记录: `UserId=7509, FriendId=14, Status=0`
+
+---
+
+### TC-014: 同意后重新申请（应提示已是好友）
+
+**前置条件**: 执行 TC-001 和 TC-004（申请后被同意）
+
+**操作步骤**:
+```bash
+# 用户14 重新申请添加用户7509
+curl -s "http://localhost:12580/api/services/app/UserFriend/AddFriend?id=7509" \
+  -H "Authorization: Bearer $TOKEN_14"
+```
+
+**预期结果**:
+```json
+{
+  "success": false,
+  "error": {"message": "对方已是你的好友"}
+}
+```
+
+---
+
+### TC-015: 申请不存在的用户
+
+**前置条件**: 无
+
+**操作步骤**:
+```bash
+# 用户14 申请添加一个不存在的用户ID=999999
+curl -s "http://localhost:12580/api/services/app/UserFriend/AddFriend?id=999999" \
+  -H "Authorization: Bearer $TOKEN_14"
+```
+
+**预期结果**:
+1. 接口返回 `{"success": true}`（申请记录可能创建成功，但后续Agree会失败）
+2. 数据库插入记录: `UserId=999999, FriendId=14, Status=0`
+
+---
+
+### TC-016: Agree 不存在的申请
+
+**前置条件**: 无
+
+**操作步骤**:
+```bash
+# 用户7509 同意一个不存在的申请（id=不存在）
+curl -s "http://localhost:12580/api/services/app/UserFriend/Agree?id=999999&status=true" \
+  -H "Authorization: Bearer $TOKEN_7509"
+```
+
+**预期结果**:
+```json
+{
+  "success": false,
+  "error": {"message": "记录不存在"}
+}
+```
+
+---
+
+### TC-017: 双方互发消息
+
+**前置条件**: TC-004 已执行（好友关系）
+
+**操作步骤**:
+```bash
+# 用户14 给用户7509发送消息
+curl -s -X POST "http://localhost:12580/ws/send-msg" \
+  -H "Authorization: Bearer $TOKEN_14" \
+  -H "Content-Type: application/json" \
+  -d '{"from": 14, "to": 7509, "message": {"type": 1, "msg": "14发给7509"}}'
+
+# 用户7509 给用户14发送消息
+curl -s -X POST "http://localhost:12580/ws/send-msg" \
+  -H "Authorization: Bearer $TOKEN_7509" \
+  -H "Content-Type: application/json" \
+  -d '{"from": 7509, "to": 14, "message": {"type": 1, "msg": "7509发给14"}}'
+```
+
+**预期结果**:
+1. 双向消息都能发送成功
+2. 验证好友关系是双向的
+
+---
+
 ## 快速回归测试脚本
 
 ```bash
