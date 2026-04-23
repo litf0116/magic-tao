@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main, master ]
 
+env:
+  DOTNET_VERSION: '8.0.x'
+  CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
 jobs:
   backend-build:
     name: Backend (.NET 8)
@@ -14,20 +18,57 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+      with:
+        fetch-depth: 0  # Required for SonarCloud
+
     - name: Setup .NET 8
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x'
-    
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
     - name: Restore dependencies
       run: dotnet restore backend/Molitao.sln
-    
+
     - name: Build
       run: dotnet build backend/Molitao.sln --configuration Release --no-restore
-    
-    - name: Run tests
-      run: dotnet test backend/Molitao.sln --no-build --verbosity normal
+
+    - name: Test with coverage
+      run: |
+        dotnet test backend/Molitao.sln \
+          --configuration Release \
+          --no-build \
+          --verbosity normal \
+          --collect:"XPlat Code Coverage" \
+          /p:Threshold=50 \
+          /p:ExcludeByAttribute="ObsoleteAttribute" \
+          /p:IncludeTestAssembly=false
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      if: success() || failure()
+      with:
+        files: ${{ github.workspace }}/**/coverage.cobertura.xml
+        flags: backend
+        name: backend-coverage
+        fail_ci_if_error: false
+        verbose: true
+
+    - name: SonarCloud Scan
+      uses: sonarsource/sonarcloud-github-action@master
+      if: github.event_name == 'pull_request'
+      with:
+        projectBaseDir: backend
+        args: >
+          /d:sonar.token=${{ secrets.SONAR_TOKEN }}
+          /d:sonar.host.url=https://sonarcloud.io
+          /d:sonar.organization=${{ secrets.SONAR_ORGANIZATION }}
+          /d:sonar.projectKey=your-project-key
+          /d:sonar.cs.opencover.reportsPaths=**/coverage.opencover.xml
+          /d:sonar.coverage.jacoco.xmlReportsPaths=**/coverage.cobertura.xml
+          /d:sonar.sources=src
+          /d:sonar.tests=**.
+          /d:sonar.test.inclusions="**/*Tests.cs,**/*Test.cs"
+          /d:sonar.cs.xunit.reportsPaths=**/TestResults/**/*.trx
 
   pc-build:
     name: PC Web (Vue 3)
