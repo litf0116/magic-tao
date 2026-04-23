@@ -8,18 +8,19 @@ on:
 
 env:
   DOTNET_VERSION: '8.0.x'
-  CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  SONARQUBE_URL: ${{ secrets.SONARQUBE_URL }}
+  SONARQUBE_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
 
 jobs:
   backend-build:
     name: Backend (.NET 8)
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0  # Required for SonarCloud
+        fetch-depth: 0  # Required for SonarQube
 
     - name: Setup .NET 8
       uses: actions/setup-dotnet@v4
@@ -43,61 +44,55 @@ jobs:
           /p:ExcludeByAttribute="ObsoleteAttribute" \
           /p:IncludeTestAssembly=false
 
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
-      if: success() || failure()
-      with:
-        files: ${{ github.workspace }}/**/coverage.cobertura.xml
-        flags: backend
-        name: backend-coverage
-        fail_ci_if_error: false
-        verbose: true
+    - name: Install SonarScanner
+      run: dotnet tool install --global dotnet-sonarscanner
 
-    - name: SonarCloud Scan
-      uses: sonarsource/sonarcloud-github-action@master
-      if: github.event_name == 'pull_request'
-      with:
-        projectBaseDir: backend
-        args: >
-          /d:sonar.token=${{ secrets.SONAR_TOKEN }}
-          /d:sonar.host.url=https://sonarcloud.io
-          /d:sonar.organization=${{ secrets.SONAR_ORGANIZATION }}
-          /d:sonar.projectKey=your-project-key
-          /d:sonar.cs.opencover.reportsPaths=**/coverage.opencover.xml
-          /d:sonar.coverage.jacoco.xmlReportsPaths=**/coverage.cobertura.xml
-          /d:sonar.sources=src
-          /d:sonar.tests=**.
-          /d:sonar.test.inclusions="**/*Tests.cs,**/*Test.cs"
-          /d:sonar.cs.xunit.reportsPaths=**/TestResults/**/*.trx
+    - name: SonarQube Scan
+      env:
+        SONAR_HOST_URL: ${{ secrets.SONARQUBE_URL }}
+      run: |
+        dotnet sonarscanner begin \
+          /k:"magic-tao" \
+          /n:"Magic Tao Backend" \
+          /v:"${{ github.run_number }}" \
+          /d:sonar.host.url="${{ secrets.SONARQUBE_URL }}" \
+          /d:sonar.token="${{ secrets.SONARQUBE_TOKEN }}" \
+          /d:sonar.cs.opencover.reportsPaths=**/coverage.opencover.xml \
+          /d:sonar.coverage.jacoco.xmlReportsPaths=**/coverage.cobertura.xml \
+          /d:sonar.sourceEncoding=UTF-8
+
+        dotnet build backend/Molitao.sln --configuration Release --no-restore
+
+        dotnet sonarscanner end /d:sonar.token="${{ secrets.SONARQUBE_TOKEN }}"
 
   pc-build:
     name: PC Web (Vue 3)
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
         cache: 'npm'
         cache-dependency-path: pc/package-lock.json
-    
+
     - name: Install dependencies
       working-directory: ./pc
       run: npm ci
-    
+
     - name: Run lint
       working-directory: ./pc
       run: npm run lint:fix
       continue-on-error: true
-    
+
     - name: Build
       working-directory: ./pc
       run: npm run build:prod
-    
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -108,36 +103,36 @@ jobs:
   uniapp-build:
     name: UniApp (小程序)
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
         cache: 'npm'
         cache-dependency-path: molitao_uniapp/package-lock.json
-    
+
     - name: Install dependencies
       working-directory: ./molitao_uniapp
       run: npm ci
-    
+
     - name: Type check
       working-directory: ./molitao_uniapp
       run: npm run type-check
       continue-on-error: true
-    
+
     - name: Run lint
       working-directory: ./molitao_uniapp
       run: npm run lint:fix
       continue-on-error: true
-    
+
     - name: Build WeChat Mini Program
       working-directory: ./molitao_uniapp
       run: npm run build:mp-weixin
-    
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
