@@ -29,7 +29,7 @@ cd deploy/docker-compose
 docker-compose -f docker-compose-sonarqube.yml up -d
 ```
 
-访问 http://localhost:9000，初始账号：admin / admin
+访问 http://localhost:9002，初始账号：admin / admin
 
 ### 2.2 本地扫描
 
@@ -40,7 +40,7 @@ cd backend
 dotnet sonarscanner begin \
   /k:"magic-tao" \
   /n:"Magic Tao Backend" \
-  /d:sonar.host.url="http://localhost:9000"
+  /d:sonar.host.url="http://localhost:9002"
 
 dotnet build Molitao.sln --configuration Release
 
