@@ -11,7 +11,10 @@ namespace TtWork.Abp.Extensions
     {
         public static string Get_AppName(this IHttpContextAccessor httpContextAccessor) {
             if (httpContextAccessor?.HttpContext != null)
-                return httpContextAccessor?.HttpContext.Request.Headers["AppName"].FirstOrDefault();
+            {
+                var appName = httpContextAccessor?.HttpContext.Request.Headers["AppName"].FirstOrDefault();
+                return string.IsNullOrEmpty(appName) ? "uniapp" : appName;
+            }
             else throw new Exception("HttpContext is Null");
         }
 
