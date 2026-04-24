@@ -10,12 +10,12 @@ export const Platform = {
 }
 
 // #ifdef MP-WEIXIN
-Platform.name = 'miniprogram'
+Platform.name = 'mp-weixin'
 Platform.isMiniprogram = true
 // #endif
 
 // #ifdef APP-PLUS
-Platform.name = 'app'
+Platform.name = 'app-plus'
 Platform.isApp = true
 // #endif
 
@@ -46,8 +46,9 @@ export function isH5(): boolean {
 }
 
 /**
- * 获取当前平台名称
+ * 获取当前平台名称（与后端约定一致）
+ * mp-weixin / app-plus / h5
  */
-export function getPlatform(): 'miniprogram' | 'app' | 'h5' | 'unknown' {
+export function getPlatform(): 'mp-weixin' | 'app-plus' | 'h5' | 'unknown' {
     return Platform.name as any
 }

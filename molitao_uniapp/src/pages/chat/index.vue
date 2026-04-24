@@ -36,8 +36,9 @@
                         >
                             <text>大厅</text>
                         </div>
+                        <!-- 秒杀场：审核模式下隐藏 -->
                         <div
-                            v-else-if="x.id === -1"
+                            v-else-if="x.id === -1 && !appFeatureStore.isReviewMode"
                             class="head-icon bg-green-600 text-white font-bold w-full h-full flex flex-center"
                             role="img"
                             aria-label="秒杀"
@@ -115,6 +116,7 @@ import type { ChatListItem, ChatMessage } from '@/composables/types'
 
 const chatStore: any = useChatStore()
 const userStore = useUserStore()
+const appFeatureStore = useAppFeatureStore()
 //初始化
 const init = () => {
     if (userStore.token == '') {

@@ -12,7 +12,7 @@ function getAppVersion(): string {
         const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'))
         return manifest.versionName || '1.0.0'
     } catch {
-        return '1.0.0'
+        return '1.4.0'
     }
 }
 

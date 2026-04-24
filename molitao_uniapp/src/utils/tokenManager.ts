@@ -72,6 +72,10 @@ export const getIsRefreshing = (): boolean => {
     return isRefreshing
 }
 
+const getApiHost = (): string => {
+    return 'https://www.molitao.top'
+}
+
 export const refreshAccessToken = async (): Promise<string | null> => {
     const refreshToken = getRefreshToken()
     if (!refreshToken) {
@@ -81,7 +85,7 @@ export const refreshAccessToken = async (): Promise<string | null> => {
     try {
         const res = await new Promise<any>((resolve, reject) => {
             uni.request({
-                url: 'http://localhost:12580/api/TokenAuth/RefreshToken',
+                url: `${getApiHost()}/api/TokenAuth/RefreshToken`,
                 method: 'POST',
                 data: { refreshToken },
                 header: {

@@ -97,9 +97,13 @@ const showAuctionEntrance = computed(() => {
 const advertisingSpaceList: any = ref([])
 const emit = defineEmits(['refreshCurrentVal'])
 onMounted(() => {
-    appFeatureStore.loadFeatureSwitch()
+    appFeatureStore.loadFeatureSwitch(true)
     fetchCmsData()
     advertisingSpace()
+})
+
+onShow(() => {
+    appFeatureStore.loadFeatureSwitch(true)
 })
 //获取广告位列表
 const advertisingSpace = () => {

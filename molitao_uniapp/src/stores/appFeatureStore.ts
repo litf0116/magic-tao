@@ -9,17 +9,19 @@ export const useAppFeatureStore = defineStore('appFeatureStore', () => {
     const version = ref('')
     const isLoaded = ref(false)
 
-    async function loadFeatureSwitch() {
-        if (isLoaded.value) {
+    async function loadFeatureSwitch(force = false) {
+        if (!force && isLoaded.value) {
             return
         }
 
         try {
             const res: any = await api.appFeature.getFeatureSwitch()
+            console.log('[AppFeature] 接口返回:', res)
             if (res) {
                 isReviewMode.value = res.isReviewMode ?? false
                 platform.value = res.platform || ''
                 version.value = res.version || ''
+                console.log('[AppFeature] isReviewMode:', isReviewMode.value, 'platform:', platform.value, 'version:', version.value)
                 uni.setStorageSync(FEATURE_CACHE_KEY, res)
                 isLoaded.value = true
             }
