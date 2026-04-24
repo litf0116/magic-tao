@@ -3,21 +3,33 @@
 ## 脚本目录结构
 
 ```
+scripts/                         # 所有脚本集中管理
+├── build-and-export-docker.sh  # 构建打包脚本
+├── upload-and-deploy.sh         # 上传部署脚本
+├── deploy-to-server.sh          # 旧版一键部署脚本（保留参考）
+├── deploy.sh                    # 服务器容器管理脚本
+└── load-image.sh                # 镜像加载脚本
+
 backend/
-├── scripts/
-│   ├── local/                      # 本地开发使用
-│   │   ├── build-and-export-docker.sh   # 构建打包脚本
-│   │   ├── upload-and-deploy.sh         # 上传部署脚本
-│   │   └── deploy-to-server.sh          # 旧版一键部署脚本（保留参考）
-│   └── server/                     # 服务器上使用
-│       ├── deploy.sh               # 容器管理脚本
-│       └── load-image.sh           # 镜像加载脚本
 ├── docker-compose-api.yml      # 服务编排配置
 └── appsettings.Production.json # 生产环境配置
 ```
 
 ## 部署流程
 
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     本地开发机 (scripts/)                    │
+├─────────────────────────────────────────────────────────────┤
+│  1. 执行 build-and-export-docker.sh                         │
+│     └─> 构建镜像 + 导出带时间戳的 tar 包                      │
+│     └─> molitao-backend-YYYYMMDD-HHMMSS.tar                │
+│                                                             │
+│  2. 执行 upload-and-deploy.sh                               │
+│     └─> 上传 tar 包到服务器                                │
+│     └─> 服务器加载镜像                                      │
+│     └─> 重启 docker-compose 服务                            │
+└─────────────────────────────────────────────────────────────┘
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                     本地开发机 (scripts/local)                │
@@ -52,7 +64,7 @@ backend/
 ### 步骤1: 本地构建并导出镜像
 
 ```bash
-cd /Users/mac/workspace/magic-tao/backend/scripts/local
+cd /Users/mac/workspace/magic-tao/scripts
 ./build-and-export-docker.sh
 ```
 
@@ -61,7 +73,7 @@ cd /Users/mac/workspace/magic-tao/backend/scripts/local
 ### 步骤2: 上传到服务器并部署
 
 ```bash
-cd /Users/mac/workspace/magic-tao/backend/scripts/local
+cd /Users/mac/workspace/magic-tao/scripts
 ./upload-and-deploy.sh
 ```
 
@@ -190,8 +202,8 @@ ssh molitao "cd /data/dotnetapi && ./load-image.sh <tar包> -y"
 # 1. 找到旧版本的 tar 包
 ssh molitao "ls -la /data/dotnetapi/molitao-backend-*.tar"
 
-# 2. 使用 scripts/local/upload-and-deploy.sh 重新部署
-cd /Users/mac/workspace/magic-tao/backend/scripts/local
+# 2. 使用 scripts/upload-and-deploy.sh 重新部署
+cd /Users/mac/workspace/magic-tao/scripts
 ./upload-and-deploy.sh --tar=/data/dotnetapi/<旧tar包>
 ```
 
@@ -199,9 +211,9 @@ cd /Users/mac/workspace/magic-tao/backend/scripts/local
 
 | 文件 | 说明 |
 |------|------|
-| `backend/scripts/local/build-and-export-docker.sh` | 本地构建打包 |
-| `backend/scripts/local/upload-and-deploy.sh` | 本地上传部署 |
-| `backend/scripts/local/deploy-to-server.sh` | 旧版一键部署（保留参考） |
-| `backend/scripts/server/deploy.sh` | 服务器容器管理 |
-| `backend/scripts/server/load-image.sh` | 服务器镜像加载脚本 |
+| `scripts/build-and-export-docker.sh` | 构建打包 |
+| `scripts/upload-and-deploy.sh` | 上传部署 |
+| `scripts/deploy-to-server.sh` | 旧版一键部署（保留参考） |
+| `scripts/deploy.sh` | 服务器容器管理 |
+| `scripts/load-image.sh` | 镜像加载脚本 |
 | `backend/docker-compose-api.yml` | 服务编排配置 |
