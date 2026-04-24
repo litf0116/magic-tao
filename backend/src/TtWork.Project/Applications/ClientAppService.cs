@@ -556,8 +556,14 @@ public class ClientAppService(
         Logger.Info(
             $"[GetChatList] Step 4 - After ConvertToChatListItem: {result.Count} items, IDs: {string.Join(", ", result.Select(x => x.id))}");
 
-        // 移除了后台对秒杀场频道的过滤逻辑
-        // 前端通过审核版本自行控制展示与否
+        // 审核模式下过滤掉秒杀场频道
+        var isReviewMode = await CheckIsReviewModeAsync();
+        if (isReviewMode)
+        {
+            var beforeCount = result.Count;
+            result = result.Where(x => x.id != -1).ToList();
+            Logger.Info($"[GetChatList] Step 5 - Review mode ON: filtered out seckill, {beforeCount} -> {result.Count} items");
+        }
 
         return result
             .OrderByDescending(x => x.order)
@@ -619,6 +625,51 @@ public class ClientAppService(
         }
 
         return null;
+    }
+
+    private async Task<bool> CheckIsReviewModeAsync()
+    {
+        var platform = GetPlatformFromHeaders();
+        var version = GetVersionFromHeaders();
+        if (string.IsNullOrEmpty(platform) || string.IsNullOrEmpty(version))
+            return false;
+
+        var reviewVersion = platform switch
+        {
+            "mp-weixin" => await SettingManager.GetSettingValueAsync(AppSettings.FeatureSwitch.ReviewVersionMpWeixin),
+            "app-plus" => await SettingManager.GetSettingValueAsync(AppSettings.FeatureSwitch.ReviewVersionAppPlus),
+            "h5" => await SettingManager.GetSettingValueAsync(AppSettings.FeatureSwitch.ReviewVersionH5),
+            _ => string.Empty
+        };
+
+        if (string.IsNullOrEmpty(reviewVersion))
+            return false;
+
+        return string.Equals(NormalizeVersion(version), NormalizeVersion(reviewVersion), StringComparison.OrdinalIgnoreCase);
+    }
+
+    private string GetPlatformFromHeaders()
+    {
+        if (httpContextAccessor.HttpContext?.Request?.Headers?.TryGetValue("x-platform", out var platformValue) == true)
+            return platformValue.ToString();
+        return string.Empty;
+    }
+
+    private string GetVersionFromHeaders()
+    {
+        if (httpContextAccessor.HttpContext?.Request?.Headers?.TryGetValue("x-app-version", out var versionValue) == true)
+            return versionValue.ToString();
+        return string.Empty;
+    }
+
+    private static string NormalizeVersion(string version)
+    {
+        if (string.IsNullOrEmpty(version))
+            return string.Empty;
+        var parts = version.Split('.');
+        if (parts.Length >= 3)
+            return $"{parts[0]}.{parts[1]}.{parts[2]}";
+        return version.TrimEnd('0', '.');
     }
 
     /// <summary>
