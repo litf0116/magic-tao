@@ -91,7 +91,7 @@ public class AppFeatureSwitchAppService : ApplicationService
 
     private string GetPlatform()
     {
-        if (_httpContextAccessor?.HttpContext?.Request?.Headers?.TryGetValue("X-Platform", out var platformValue) == true)
+        if (_httpContextAccessor?.HttpContext?.Request?.Headers?.TryGetValue("x-platform", out var platformValue) == true)
         {
             return platformValue.ToString();
         }
@@ -100,7 +100,7 @@ public class AppFeatureSwitchAppService : ApplicationService
 
     private string GetVersion()
     {
-        if (_httpContextAccessor?.HttpContext?.Request?.Headers?.TryGetValue("X-App-Version", out var versionValue) == true)
+        if (_httpContextAccessor?.HttpContext?.Request?.Headers?.TryGetValue("x-app-version", out var versionValue) == true)
         {
             return versionValue.ToString();
         }

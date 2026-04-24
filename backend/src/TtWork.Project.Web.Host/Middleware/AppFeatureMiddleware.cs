@@ -19,8 +19,8 @@ namespace TtWork.Project.Web.Host.Middleware
 
         public async Task InvokeAsync(HttpContext context)
         {
-            var platform = context.Request.Headers["X-Platform"].ToString();
-            var appVersion = context.Request.Headers["X-App-Version"].ToString();
+            var platform = context.Request.Headers["x-platform"].ToString();
+            var appVersion = context.Request.Headers["x-app-version"].ToString();
 
             if (!string.IsNullOrEmpty(platform))
             {
