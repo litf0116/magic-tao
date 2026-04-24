@@ -228,17 +228,17 @@ export default {
     contentSecurity: {
         /**
          * 检查文本内容是否安全
-         * @param data { content: 文本内容, scene: 场景值 }
+         * @param data { content: 文本内容, scene: 场景值, openid: 用户openid }
          * @returns Promise<{ isSafe: boolean, message: string }>
          */
-        checkText: (data: { content: string; scene?: number }) =>
+        checkText: (data: { content: string; scene?: number; openid?: string }) =>
             request('POST', `/api/ContentSecurity/CheckContent`, data),
         /**
          * 检查图片内容是否安全
-         * @param data { mediaUrl: 图片URL, scene?: 场景值 }
+         * @param data { mediaUrl: 图片URL, scene?: 场景值, openid?: 用户openid }
          * @returns Promise<{ isSafe: boolean, message: string }>
          */
-        checkImage: (data: { mediaUrl: string; scene?: number }) =>
+        checkImage: (data: { mediaUrl: string; scene?: number; openid?: string }) =>
             request('POST', `/api/ContentSecurity/CheckMedia`, data),
     },
 }
