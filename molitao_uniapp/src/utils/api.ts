@@ -10,13 +10,9 @@ import type {
 } from '@/composables/types'
 import utils from './utils'
 import { getAppVersion } from './version'
+import { getPlatform } from './platform'
 
 let host: string = 'https://www.molitao.top'
-
-// 根据环境动态设置开发/生产服务器地址
-if (import.meta.env.DEV && import.meta.env.VITE_APP_ENV !== 'mp-weixin') {
-    host = 'http://localhost:12580'
-}
 
 const getRequest = utils.httpsPromisify(uni.request)
 
@@ -34,6 +30,7 @@ const request = (
     const _url = url.startsWith('http') ? url : host + url
 
     const appVersion = getAppVersion()
+    const platform = getPlatform()
 
     return getRequest({
         url: _url,
@@ -44,8 +41,9 @@ const request = (
             'Abp.Tenantid': 1,
             'content-type': 'application/json',
             Authorization: `Bearer ${uni.getStorageSync('token') || ''}`,
-            AppName: 'uniapp',
-            AppVersion: appVersion,
+            'X-Platform': platform,
+            'X-App-Version': appVersion,
+            'AppName': 'uniapp',
         },
     })
 }
