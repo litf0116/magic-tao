@@ -157,7 +157,7 @@ curl -s -X POST "http://localhost:12580/ws/send-msg" \
 
 ---
 
-### TC-007: 非好友发送消息被拒绝
+### TC-007: 非好友发送消息（好友检查已禁用）
 
 **前置条件**: 清理好友关系
 
@@ -173,10 +173,20 @@ curl -s -X POST "http://localhost:12580/ws/send-msg" \
 **预期结果**:
 ```json
 {
-  "success": false,
-  "error": {"message": "对方不是你的好友，无法发送消息"}
+  "success": true,
+  "result": {
+    "code": 0,
+    "data": {
+      "id": "uuid-xxx",
+      "from": 7509,
+      "to": 14,
+      "message": {...}
+    }
+  }
 }
 ```
+
+**说明**: 2026-04-24 好友检查已被暂时禁用，允许非好友之间发送私人消息。
 
 ---
 
@@ -299,4 +309,5 @@ curl -s -X POST "http://localhost:12580/ws/send-msg" -H "Authorization: Bearer $
 
 | 日期 | 版本 | 说明 |
 |------|------|------|
+| 2026-04-24 | v1.1 | TC-007 更新：好友检查已禁用，非好友可发送消息 |
 | 2026-04-23 | v1.0 | 初始测试用例文档 |
