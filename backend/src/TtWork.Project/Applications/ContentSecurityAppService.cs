@@ -24,9 +24,10 @@ namespace TtWork.Project.Applications;
 public class ContentSecurityAppService : AbpController
 {
     /// <summary>
-    /// 微信小程序静态配置 (开发测试用)
+    /// 微信小程序静态配置
     /// </summary>
     private static readonly string WechatAppId = "wx8178f2258942133d";
+    private static readonly string WechatAppSecret = "ec39ddccf124f18474738f15cb57a38e";
 
     private readonly WeixinManger _weixinManger;
     private readonly IWeixinApi _weixinApi;
@@ -80,7 +81,7 @@ public class ContentSecurityAppService : AbpController
         {
             var appId = WechatAppId;
 
-            var accessToken = await _weixinManger.GetAccessTokenAsync(appId);
+            var accessToken = await _weixinManger.GetAccessTokenAsync(appId, WechatAppSecret);
 
             return Ok(new
             {
@@ -136,7 +137,7 @@ public class ContentSecurityAppService : AbpController
         try
         {
             var appId = WechatAppId;
-            var accessToken = await _weixinManger.GetAccessTokenAsync(appId);
+            var accessToken = await _weixinManger.GetAccessTokenAsync(appId, WechatAppSecret);
 
             var userOpenid = openid ?? "";
 
@@ -224,7 +225,7 @@ public class ContentSecurityAppService : AbpController
             }
 
             var appId = WechatAppId;
-            var accessToken = await _weixinManger.GetAccessTokenAsync(appId);
+            var accessToken = await _weixinManger.GetAccessTokenAsync(appId, WechatAppSecret);
             var checkResult = await _weixinApi.ImgSecCheck(accessToken, imageBytes);
             _logger.LogInformation("图片安全检查结果: errcode={Errcode}, errmsg={Errmsg}",
                 checkResult.errcode, checkResult.errmsg);
