@@ -54,7 +54,7 @@ docker login
 **步骤 1: 构建打包**
 
 ```bash
-cd backend
+cd backend/scripts/local
 
 # 构建 Docker 镜像并导出 tar 包
 bash build-and-export-docker.sh
@@ -83,6 +83,8 @@ bash build-and-export-docker.sh
 **步骤 2: 上传部署**
 
 ```bash
+cd backend/scripts/local
+
 # 自动查找最新 tar 包并部署
 bash upload-and-deploy.sh
 
@@ -128,7 +130,7 @@ tar 包: molitao-backend-20250424-151200.tar
 如果 tar 包已存在，可直接执行上传部署:
 
 ```bash
-cd backend
+cd backend/scripts/local
 
 # 自动查找最新 tar 包
 bash upload-and-deploy.sh
@@ -203,10 +205,10 @@ ssh molitao 'docker exec -it molitao-api-production /bin/bash'
 
 ```bash
 # 1. 查看历史 tar 包
-ls -la backend/molitao-backend-*.tar
+ls -la backend/scripts/local/molitao-backend-*.tar
 
 # 2. 使用旧 tar 包重新部署
-cd backend
+cd backend/scripts/local
 bash upload-and-deploy.sh --tar=molitao-backend-YYYYMMDD-HHMMSS.tar
 ```
 
@@ -252,8 +254,11 @@ ssh molitao 'netstat -tlnp | grep 12580'
 
 | 文件 | 说明 |
 |------|------|
-| `backend/build-and-export-docker.sh` | 构建打包脚本 |
-| `backend/upload-and-deploy.sh` | 上传部署脚本 |
+| `backend/scripts/local/build-and-export-docker.sh` | 本地构建打包脚本 |
+| `backend/scripts/local/upload-and-deploy.sh` | 本地上传部署脚本 |
+| `backend/scripts/local/deploy-to-server.sh` | 旧版一键部署脚本 |
+| `backend/scripts/server/deploy.sh` | 服务器容器管理脚本 |
+| `backend/scripts/server/load-image.sh` | 服务器镜像加载脚本 |
 | `backend/docker-compose-api.yml` | 容器编排配置 |
 | `deploy/scripts/deploy.sh` | 腾讯云镜像仓库部署脚本 |
 
