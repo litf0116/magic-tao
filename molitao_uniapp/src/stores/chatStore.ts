@@ -637,31 +637,50 @@ export const useChatStore = defineStore('chatStore', () => {
     }
     const sendChannelMsg = async (msg = '', chan: string, type = ChatMessageType.Text, payload: any = {}) => {
         chan = chan || `${currentChat.value.id}_${currentChat.value.name}`
-        return new Promise(async (resolve) => {
-            if (!chan) {
-                alert('请先加入群聊')
-                return
-            }
-            const userStore = useUserStore()
-            const data: ChatMessage = {
-                type: type,
-                chan: chan,
-                from: websocketId.value,
-                fromName: userStore.user.name,
-                avatar: userStore.user.headImgUrl,
-                msg: msg,
-                payload: payload,
-            }
+        if (!chan) {
+            alert('请先加入群聊')
+            throw new Error('请先加入群聊')
+        }
 
-            await api.ws
-                .sendChannelMsg({
-                    from: websocketId.value,
-                    chan: chan,
-                    message: data,
-                })
-                .then((res) => {
-                    return resolve(res)
-                })
+        // #ifdef MP-WEIXIN
+        if (type === ChatMessageType.Text && msg) {
+            try {
+                const checkResult = await api.contentSecurity.checkText({ content: msg, scene: 4 })
+                if (!checkResult.isSafe) {
+                    uni.showToast({ title: checkResult.message || '内容包含敏感信息', icon: 'none' })
+                    throw new Error(checkResult.message || '内容包含敏感信息')
+                }
+            } catch (e) {
+                console.error('内容审核失败:', e)
+            }
+        } else if (type === ChatMessageType.Image && payload?.url) {
+            try {
+                const checkResult = await api.contentSecurity.checkImage({ mediaUrl: payload.url, scene: 4 })
+                if (!checkResult.isSafe) {
+                    uni.showToast({ title: checkResult.message || '图片包含敏感内容', icon: 'none' })
+                    throw new Error(checkResult.message || '图片包含敏感内容')
+                }
+            } catch (e) {
+                console.error('图片审核失败:', e)
+            }
+        }
+        // #endif
+
+        const userStore = useUserStore()
+        const data: ChatMessage = {
+            type: type,
+            chan: chan,
+            from: websocketId.value,
+            fromName: userStore.user.name,
+            avatar: userStore.user.headImgUrl,
+            msg: msg,
+            payload: payload,
+        }
+
+        return await api.ws.sendChannelMsg({
+            from: websocketId.value,
+            chan: chan,
+            message: data,
         })
     }
 
@@ -673,49 +692,69 @@ export const useChatStore = defineStore('chatStore', () => {
         type = ChatMessageType.Text,
         payload: any = {}
     ) => {
-        return new Promise(async (resolve) => {
-            const userStore = useUserStore()
-            const data: ChatMessage = {
-                type: type,
-                from: websocketId.value,
-                fromName: userStore.user.name,
-                avatar: userStore.user.headImgUrl,
-                msg: msg,
-                to: to,
-                payload: payload,
+        // #ifdef MP-WEIXIN
+        if (type === ChatMessageType.Text && msg) {
+            try {
+                const checkResult = await api.contentSecurity.checkText({ content: msg, scene: 4 })
+                if (!checkResult.isSafe) {
+                    uni.showToast({ title: checkResult.message || '内容包含敏感信息', icon: 'none' })
+                    throw new Error(checkResult.message || '内容包含敏感信息')
+                }
+            } catch (e) {
+                console.error('内容审核失败:', e)
             }
-            // console.log('sendMsg', data)
-            await api.ws
-                .sendMsg({
-                    from: websocketId.value,
-                    to: to,
-                    message: data,
-                    isReceipt: true,
-                })
-                .then((res) => {
-                    chatList.value = [
-                        {
-                            id: to,
-                            name: toName,
-                            type: ChatListItemType.user,
-                            time: data.time,
-                            lastMsg: data.msg,
-                            avatar: avatar,
-                            unread: 0,
-                            order: 0,
-                            msg: res.data.message,
-                        },
-                        ...chatList.value.filter((item) => item.id !== to),
-                    ]
-                    if (chatMap.value.has(`${to}`)) {
-                        chatMap.value.get(`${to}`)!.push(res.data.message)
-                    } else {
-                        chatMap.value.set(`${to}`, [res.data.message])
-                    }
+        } else if (type === ChatMessageType.Image && payload?.url) {
+            try {
+                const checkResult = await api.contentSecurity.checkImage({ mediaUrl: payload.url, scene: 4 })
+                if (!checkResult.isSafe) {
+                    uni.showToast({ title: checkResult.message || '图片包含敏感内容', icon: 'none' })
+                    throw new Error(checkResult.message || '图片包含敏感内容')
+                }
+            } catch (e) {
+                console.error('图片审核失败:', e)
+            }
+        }
+        // #endif
 
-                    return resolve(res)
-                })
+        const userStore = useUserStore()
+        const data: ChatMessage = {
+            type: type,
+            from: websocketId.value,
+            fromName: userStore.user.name,
+            avatar: userStore.user.headImgUrl,
+            msg: msg,
+            to: to,
+            payload: payload,
+        }
+
+        const res = await api.ws.sendMsg({
+            from: websocketId.value,
+            to: to,
+            message: data,
+            isReceipt: true,
         })
+
+        chatList.value = [
+            {
+                id: to,
+                name: toName,
+                type: ChatListItemType.user,
+                time: data.time,
+                lastMsg: data.msg,
+                avatar: avatar,
+                unread: 0,
+                order: 0,
+                msg: res.data.message,
+            },
+            ...chatList.value.filter((item) => item.id !== to),
+        ]
+        if (chatMap.value.has(`${to}`)) {
+            chatMap.value.get(`${to}`)!.push(res.data.message)
+        } else {
+            chatMap.value.set(`${to}`, [res.data.message])
+        }
+
+        return res
     }
 
     const getUserAvatar = (id: number) => {

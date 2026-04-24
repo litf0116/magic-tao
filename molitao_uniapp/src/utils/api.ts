@@ -224,13 +224,21 @@ export default {
             request('GET', `/api/GroupChatLevelSettings/GetUserGroupLevel/${id}`),
     },
 
-    /** 图片内容安全审核 */
-    imageAudit: {
+    /** 内容安全审核 */
+    contentSecurity: {
+        /**
+         * 检查文本内容是否安全
+         * @param data { content: 文本内容, scene: 场景值 }
+         * @returns Promise<{ isSafe: boolean, message: string }>
+         */
+        checkText: (data: { content: string; scene?: number }) =>
+            request('POST', `/api/ContentSecurity/CheckContent`, data),
         /**
          * 检查图片内容是否安全
-         * @param data { url: 图片URL }
-         * @returns Promise<{ pass: boolean, message: string }>
+         * @param data { mediaUrl: 图片URL, scene?: 场景值 }
+         * @returns Promise<{ isSafe: boolean, message: string }>
          */
-        check: (data: { url: string }) => request('POST', `/api/ContentSecurity/CheckMedia`, data),
+        checkImage: (data: { mediaUrl: string; scene?: number }) =>
+            request('POST', `/api/ContentSecurity/CheckMedia`, data),
     },
 }
