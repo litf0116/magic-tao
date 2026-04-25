@@ -278,6 +278,35 @@ class _LoginPageState extends ConsumerState<LoginPage>
         if (response is fluwx.WeChatAuthResponse) {
           if (response.isSuccessful && response.code != null) {
             try {
+              // 显示登录中对话框
+              if (mounted) {
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (BuildContext context) {
+                    return const Dialog(
+                      backgroundColor: Colors.transparent,
+                      elevation: 0,
+                      child: Center(
+                        child: Card(
+                          child: Padding(
+                            padding: EdgeInsets.all(24),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                CircularProgressIndicator(),
+                                SizedBox(height: 16),
+                                Text('登录中...'),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              }
+
               final result = await _authRepository.weixinAppLogin(
                 response.code!,
               );
@@ -300,6 +329,15 @@ class _LoginPageState extends ConsumerState<LoginPage>
                       ),
                       roles: result.roles,
                     );
+
+                // 隐藏登录中对话框
+                if (mounted && Navigator.canPop(context)) {
+                  Navigator.of(context).pop();
+                }
+
+                // 在跳转之前设置 loading 状态为 false
+                if (mounted) setState(() => _isLoading = false);
+
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('登录成功')),
@@ -307,6 +345,12 @@ class _LoginPageState extends ConsumerState<LoginPage>
                 }
                 context.go(widget.redirectPath ?? '/home');
               } else {
+                // 隐藏登录中对话框
+                if (mounted && Navigator.canPop(context)) {
+                  Navigator.of(context).pop();
+                }
+                // 在失败时也设置 loading 状态为 false
+                if (mounted) setState(() => _isLoading = false);
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('微信登录失败')),
@@ -314,6 +358,12 @@ class _LoginPageState extends ConsumerState<LoginPage>
                 }
               }
             } catch (e) {
+              // 隐藏登录中对话框
+              if (mounted && Navigator.canPop(context)) {
+                Navigator.of(context).pop();
+              }
+              // 在异常时也设置 loading 状态为 false
+              if (mounted) setState(() => _isLoading = false);
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('微信登录失败')),
@@ -321,6 +371,8 @@ class _LoginPageState extends ConsumerState<LoginPage>
               }
             }
           } else if (response.errCode != 0) {
+            // 在微信授权失败时也设置 loading 状态为 false
+            if (mounted) setState(() => _isLoading = false);
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('微信登录失败')),
