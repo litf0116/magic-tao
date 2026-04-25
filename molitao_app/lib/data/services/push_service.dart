@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:jpush_flutter/jpush_flutter.dart';
 import 'package:jpush_flutter/jpush_interface.dart';
 
@@ -84,7 +86,12 @@ class PushService {
     );
 
     if (isClick) {
-      _clickController.add(pushMessage);
+      // 后台/冷启动时点击通知，需要延迟确保Flutter引擎Ready
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Future.delayed(const Duration(milliseconds: 500), () {
+          _clickController.add(pushMessage);
+        });
+      });
     } else {
       // 收到前台推送时播放声音
       _playNotificationSound();
@@ -154,7 +161,36 @@ class PushMessage {
     required this.extras,
   });
 
-  String? get path => extras['path']?.toString();
-  String? get auctionItemId => extras['auctionItemId']?.toString();
-  String? get type => extras['type']?.toString();
+  // 兼容JPush嵌套结构: extras.cn.jpush.android.EXTRA 可能是JSON字符串
+  Map<String, dynamic>? get _jpExtra {
+    final jpushExtra = extras['cn.jpush.android.EXTRA'];
+    if (jpushExtra == null) return null;
+    if (jpushExtra is Map) {
+      return Map<String, dynamic>.from(jpushExtra);
+    }
+    if (jpushExtra is String && jpushExtra.isNotEmpty) {
+      try {
+        return Map<String, dynamic>.from(
+            jsonDecode(jpushExtra) as Map);
+      } catch (_) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  String? get path {
+    if (extras['path'] != null) return extras['path']?.toString();
+    return _jpExtra?['path']?.toString();
+  }
+
+  String? get auctionItemId {
+    if (extras['auctionItemId'] != null) return extras['auctionItemId']?.toString();
+    return _jpExtra?['auctionItemId']?.toString();
+  }
+
+  String? get type {
+    if (extras['type'] != null) return extras['type']?.toString();
+    return _jpExtra?['type']?.toString();
+  }
 }
