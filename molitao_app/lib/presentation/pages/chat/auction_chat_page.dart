@@ -25,6 +25,7 @@ import '../../providers/user_provider.dart';
 import '../../widgets/chat/chat_input_area.dart';
 import '../../widgets/chat/messages/message_widget.dart';
 import '../../widgets/common/user_profile_dialog.dart';
+import '../announce/announce_list_page.dart';
 
 /// 拍卖聊天页面（秒杀场）
 /// 与 UniApp auction.vue 保持一致
@@ -810,7 +811,12 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   /// 点击公告通知栏
   void _onAnnouncementTap() {
     // 跳转到公告列表页
-    context.push('/announce/list?categoryId=$_announceCategoryId');
+    // 使用 rootNavigator 避免与 go_router navigation shell 冲突
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute(
+        builder: (context) => AnnounceListPage(categoryId: _announceCategoryId),
+      ),
+    );
   }
 
   /// 显示公告弹窗对话框

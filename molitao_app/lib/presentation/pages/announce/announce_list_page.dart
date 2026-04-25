@@ -2,23 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/announce_provider.dart';
 
-class AnnounceListPage extends ConsumerWidget {
+class AnnounceListPage extends ConsumerStatefulWidget {
   final int? categoryId;
 
   const AnnounceListPage({super.key, this.categoryId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(announceProvider);
+  ConsumerState<AnnounceListPage> createState() => _AnnounceListPageState();
+}
 
-    // 初始加载
-    ref.listen<AnnounceState>(announceProvider, (prev, next) {
-      if (prev?.announces.isEmpty ?? true) {
-        ref
-            .read(announceProvider.notifier)
-            .loadAnnounces(categoryId: categoryId);
-      }
+class _AnnounceListPageState extends ConsumerState<AnnounceListPage> {
+  @override
+  void initState() {
+    super.initState();
+    // 初始加载公告
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(announceProvider.notifier).loadAnnounces(categoryId: widget.categoryId);
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(announceProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -31,7 +36,7 @@ class AnnounceListPage extends ConsumerWidget {
       ),
       body: RefreshIndicator(
         onRefresh: () =>
-            ref.read(announceProvider.notifier).refresh(categoryId: categoryId),
+            ref.read(announceProvider.notifier).refresh(categoryId: widget.categoryId),
         child: state.isLoading && state.announces.isEmpty
             ? const Center(child: CircularProgressIndicator())
             : state.error != null && state.announces.isEmpty
@@ -44,7 +49,7 @@ class AnnounceListPage extends ConsumerWidget {
                     ElevatedButton(
                       onPressed: () => ref
                           .read(announceProvider.notifier)
-                          .loadAnnounces(categoryId: categoryId),
+                          .loadAnnounces(categoryId: widget.categoryId),
                       child: const Text('重试'),
                     ),
                   ],
