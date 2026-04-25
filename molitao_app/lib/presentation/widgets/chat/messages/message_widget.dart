@@ -76,6 +76,7 @@ class MessageWidget extends StatelessWidget {
             payload: message.payload,
             receipt: message.receipt,
             sequenceNumber: message.sequenceNumber,
+            userChatLevel: message.userChatLevel,
           ),
           onTap: onTap,
           onLongPress: onLongPress,

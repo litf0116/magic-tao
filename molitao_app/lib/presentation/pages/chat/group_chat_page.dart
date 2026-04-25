@@ -477,6 +477,24 @@ class _GroupChatPageState extends ConsumerState<GroupChatPage> {
             ),
           ),
           const SizedBox(width: 6),
+        ] else if (message.userChatLevel != null) ...[
+          // 群等级标签
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: _getLevelBackgroundColor(message.userChatLevel!),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              message.userChatLevel!['name'] ?? '',
+              style: TextStyle(
+                color: _getLevelTextColor(message.userChatLevel!),
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
         ],
         Text(
           message.fromName ?? '未知用户',
@@ -484,6 +502,40 @@ class _GroupChatPageState extends ConsumerState<GroupChatPage> {
         ),
       ],
     );
+  }
+
+  Color _getLevelBackgroundColor(Map<String, dynamic> level) {
+    final levelNum = level['level'] as int? ?? 0;
+    if (levelNum == 7) {
+      return Colors.black; // 第7级：黑底金字
+    }
+    if (levelNum == 8) {
+      return const Color(0xFF000000); // 第8级：炫彩渐变
+    }
+    // 其他等级：渐变背景
+    final borderColor = level['borderColor'] as String? ?? '#F4835A';
+    return _parseColor(borderColor);
+  }
+
+  Color _getLevelTextColor(Map<String, dynamic> level) {
+    final levelNum = level['level'] as int? ?? 0;
+    if (levelNum == 7) {
+      return const Color(0xFFFFD700); // 金色
+    }
+    if (levelNum == 8) {
+      return const Color(0xFFFFD700); // 金色
+    }
+    return Colors.white;
+  }
+
+  Color _parseColor(String colorStr) {
+    try {
+      if (colorStr.startsWith('#') && colorStr.length >= 7) {
+        final hex = colorStr.replaceFirst('#', '');
+        return Color(int.parse('FF$hex', radix: 16));
+      }
+    } catch (_) {}
+    return const Color(0xFFF4835A); // 默认主题色
   }
 
   Color _getAvatarColor(int userId) {

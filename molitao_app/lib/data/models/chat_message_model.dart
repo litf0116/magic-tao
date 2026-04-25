@@ -36,6 +36,8 @@ class ChatMessage {
   final dynamic payload;
   final String? receipt;
   final int? sequenceNumber;
+  /// 群聊等级信息，来自后端 AddUserChatLevelInfo
+  final Map<String, dynamic>? userChatLevel;
 
   const ChatMessage({
     this.id,
@@ -54,6 +56,7 @@ class ChatMessage {
     this.payload,
     this.receipt,
     this.sequenceNumber,
+    this.userChatLevel,
   });
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
@@ -62,6 +65,16 @@ class ChatMessage {
     if (payload is String && payload.isNotEmpty) {
       try {
         payload = jsonDecode(payload);
+      } catch (e) {
+        // 如果解析失败，保持原始字符串
+      }
+    }
+
+    // 统一处理 userChatLevel：如果是 JSON 字符串，解析为 Map
+    dynamic userChatLevel = json['userChatLevel'];
+    if (userChatLevel is String && userChatLevel.isNotEmpty) {
+      try {
+        userChatLevel = jsonDecode(userChatLevel);
       } catch (e) {
         // 如果解析失败，保持原始字符串
       }
@@ -84,6 +97,7 @@ class ChatMessage {
       payload: payload,
       receipt: json['receipt'],
       sequenceNumber: json['sequenceNumber'],
+      userChatLevel: userChatLevel as Map<String, dynamic>?,
     );
   }
 
@@ -105,6 +119,7 @@ class ChatMessage {
       'payload': payload,
       'receipt': receipt,
       'sequenceNumber': sequenceNumber,
+      'userChatLevel': userChatLevel,
     };
   }
 
