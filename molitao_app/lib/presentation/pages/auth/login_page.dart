@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:fluwx/fluwx.dart' as fluwx;
-import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../data/services/storage_service.dart';
@@ -24,8 +23,6 @@ class LoginPage extends ConsumerStatefulWidget {
 
 class _LoginPageState extends ConsumerState<LoginPage>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -45,7 +42,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 1, vsync: this);
     _initWeChat();
     _loadRememberedUsername();
     _restoreSmsCountdown();
@@ -90,7 +86,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
   @override
   void dispose() {
-    _tabController.dispose();
     _timer?.cancel();
     _usernameController.dispose();
     _passwordController.dispose();
@@ -395,17 +390,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
                 ),
                 child: Column(
                   children: [
-                    _buildTabBar(),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      height: 280,
-                      child: TabBarView(
-                        controller: _tabController,
-                        children: [
-                          _buildPasswordLoginForm(),
-                        ],
-                      ),
-                    ),
+                    _buildPasswordLoginForm(),
                     const SizedBox(height: 8),
                     const Row(
                       children: [
@@ -458,29 +443,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
     );
   }
 
-  Widget _buildTabBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xfff5f5f5),
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: TabBar(
-        controller: _tabController,
-        labelColor: Colors.white,
-        unselectedLabelColor: AppColors.textSecondary,
-        indicator: BoxDecoration(
-          color: AppColors.primary,
-          borderRadius: BorderRadius.circular(24),
-        ),
-        indicatorSize: TabBarIndicatorSize.tab,
-        dividerColor: Colors.transparent,
-        labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-        tabs: const [
-          Tab(text: '密码登录'),
-        ],
-      ),
-    );
-  }
 
   Widget _buildPasswordLoginForm() {
     return Form(
