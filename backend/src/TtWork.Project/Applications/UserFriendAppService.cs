@@ -52,8 +52,9 @@ public class UserFriendAppService(
         List<UserDtoBase> result = [];
         foreach (var u in list) {
             var cache = await userCache.GetAsync(u.FriendId);
-            if (cache != null)
+            if (cache != null) {
                 result.Add(ObjectMapper.Map<UserDtoBase>(cache));
+            }
         }
 
         return new ListResultDto<UserDtoBase>(result);
@@ -71,16 +72,14 @@ public class UserFriendAppService(
     [HttpGet]
     public async Task Agree(long id, bool status) {
         var userId = AbpSession.UserId!.Value;
-        // 查询 id 发给我的申请（UserId=被申请人, FriendId=申请人）
         var entity = await repository.FirstOrDefaultAsync(x => x.UserId == userId &&
                                                                x.FriendId == id &&
                                                                x.Status == false);
         if (entity == null)
             throw new UserFriendlyException("记录不存在");
 
-        var senderUser = await userCache.GetAsync(userId);
-        var friendUser = await userCache.GetAsync(id);
-        var senderName = senderUser?.Name ?? "用户";
+        var senderName = await GetUserNameAsync(userId);
+        var friendUserId = id;
 
         if (status) {
             entity.Status = true;
@@ -99,25 +98,26 @@ public class UserFriendAppService(
 
             await CurrentUnitOfWork.SaveChangesAsync();
 
-            if (friendUser != null) {
-                await messageSendingService.SendSystemPrivateMessageAsync(id, new ChatMessage {
-                    type = ChatMessageType.Text,
-                    msg = $"\"{senderName}\" 已同意你的好友请求",
-                    to = id
-                });
-            }
+            await messageSendingService.SendSystemPrivateMessageAsync(friendUserId, new ChatMessage {
+                type = ChatMessageType.Text,
+                msg = $"\"{senderName}\" 已同意你的好友请求",
+                to = friendUserId
+            });
         }
         else {
-            if (friendUser != null) {
-                await messageSendingService.SendSystemPrivateMessageAsync(id, new ChatMessage {
-                    type = ChatMessageType.Text,
-                    msg = $"\"{senderName}\" 拒绝了你的好友请求",
-                    to = id
-                });
-            }
+            await messageSendingService.SendSystemPrivateMessageAsync(friendUserId, new ChatMessage {
+                type = ChatMessageType.Text,
+                msg = $"\"{senderName}\" 拒绝了你的好友请求",
+                to = friendUserId
+            });
 
             await repository.DeleteAsync(entity);
             await CurrentUnitOfWork.SaveChangesAsync();
         }
+    }
+
+    private async Task<string> GetUserNameAsync(long userId) {
+        var cache = await userCache.GetAsync(userId);
+        return cache?.Name ?? cache?.UserName ?? "用户";
     }
 }
