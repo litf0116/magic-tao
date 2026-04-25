@@ -9,7 +9,10 @@
                 <p>当前用户: {{ userStore.user?.userName || '未登录' }}</p>
                 <p>角色: {{ userStore.roles?.join(', ') || '无' }}</p>
                 <p>权限列表:</p>
-                <pre style="background: #f5f7fa; padding: 10px; border-radius: 4px; max-height: 200px; overflow: auto;">{{ JSON.stringify(userStore.permissions, null, 2) }}</pre>
+                <pre
+                    style="background: #f5f7fa; padding: 10px; border-radius: 4px; max-height: 200px; overflow: auto"
+                    >{{ JSON.stringify(userStore.permissions, null, 2) }}</pre
+                >
                 <p>是否有 Pages.Administration 权限: {{ hasAdminPermission }}</p>
             </div>
         </el-card>
@@ -249,7 +252,6 @@ async function handleUpdate() {
         updating.value = false
     }
 }
-
 </script>
 
 <style lang="scss" scoped>

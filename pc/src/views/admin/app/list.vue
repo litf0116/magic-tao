@@ -72,28 +72,58 @@
                 </el-form-item>
                 <el-form-item label="安装包">
                     <div class="w-full">
-                        <el-upload
-                            ref="uploadRef"
-                            :auto-upload="false"
-                            :limit="1"
-                            :on-change="handleFileChange"
-                            :file-list="fileList"
-                            :accept="form.platform === 'android' ? '.apk,.wgt' : '.ipa,.wgt'"
-                            :disabled="uploading"
+                        <div
+                            class="upload-dropzone"
+                            :class="{ 'is-dragover': isDragover, 'is-disabled': uploading }"
+                            @dragover.prevent="isDragover = true"
+                            @dragleave.prevent="isDragover = false"
+                            @drop.prevent="handleDrop"
                         >
-                            <el-button :disabled="uploading">
-                                <el-icon class="mr-1"><Upload /></el-icon>
-                                选择文件
-                            </el-button>
-                        </el-upload>
-                        <div v-if="selectFile" class="mt-2 text-sm text-gray-500">
-                            文件: {{ selectFile.name }} ({{ formatFileSize(selectFile.size || 0) }})
+                            <div v-if="selectFile" class="file-info">
+                                <el-icon class="text-2xl text-primary"><Document /></el-icon>
+                                <div class="mt-2">
+                                    <div class="font-medium">{{ selectFile.name }}</div>
+                                    <div class="text-xs text-gray-400 mt-1">
+                                        {{ formatFileSize(selectFile.size || 0) }}
+                                    </div>
+                                </div>
+                                <el-button
+                                    type="danger"
+                                    size="small"
+                                    class="mt-2"
+                                    :disabled="uploading"
+                                    @click="clearFile"
+                                >
+                                    移除
+                                </el-button>
+                            </div>
+                            <div v-else class="text-center py-4">
+                                <el-icon class="text-3xl text-gray-300"><Upload /></el-icon>
+                                <div class="mt-2 text-sm text-gray-500">
+                                    将文件拖到此处，或<el-button type="primary" link @click="triggerFileSelect"
+                                        >点击选择</el-button
+                                    >
+                                </div>
+                                <div class="text-xs text-gray-400 mt-1">
+                                    支持 {{ form.platform === 'android' ? '.apk, .wgt' : '.ipa, .wgt' }} 格式
+                                </div>
+                            </div>
                         </div>
                         <el-progress
                             v-if="uploadProgress > 0 && uploadProgress < 100"
                             :percentage="uploadProgress"
                             :status="uploadProgress === 100 ? 'success' : undefined"
                             class="mt-2"
+                        />
+                        <el-upload
+                            ref="uploadRef"
+                            class="hidden"
+                            :auto-upload="false"
+                            :limit="1"
+                            :on-change="handleFileChange"
+                            :file-list="fileList"
+                            :accept="form.platform === 'android' ? '.apk,.wgt' : '.ipa,.wgt'"
+                            :disabled="uploading"
                         />
                     </div>
                 </el-form-item>
@@ -109,7 +139,7 @@
 <script setup lang="ts">
 import api from '@/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Upload } from '@element-plus/icons-vue'
+import { Upload, Document } from '@element-plus/icons-vue'
 import cache from '@/utils/cache'
 import base64 from '@/utils/base64'
 import axios from 'axios'
@@ -124,6 +154,7 @@ const formRef = ref()
 const uploadRef = ref()
 const fileList = ref<any[]>([])
 const selectFile = ref<File | null>(null)
+const isDragover = ref(false)
 
 const imgUrl = import.meta.env.VITE_APP_UPYUN_IMG_URL
 const bucketName = import.meta.env.VITE_APP_UPYUN_BUCKET_NAME
@@ -178,6 +209,35 @@ function getNextVersionCode() {
 
 function handleFileChange(file: any) {
     selectFile.value = file.raw
+}
+
+function triggerFileSelect() {
+    uploadRef.value?.$refs['upload-inner']?.handleClick()
+}
+
+function handleDrop(e: DragEvent) {
+    isDragover.value = false
+    if (uploading.value) return
+
+    const files = e.dataTransfer?.files
+    if (files && files.length > 0) {
+        const file = files[0]
+        const acceptExts = form.value.platform === 'android' ? ['.apk', '.wgt'] : ['.ipa', '.wgt']
+        const ext = '.' + file.name.split('.').pop()?.toLowerCase()
+
+        if (acceptExts.includes(ext)) {
+            selectFile.value = file
+            // 更新 el-upload 的文件列表
+            fileList.value = [{ name: file.name, raw: file }]
+        } else {
+            ElMessage.warning(`不支持此文件格式，请上传 ${acceptExts.join(', ')} 格式`)
+        }
+    }
+}
+
+function clearFile() {
+    selectFile.value = null
+    fileList.value = []
 }
 
 async function getOssSignature(): Promise<{ signature: string; policy: string }> {
@@ -292,3 +352,33 @@ onMounted(() => {
     loadData()
 })
 </script>
+
+<style scoped>
+.upload-dropzone {
+    border: 2px dashed #dcdfe6;
+    border-radius: 8px;
+    padding: 20px;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.upload-dropzone:hover {
+    border-color: #409eff;
+}
+
+.upload-dropzone.is-dragover {
+    border-color: #409eff;
+    background-color: #f0f9ff;
+}
+
+.upload-dropzone.is-disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.upload-dropzone .file-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+</style>
