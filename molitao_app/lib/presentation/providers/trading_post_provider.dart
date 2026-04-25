@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/foundation.dart';
 import 'package:molitao_app/data/repositories/post_repository.dart';
 import 'package:molitao_app/data/models/post_model.dart';
 import 'package:molitao_app/data/models/announce_model.dart';
@@ -132,12 +133,16 @@ class TradingPostNotifier extends StateNotifier<TradingPostState> {
     int page = 1,
     int? categoryId,
     String? search,
+    bool isTop = false,
   }) async {
     try {
+      debugPrint('[TradingPost] Loading posts - page: $page, categoryId: $categoryId, search: $search, isTop: $isTop');
       final response = await _repository.getPostList(
         skipCount: (page - 1) * 10, // Assuming 10 items per page
         maxResultCount: 10,
         categoryId: categoryId,
+        keyword: search,
+        isTop: isTop,
       );
 
       // For now, we'll treat all posts as regular posts
@@ -146,9 +151,27 @@ class TradingPostNotifier extends StateNotifier<TradingPostState> {
       final hasMore =
           posts.length == 10; // If we got 10 items, there might be more
 
+      debugPrint('[TradingPost] Loaded ${posts.length} posts, hasMore: $hasMore');
       return (posts, hasMore);
     } catch (e) {
+      debugPrint('[TradingPost] Failed to load posts: $e');
       throw Exception('Failed to load posts');
+    }
+  }
+
+  Future<List<PostModel>> _loadPinnedPosts() async {
+    try {
+      debugPrint('[TradingPost] Loading pinned posts...');
+      final response = await _repository.getPostList(
+        skipCount: 0,
+        maxResultCount: 10,
+        isTop: true,
+      );
+      debugPrint('[TradingPost] Loaded ${response.length} pinned posts');
+      return response;
+    } catch (e) {
+      debugPrint('[TradingPost] Failed to load pinned posts: $e');
+      return [];
     }
   }
 
@@ -160,6 +183,7 @@ class TradingPostNotifier extends StateNotifier<TradingPostState> {
       final categories = await _loadCategories();
       final bulletin = await _loadBulletin();
       final hotWords = await _loadHotWords();
+      final pinnedPosts = await _loadPinnedPosts();
       final postsResult = await _loadPosts(
         page: 1,
         categoryId: state.selectedCategoryId,
@@ -171,6 +195,7 @@ class TradingPostNotifier extends StateNotifier<TradingPostState> {
         categories: categories,
         bulletin: bulletin,
         hotWords: hotWords,
+        pinnedPosts: pinnedPosts,
         posts: postsResult.$1,
         hasMore: postsResult.$2,
       );
@@ -186,6 +211,7 @@ class TradingPostNotifier extends StateNotifier<TradingPostState> {
       final categories = await _loadCategories();
       final bulletin = await _loadBulletin();
       final hotWords = await _loadHotWords();
+      final pinnedPosts = await _loadPinnedPosts();
       final postsResult = await _loadPosts(
         page: 1,
         categoryId: state.selectedCategoryId,
@@ -198,6 +224,7 @@ class TradingPostNotifier extends StateNotifier<TradingPostState> {
         categories: categories,
         bulletin: bulletin,
         hotWords: hotWords,
+        pinnedPosts: pinnedPosts,
         posts: postsResult.$1,
         hasMore: postsResult.$2,
       );

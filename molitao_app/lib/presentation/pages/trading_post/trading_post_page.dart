@@ -1,14 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:molitao_app/presentation/providers/trading_post_provider.dart';
 import 'package:molitao_app/data/models/post_model.dart';
 import 'package:go_router/go_router.dart';
 
-class TradingPostPage extends ConsumerWidget {
+class TradingPostPage extends ConsumerStatefulWidget {
   const TradingPostPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TradingPostPage> createState() => _TradingPostPageState();
+}
+
+class _TradingPostPageState extends ConsumerState<TradingPostPage> {
+  bool _initialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize data only once when the widget is first created
+    Future.microtask(() {
+      ref.read(tradingPostProvider.notifier).initialize();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     ref.listen(tradingPostProvider, (previous, current) {
       if (current.errorMessage != null) {
         ScaffoldMessenger.of(
@@ -20,12 +38,7 @@ class TradingPostPage extends ConsumerWidget {
     final state = ref.watch(tradingPostProvider);
     final notifier = ref.read(tradingPostProvider.notifier);
 
-    // Initialize data when the widget is first built
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (state.categories.isEmpty && !state.isLoading) {
-        notifier.initialize();
-      }
-    });
+    debugPrint('[TradingPostPage] Building page - posts: ${state.posts.length}, isLoading: ${state.isLoading}, error: ${state.errorMessage}');
 
     return Scaffold(
       appBar: AppBar(
@@ -81,6 +94,7 @@ class TradingPostPage extends ConsumerWidget {
                         vertical: 8,
                       ),
                       padding: const EdgeInsets.all(12),
+                      constraints: const BoxConstraints(maxHeight: 100), // 限制最大高度
                       decoration: BoxDecoration(
                         color: Colors.orange[50],
                         borderRadius: BorderRadius.circular(8),
@@ -95,14 +109,22 @@ class TradingPostPage extends ConsumerWidget {
                           ),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: Text(
-                              state.bulletin!.content ?? '',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.orange,
+                            child: SingleChildScrollView( // 添加滚动支持
+                              child: Html(
+                                data: state.bulletin!.content ?? '',
+                                style: {
+                                  'body': Style(
+                                    fontSize: FontSize(14),
+                                    color: Colors.orange,
+                                    margin: Margins.zero,
+                                    padding: HtmlPaddings.zero,
+                                  ),
+                                  'p': Style(
+                                    margin: Margins.zero,
+                                    padding: HtmlPaddings.zero,
+                                  ),
+                                },
                               ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],

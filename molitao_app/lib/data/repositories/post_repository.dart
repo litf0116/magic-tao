@@ -11,6 +11,9 @@ class PostRepository {
     int? skipCount = 0,
     int? maxResultCount = 10,
     int? categoryId,
+    int type = -1,
+    String? keyword,
+    bool isTop = false,
   }) async {
     try {
       final response = await _apiClient.dio.get(
@@ -19,6 +22,9 @@ class PostRepository {
           'SkipCount': skipCount,
           'MaxResultCount': maxResultCount,
           'CategoryId': categoryId,
+          'Type': type,
+          'Keyword': keyword ?? '',
+          'isTop': isTop,
         },
       );
 

@@ -62,7 +62,7 @@ class PostModel {
           ? DateTime.tryParse(json['lastModificationTime'].toString())
           : null,
       lastModifierUserId: json['lastModifierUserId'] ?? json['userId'],
-      categoryId: json['categoryId'],
+      categoryId: _parseIntOrNull(json['categoryId']),
       categoryName: json['categoryName'],
       viewCount: json['viewCount'],
       likeCount: json['likeCount'],
@@ -70,6 +70,16 @@ class PostModel {
       isLiked: json['isLiked'],
       isBookmarked: json['isBookmarked'],
     );
+  }
+
+  static int? _parseIntOrNull(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is String) {
+      if (value.isEmpty) return null;
+      return int.tryParse(value);
+    }
+    return null;
   }
 
   Map<String, dynamic> toJson() {
