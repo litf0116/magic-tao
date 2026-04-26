@@ -56,6 +56,16 @@
                 </div>
             </el-tooltip>
 
+            <!-- APP扫码登录 -->
+            <el-tooltip content="APP扫码登录" placement="left">
+                <div class="tool-item" @click="toggleQrLoginPanel">
+                    <div class="tool-icon qr-login-icon">
+                        <el-icon><Key /></el-icon>
+                    </div>
+                    <span class="tool-label">扫码</span>
+                </div>
+            </el-tooltip>
+
             <!-- 回到顶部 -->
             <el-tooltip content="回到顶部" placement="left">
                 <div v-show="showBackTop" class="tool-item" @click="scrollToTop">
@@ -144,6 +154,58 @@
                     </div>
                 </div>
             </Transition>
+
+            <!-- APP扫码登录面板 -->
+            <Transition name="slide-left">
+                <div v-if="showQrLoginPanel" class="qr-login-panel">
+                    <div class="panel-header">
+                        <div class="panel-title-row">
+                            <el-icon><Key /></el-icon>
+                            <h3 class="panel-title">APP扫码登录</h3>
+                        </div>
+                        <button class="close-btn" @click="closeQrLoginPanel">
+                            <el-icon><Close /></el-icon>
+                        </button>
+                    </div>
+
+                    <div class="panel-content">
+                        <!-- 二维码区域 -->
+                        <div class="qr-wrapper">
+                            <template v-if="qrLoginLoading">
+                                <div class="loading-state">
+                                    <div class="i-carbon:loading size-12 animate-spin" />
+                                    <span>生成中...</span>
+                                </div>
+                            </template>
+                            <template v-else-if="qrLoginDataUrl">
+                                <img :src="qrLoginDataUrl" alt="扫码登录" class="qr-code" />
+                                <div class="qr-status">
+                                    <span v-if="qrLoginStatus === 'pending'" class="status-pending">等待扫码...</span>
+                                    <span v-else-if="qrLoginStatus === 'scanned'" class="status-scanned">已扫码，等待确认...</span>
+                                    <span v-else-if="qrLoginStatus === 'confirmed'" class="status-confirmed">登录成功</span>
+                                    <span v-else-if="qrLoginStatus === 'expired'" class="status-expired">已过期</span>
+                                </div>
+                                <div v-if="qrLoginCountdown > 0" class="qr-countdown">
+                                    剩余 {{ qrLoginCountdown }} 秒
+                                </div>
+                            </template>
+                            <template v-else-if="qrLoginError">
+                                <div class="error-state">
+                                    <div class="i-carbon:error size-12 text-red-500" />
+                                    <span>{{ qrLoginError }}</span>
+                                    <el-button size="small" @click="initQrLogin">重试</el-button>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- 操作提示 -->
+                        <div class="qr-tips">
+                            <p>使用魔力淘APP扫描上方二维码</p>
+                            <p>扫码后可在APP中确认登录</p>
+                        </div>
+                    </div>
+                </div>
+            </Transition>
         </div>
 
         <!-- 充值弹窗（居中） -->
@@ -226,10 +288,13 @@ import {
     CircleClose,
     Download,
     SwitchButton,
+    Key,
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { payApi } from '@/api/pay'
 import appReleaseAPI from '@/api/appRelease'
+import QRCode from 'qrcode'
+import { generateQrCode, getQrCodeStatus } from '@/api/qrcode'
 import logoImage from '@/assets/images/logo.png'
 
 interface VersionInfo {
@@ -244,12 +309,23 @@ const userStore = useUserStore()
 const showBackTop = ref(false)
 const showDownloadPanel = ref(false)
 const showRechargeDialog = ref(false)
+const showQrLoginPanel = ref(false)
 const loading = ref(false)
 const qrCodeUrl = ref('')
 const countdown = ref(300)
 const error = ref('')
 const orderNo = ref('')
 const latestVersion = ref<VersionInfo | null>(null)
+
+// APP扫码登录状态
+const qrLoginLoading = ref(false)
+const qrLoginDataUrl = ref('')
+const qrLoginCode = ref('')
+const qrLoginStatus = ref<'pending' | 'scanned' | 'confirmed' | 'expired'>('pending')
+const qrLoginCountdown = ref(0)
+const qrLoginError = ref('')
+let qrLoginPollTimer: number | null = null
+let qrLoginCountdownTimer: number | null = null
 
 // 下载页面二维码
 const downloadQrCode = computed(() => {
@@ -456,6 +532,103 @@ const handleLogout = async () => {
     await userStore.logout()
     router.push('/auth/login')
 }
+
+// APP扫码登录面板
+const toggleQrLoginPanel = () => {
+    closeUserPanel()
+    closeDownloadPanel()
+    if (showQrLoginPanel.value) {
+        closeQrLoginPanel()
+    } else {
+        showQrLoginPanel.value = true
+        initQrLogin()
+    }
+}
+
+const closeQrLoginPanel = () => {
+    showQrLoginPanel.value = false
+    clearQrLoginTimers()
+}
+
+const clearQrLoginTimers = () => {
+    if (qrLoginPollTimer) {
+        clearInterval(qrLoginPollTimer)
+        qrLoginPollTimer = null
+    }
+    if (qrLoginCountdownTimer) {
+        clearInterval(qrLoginCountdownTimer)
+        qrLoginCountdownTimer = null
+    }
+}
+
+const initQrLogin = async () => {
+    if (!userStore.isLogin) {
+        ElMessage.warning('请先登录')
+        closeQrLoginPanel()
+        router.push('/auth/login')
+        return
+    }
+
+    qrLoginLoading.value = true
+    qrLoginError.value = ''
+    qrLoginDataUrl.value = ''
+    qrLoginStatus.value = 'pending'
+
+    try {
+        const res = await generateQrCode()
+        qrLoginCode.value = res.code
+
+        const dataUrl = await QRCode.toDataURL(res.qrContent, {
+            width: 200,
+            margin: 2,
+            color: { dark: '#000000', light: '#ffffff' },
+        })
+        qrLoginDataUrl.value = dataUrl
+        qrLoginLoading.value = false
+
+        startQrLoginCountdown(res.expiresIn)
+        startQrLoginPoll()
+    } catch (err: any) {
+        qrLoginLoading.value = false
+        qrLoginError.value = err?.message || '生成二维码失败'
+    }
+}
+
+const startQrLoginCountdown = (expiresIn: number) => {
+    qrLoginCountdown.value = expiresIn
+    qrLoginCountdownTimer = window.setInterval(() => {
+        qrLoginCountdown.value--
+        if (qrLoginCountdown.value <= 0) {
+            clearQrLoginTimers()
+            qrLoginStatus.value = 'expired'
+        }
+    }, 1000)
+}
+
+const startQrLoginPoll = () => {
+    qrLoginPollTimer = window.setInterval(async () => {
+        if (!qrLoginCode.value) return
+
+        try {
+            const status = await getQrCodeStatus(qrLoginCode.value)
+            qrLoginStatus.value = status.status
+
+            if (status.status === 'confirmed') {
+                clearQrLoginTimers()
+                ElMessage.success(`欢迎回来，${status.user?.nickname || '用户'}`)
+                await userStore.getUserInfo()
+                setTimeout(() => {
+                    closeQrLoginPanel()
+                    router.push('/')
+                }, 1500)
+            } else if (status.status === 'expired') {
+                clearQrLoginTimers()
+            }
+        } catch (err) {
+            console.error('[QR登录轮询失败]', err)
+        }
+    }, 2000)
+}
 </script>
 
 <style lang="scss" scoped>
@@ -543,6 +716,11 @@ $border-color: #ae6f4d;
 .download-icon {
     background: #52c41a;
     border-color: darken(#52c41a, 10%);
+}
+
+.qr-login-icon {
+    background: #1890ff;
+    border-color: darken(#1890ff, 10%);
 }
 
 .back-top-icon {
@@ -691,6 +869,119 @@ $border-color: #ae6f4d;
     border-radius: 16px;
     box-shadow: 0 4px 20px rgba(131, 58, 0, 0.2);
     overflow: hidden;
+}
+
+// APP扫码登录面板
+.qr-login-panel {
+    position: absolute;
+    right: calc(100% + 10px);
+    top: 0;
+    width: 280px;
+    background: #fff;
+    border: 3px solid $border-color;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(131, 58, 0, 0.2);
+    overflow: hidden;
+
+    .panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px;
+        background: linear-gradient(135deg, $bg-card 0%, #ffe8d6 100%);
+        border-bottom: 2px solid $border-color;
+
+        .panel-title-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            .el-icon {
+                font-size: 20px;
+                color: $primary-color;
+            }
+
+            .panel-title {
+                font-size: 16px;
+                font-weight: 600;
+                color: $primary-color;
+                margin: 0;
+            }
+        }
+    }
+
+    .panel-content {
+        padding: 20px 16px;
+        background: $bg-light;
+
+        .qr-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 12px;
+            border: 2px dashed $border-color;
+            min-height: 280px;
+
+            .qr-code {
+                width: 180px;
+                height: 180px;
+                border-radius: 8px;
+                border: 2px solid $border-color;
+            }
+
+            .qr-status {
+                font-size: 14px;
+                font-weight: 500;
+                text-align: center;
+
+                .status-pending {
+                    color: #999;
+                }
+                .status-scanned {
+                    color: #1890ff;
+                }
+                .status-confirmed {
+                    color: #52c41a;
+                }
+                .status-expired {
+                    color: #ff4d4f;
+                }
+            }
+
+            .qr-countdown {
+                font-size: 12px;
+                color: #666;
+            }
+
+            .loading-state,
+            .error-state {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 8px;
+                color: $primary-light;
+                font-size: 14px;
+            }
+
+            .error-state {
+                color: #ff4d4f;
+            }
+        }
+
+        .qr-tips {
+            margin-top: 16px;
+            text-align: center;
+
+            p {
+                font-size: 12px;
+                color: $primary-light;
+                margin: 4px 0;
+            }
+        }
+    }
 }
 
 .slide-left-enter-active,
