@@ -32,6 +32,7 @@
         "@vueuse/shared": "^10.9.0",
         "@wangeditor/editor-for-vue": "^5.1.12",
         "dayjs": "^1.11.10",
+        "html5-qrcode": "^2.3.8",
         "lodash-es": "^4.17.21",
         "pinia": "2.0.36",
         "uni-preset-vue": "file:",

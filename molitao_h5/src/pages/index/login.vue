@@ -82,6 +82,11 @@
                     <text class="login-btn-text">{{ isLoading ? '登录中' : '登录' }}</text>
                 </view>
 
+                <view class="qrcode-login-btn" @tap="toQrcodeScanner">
+                    <text class="qrcode-icon">📷</text>
+                    <text class="qrcode-text">扫码登录</text>
+                </view>
+
                 <view class="agreement">
                     <view class="checkbox-wrap" @tap="togglePrivacy">
                         <view class="checkbox" :class="{ checked: agreePrivacy }">
@@ -279,6 +284,10 @@ const toPrivacy = () => {
     uni.navigateTo({ url: '/pages/protocol/privacy' })
 }
 
+const toQrcodeScanner = () => {
+    uni.navigateTo({ url: '/pages/auth/qrcode-scanner' })
+}
+
 onUnmounted(() => {
     if (smsTimer) {
         clearInterval(smsTimer)
@@ -445,6 +454,31 @@ restoreSmsCountdown()
     color: #ffffff;
     font-weight: 500;
     letter-spacing: 4rpx;
+}
+
+.qrcode-login-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12rpx;
+    margin-top: 32rpx;
+    padding: 24rpx 0;
+    border: 2rpx solid #f4835a;
+    border-radius: 48rpx;
+
+    &:active {
+        background: rgba(244, 131, 90, 0.1);
+    }
+}
+
+.qrcode-icon {
+    font-size: 36rpx;
+}
+
+.qrcode-text {
+    font-size: 28rpx;
+    color: #f4835a;
+    font-weight: 500;
 }
 
 .agreement {

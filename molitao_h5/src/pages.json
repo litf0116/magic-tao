@@ -162,6 +162,16 @@
                 "navigationBarBackgroundColor": "#f6f6f6",
                 "navigationBarTextStyle": "black"
             }
+        },
+        {
+            "path": "pages/auth/qrcode-scanner",
+            "type": "page",
+            "layout": "main",
+            "style": {
+                "navigationBarTitleText": "扫码登录",
+                "navigationBarBackgroundColor": "#f6f6f6",
+                "navigationBarTextStyle": "black"
+            }
         }
     ],
     "globalStyle": {
