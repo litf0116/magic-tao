@@ -16,12 +16,12 @@ export default defineConfig(({ command, mode }) => {
             port: 4200,
             proxy: {
                 '/api': {
-                    target: 'https://www.molitao.top',
+                    target: 'http://localhost:12580',
                     changeOrigin: true,
                     secure: false
                 },
                 '/ws': {
-                    target: 'https://www.molitao.top',
+                    target: 'http://localhost:12580',
                     changeOrigin: true,
                     secure: false,
                     ws: true

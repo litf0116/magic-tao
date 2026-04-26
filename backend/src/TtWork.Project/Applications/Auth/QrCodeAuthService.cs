@@ -61,20 +61,15 @@ public class QrCodeAuthService : AbpAppServiceBase, IQrCodeAuthService, ITransie
         return await GetUserDtoAsync(authRequest.UserId);
     }
 
-    public async Task<QrCodeLoginResultDto> ConfirmLoginAsync(string code, long userId)
+    public async Task<QrCodeLoginResultDto> ConfirmLoginAsync(string code)
     {
         var authRequest = await GetValidAuthRequestAsync(code, AuthRequestStatus.Scanned);
-
-        if (authRequest.UserId != userId)
-        {
-            throw new UserFriendlyException("用户身份不匹配");
-        }
 
         authRequest.MarkAsConfirmed();
         await _authRequestRepository.UpdateAsync(authRequest);
         await CurrentUnitOfWork.SaveChangesAsync();
 
-        var user = await _userRepository.GetAsync(userId);
+        var user = await _userRepository.GetAsync(authRequest.UserId);
         if (user == null)
         {
             throw new UserFriendlyException("用户不存在");
@@ -90,7 +85,7 @@ public class QrCodeAuthService : AbpAppServiceBase, IQrCodeAuthService, ITransie
             Token = null,
             TokenType = "Bearer",
             ExpiresIn = 0,
-            User = await GetUserDtoAsync(userId)
+            User = await GetUserDtoAsync(authRequest.UserId)
         };
     }
 
@@ -166,6 +161,13 @@ public class QrCodeAuthService : AbpAppServiceBase, IQrCodeAuthService, ITransie
         }
 
         return authRequest;
+    }
+
+    public async Task<AuthRequest> GetAuthRequestByCodeAsync(string code)
+    {
+        return await _authRequestRepository
+            .GetAll()
+            .FirstOrDefaultAsync(x => x.Code == code);
     }
 
     private async Task<QrCodeUserInfoDto> GetUserDtoAsync(long userId)

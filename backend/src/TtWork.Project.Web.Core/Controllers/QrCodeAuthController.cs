@@ -11,6 +11,7 @@ using Abp.Extensions;
 using Abp.Runtime.Caching;
 using Abp.Runtime.Security;
 using Abp.Runtime.Session;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -62,29 +63,34 @@ public class QrCodeAuthController : AbpControllerBase
     }
 
     /// <summary>
-    /// 扫码获取用户信息（移动端调用，需要认证）
+    /// 扫码获取用户信息（移动端调用，无需认证）
     /// </summary>
     /// <param name="code">二维码code</param>
     [HttpGet("{code}")]
-    [AbpAuthorize]
+    [AllowAnonymous]
     public async Task<QrCodeUserInfoDto> GetUserInfo(string code)
     {
         return await _qrCodeAuthService.GetUserInfoByCodeAsync(code);
     }
 
     /// <summary>
-    /// 确认登录（移动端调用，需要认证）
+    /// 确认登录（移动端调用，无需认证）
     /// </summary>
     /// <param name="input">确认登录请求</param>
     [HttpPost("confirm")]
-    [AbpAuthorize]
+    [AllowAnonymous]
     public async Task<QrCodeLoginResultDto> Confirm([FromBody] ConfirmLoginInputDto input)
     {
-        var userId = AbpSession.GetUserId();
-        var result = await _qrCodeAuthService.ConfirmLoginAsync(input.Code, userId);
+        var result = await _qrCodeAuthService.ConfirmLoginAsync(input.Code);
 
-        // 生成 Token
-        var tokenResult = await GenerateTokenAsync(userId);
+        // 获取二维码绑定的用户ID生成Token
+        var authRequest = await _qrCodeAuthService.GetAuthRequestByCodeAsync(input.Code);
+        if (authRequest == null)
+        {
+            throw new Exception("二维码不存在");
+        }
+
+        var tokenResult = await GenerateTokenAsync(authRequest.UserId);
         result.Token = tokenResult.Token;
         result.ExpiresIn = tokenResult.ExpiresIn;
 
