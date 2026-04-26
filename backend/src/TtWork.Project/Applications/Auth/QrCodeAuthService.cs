@@ -17,7 +17,7 @@ public class QrCodeAuthService : AbpAppServiceBase, IQrCodeAuthService, ITransie
     private readonly IRepository<User, long> _userRepository;
 
     private const int QrCodeExpiresInSeconds = 60;
-    private const string QrCodeContentFormat = "molitao://qrcode?code={0}";
+    private const string QrCodeContentFormat = "https://www.molitao.top/h5/pages/auth/qrcode-confirm?code={0}";
 
     public QrCodeAuthService(
         IRepository<AuthRequest, long> authRequestRepository,

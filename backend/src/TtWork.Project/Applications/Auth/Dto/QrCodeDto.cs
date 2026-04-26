@@ -16,7 +16,7 @@ public class QrCodeGenerateOutputDto
     public string Code { get; set; }
 
     /// <summary>
-    /// 二维码内容 (molitao://scan?code=xxx)
+    /// 二维码内容 (H5 URL格式，支持微信扫一扫和App扫码)
     /// </summary>
     public string QrContent { get; set; }
 
