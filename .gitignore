@@ -55,3 +55,5 @@ secrets/
 
 # Root level screenshots
 molitao-h5-homepage.png
+# App 发布脚本 (包含敏感账号信息)
+scripts/publish-app.sh
