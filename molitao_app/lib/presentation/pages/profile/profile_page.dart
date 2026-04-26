@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../../../domain/entities/my_count_entity.dart';
 import '../../../data/api/api_client.dart';
 import '../../../data/api/api_endpoints.dart';
@@ -20,11 +21,26 @@ class ProfilePage extends ConsumerStatefulWidget {
 class _ProfilePageState extends ConsumerState<ProfilePage> {
   MyCountEntity _myCount = MyCountEntity(friend: 0, depositBalance: 0);
   bool _isLoadingCount = false;
+  String _appVersion = '';
 
   @override
   void initState() {
     super.initState();
     _loadMyCount();
+    _loadAppVersion();
+  }
+
+  Future<void> _loadAppVersion() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      if (mounted) {
+        setState(() {
+          _appVersion = packageInfo.version;
+        });
+      }
+    } catch (e) {
+      debugPrint('Failed to get package info: $e');
+    }
   }
 
   /// 每次进入页面时重新加载数据
@@ -350,9 +366,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   ),
 
                 // App version
-                const Align(
+                Align(
                   alignment: Alignment.center,
-                  child: Text('v1.0.0', style: TextStyle(color: Colors.grey)),
+                  child: Text(
+                    'v$_appVersion',
+                    style: const TextStyle(color: Colors.grey),
+                  ),
                 ),
               ],
             ),
