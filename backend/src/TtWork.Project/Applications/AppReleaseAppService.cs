@@ -107,7 +107,7 @@ namespace TtWork.Project.Applications
         /// </summary>
         [HttpGet]
         [AbpAllowAnonymous]
-        public async Task<object> CheckUpdate(int currentVersionCode, string platform = "android")
+        public async Task<object> CheckUpdate(int currentVersionCode, string platform = "android", string versionName = null)
         {
             var latestRelease = await _appReleaseRepository.GetAllListAsync(x =>
                 x.Platform == platform && x.IsActive);
@@ -124,9 +124,19 @@ namespace TtWork.Project.Applications
                 };
             }
 
+            bool hasUpdate;
+            if (!string.IsNullOrEmpty(versionName))
+            {
+                hasUpdate = string.Compare(release.VersionName, versionName, StringComparison.Ordinal) > 0;
+            }
+            else
+            {
+                hasUpdate = release.VersionCode > currentVersionCode;
+            }
+
             return new
             {
-                HasUpdate = release.VersionCode > currentVersionCode,
+                HasUpdate = hasUpdate,
                 LatestVersionCode = release.VersionCode,
                 LatestVersionName = release.VersionName,
                 Description = release.Description,
