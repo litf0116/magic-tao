@@ -52,6 +52,8 @@ namespace TtWork.Project.EntityFrameworkCore {
 
         public DbSet<SmsVerificationCode> SmsVerificationCodes { get; set; }
 
+        public DbSet<AuthRequest> AuthRequests { get; set; }
+
 
         #region TtWork.Abp.AppManagement
 
@@ -100,6 +102,13 @@ namespace TtWork.Project.EntityFrameworkCore {
                 b.HasIndex(ba => new { ba.CreatorUserId, ba.CreationTime })
                     .IsDescending()
                     ;
+            });
+
+            // AuthRequest 扫码登录授权请求
+            builder.Entity<AuthRequest>(b => {
+                b.HasIndex(x => x.Code).IsUnique();
+                b.HasIndex(x => new { x.UserId, x.Status });
+                b.HasIndex(x => x.ExpiresAt);
             });
 
             builder.Entity<ChatChannel>(b => {
