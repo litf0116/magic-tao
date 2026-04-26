@@ -51,13 +51,13 @@ class _AboutPageState extends ConsumerState<AboutPage> {
         ApiEndpoints.checkUpdate,
         queryParameters: {
           'platform': Platform.isIOS ? 'ios' : 'android',
-          'version': _appVersion,
+          'currentVersionCode': int.tryParse(_buildNumber) ?? 1,
         },
       );
 
       if (response.data != null && response.data['success'] == true) {
         final result = response.data['result'];
-        if (result != null && result['needUpdate'] == true) {
+        if (result != null && result['hasUpdate'] == true) {
           if (mounted) {
             setState(() {
               _updateInfo = result;
@@ -117,7 +117,7 @@ class _AboutPageState extends ConsumerState<AboutPage> {
                 ),
               ),
               const SizedBox(width: 8),
-              Text('v${_updateInfo?['latestVersion'] ?? _appVersion}'),
+              Text('v${_updateInfo?['latestVersionName'] ?? _appVersion}'),
             ],
           ),
           content: Column(
@@ -133,14 +133,14 @@ class _AboutPageState extends ConsumerState<AboutPage> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  _updateInfo?['updateLog'] ?? '修复已知问题，优化用户体验',
+                  _updateInfo?['description'] ?? '修复已知问题，优化用户体验',
                   style: const TextStyle(
                     fontSize: 14,
                     color: Color(0xff666666),
                   ),
                 ),
               ),
-              if (_updateInfo?['forceUpdate'] == true)
+              if (_updateInfo?['isForceUpdate'] == true)
                 Padding(
                   padding: const EdgeInsets.only(top: 12),
                   child: Row(
@@ -164,7 +164,7 @@ class _AboutPageState extends ConsumerState<AboutPage> {
             ],
           ),
           actions: [
-            if (_updateInfo?['forceUpdate'] != true)
+            if (_updateInfo?['isForceUpdate'] != true)
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
                 child: const Text(
