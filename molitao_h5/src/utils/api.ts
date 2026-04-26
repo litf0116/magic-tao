@@ -4,7 +4,10 @@ import type {
     BidHistoryCreateDto,
     ChatEmojiDto,
     ChatMessage,
+    ConfirmLoginInputDto,
     IListType,
+    QrCodeLoginResultDto,
+    QrCodeUserInfoDto,
     UserDto,
     UserDtoBaseListResultDto,
 } from '@/composables/types'
@@ -386,5 +389,23 @@ export default {
          * @returns Promise<{ pass: boolean, message: string }>
          */
         check: (data: { mediaUrl: string }) => request('POST', `/api/ContentSecurity/CheckMedia`, data),
+    },
+
+    /** 扫码登录 */
+    qrcode: {
+        /**
+         * 获取用户信息（H5端扫码后调用）
+         * @param code 二维码code
+         * @returns Promise<QrCodeUserInfoDto>
+         */
+        getUserInfoByCode: (code: string) =>
+            request('GET', `/api/auth/qrcode/${code}`) as Promise<QrCodeUserInfoDto>,
+        /**
+         * 确认登录（H5端确认登录）
+         * @param code 二维码code
+         * @returns Promise<QrCodeLoginResultDto>
+         */
+        confirmLogin: (code: string) =>
+            request('POST', `/api/auth/qrcode/confirm`, { code }) as Promise<QrCodeLoginResultDto>,
     },
 }

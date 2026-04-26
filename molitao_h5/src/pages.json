@@ -152,6 +152,16 @@
             "style": {
                 "navigationBarTitleText": "隐私政策"
             }
+        },
+        {
+            "path": "pages/auth/qrcode-confirm",
+            "type": "page",
+            "layout": "main",
+            "style": {
+                "navigationBarTitleText": "扫码登录确认",
+                "navigationBarBackgroundColor": "#f6f6f6",
+                "navigationBarTextStyle": "black"
+            }
         }
     ],
     "globalStyle": {

@@ -26,6 +26,7 @@ import {
 import appRelease from './appRelease'
 import versionControl from './versionControl'
 import appFeature from './appFeature'
+import * as qrcode from './qrcode'
 
 serviceOptions.axios = request
 
@@ -64,6 +65,7 @@ export default {
     cmsArticle,
     cmsCategory,
     message,
+    qrcode,
     role,
     session,
     sensitiveWord,

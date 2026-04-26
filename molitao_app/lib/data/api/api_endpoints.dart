@@ -146,4 +146,8 @@ class ApiEndpoints {
       '/api/services/app/LoginBinding/GetLoginBindings';
   static const String bindPhone = '/api/services/app/LoginBinding/BindPhone';
   static const String unbindLogin = '/api/services/app/LoginBinding/UnbindLogin';
+
+  // QrCode Login
+  static const String qrCodeUserInfo = '/api/auth/qrcode';
+  static const String qrCodeConfirm = '/api/auth/qrcode/confirm';
 }

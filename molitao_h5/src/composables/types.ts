@@ -316,3 +316,39 @@ export interface ChatEmojiDto {
     /**  */
     id?: number
 }
+
+/** 扫码获取用户信息响应 */
+export interface QrCodeUserInfoDto {
+    /** 用户ID */
+    userId: number
+
+    /** 昵称 */
+    nickname: string
+
+    /** 头像 */
+    avatar: string
+
+    /** 手机号（脱敏: 138****1234） */
+    phone: string
+}
+
+/** 确认登录请求 */
+export interface ConfirmLoginInputDto {
+    /** 二维码code */
+    code: string
+}
+
+/** 登录结果响应 */
+export interface QrCodeLoginResultDto {
+    /** Token */
+    token: string
+
+    /** Token类型 (Bearer) */
+    tokenType: string
+
+    /** 有效期（秒） */
+    expiresIn: number
+
+    /** 用户信息 */
+    user: QrCodeUserInfoDto
+}
