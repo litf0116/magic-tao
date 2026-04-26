@@ -35,8 +35,15 @@ namespace TtWork.Project.Web {
                 CoreConsts.ConnectionStringName
             );
 
+            // 扫描 AppManagement 程序集的应用服务
             Configuration.Modules.AbpAspNetCore().CreateControllersForAppServices(typeof(AppManagementModule).Assembly,
                 moduleName: "AppManagement", useConventionalHttpVerbs: true);
+
+            // 扫描 TtWork.Project.Web.Core 程序集的传统 MVC 控制器 (如 QrCodeAuthController, TokenAuthController)
+            Configuration.Modules.AbpAspNetCore().CreateControllersForAppServices(
+                typeof(ProjectWebCoreModule).Assembly,
+                moduleName: "Project",
+                useConventionalHttpVerbs: true);
 
             // 使用netcore AddNewtonsoftJson中的时间格式
             Configuration.Modules.AbpAspNetCore().UseMvcDateTimeFormatForAppServices = true;

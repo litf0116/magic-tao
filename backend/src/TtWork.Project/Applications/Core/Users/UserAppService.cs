@@ -66,6 +66,7 @@ namespace TtWork.Project.Applications.Core.Users
         private readonly System.Net.Http.HttpClient _httpClient;
         private readonly ILogger<UserAppService> _logger;
         private readonly ISqlSugarClient _sqlSugarClient;
+        private readonly ChatUserCache _chatUserCache;
 
         public UserAppService(
             IRedisClient redisClient,
@@ -82,7 +83,8 @@ namespace TtWork.Project.Applications.Core.Users
             IWeixinApi weixinApi,
             System.Net.Http.HttpClient httpClient,
             ILogger<UserAppService> logger,
-            ISqlSugarClient sqlSugarClient
+            ISqlSugarClient sqlSugarClient,
+            ChatUserCache chatUserCache
         )
             : base(repository, iocManager)
         {
@@ -99,6 +101,7 @@ namespace TtWork.Project.Applications.Core.Users
             _httpClient = httpClient;
             _logger = logger;
             _sqlSugarClient = sqlSugarClient;
+            _chatUserCache = chatUserCache;
 
             base.GetAllPermissionName = AppPermissions.Administration;
             base.DeletePermissionName = AppPermissions.Administration;
@@ -440,6 +443,8 @@ namespace TtWork.Project.Applications.Core.Users
 
             CheckErrors(await _userManager.UpdateAsync(user));
 
+            _chatUserCache.ClearUserCache(user.Id);
+
             return ObjectMapper.Map<UserDto>(user);
         }
 
@@ -528,6 +533,13 @@ namespace TtWork.Project.Applications.Core.Users
                 throw new UserFriendlyException($"Role {input.Id} 不存在!");
             var users = await _userManager.GetUsersInRoleAsync(role.NormalizedName);
             return new ListResultDto<UserDto>(ObjectMapper.Map<List<UserDto>>(users));
+        }
+
+        [AbpAuthorize(AppPermissions.Administration)]
+        public async Task ClearUserCacheAsync(long userId)
+        {
+            _chatUserCache.ClearUserCache(userId);
+            _logger.LogInformation("管理员清除了用户缓存: UserId={UserId}", userId);
         }
 
         public async Task<ListResultDto<RoleDto>> GetRoles()
