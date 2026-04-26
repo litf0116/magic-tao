@@ -23,24 +23,20 @@
 
                 <view class="avatar-wrap">
                     <image
-                        :src="userInfo.avatarUrl || 'https://image.molitao.top/default-avatar.png'"
+                        :src="userInfo.avatar || 'https://image.molitao.top/default-avatar.png'"
                         class="avatar"
                         mode="aspectFill"
                     />
                 </view>
 
                 <view class="user-detail">
-                    <text class="nickname">{{ userInfo.name || '魔力淘用户' }}</text>
-                    <text class="phone">{{ maskPhone(userInfo.phoneNumber) }}</text>
+                    <text class="nickname">{{ userInfo.nickname || '魔力淘用户' }}</text>
+                    <text class="phone">{{ maskPhone(userInfo.phone) }}</text>
                 </view>
 
                 <!-- 操作按钮 -->
                 <view class="action-buttons">
-                    <view
-                        class="confirm-btn"
-                        :class="{ disabled: isConfirming }"
-                        @tap="handleConfirm"
-                    >
+                    <view class="confirm-btn" :class="{ disabled: isConfirming }" @tap="handleConfirm">
                         <text class="confirm-btn-text">{{ isConfirming ? '确认中...' : '确认登录' }}</text>
                     </view>
 
@@ -64,18 +60,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import api from '@/utils/api'
+import type { QrCodeUserInfoDto, QrCodeLoginResultDto } from '@/composables/types'
 
-interface UserInfo {
-    id?: number
-    name?: string
-    phoneNumber?: string
-    avatarUrl?: string
-}
+const userStore = useUserStore()
 
 const code = ref('')
 const isLoading = ref(true)
 const isConfirming = ref(false)
-const userInfo = ref<UserInfo | null>(null)
+const userInfo = ref<QrCodeUserInfoDto | null>(null)
 const errorMessage = ref('')
 
 // 脱敏手机号
@@ -100,17 +92,17 @@ const fetchUserInfo = async () => {
 
     try {
         // 调用 API 获取二维码对应的用户信息
-        // 注意：此 API 需要在 Task 7 中实现
-        const res = (await api.tokenAuth.qrToken(code.value)) as any
+        const res = await api.qrcode.getUserInfoByCode(code.value)
 
-        if (res && res.user) {
-            userInfo.value = res.user
+        if (res && res.userId) {
+            userInfo.value = res
         } else {
             errorMessage.value = '二维码已过期或无效'
         }
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('获取用户信息失败:', error)
-        errorMessage.value = error?.message || '获取登录信息失败'
+        const err = error as { data?: { error?: { message?: string } }; message?: string }
+        errorMessage.value = err?.data?.error?.message || err?.message || '获取登录信息失败'
     } finally {
         isLoading.value = false
     }
@@ -124,31 +116,38 @@ const handleConfirm = async () => {
 
     try {
         // 调用 API 确认登录
-        // 注意：此 API 需要在 Task 7 中实现
-        const res = (await api.tokenAuth.qrToken(code.value)) as any
+        const res: QrCodeLoginResultDto = await api.qrcode.confirmLogin(code.value)
 
-        if (res) {
-            // 如果返回的是 token 字符串，说明已确认成功
-            if (typeof res === 'string' && res) {
-                uni.showToast({ title: '登录成功', icon: 'success' })
-                // 延迟关闭页面
-                setTimeout(() => {
-                    // 返回首页或关闭页面
-                    uni.switchTab({ url: '/pages/tabbar/index' })
-                }, 1000)
-            } else if (res.accessToken) {
-                // 存储 token
-                uni.setStorageSync('token', res.accessToken)
-                uni.showToast({ title: '登录成功', icon: 'success' })
-                setTimeout(() => {
-                    uni.switchTab({ url: '/pages/tabbar/index' })
-                }, 1000)
+        if (res && res.token) {
+            // 存储 token 到 userStore
+            userStore.token = res.token
+            uni.setStorageSync('token', res.token)
+
+            // 如果有用户信息，更新 userStore
+            if (res.user) {
+                userStore.user = {
+                    id: res.user.userId,
+                    name: res.user.nickname,
+                    headImgUrl: res.user.avatar,
+                    phoneNumber: res.user.phone,
+                }
+                uni.setStorageSync('user', userStore.user)
             }
+
+            uni.showToast({ title: '登录成功', icon: 'success' })
+
+            // 延迟跳转到首页
+            setTimeout(() => {
+                uni.switchTab({ url: '/pages/tabbar/index' })
+            }, 1000)
+        } else {
+            throw new Error('登录失败，请重试')
         }
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('确认登录失败:', error)
+        const err = error as { data?: { error?: { message?: string } }; message?: string }
         uni.showToast({
-            title: error?.message || '确认登录失败',
+            title: err?.data?.error?.message || err?.message || '确认登录失败',
             icon: 'none',
             duration: 2000,
         })
@@ -175,7 +174,7 @@ const handleCancel = () => {
 onMounted(() => {
     // 获取 URL 参数中的 code
     const pages = getCurrentPages()
-    const currentPage = pages[pages.length - 1] as any
+    const currentPage = pages[pages.length - 1] as { options?: Record<string, string> }
     const options = currentPage?.options || {}
 
     code.value = options.code || ''

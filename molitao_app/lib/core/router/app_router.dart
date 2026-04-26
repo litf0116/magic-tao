@@ -17,6 +17,7 @@ import '../../presentation/pages/user/balance_log_page.dart';
 import '../../presentation/pages/user/auction_success_list_page.dart';
 import '../../presentation/pages/announce/announce_list_page.dart';
 import '../../presentation/pages/auth/login_page.dart';
+import '../../presentation/pages/auth/qr_code_confirm_page.dart';
 import '../../presentation/pages/settings/settings_page.dart';
 import '../../presentation/pages/settings/account_security_page.dart';
 import '../../presentation/pages/about/about_page.dart';
@@ -65,6 +66,11 @@ GoRouter _createRouter(AuthNotifier authNotifier) {
           final redirect = state.uri.queryParameters['redirect'];
           return LoginPage(redirectPath: redirect);
         },
+      ),
+      GoRoute(
+        path: '/qr-code-confirm',
+        name: 'qr-code-confirm',
+        builder: (context, state) => const QrCodeConfirmPage(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>

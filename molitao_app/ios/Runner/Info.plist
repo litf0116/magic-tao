@@ -71,5 +71,8 @@
 	<string>4e91398522bb1286f6452efb</string>
 	<key>APS_PRODUCTION</key>
 	<string>1</string>
+	<!-- 相机权限 -->
+	<key>NSCameraUsageDescription</key>
+	<string>魔力淘需要使用相机扫描二维码以确认登录</string>
 </dict>
 </plist>

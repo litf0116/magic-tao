@@ -66,6 +66,9 @@ dependencies:
   crypto: ^3.0.6
   package_info_plus: ^9.0.1
 
+  # 二维码扫描
+  mobile_scanner: ^6.0.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
