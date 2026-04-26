@@ -14,8 +14,8 @@ class AboutPage extends ConsumerStatefulWidget {
 }
 
 class _AboutPageState extends ConsumerState<AboutPage> {
-  String _appVersion = '1.3.0';
-  String _buildNumber = '1';
+  String _appVersion = '';
+  String _buildNumber = '';
   bool _isCheckingUpdate = false;
   Map<String, dynamic>? _updateInfo;
 
@@ -51,7 +51,8 @@ class _AboutPageState extends ConsumerState<AboutPage> {
         ApiEndpoints.checkUpdate,
         queryParameters: {
           'platform': Platform.isIOS ? 'ios' : 'android',
-          'currentVersionCode': int.tryParse(_buildNumber) ?? 1,
+          'currentVersionCode': 0,
+          'versionName': _appVersion,
         },
       );
 

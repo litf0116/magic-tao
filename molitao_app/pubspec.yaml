@@ -2,7 +2,7 @@ name: molitao_app
 description: "魔力淘 - 在线拍卖交易平台"
 publish_to: 'none'
 
-version: 1.4.1
+version: 1.5.1
 
 environment:
   sdk: ^3.9.0
@@ -61,9 +61,6 @@ dependencies:
 
   # URL 深度链接
   url_launcher: ^6.3.1
-
-  # 本地路径
-  path_provider: ^2.1.5
 
   # 加密
   crypto: ^3.0.6

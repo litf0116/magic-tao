@@ -11,6 +11,8 @@ import 'data/api/api_client.dart';
 import 'data/api/api_endpoints.dart';
 import 'presentation/widgets/push_notification_banner.dart';
 
+final appUpdateInfoProvider = StateProvider<Map<String, dynamic>?>((ref) => null);
+
 class App extends ConsumerStatefulWidget {
   const App({super.key});
 
@@ -29,69 +31,32 @@ class _AppState extends ConsumerState<App> {
   }
 
   Future<void> _checkAppUpdate() async {
+    if (!mounted) return;
     await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
     try {
       final packageInfo = await PackageInfo.fromPlatform();
-      final buildNumber = int.tryParse(packageInfo.buildNumber) ?? 1;
+      debugPrint('[App] 当前版本: ${packageInfo.version}');
 
       final response = await ApiClient().dio.get(
         ApiEndpoints.checkUpdate,
         queryParameters: {
           'platform': Platform.isIOS ? 'ios' : 'android',
-          'currentVersionCode': buildNumber,
+          'currentVersionCode': 0,
+          'versionName': packageInfo.version,
         },
       );
 
-      if (response.data != null && response.data['success'] == true) {
-        final result = response.data['result'];
-        if (result != null && result['hasUpdate'] == true) {
-          if (mounted) {
-            _showUpdateNotification(result);
-          }
-        }
+      if (!mounted) return;
+      final data = response.data;
+      debugPrint('[App] 检查更新响应: $data');
+
+      if (data != null && data['hasUpdate'] == true) {
+        ref.read(appUpdateInfoProvider.notifier).state = data;
       }
     } catch (e) {
       debugPrint('[App] 检查更新失败: $e');
     }
-  }
-
-  void _showUpdateNotification(Map<String, dynamic> updateInfo) {
-    final latestVersion = updateInfo['latestVersionName'] ?? '';
-    final description = updateInfo['description'] ?? '发现新版本';
-    final downloadUrl = updateInfo['downloadUrl'];
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '发现新版本 v$latestVersion',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            if (description.isNotEmpty)
-              Text(
-                description,
-                style: const TextStyle(fontSize: 12),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-          ],
-        ),
-        backgroundColor: const Color(0xfff4835a),
-        duration: const Duration(seconds: 5),
-        action: SnackBarAction(
-          label: '更新',
-          textColor: Colors.white,
-          onPressed: () {
-            if (downloadUrl != null) {
-              // Navigate to update or open download URL
-            }
-          },
-        ),
-      ),
-    );
   }
 
   void _listenToPushClicks() {

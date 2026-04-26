@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app.dart';
 import '../../../core/utils/image_url_converter.dart';
 import '../../../data/models/advertising_space_model.dart';
 import '../../../data/models/cms_article_model.dart';
+import '../../../data/services/apk_update_service.dart';
 import '../../providers/home_provider.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -18,13 +20,112 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
+  bool _updateDialogShown = false;
+  final ApkUpdateService _updateService = ApkUpdateService();
+  bool _isLaunching = false;
+  String? _launchError;
+
   @override
   void initState() {
     super.initState();
-    // Load data when the page is first initialized
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(homeProvider.notifier).loadHomeData();
     });
+  }
+
+  void _showUpdateDialog(Map<String, dynamic> updateInfo) {
+    final latestVersion = updateInfo['latestVersionName'] ?? '';
+    final description = updateInfo['description'] ?? '发现新版本';
+    final downloadUrl = updateInfo['downloadUrl'];
+    final isForceUpdate = updateInfo['isForceUpdate'] == true;
+
+    _isLaunching = false;
+    _launchError = null;
+
+    showDialog(
+      context: context,
+      barrierDismissible: !isForceUpdate,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('发现新版本'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'v$latestVersion',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xfff4835a),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(description),
+              if (_isLaunching) ...[
+                const SizedBox(height: 16),
+                const Center(child: CircularProgressIndicator()),
+                const SizedBox(height: 8),
+                Center(child: Text('正在打开浏览器...', style: TextStyle(fontSize: 12))),
+              ],
+              if (_launchError != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  _launchError!,
+                  style: const TextStyle(color: Colors.red, fontSize: 12),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            if (!isForceUpdate && !_isLaunching)
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('稍后再说'),
+              ),
+            ElevatedButton(
+              onPressed: _isLaunching
+                  ? null
+                  : () => _launchBrowser(downloadUrl, setDialogState, dialogContext),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xfff4835a),
+                foregroundColor: Colors.white,
+              ),
+              child: Text(_isLaunching ? '请稍候' : '立即更新'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _launchBrowser(
+    String? downloadUrl,
+    StateSetter setDialogState,
+    BuildContext dialogContext,
+  ) async {
+    if (downloadUrl == null || downloadUrl.isEmpty) {
+      setDialogState(() => _launchError = '下载地址无效');
+      return;
+    }
+
+    setDialogState(() {
+      _isLaunching = true;
+      _launchError = null;
+    });
+
+    final success = await _updateService.openDownloadUrl(downloadUrl);
+
+    if (!mounted) return;
+
+    if (success) {
+      Navigator.of(dialogContext).pop();
+    } else {
+      setDialogState(() {
+        _isLaunching = false;
+        _launchError = _updateService.lastError ?? '打开失败';
+      });
+    }
   }
 
   List<Widget> _buildAdRows(List<AdvertisingSpace> spaces) {
@@ -114,6 +215,14 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   Widget build(BuildContext context) {
     final homeState = ref.watch(homeProvider);
+
+    final updateInfo = ref.watch(appUpdateInfoProvider);
+    if (updateInfo != null && !_updateDialogShown) {
+      _updateDialogShown = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showUpdateDialog(updateInfo);
+      });
+    }
 
     return Scaffold(
       appBar: AppBar(
