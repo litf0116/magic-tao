@@ -84,6 +84,7 @@ namespace TtWork.Project.Web.Host.Startup
 
             services.Configure<RedisOptions>(_appConfiguration.GetSection("Redis"));
             services.Configure<JPushSettings>(_appConfiguration.GetSection("JPush"));
+            services.Configure<WebPushSettings>(_appConfiguration.GetSection("WebPush"));
 
             // 注册 IDistributedCache 实现（基于现有的 IRedisClient）
             services.AddSingleton<IDistributedCache, RedisDistributedCache>();
