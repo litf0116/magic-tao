@@ -34,15 +34,8 @@ namespace imServer
 
             var redisClient = new FreeRedis.RedisClient(Configuration["ImServerOption:RedisClient"]);
             
-#if DEBUG
-                //Servers = "8.130.178.251:6001".Split(";"),
-                //Server = "8.130.178.251:6001"
-                var servers = "192.168.10.35:6001".Split(";");
-                var server = "192.168.10.35:6001";
-#else
-                var servers = "ws.molitao.top".Split(";");
-                var server = "ws.molitao.top";
-#endif
+            var servers = (Configuration["ImServerOption:Servers"] ?? "127.0.0.1:6001").Split(";");
+            var server = Configuration["ImServerOption:Server"] ?? "127.0.0.1:6001";
 
             Console.WriteLine($"[ImServer] 配置FreeImServer: Redis={Configuration["ImServerOption:RedisClient"]}, Servers={string.Join(",", servers)}, Server={server}");
             

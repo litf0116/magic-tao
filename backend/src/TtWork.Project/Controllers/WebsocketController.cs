@@ -221,6 +221,7 @@ namespace TtWork.Project.Controllers
                 {
                     await messageRepository.DeleteAsync(input.id.Value);
 
+                    AuctionItemDto? rollbackPayload = null;
                     if (message.Type == ChatMessageType.AuctionBid)
                     {
                         if (!isAdmin.Item1)
@@ -228,11 +229,11 @@ namespace TtWork.Project.Controllers
                             throw new UserFriendlyException("无权操作");
                         }
 
-                        //修改拍卖状
+                        //修改拍卖状态并获取回滚后的价格信息
                         var payload = message.Payload.FromJsonString<AuctionItemDto>();
                         if (payload is { Id: > 0 })
                         {
-                            await mediator.Publish(new RollBackAuctionEvent(payload));
+                            rollbackPayload = await mediator.Send(new RollBackAuctionEvent(payload));
                         }
                     }
 
@@ -244,7 +245,8 @@ namespace TtWork.Project.Controllers
                             id = message.Id,
                             type = ChatMessageType.Backout,
                             msg = isAdmin.Item1 ? "管理员撤回了一条消息" : $"{message.FromName} 撤回了一条消息",
-                            chan = message.Chan
+                            chan = message.Chan,
+                            payload = rollbackPayload
                         });
                     else
                         ImHelper.SendMessage(0, [message.From, message.To!.Value], new ChatMessage
@@ -252,6 +254,7 @@ namespace TtWork.Project.Controllers
                             id = message.Id,
                             type = ChatMessageType.Backout,
                             msg = isAdmin.Item1 ? "管理员撤回了一条消息" : $"{message.FromName} 撤回了一条消息",
+                            payload = rollbackPayload
                         });
                 }
             }

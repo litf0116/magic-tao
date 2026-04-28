@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Abp.Domain.Repositories;
 using Abp.Domain.Uow;
+using Abp.ObjectMapping;
 using Abp.UI;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -11,16 +12,17 @@ using TtWork.Project.Services.Cache;
 
 namespace TtWork.Project.Events.Commands;
 
-public class RollBackAuctionEvent(AuctionItemDto payload) : MediatR.INotification {
+public class RollBackAuctionEvent(AuctionItemDto payload) : IRequest<AuctionItemDto> {
     public AuctionItemDto Payload { get; } = payload;
 
     public class RollBackAuctionEventHandler(
         IRepository<AuctionItem, long> repository,
         IRepository<BidHistory, long> bitHistoryRepository,
-        IAuctionItemCacheService cacheService)
-        : INotificationHandler<RollBackAuctionEvent> {
+        IAuctionItemCacheService cacheService,
+        IObjectMapper objectMapper)
+        : IRequestHandler<RollBackAuctionEvent, AuctionItemDto> {
         [UnitOfWork]
-        public virtual async Task Handle(RollBackAuctionEvent notification, CancellationToken cancellationToken) {
+        public virtual async Task<AuctionItemDto> Handle(RollBackAuctionEvent notification, CancellationToken cancellationToken) {
             var auctionItem = await repository.GetAsync(notification.Payload.Id);
             if (auctionItem != null) {
                 if (auctionItem.Status == AuctionStatusEnum.已成交)
@@ -54,8 +56,11 @@ public class RollBackAuctionEvent(AuctionItemDto payload) : MediatR.INotificatio
                     await cacheService.ClearAuctionDetailCacheAsync(auctionItem.Id);
                     await cacheService.ClearAuctionListCacheAsync(AuctionStatusEnum.拍卖中);
                     await cacheService.ClearCurrentAuctionCacheAsync();
+
+                    return objectMapper.Map<AuctionItemDto>(auctionItem);
                 }
             }
+            return null;
         }
     }
 }

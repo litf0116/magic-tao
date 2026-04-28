@@ -310,6 +310,16 @@ export const useChatStore = defineStore('chat', () => {
                     router.push({ path: '/chat/index/auction', replace: true })
                 }
             }
+        } else if (msg.type === ChatMessageType.Backout) {
+            // 处理消息撤回 - 删除对应ID的消息
+            console.log('收到撤回消息，删除消息ID:', msg.id)
+            removeMessage(msg.id)
+            // 如果 payload 中有价格信息，更新拍卖价格
+            if (msg.payload && msg.payload.id) {
+                console.log('撤回消息包含价格信息，更新价格:', msg.payload)
+                auctionStore.updateAuctionItemFromBidMessage(msg.payload)
+            }
+            return
         } else if (msg.chan) {
             if (msg.msg === CREATEGROUPEVENT) {
                 getGropus()
@@ -428,6 +438,12 @@ export const useChatStore = defineStore('chat', () => {
             console.log('=== 处理正常出价消息 ===')
             // 使用新的增量更新方法，避免重新请求整个列表
             auctionStore.updateAuctionItemFromBidMessage(msg.payload)
+
+            // 如果是系统消息(from=0)，只更新价格不添加到聊天列表
+            if (msg.from === 0) {
+                console.log('系统价格更新消息，不添加到聊天列表')
+                return
+            }
         }
 
         // 检查是否是编码的成交消息
