@@ -15,6 +15,22 @@
             <!-- 相机预览 -->
             <view id="qr-reader" class="qr-reader"></view>
 
+            <!-- 扫描框动画 -->
+            <view class="scan-frame">
+                <!-- 四角 -->
+                <view class="scan-corner scan-corner-left-top"></view>
+                <view class="scan-corner scan-corner-right-top"></view>
+                <view class="scan-corner scan-corner-left-bottom"></view>
+                <view class="scan-corner scan-corner-right-bottom"></view>
+                <!-- 扫描线 -->
+                <view class="scan-line" :class="{ 'scan-line-active': isScanning }"></view>
+            </view>
+
+            <!-- 扫描成功动画 -->
+            <view v-if="scanSuccess" class="scan-success">
+                <text class="success-icon">✓</text>
+            </view>
+
             <!-- 扫描提示 -->
             <view class="scan-hint">
                 <text class="hint-text">将二维码放入框内，即可自动扫描</text>
@@ -45,12 +61,14 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { Html5Qrcode } from 'html5-qrcode'
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode'
 import api from '@/utils/api'
 
 const userStore = useUserStore()
 
 const isInitializing = ref(true)
+const isScanning = ref(false)
+const scanSuccess = ref(false)
 const errorMessage = ref('')
 const scannedCode = ref('')
 let html5QrCode: Html5Qrcode | null = null
@@ -64,14 +82,16 @@ const initScanner = async () => {
 
         const config = {
             fps: 10,
-            qrbox: { width: 250, height: 250 },
-            aspectRatio: 1.0,
-            focusMode: 'continuous' as const,
+            qrbox: { width: 280, height: 280 },
+            aspectRatio: 1.777778,
+            disableFlip: false,
+            formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
         }
 
         await html5QrCode.start({ facingMode: 'environment' }, config, onScanSuccess, onScanFailure)
 
         isInitializing.value = false
+        isScanning.value = true
     } catch (err: unknown) {
         console.error('启动相机失败:', err)
         isInitializing.value = false
@@ -101,6 +121,10 @@ const onScanSuccess = async (decodedText: string) => {
         uni.showToast({ title: '无效的二维码', icon: 'none' })
         return
     }
+
+    // 显示成功动画
+    isScanning.value = false
+    scanSuccess.value = true
 
     // 停止扫描
     if (html5QrCode) {
@@ -249,6 +273,121 @@ onUnmounted(() => {
 
     :deep(#qr-reader-shader) {
         border-radius: 24rpx;
+    }
+}
+
+// 扫描框
+.scan-frame {
+    position: absolute;
+    width: 280rpx;
+    height: 280rpx;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+// 四角样式
+.scan-corner {
+    position: absolute;
+    width: 40rpx;
+    height: 40rpx;
+    border-color: #f4835a;
+    border-style: solid;
+    border-width: 0;
+}
+
+.scan-corner-left-top {
+    top: 0;
+    left: 0;
+    border-top-width: 4rpx;
+    border-left-width: 4rpx;
+    border-top-left-radius: 16rpx;
+}
+
+.scan-corner-right-top {
+    top: 0;
+    right: 0;
+    border-top-width: 4rpx;
+    border-right-width: 4rpx;
+    border-top-right-radius: 16rpx;
+}
+
+.scan-corner-left-bottom {
+    bottom: 0;
+    left: 0;
+    border-bottom-width: 4rpx;
+    border-left-width: 4rpx;
+    border-bottom-left-radius: 16rpx;
+}
+
+.scan-corner-right-bottom {
+    bottom: 0;
+    right: 0;
+    border-bottom-width: 4rpx;
+    border-right-width: 4rpx;
+    border-bottom-right-radius: 16rpx;
+}
+
+// 扫描线
+.scan-line {
+    position: absolute;
+    left: 8rpx;
+    right: 8rpx;
+    height: 4rpx;
+    background: linear-gradient(90deg, transparent, #f4835a, transparent);
+    top: 0;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.scan-line-active {
+    opacity: 1;
+    animation: scan-line 2s linear infinite;
+}
+
+@keyframes scan-line {
+    0% {
+        top: 0;
+    }
+    100% {
+        top: 100%;
+    }
+}
+
+// 扫描成功
+.scan-success {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120rpx;
+    height: 120rpx;
+    background: rgba(244, 131, 90, 0.9);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: success-pop 0.5s ease-out;
+}
+
+.success-icon {
+    font-size: 60rpx;
+    color: #fff;
+    font-weight: bold;
+}
+
+@keyframes success-pop {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.2);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
     }
 }
 
