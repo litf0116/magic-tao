@@ -287,7 +287,7 @@ namespace TtWork.Project.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost("SendChannelMsg")]
-        // [HttpPost]
+        [AbpAuthorize]
         public async Task SendChannelMsg([FromBody] SendChangeMsgInput input)
         {
             var cacheUser = await userCache.GetAsync(AbpSession.UserId!.Value);
@@ -412,6 +412,7 @@ namespace TtWork.Project.Controllers
         /// <param name="isReceipt">是否需要回执</param>
         /// <returns></returns>
         [HttpPost("send-msg")]
+        [AbpAuthorize]
         public async Task<object> SendMsg([FromBody] SendMsgInput input)
         {
             var cacheUser = await userCache.GetAsync(AbpSession.UserId!.Value);

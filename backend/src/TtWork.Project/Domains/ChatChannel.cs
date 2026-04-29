@@ -121,7 +121,7 @@ public class ChatChannel : Entity<long>, IHasCreationTime, IHasModificationTime
     /// <summary>
     /// 最后一条消息发送者头像
     /// </summary>
-    [StringLength(128)]
+    [StringLength(512)]
     public string LastMessageFromAvatar { get; set; }
 
     /// <summary>
