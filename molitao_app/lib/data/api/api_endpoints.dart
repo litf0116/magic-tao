@@ -100,6 +100,7 @@ class ApiEndpoints {
   static const String deleteChatList =
       '/api/services/app/Client/DeleteChatList';
   static const String payWithdrawal = '/api/services/app/Client/PayWithdrawal';
+  static const String getMyWechatOpenId = '/api/services/app/Client/GetMyWechatOpenId';
 
   // UserBalanceLog
   static const String getUserBalanceLog =

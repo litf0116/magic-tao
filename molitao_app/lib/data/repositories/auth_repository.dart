@@ -232,4 +232,21 @@ class AuthRepository {
       throw Exception('手机号登录失败: ${e.message}');
     }
   }
+
+  /// 获取当前用户的微信 OpenId
+  /// 返回 null 表示用户没有通过微信 App 登录
+  Future<String?> getMyWechatOpenId() async {
+    try {
+      final response = await _apiClient.dio.get(
+        ApiEndpoints.getMyWechatOpenId,
+      );
+      if (response.data != null) {
+        return response.data as String?;
+      }
+      return null;
+    } on DioException catch (e) {
+      _debugLog('[AuthRepository] 获取微信 OpenId 失败: ${e.message}');
+      return null;
+    }
+  }
 }

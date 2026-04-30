@@ -13,11 +13,13 @@ import '../../../data/models/announce_model.dart';
 import '../../../data/models/auction_item_model.dart';
 import '../../../data/models/chat_message_model.dart';
 import '../../../data/repositories/announce_repository.dart';
+import '../../../data/repositories/auth_repository.dart';
 import '../../../data/repositories/chat_repository.dart';
 import '../../../data/repositories/friend_repository.dart';
 import '../../../data/repositories/user_repository.dart';
 import '../../../data/services/notification_permission_service.dart';
 import '../../../data/services/upload_service.dart';
+import '../../../data/services/wechat_service.dart';
 import '../../providers/auction_provider.dart';
 import '../../providers/chat_emoji_store.dart';
 import '../../providers/chat_store.dart';
@@ -1748,7 +1750,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   }
 
   /// 订阅开拍通知
-  /// 订阅开拍通知（简化版，仅系统订阅，不调用微信订阅消息）
+  /// 支持微信一次性订阅消息 + 极光推送
   Future<void> _subscribeNotification(int? auctionItemId) async {
     debugPrint('[订阅通知] 开始订阅, auctionItemId=$auctionItemId');
     if (auctionItemId == null) {
@@ -1756,6 +1758,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
       return;
     }
 
+    // 1. 检查 APP 通知权限
     final permissionService = NotificationPermissionService();
     final hasPermission = await permissionService.checkPermission();
     if (!hasPermission) {
@@ -1764,8 +1767,36 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
       return;
     }
 
-    // 直接调用后端订阅接口
-    await _saveSubscription(auctionItemId);
+    // 2. 获取用户微信 OpenId
+    final authRepository = AuthRepository();
+    final openId = await authRepository.getMyWechatOpenId();
+    debugPrint('[订阅通知] 用户 OpenId: $openId');
+
+    // 3. 如果有 OpenId，调用微信一次性订阅消息授权
+    String? subscribedOpenId;
+    if (openId != null && openId.isNotEmpty) {
+      try {
+        final weChatService = WeChatService();
+        // 使用带回调的方法，等待用户实际授权结果
+        // 用户同意则 subscribed=true，用户拒绝或超时则 subscribed=false
+        final subscribed = await weChatService.requestSubscribeMessageWithCallback(
+          scene: 1,
+          reserved: auctionItemId.toString(),
+        );
+        debugPrint('[订阅通知] 微信订阅用户操作结果: $subscribed');
+        if (subscribed) {
+          subscribedOpenId = openId;
+        }
+      } catch (e) {
+        debugPrint('[订阅通知] 微信订阅异常: $e');
+      }
+    } else {
+      debugPrint('[订阅通知] 用户没有 OpenId，跳过微信订阅');
+    }
+
+    // 4. 调用后端保存订阅记录
+    // 后端会根据 platform 和 openid 决定发送渠道：微信订阅消息 + 极光推送
+    await _saveSubscription(auctionItemId, openid: subscribedOpenId);
   }
 
   Future<void> _saveSubscription(int auctionItemId, {String? openid}) async {

@@ -174,6 +174,30 @@ public class ClientAppService(
     }
 
     /// <summary>
+    /// 获取当前用户的微信 OpenId（App 端）
+    /// </summary>
+    /// <returns>OpenId 如果存在，否则返回 null</returns>
+    [HttpGet]
+    [AbpAuthorize]
+    public async Task<string> GetMyWechatOpenId()
+    {
+        var userId = AbpSession.UserId;
+        if (!userId.HasValue)
+        {
+            return null;
+        }
+
+        // 查询用户的微信 App 登录记录
+        var userLogin = await userRepository.GetAll()
+            .Where(u => u.Id == userId.Value)
+            .SelectMany(u => u.Logins)
+            .Where(l => l.LoginProvider == TtWork.Abp.Consts.LoginProvider.WeChatApp)
+            .FirstOrDefaultAsync();
+
+        return userLogin?.ProviderKey;
+    }
+
+    /// <summary>
     /// 保证金 Native 支付（PC 端扫码支付）
     /// </summary>
     /// <param name="amount">支付金额，如果不指定则使用默认保证金金额</param>
