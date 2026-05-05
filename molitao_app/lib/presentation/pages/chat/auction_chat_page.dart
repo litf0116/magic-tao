@@ -435,10 +435,10 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
             controller: priceController,
             keyboardType: TextInputType.number,
             decoration: InputDecoration(
-              hintText: isKasecMode
-                  ? '⚠️ 卡秒模式-需三倍加价(最低出价$minPrice R)'
-                  : '请输入出价金额(最低出价$minPrice R)',
+              labelText: '出价金额',
+              hintText: '最低出价 $minPrice R',
               suffixText: 'R',
+              isDense: true,
             ),
           ),
           actions: [
