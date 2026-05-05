@@ -525,11 +525,11 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 {
                     // 有出价情况：设置为已成交
 
-                    // 验证出价记录一致性
-                    var maxPrice = await _bidHistoryRepository.GetAll().AsNoTracking()
-                        .Where(x => x.AuctionItemId == auctionItem.Id)
-                        .OrderByDescending(x => x.BidPrice)
-                        .FirstOrDefaultAsync();
+                // 验证出价记录一致性
+                var maxPrice = await _bidHistoryRepository.GetAll().AsNoTracking()
+                    .Where(x => x.AuctionItemId == auctionItem.Id && !x.IsRollBack)
+                    .OrderByDescending(x => x.BidPrice)
+                    .FirstOrDefaultAsync();
 
                     if (maxPrice == null || maxPrice.BidPrice != find.CurrentPrice)
                     {
@@ -1043,7 +1043,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
 
                 // 验证出价记录一致性
                 var maxPrice = await _bidHistoryRepository.GetAll().AsNoTracking()
-                    .Where(x => x.AuctionItemId == input.Id)
+                    .Where(x => x.AuctionItemId == input.Id && !x.IsRollBack)
                     .OrderByDescending(x => x.BidPrice)
                     .FirstOrDefaultAsync();
 

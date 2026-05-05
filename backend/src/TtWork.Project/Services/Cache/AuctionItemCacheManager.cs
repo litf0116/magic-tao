@@ -514,7 +514,7 @@ namespace TtWork.Project.Services.Cache
             if (auctionItem.Status == AuctionStatusEnum.拍卖中)
             {
                 var latestBid = await _bidHistoryRepository.GetAll().AsNoTracking()
-                    .Where(w => w.AuctionItemId == auctionItemId)
+                    .Where(w => w.AuctionItemId == auctionItemId && !w.IsRollBack)
                     .OrderByDescending(o => o.BidTime)
                     .FirstOrDefaultAsync();
 
@@ -550,7 +550,7 @@ namespace TtWork.Project.Services.Cache
 
             // 获取最新的出价信息
             var latestBid = await _bidHistoryRepository.GetAll().AsNoTracking()
-                .Where(w => w.AuctionItemId == auctionItem.Id)
+                .Where(w => w.AuctionItemId == auctionItem.Id && !w.IsRollBack)
                 .OrderByDescending(o => o.BidTime)
                 .FirstOrDefaultAsync();
 
@@ -588,19 +588,26 @@ namespace TtWork.Project.Services.Cache
             // 获取所有商品编号
             var idList = items.Select(x => x.Id).ToList();
 
-            // 查询物品出价信息
-            var bidList = await _bidHistoryRepository.GetAll().AsNoTracking()
-                .Where(w => idList.Contains(w.AuctionItemId))
+            // 查询每个商品的最新有效出价（排除已撤回的出价）
+            // 使用 GroupBy 在数据库层面获取每个商品的最新出价，减少数据传输量
+            var latestBids = await _bidHistoryRepository.GetAll().AsNoTracking()
+                .Where(w => idList.Contains(w.AuctionItemId) && !w.IsRollBack)
+                .GroupBy(w => w.AuctionItemId)
+                .Select(g => new
+                {
+                    AuctionItemId = g.Key,
+                    LatestBid = g.OrderByDescending(x => x.BidTime).FirstOrDefault()
+                })
                 .ToListAsync();
+
+            // 构建字典以便快速查找
+            var latestBidDict = latestBids
+                .Where(x => x.LatestBid != null)
+                .ToDictionary(x => x.AuctionItemId, x => x.LatestBid);
 
             foreach (var item in result.Items)
             {
-                // 查询最新的出价信息
-                var info = bidList.Where(w => w.AuctionItemId == item.Id)
-                    .OrderByDescending(o => o.BidTime)
-                    .FirstOrDefault();
-
-                if (info != null)
+                if (latestBidDict.TryGetValue(item.Id, out var info))
                 {
                     item.CurrentPrice = info.BidPrice;
                     item.CurrentPriceUserName = info.BidUserName;
