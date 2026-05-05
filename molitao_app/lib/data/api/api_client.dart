@@ -9,7 +9,7 @@ class ApiClient {
   Dio get dio => _dio;
 
   ApiClient._internal() {
-    final baseUrl = String.fromEnvironment(
+final baseUrl = String.fromEnvironment(
       'API_BASE_URL',
       defaultValue: 'https://www.molitao.top',
     );

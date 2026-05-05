@@ -20,6 +20,7 @@ import '../../../data/repositories/user_repository.dart';
 import '../../../data/services/notification_permission_service.dart';
 import '../../../data/services/upload_service.dart';
 import '../../../data/services/wechat_service.dart';
+import '../../../core/widgets/app_bottom_sheet.dart';
 import '../../providers/auction_provider.dart';
 import '../../providers/chat_emoji_store.dart';
 import '../../providers/chat_store.dart';
@@ -429,68 +430,165 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
 
       showDialog(
         context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: Text(isKasecMode ? '卡秒出价' : '出价'),
-          content: TextField(
-            controller: priceController,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              labelText: '出价金额',
-              hintText: '最低出价 $minPrice R',
-              suffixText: 'R',
-              isDense: true,
+        builder: (dialogContext) => Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 标题
+                Text(
+                  isKasecMode ? '卡秒出价 - 需三倍加价' : '出价',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF333333),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // 卡秒模式警告
+                if (isKasecMode)
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF5F5),
+                      border: Border.all(color: Colors.red),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      '您已卡秒出价，需加够三倍加价才有效\n（最低出价：$minPrice R）',
+                      style: const TextStyle(color: Colors.red, fontSize: 14),
+                      textAlign: TextAlign.center,
+                    ),
+                  )
+                else
+                  Text(
+                    '最低出价 $minPrice R',
+                    style: const TextStyle(color: Color(0xFF666666), fontSize: 14),
+                  ),
+
+                const SizedBox(height: 16),
+
+                // 输入框
+                TextField(
+                  controller: priceController,
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 16),
+                  decoration: InputDecoration(
+                    hintText: '请输入出价金额',
+                    suffixText: 'R',
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFF007AFF)),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // 按钮区域
+                Row(
+                  children: [
+                    // 取消按钮
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => Navigator.pop(dialogContext),
+                        child: Container(
+                          height: 40,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF5F5F5),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            '取消',
+                            style: TextStyle(fontSize: 16, color: Color(0xFF333333)),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 15),
+                    // 确定按钮
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () async {
+                          final price = int.tryParse(priceController.text);
+                          if (price == null) {
+                            ScaffoldMessenger.of(dialogContext).showSnackBar(
+                              const SnackBar(content: Text('请输入数字')),
+                            );
+                            return;
+                          }
+
+                          if (price < 5) {
+                            ScaffoldMessenger.of(dialogContext).showSnackBar(
+                              const SnackBar(content: Text('最低出价为5R，请重新出价')),
+                            );
+                            return;
+                          }
+
+                          if (isKasecMode && price < minPrice) {
+                            ScaffoldMessenger.of(dialogContext).showSnackBar(
+                              SnackBar(content: Text('卡秒模式需要三倍加价，最低出价为$minPrice')),
+                            );
+                            return;
+                          }
+
+                          Navigator.pop(dialogContext);
+
+                          final success = await ref
+                              .read(auctionProvider.notifier)
+                              .bid(auctionItemId, price.toDouble());
+
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(success ? '出价成功: $price R' : '出价失败，请重试'),
+                              ),
+                            );
+                            if (success) {
+                              ref.read(auctionProvider.notifier).loadAuctions();
+                            }
+                          }
+                        },
+                        child: Container(
+                          height: 40,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            gradient: isKasecMode
+                                ? const LinearGradient(
+                                    colors: [Color(0xFFFF7144), Color(0xFFFF9500)],
+                                  )
+                                : const LinearGradient(
+                                    colors: [Color(0xFF007AFF), Color(0xFF0056CC)],
+                                  ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            '确定',
+                            style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('取消'),
-            ),
-            TextButton(
-              onPressed: () async {
-                final price = int.tryParse(priceController.text);
-                if (price == null) {
-                  ScaffoldMessenger.of(
-                    dialogContext,
-                  ).showSnackBar(const SnackBar(content: Text('请输入数字')));
-                  return;
-                }
-
-                if (price < 5) {
-                  ScaffoldMessenger.of(dialogContext).showSnackBar(
-                    const SnackBar(content: Text('最低出价为5R，请重新出价')),
-                  );
-                  return;
-                }
-
-                if (isKasecMode && price < minPrice) {
-                  ScaffoldMessenger.of(dialogContext).showSnackBar(
-                    SnackBar(content: Text('卡秒模式需要三倍加价，最低出价为$minPrice')),
-                  );
-                  return;
-                }
-
-                Navigator.pop(dialogContext);
-
-                final success = await ref
-                    .read(auctionProvider.notifier)
-                    .bid(auctionItemId, price.toDouble());
-
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(success ? '出价成功: $price R' : '出价失败，请重试'),
-                    ),
-                  );
-                  // 出价成功后刷新拍卖列表
-                  if (success) {
-                    ref.read(auctionProvider.notifier).loadAuctions();
-                  }
-                }
-              },
-              child: const Text('确定'),
-            ),
-          ],
         ),
       );
     } catch (e) {
@@ -1030,83 +1128,58 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
     // 关闭键盘
     FocusScope.of(context).unfocus();
 
-    showModalBottomSheet(
+    final actions = <ActionSheetItem>[];
+
+    // 图片消息：收藏至表情（与 UniApp 一致，所有图片消息都可收藏）
+    if (isImage) {
+      actions.add(ActionSheetItem(
+        icon: Icons.favorite_border,
+        title: '收藏至表情',
+        onTap: () => _addToFavorites(message),
+      ));
+    }
+
+    // 撤销（仅自己的消息）
+    if (isSelf) {
+      actions.add(ActionSheetItem(
+        icon: Icons.undo,
+        title: '撤销',
+        onTap: () => _backoutMessage(message),
+      ));
+    }
+
+    // 加为好友（不是自己的消息）
+    if (!isSelf) {
+      actions.add(ActionSheetItem(
+        icon: Icons.person_add,
+        title: '加为好友',
+        onTap: () => _addFriend(message),
+      ));
+    }
+
+    // 私聊（管理员或发送者是管理员，且不是自己）
+    if ((isAdmin || senderIsAdmin) && !isSelf) {
+      actions.add(ActionSheetItem(
+        icon: Icons.chat_bubble_outline,
+        title: '私聊',
+        onTap: () => _startPrivateChat(message),
+      ));
+    }
+
+    // 查看资料（不是自己的消息）
+    if (!isSelf) {
+      actions.add(ActionSheetItem(
+        icon: Icons.person,
+        title: '查看资料',
+        onTap: () => _viewUserInfo(message),
+      ));
+    }
+
+    showAppBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // 图片消息：收藏至表情（与 UniApp 一致，所有图片消息都可收藏）
-            if (isImage) ...[
-              ListTile(
-                leading: const Icon(Icons.favorite_border),
-                title: const Text('收藏至表情'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _addToFavorites(message);
-                },
-              ),
-              const Divider(height: 1),
-            ],
-            // 撤销（仅自己的消息）
-            if (isSelf) ...[
-              ListTile(
-                leading: const Icon(Icons.undo),
-                title: const Text('撤销'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _backoutMessage(message);
-                },
-              ),
-              const Divider(height: 1),
-            ],
-            // 加为好友（不是自己的消息）
-            if (!isSelf) ...[
-              ListTile(
-                leading: const Icon(Icons.person_add),
-                title: const Text('加为好友'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _addFriend(message);
-                },
-              ),
-              const Divider(height: 1),
-            ],
-            // 私聊（管理员或发送者是管理员，且不是自己）
-            if ((isAdmin || senderIsAdmin) && !isSelf) ...[
-              ListTile(
-                leading: const Icon(Icons.chat_bubble_outline),
-                title: const Text('私聊'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _startPrivateChat(message);
-                },
-              ),
-              const Divider(height: 1),
-            ],
-            // 查看资料（不是自己的消息）
-            if (!isSelf) ...[
-              ListTile(
-                leading: const Icon(Icons.person),
-                title: const Text('查看资料'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _viewUserInfo(message);
-                },
-              ),
-              const Divider(height: 1),
-            ],
-            // 取消
-            ListTile(
-              leading: const Icon(Icons.close),
-              title: const Text('取消'),
-              onTap: () => Navigator.pop(context),
-            ),
-          ],
-        ),
+      builder: (context) => AppActionSheet(
+        actions: actions,
+        onCancel: () {},
       ),
     );
   }
@@ -1444,12 +1517,8 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
     // 关闭键盘，防止关闭 modal 后键盘弹出
     FocusScope.of(context).unfocus();
 
-    showModalBottomSheet(
+    showScrollableBottomSheet(
       context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.6,
         minChildSize: 0.3,

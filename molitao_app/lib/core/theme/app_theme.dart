@@ -21,6 +21,7 @@ class AppTheme {
       bottomNavigationBarTheme: _buildBottomNavigationBarTheme(),
       elevatedButtonTheme: _buildElevatedButtonTheme(),
       outlinedButtonTheme: _buildOutlinedButtonTheme(),
+      dialogTheme: _buildDialogTheme(),
     );
   }
 
@@ -100,6 +101,25 @@ class AppTheme {
               AppTextStyles.button.copyWith(fontWeight: FontWeight.bold),
             ),
           ),
+    );
+  }
+
+  static DialogThemeData _buildDialogTheme() {
+    return const DialogThemeData(
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(16.0)),
+      ),
+      titleTextStyle: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+        color: Color(0xFF333333),
+      ),
+      contentTextStyle: TextStyle(
+        fontSize: 14,
+        color: Color(0xFF666666),
+      ),
     );
   }
 }

@@ -7,6 +7,7 @@ import '../../../data/api/api_client.dart';
 import '../../../data/api/api_endpoints.dart';
 import '../../../data/repositories/payment_repository.dart';
 import '../../providers/user_provider.dart';
+import '../../../core/widgets/app_bottom_sheet.dart';
 
 /// 魔力值保证金固定金额
 const double _depositAmount = 51;
@@ -467,38 +468,26 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   }
 
   void _payDeposit(BuildContext context) {
-    showModalBottomSheet(
+    showAppBottomSheet(
       context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      builder: (context) => _DepositBottomSheet(
+        onDepositSuccess: () {
+          // 刷新用户数据
+          _loadMyCount();
+        },
       ),
-      builder: (BuildContext context) {
-        return _DepositBottomSheet(
-          onDepositSuccess: () {
-            // 刷新用户数据
-            _loadMyCount();
-          },
-        );
-      },
     );
   }
 
   void _cashOut(BuildContext context) {
-    showModalBottomSheet(
+    showAppBottomSheet(
       context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      builder: (context) => _WithdrawalBottomSheet(
+        onWithdrawSuccess: () {
+          // 刷新用户数据
+          _loadMyCount();
+        },
       ),
-      builder: (BuildContext context) {
-        return _WithdrawalBottomSheet(
-          onWithdrawSuccess: () {
-            // 刷新用户数据
-            _loadMyCount();
-          },
-        );
-      },
     );
   }
 

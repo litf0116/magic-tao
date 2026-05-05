@@ -5,6 +5,7 @@ import '../../../data/models/chat_list_item_model.dart' as model;
 import '../../providers/chat_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../mixins/auth_guard_mixin.dart';
+import '../../../core/widgets/app_bottom_sheet.dart';
 import 'package:intl/intl.dart';
 
 class ChatListPage extends ConsumerStatefulWidget {
@@ -401,24 +402,16 @@ class _ChatListPageState extends ConsumerState<ChatListPage>
     WidgetRef ref,
     model.ChatListItem chatItem,
   ) {
-    showModalBottomSheet(
+    showAppBottomSheet(
       context: context,
-      builder: (BuildContext context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                title: const Text('删除聊天', textAlign: TextAlign.center),
-                onTap: () {
-                  Navigator.pop(context);
-                  _confirmDelete(context, ref, chatItem);
-                },
-              ),
-            ],
+      builder: (context) => AppActionSheet(
+        actions: [
+          ActionSheetItem(
+            title: '删除聊天',
+            onTap: () => _confirmDelete(context, ref, chatItem),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 

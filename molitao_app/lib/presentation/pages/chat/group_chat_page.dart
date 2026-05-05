@@ -9,6 +9,7 @@ import '../../../data/models/chat_message_model.dart';
 import '../../../data/services/upload_service.dart';
 import '../../widgets/chat/messages/message_widget.dart';
 import '../../widgets/chat/chat_input_area.dart';
+import '../../../core/widgets/app_bottom_sheet.dart';
 
 /// 群聊页面
 /// 与 UniApp chatMain.vue 保持一致
@@ -83,41 +84,26 @@ class _GroupChatPageState extends ConsumerState<GroupChatPage> {
   }
 
   void _showMemberList() {
-    showModalBottomSheet(
+    showAppBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              '群成员',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              '暂无成员信息',
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
-      builder: (BuildContext context) {
-        return Container(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                '群成员',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                '暂无成员信息',
-                style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
-              ),
-              const SizedBox(height: 24),
-            ],
-          ),
-        );
-      },
     );
   }
 

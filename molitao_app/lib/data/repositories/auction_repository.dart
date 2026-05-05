@@ -77,7 +77,7 @@ class AuctionRepository {
     try {
       final response = await _apiClient.dio.post(
         ApiEndpoints.bid,
-        data: {'auctionItemId': auctionItemId, 'bidPrice': bidPrice},
+        data: {'auctionItemId': auctionItemId, 'bidPrice': bidPrice.toInt()},
       );
 
       if (response.data != null) {

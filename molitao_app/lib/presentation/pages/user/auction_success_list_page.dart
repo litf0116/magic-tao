@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../data/models/auction_item_model.dart';
 import '../../../data/repositories/auction_repository.dart';
 import '../../../core/utils/image_url_converter.dart';
+import '../../../core/widgets/app_bottom_sheet.dart';
 
 class AuctionSuccessListPage extends ConsumerStatefulWidget {
   const AuctionSuccessListPage({super.key});
@@ -199,43 +200,41 @@ class _AuctionSuccessListPageState
   }
 
   void _showDetail(AuctionItemDto item) {
-    showModalBottomSheet(
+    showAppBottomSheet(
       context: context,
-      builder: (BuildContext context) {
-        return Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '商品名称：${item.name ?? ''}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '商品名称：${item.name ?? ''}',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              item.description ?? '',
+              style: const TextStyle(fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xfff4835a),
+                  foregroundColor: Colors.white,
                 ),
+                child: const Text('关闭'),
               ),
-              const SizedBox(height: 8),
-              Text(
-                item.description ?? '',
-                style: const TextStyle(fontSize: 14),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xfff4835a),
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text('关闭'),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
