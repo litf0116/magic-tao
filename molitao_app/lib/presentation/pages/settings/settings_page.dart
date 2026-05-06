@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'dart:io';
 import '../../providers/user_provider.dart';
+import '../../../data/services/notification_permission_service.dart';
+import '../../../core/theme/app_colors.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -14,17 +15,56 @@ class SettingsPage extends ConsumerStatefulWidget {
   ConsumerState<SettingsPage> createState() => _SettingsPageState();
 }
 
-class _SettingsPageState extends ConsumerState<SettingsPage> {
+class _SettingsPageState extends ConsumerState<SettingsPage>
+    with WidgetsBindingObserver {
   bool _pushNotificationEnabled = true;
+  NotificationPermissionState _systemPermissionState =
+      NotificationPermissionState.unknown;
   String _cacheSize = '计算中...';
   String _appVersion = '';
+
+  final _permissionService = NotificationPermissionService();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadSettings();
+    _checkSystemPermission();
     _calculateCacheSize();
     _loadAppVersion();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // 用户从系统设置返回时，重新检查权限状态
+    if (state == AppLifecycleState.resumed) {
+      _checkSystemPermission();
+    }
+  }
+
+  /// 检查系统通知权限状态
+  Future<void> _checkSystemPermission() async {
+    try {
+      final state = await _permissionService.getPermissionState();
+      if (mounted) {
+        setState(() {
+          _systemPermissionState = state;
+          // 如果系统权限关闭，同步关闭 App 内开关
+          if (state != NotificationPermissionState.granted) {
+            _pushNotificationEnabled = false;
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('[Settings] 检查权限失败: $e');
+    }
   }
 
   Future<void> _loadAppVersion() async {
@@ -51,6 +91,35 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Future<void> _savePushNotificationSetting(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('push_notification_enabled', value);
+  }
+
+  /// 处理推送通知开关变化
+  Future<void> _handlePushNotificationChange(bool value) async {
+    if (value) {
+      // 用户想开启推送
+      if (_systemPermissionState != NotificationPermissionState.granted) {
+        // 系统权限未开启，引导用户
+        final granted =
+            await _permissionService.checkAndRequestPermission(context);
+        if (granted) {
+          // 用户开启权限，返回后刷新状态
+          await _checkSystemPermission();
+          if (mounted) {
+            setState(() {
+              _pushNotificationEnabled = true;
+            });
+            await _savePushNotificationSetting(true);
+          }
+        }
+        return;
+      }
+    }
+
+    // 更新开关状态
+    setState(() {
+      _pushNotificationEnabled = value;
+    });
+    await _savePushNotificationSetting(value);
   }
 
   Future<void> _calculateCacheSize() async {
@@ -145,17 +214,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               _buildSectionCard(
                 title: '消息通知',
                 children: [
-                  _buildSwitchTile(
-                    icon: Icons.notifications_outlined,
-                    title: '推送通知',
-                    value: _pushNotificationEnabled,
-                    onChanged: (value) {
-                      setState(() {
-                        _pushNotificationEnabled = value;
-                      });
-                      _savePushNotificationSetting(value);
-                    },
-                  ),
+                  _buildNotificationSwitchTile(),
                 ],
               ),
               const SizedBox(height: 16),
@@ -313,6 +372,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     required String title,
     required bool value,
     required ValueChanged<bool> onChanged,
+    String? subtitle,
+    bool showWarning = false,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -322,25 +383,73 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: const Color(0xfff6f6f6),
+              color: showWarning
+                  ? Colors.orange.withValues(alpha: 0.1)
+                  : const Color(0xfff6f6f6),
               borderRadius: BorderRadius.circular(8.0),
             ),
-            child: Icon(icon, size: 24, color: const Color(0xff1a1a1a)),
+            child: Icon(
+              icon,
+              size: 24,
+              color: showWarning ? Colors.orange : const Color(0xff1a1a1a),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(fontSize: 16, color: Color(0xff1a1a1a)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 16, color: Color(0xff1a1a1a)),
+                ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: showWarning ? Colors.orange : const Color(0xff999999),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
           Switch(
             value: value,
             onChanged: onChanged,
-            activeThumbColor: const Color(0xfff4835a),
+            activeThumbColor: AppColors.primary,
+            activeTrackColor: AppColors.primary.withValues(alpha: 0.5),
           ),
         ],
       ),
+    );
+  }
+
+  /// 构建通知开关组件（带权限状态检查）
+  Widget _buildNotificationSwitchTile() {
+    final isGranted =
+        _systemPermissionState == NotificationPermissionState.granted;
+    final showWarning = !isGranted;
+
+    String? subtitle;
+    if (_systemPermissionState ==
+        NotificationPermissionState.permanentlyDenied) {
+      subtitle = '通知权限已被禁用，点击去设置开启';
+    } else if (_systemPermissionState == NotificationPermissionState.denied) {
+      subtitle = '系统通知权限未开启，点击去开启';
+    } else if (_systemPermissionState == NotificationPermissionState.unknown) {
+      subtitle = '正在检查权限状态...';
+    }
+
+    return _buildSwitchTile(
+      icon: Icons.notifications_outlined,
+      title: '推送通知',
+      subtitle: subtitle,
+      showWarning: showWarning,
+      value: _pushNotificationEnabled && isGranted,
+      onChanged: _handlePushNotificationChange,
     );
   }
 
