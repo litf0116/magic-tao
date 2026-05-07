@@ -348,6 +348,33 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     }
 
     /// <summary>
+    /// 测试接口：手动触发拍卖开始通知
+    /// </summary>
+    [HttpPost]
+    [AbpAuthorize]
+    public async Task TestSendAuctionStartNotify(long auctionItemId)
+    {
+        var auctionItem = await _repository.FirstOrDefaultAsync(x => x.Id == auctionItemId);
+        if (auctionItem == null)
+        {
+            throw new UserFriendlyException("拍品不存在");
+        }
+
+        _logger.LogInformation("手动触发拍卖开始通知测试: AuctionItemId={AuctionItemId}, Name={Name}", auctionItemId, auctionItem.Name);
+
+        try
+        {
+            await Notify(auctionItem.Id, auctionItem.Name);
+            _logger.LogInformation("手动触发拍卖开始通知成功: AuctionItemId={AuctionItemId}", auctionItemId);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "手动触发拍卖开始通知失败: AuctionItemId={AuctionItemId}, Error={Error}", auctionItemId, e.Message);
+            throw;
+        }
+    }
+
+    /// <summary>
     /// 出价
     /// </summary>
     [AbpAuthorize]

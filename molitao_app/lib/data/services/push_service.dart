@@ -42,16 +42,7 @@ class PushService {
       );
       print('[Push] setup 完成');
 
-      _jpush.applyPushAuthority(
-        NotificationSettingsIOS(
-          sound: true,
-          alert: true,
-          badge: true,
-        ),
-      );
-
-      // Android 8.0+ 通知渠道已由 MainActivity 创建
-      // 渠道 ID: auction_notify (高优先级), system_notify (默认)
+      _jpush.applyPushAuthority();
 
       _jpush.addEventHandler(
         onOpenNotification: (message) async {
