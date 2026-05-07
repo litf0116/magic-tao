@@ -27,7 +27,7 @@
 
 <script setup lang="ts">
 import chatMain from '@/components/chat/chatMain.vue'
-import { onLoad } from '@dcloudio/uni-app'
+import { onLoad, onUnload } from '@dcloudio/uni-app'
 import { ChatMessageType, type UserDto, type AuctionItemDto } from '@/composables/types'
 import api from '@/utils/api'
 import type { ChatOptions } from '@/components/chat/types'
@@ -78,18 +78,25 @@ onLoad((query: any) => {
             user.value = res
             friend.name = res.name!
             friend.avatar = res.headImgUrl!
+        }).catch((e) => {
+            console.error('获取用户信息失败:', e)
         })
 
         chatStore.connectServer().then(() => {
             chatStore.addChatList(friend.id, friend.name, friend.avatar)
             chatStore.SetCurrentChatId(friend.id)
 
-            // 使用nextTick确保组件完全挂载后再调用
             nextTick(() => {
                 loadHistoryMessage(true)
             })
+        }).catch((e) => {
+            console.error('连接聊天服务器失败:', e)
         })
     }
+})
+
+onUnload(() => {
+    chatStore.closeChat(friend.id)
 })
 
 async function loadHistoryMessage(force = false) {

@@ -4,7 +4,7 @@
 
 <script setup lang="ts" name="LineChart">
 import * as echarts from 'echarts/core'
-/** 引入柱状图 + 折线图 + 饼图，图表后缀都为 Chart，一般常用的就这三个，如果还需要其他的，就自行添加  */
+/ ** 引入柱状图 + 折线图 + 饼图，图表后缀都为 Chart，一般常用的就这三个，如果还需要其他的，就自行添加  */
 import { BarChart, LineChart, LineSeriesOption, PieChart } from 'echarts/charts'
 // 引入提示框，标题，直角坐标系，数据集，内置数据转换器组件，组件后缀都为 Component
 import {
@@ -81,6 +81,24 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
+})
+const container = ref<HTMLElement | null>(null)
+let myChart: echarts.ECharts | null = null
+
+const resizeHandler = () => {
+    myChart?.resize()
+}
+
+onMounted(() => {
+    nextTick(() => {
+        initChart()
+    })
+    window.addEventListener('resize', resizeHandler)
+})
+
+onUnmounted(() => {
+    window.removeEventListener('resize', resizeHandler)
+    myChart?.dispose()
 })
 const container = ref<HTMLElement | null>(null)
 let myChart: echarts.ECharts | null = null

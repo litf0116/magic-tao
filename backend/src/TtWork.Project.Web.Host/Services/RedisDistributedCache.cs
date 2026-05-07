@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 using TtWork.Lib.Redis;
 
@@ -16,10 +17,12 @@ namespace TtWork.Project.Web.Host.Services
         private readonly IRedisClient _redisClient;
         private readonly TimeSpan _defaultExpiry = TimeSpan.FromMinutes(5);
         private readonly int _databaseId;
+        private readonly ILogger<RedisDistributedCache> _logger;
 
-        public RedisDistributedCache(IRedisClient redisClient)
+        public RedisDistributedCache(IRedisClient redisClient, ILogger<RedisDistributedCache> logger)
         {
             _redisClient = redisClient;
+            _logger = logger;
             _databaseId = redisClient.ConnectionMultiplexer.GetDatabase().Database;
         }
 
@@ -42,8 +45,9 @@ namespace TtWork.Project.Web.Host.Services
                 }
                 return Task.FromResult<byte[]?>(null);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogWarning(ex, "Redis GET 失败: {Key}", key);
                 return Task.FromResult<byte[]?>(null);
             }
         }
@@ -62,9 +66,9 @@ namespace TtWork.Project.Web.Host.Services
             {
                 _redisClient.Database.KeyExpire(key, _defaultExpiry);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // 静默失败，不影响业务
+                _logger.LogWarning(ex, "Redis Refresh 失败: {Key}", key);
             }
             return Task.CompletedTask;
         }
@@ -83,9 +87,9 @@ namespace TtWork.Project.Web.Host.Services
             {
                 _redisClient.Database.KeyDelete(key);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // 静默失败，不影响业务
+                _logger.LogWarning(ex, "Redis Remove 失败: {Key}", key);
             }
             return Task.CompletedTask;
         }
@@ -112,9 +116,9 @@ namespace TtWork.Project.Web.Host.Services
 
                 _redisClient.Database.StringSet(key, value, expiry);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // 静默失败，不影响业务
+                _logger.LogWarning(ex, "Redis Set 失败: {Key}", key);
             }
             return Task.CompletedTask;
         }

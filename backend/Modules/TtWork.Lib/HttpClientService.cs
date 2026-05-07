@@ -100,7 +100,7 @@ namespace TtWork.Lib
             }
         }
 
-        public string PostHtml(string url, string strPostdata, string encoding = "utf-8", string stringType = "application/x-www-form-urlencoded")
+        public async Task<string> PostHtmlAsync(string url, string strPostdata, string encoding = "utf-8", string stringType = "application/x-www-form-urlencoded")
         {
             try
             {
@@ -108,10 +108,10 @@ namespace TtWork.Lib
                 request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
                 request.Content = new StringContent(strPostdata, Encoding.GetEncoding(encoding), stringType);
 
-                var response = _httpClient.SendAsync(request).Result;
+                var response = await _httpClient.SendAsync(request).ConfigureAwait(false);
                 response.EnsureSuccessStatusCode();
 
-                return response.Content.ReadAsStringAsync().Result;
+                return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -120,7 +120,12 @@ namespace TtWork.Lib
             }
         }
 
-        public byte[] PostGotImageByte(string url, object obj)
+        public string PostHtml(string url, string strPostdata, string encoding = "utf-8", string stringType = "application/x-www-form-urlencoded")
+        {
+            return PostHtmlAsync(url, strPostdata, encoding, stringType).GetAwaiter().GetResult();
+        }
+
+        public async Task<byte[]> PostGotImageByteAsync(string url, object obj)
         {
             try
             {
@@ -129,22 +134,27 @@ namespace TtWork.Lib
                 request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
                 request.Content = new StringContent(postData, Encoding.UTF8, "application/x-www-form-urlencoded");
 
-                var response = _httpClient.SendAsync(request).Result;
+                var response = await _httpClient.SendAsync(request).ConfigureAwait(false);
                 response.EnsureSuccessStatusCode();
 
                 if (response.Content.Headers.ContentType.MediaType.IndexOf("json", StringComparison.OrdinalIgnoreCase) > -1)
                 {
-                    var json = response.Content.ReadAsStringAsync().Result;
+                    var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                     throw new Exception($"Expected image but received JSON: {json}");
                 }
 
-                return response.Content.ReadAsByteArrayAsync().Result;
+                return await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "HTTP POST 图片请求失败: {Url}", url);
                 throw;
             }
+        }
+
+        public byte[] PostGotImageByte(string url, object obj)
+        {
+            return PostGotImageByteAsync(url, obj).GetAwaiter().GetResult();
         }
 
         public void Dispose()

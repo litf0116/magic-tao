@@ -215,12 +215,23 @@ watch(
 
 const showImageViewer = inject('showImageViewer') as (list: string[]) => void
 
+// Store event handler references for cleanup
+const imageClickHandlers: Array<{ element: Element; handler: () => void }> = []
+
 // 处理详情图片点击事件
 function handleDetailImageClick(imageUrl: string) {
     if (!imageUrl) return
     // 移除缩略图参数，获取原图
     let src = convertImageUrl(imageUrl.replace(/!w300$/, ''))
     showImageViewer([src])
+}
+
+// Clean up image event listeners
+function cleanupImageListeners() {
+    imageClickHandlers.forEach(({ element, handler }) => {
+        element.removeEventListener('click', handler)
+    })
+    imageClickHandlers.length = 0
 }
 
 const show = (e: boolean, id: number) => {
@@ -241,30 +252,37 @@ const show = (e: boolean, id: number) => {
             }
 
             nextTick(() => {
+                // Clean up previous listeners before adding new ones
+                cleanupImageListeners()
+
                 const images = document.querySelectorAll('#auctionDesc img')
                 images.forEach((img) => {
-                    // 当被点击时,打开一个新的窗口显示图片
-                    img.addEventListener('click', () => {
-                        console.log('img click', img.getAttribute('src'))
+                    const handler = () => {
                         let src = img.getAttribute('src') as string
                         src = convertImageUrl(src.replace(/!w300$/, ''))
                         showImageViewer([src])
-                    })
+                    }
+                    img.addEventListener('click', handler)
+                    imageClickHandlers.push({ element: img, handler })
                 })
                 const images1 = document.querySelectorAll('.auctionDesc')
                 images1.forEach((img) => {
-                    // 当被点击时,打开一个新的窗口显示图片
-                    img.addEventListener('click', () => {
-                        console.log('img click', img.getAttribute('src'))
+                    const handler = () => {
                         let src = img.getAttribute('src') as string
                         src = convertImageUrl(src.replace(/!w300$/, ''))
                         showImageViewer([src])
-                    })
+                    }
+                    img.addEventListener('click', handler)
+                    imageClickHandlers.push({ element: img, handler })
                 })
             })
         })
     }
 }
+
+onUnmounted(() => {
+    cleanupImageListeners()
+})
 
 const item = ref<AuctionItemDto | null>(null)
 

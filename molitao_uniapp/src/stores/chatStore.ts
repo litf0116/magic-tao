@@ -70,6 +70,14 @@ export const useChatStore = defineStore('chatStore', () => {
     const close = () => {
         wx.closeSocket()
     }
+
+    const closeChat = (chatId: number) => {
+        clearTimeout(gsocketTimeId.value)
+        if (gsocket) {
+            gsocket.close({})
+            gsocket = null
+        }
+    }
     const websocketId = useStorageRef<number>('websocketId', 0)
 
     const isConnect = () => {

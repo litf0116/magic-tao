@@ -4,15 +4,13 @@
     </view>
 </template>
 <script setup lang="ts">
-import { onLoad, onShow } from '@dcloudio/uni-app'
+import { onLoad, onUnload } from '@dcloudio/uni-app'
 import chatMain from '@/components/chat/chatMain.vue'
 import { ChatMessageType } from '@/composables/types'
 
 const chatStore = useChatStore()
 const chan = ref('')
 const chatRef = ref<InstanceType<typeof chatMain> | null>(null)
-
-onShow(() => {})
 
 onLoad(async (pamams: any) => {
     if (pamams != null) {
@@ -27,8 +25,14 @@ onLoad(async (pamams: any) => {
                 Tips.error('未找到该群聊')
                 uni.redirectTo({ url: '/pages/chat/index' })
             }
+        }).catch((e) => {
+            console.error('连接聊天服务器失败:', e)
         })
     }
+})
+
+onUnload(() => {
+    chatStore.closeChat(parseInt(chan.value.split('_')[0]))
 })
 
 const initGroup = async () => {

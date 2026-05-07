@@ -248,11 +248,16 @@ export const useUserStore = defineStore('userStore', () => {
                                 await uni.setStorageSync('unionid', res.unionid)
                                 unionid.value = res.unionid
                             }
+                        }).catch((e) => {
+                            console.error('code2session failed:', e)
                         })
                         return resolve(loginRes)
                     } else {
                         return reject()
                     }
+                },
+                fail: (err) => {
+                    return reject(err)
                 },
             })
         })

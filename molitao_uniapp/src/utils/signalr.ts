@@ -89,16 +89,17 @@ export class HubConnection {
             }
         }
 
+        // 使用异步请求避免阻塞 UI 线程
         uni.request({
             url: negotiateUrl,
             method: 'POST',
-            async: false,
             header: { Authorization: `Bearer ${uni.getStorageSync('token') || ''}` },
             success: (res) => {
                 this.negotiateResponse = res.data as any
                 this.startSocket(negotiateUrl.replace('/negotiate', ''))
             },
             fail: (res) => {
+                console.error('SignalR negotiate failed:', res)
                 return
             },
         })
