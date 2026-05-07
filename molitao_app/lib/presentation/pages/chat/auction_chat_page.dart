@@ -1869,18 +1869,34 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   }
 
   Future<void> _saveSubscription(int auctionItemId, {String? openid}) async {
-    final success = await ref
-        .read(auctionProvider.notifier)
-        .subscribeStartNotification(auctionItemId, openid: openid);
+    debugPrint('[订阅] 开始保存订阅记录, auctionItemId=$auctionItemId, openid=$openid');
+    try {
+      final success = await ref
+          .read(auctionProvider.notifier)
+          .subscribeStartNotification(auctionItemId, openid: openid);
+      debugPrint('[订阅] 保存订阅结果: success=$success');
 
-    if (mounted) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(success ? '订阅成功，秒杀开始时将推送通知' : '订阅失败，请重试'),
-          backgroundColor: success ? const Color(0xFF4CAF50) : Colors.red,
-        ),
-      );
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(success ? '订阅成功，秒杀开始时将推送通知' : '订阅失败，请重试'),
+            backgroundColor: success ? const Color(0xFF4CAF50) : Colors.red,
+          ),
+        );
+      }
+    } catch (e, stack) {
+      debugPrint('[订阅] 保存订阅异常: $e');
+      debugPrint('[订阅] 堆栈: $stack');
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('订阅失败: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
