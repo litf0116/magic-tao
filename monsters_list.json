@@ -1,0 +1,3287 @@
+[
+  {
+    "name": "阿陀罗之影(怀旧服*未定档)",
+    "detailUrl": "https://molibaike.com/Monster/Detail/3cf16f91-8f72-46a0-87d9-35983492fbe5",
+    "type": "飞行系"
+  },
+  {
+    "name": "粼巡使(怀旧服)",
+    "detailUrl": "https://molibaike.com/Monster/Detail/731fe402-8b2e-4485-a925-3fa106495764",
+    "type": "龙系"
+  },
+  {
+    "name": "赤熊",
+    "detailUrl": "https://molibaike.com/Monster/Detail/34617f11-62fe-46ae-b87b-3403c810be65",
+    "type": "野兽系"
+  },
+  {
+    "name": "湿气",
+    "detailUrl": "https://molibaike.com/Monster/Detail/da98006a-e960-43cc-a4a6-6797a8355c5e",
+    "type": "特殊系"
+  },
+  {
+    "name": "冥界死神",
+    "detailUrl": "https://molibaike.com/Monster/Detail/2d237f1c-46c7-486d-812d-67dce4b22923",
+    "type": "不死系"
+  },
+  {
+    "name": "圣龙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/72f1ef4f-a589-48f5-a3ec-c5ac6185182a",
+    "type": "龙系"
+  },
+  {
+    "name": "纯白冰淇淋吓人箱",
+    "detailUrl": "https://molibaike.com/Monster/Detail/94981984-48ba-4f20-9294-7e1002bf04cb",
+    "type": "金属系"
+  },
+  {
+    "name": "骄傲的小鸭子（暂定档数）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/e6858eb6-558b-470d-90b0-f75ec29d9a04",
+    "type": "飞行系"
+  },
+  {
+    "name": "安泊之蕊",
+    "detailUrl": "https://molibaike.com/Monster/Detail/13981fb4-191b-4e56-b40a-7d9929b43702",
+    "type": "植物系"
+  },
+  {
+    "name": "骷髅战士",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ede4ca95-20f6-4463-9f27-778c545fe2e1",
+    "type": "不死系"
+  },
+  {
+    "name": "改造骷髅战士",
+    "detailUrl": "https://molibaike.com/Monster/Detail/aeb0faaf-85f3-483f-8b72-394638ce2de2",
+    "type": "不死系"
+  },
+  {
+    "name": "火龙蜥",
+    "detailUrl": "https://molibaike.com/Monster/Detail/2fa9d8bb-363f-4950-97be-6534ed64dcb9",
+    "type": "龙系"
+  },
+  {
+    "name": "改造水蜘蛛",
+    "detailUrl": "https://molibaike.com/Monster/Detail/eb947215-ffb7-40bc-af7a-aa3183cac141",
+    "type": "昆虫系"
+  },
+  {
+    "name": "枫焰熊(档数暂定)",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d79dbdbc-be96-4255-ae0b-85658f1e4b08",
+    "type": "野兽系"
+  },
+  {
+    "name": "石怪",
+    "detailUrl": "https://molibaike.com/Monster/Detail/bcc53664-2ceb-4114-81b0-b8e328873b3c",
+    "type": "金属系"
+  },
+  {
+    "name": "青提丝诺波波",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ebd7946f-49ab-42c5-af61-6c188524b37e",
+    "type": "特殊系"
+  },
+  {
+    "name": "雪玲",
+    "detailUrl": "https://molibaike.com/Monster/Detail/32b4f02c-529f-4727-9829-1d15f184942d",
+    "type": "植物系"
+  },
+  {
+    "name": "法鲁祖埃（档数暂定）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/76f2cd77-65a0-4914-81a3-289599458783",
+    "type": "不死系"
+  },
+  {
+    "name": "树化石",
+    "detailUrl": "https://molibaike.com/Monster/Detail/0d335ab5-5c83-4514-a56b-fb1758031817",
+    "type": "不死系"
+  },
+  {
+    "name": "山化树精（暂定档数）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/82c752c1-9786-4b37-9591-4a937bc607b0",
+    "type": "植物系"
+  },
+  {
+    "name": "乙巳化形（仅供参考）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/7b40f014-9fe9-4a6d-9a9b-6e61a7d70142",
+    "type": "不死系"
+  },
+  {
+    "name": "蓝魔威尔布尔（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/f7ee5570-28c6-4a21-83bb-bfd61fc11131",
+    "type": "飞行系"
+  },
+  {
+    "name": "蓝魔卡尔德（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/f3691780-94f4-49d8-8f68-8c54e1da8197",
+    "type": "飞行系"
+  },
+  {
+    "name": "无之纹章红魔乔卡（怀）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/bdc3afb3-7ea0-4d6a-9410-20859783279b",
+    "type": "飞行系"
+  },
+  {
+    "name": "天之纹章红魔乔卡（怀）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ac9cbf83-b54b-4815-946a-fddeabfd56af",
+    "type": "飞行系"
+  },
+  {
+    "name": "绿魔诺曼（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/4f4d84bd-0b93-4940-98bd-d6bd9deede42",
+    "type": "飞行系"
+  },
+  {
+    "name": "天使之翼（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/3c88eea0-05b0-4fed-bd3d-2058a89e11e1",
+    "type": "飞行系"
+  },
+  {
+    "name": "试作三型魔术机",
+    "detailUrl": "https://molibaike.com/Monster/Detail/2d288c0a-619f-46a0-b637-30c62557b5db",
+    "type": "金属系"
+  },
+  {
+    "name": "黄金巨龙（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/56b2eb56-3d83-4d89-a7ff-638dc150b58d",
+    "type": "龙系"
+  },
+  {
+    "name": "姹紫甲胄（仅供参考）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/c0178dcd-a4ca-4e94-98f3-d988e28ea7a2",
+    "type": "金属系"
+  },
+  {
+    "name": "玛奇丽特（暂定）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/9b8f5a48-5e9d-4c46-9065-bb500b0b59d7",
+    "type": "特殊系"
+  },
+  {
+    "name": "葡萄爆弹（怀旧服）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/01fdba3e-dd71-43d4-a5bd-efcde928a899",
+    "type": "特殊系"
+  },
+  {
+    "name": "钢铁低语者",
+    "detailUrl": "https://molibaike.com/Monster/Detail/631eef4b-f2d2-4225-ad27-fce831465cc4",
+    "type": "金属系"
+  },
+  {
+    "name": "钢铁骑士",
+    "detailUrl": "https://molibaike.com/Monster/Detail/1489f120-9723-48a7-857c-ede04cf363c3",
+    "type": "金属系"
+  },
+  {
+    "name": "草莓史莱姆",
+    "detailUrl": "https://molibaike.com/Monster/Detail/a9abe192-3475-4b3a-b181-a9b47fc67375",
+    "type": "特殊系"
+  },
+  {
+    "name": "黑暗鸟人",
+    "detailUrl": "https://molibaike.com/Monster/Detail/edb0fd6e-0fed-49ec-8bf7-6db7add2e52c",
+    "type": "人形系"
+  },
+  {
+    "name": "火蜘蛛",
+    "detailUrl": "https://molibaike.com/Monster/Detail/c57e42bc-7aec-47b6-98f6-2c46b0fa61f3",
+    "type": "昆虫系"
+  },
+  {
+    "name": "灭龙大剑（档数暂定）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/235151db-69f8-426d-a68a-329360aa0819",
+    "type": "金属系"
+  },
+  {
+    "name": "克罗卡涅影分身",
+    "detailUrl": "https://molibaike.com/Monster/Detail/86fab938-5bd7-44f8-ae10-efdb0036ea69",
+    "type": "人形系"
+  },
+  {
+    "name": "咒灵",
+    "detailUrl": "https://molibaike.com/Monster/Detail/6db96bf6-6d4b-433e-8bd5-055919fa4842",
+    "type": "不死系"
+  },
+  {
+    "name": "欧兹尼克之影",
+    "detailUrl": "https://molibaike.com/Monster/Detail/39f478a0-cf43-4fea-8865-625dba9e154e",
+    "type": "人形系"
+  },
+  {
+    "name": "乘羽",
+    "detailUrl": "https://molibaike.com/Monster/Detail/53d57322-5aeb-4ec4-a20a-dbaf34c070da",
+    "type": "飞行系"
+  },
+  {
+    "name": "改造风龙蜥",
+    "detailUrl": "https://molibaike.com/Monster/Detail/070d6971-5ef5-4826-8d9c-795c3e0c7967",
+    "type": "龙系"
+  },
+  {
+    "name": "德拉格维特改",
+    "detailUrl": "https://molibaike.com/Monster/Detail/b5e6fdb6-b85d-49dd-884a-52145adc1c85",
+    "type": "龙系"
+  },
+  {
+    "name": "蜥蜴武士精锐",
+    "detailUrl": "https://molibaike.com/Monster/Detail/65f3dc7c-de25-4c7c-8221-bf9ac3d61511",
+    "type": "龙系"
+  },
+  {
+    "name": "改造奇美拉",
+    "detailUrl": "https://molibaike.com/Monster/Detail/3e2e2d88-0a53-4ba5-8361-360f557d4097",
+    "type": "飞行系"
+  },
+  {
+    "name": "战斗奇美拉",
+    "detailUrl": "https://molibaike.com/Monster/Detail/f9916743-cdff-4fd2-acd2-a21def082edc",
+    "type": "飞行系"
+  },
+  {
+    "name": "改造幻歌妖（档数仅供参考）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/6005086e-1cfa-4e29-880b-af046cd996d8",
+    "type": "人形系"
+  },
+  {
+    "name": "熔炼银怪",
+    "detailUrl": "https://molibaike.com/Monster/Detail/4868912b-fbc8-4d06-8e6d-0709882ee0e3",
+    "type": "金属系"
+  },
+  {
+    "name": "军神之影（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d4a0b7e4-0ff4-40e3-b006-efae2b685d95",
+    "type": "邪魔系"
+  },
+  {
+    "name": "阿斯克勒比斯杖灵（仅供参考）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/37ca572e-8f8c-4b08-bea1-6ebbe0228a64",
+    "type": "不死系"
+  },
+  {
+    "name": "树栖蝙蝠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/697ad8ae-3b47-4021-be3c-4eb8a5421146",
+    "type": "飞行系"
+  },
+  {
+    "name": "树莓圣诞波波（怀旧服）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/112c9156-1533-4d29-a0d1-3195a89ec0ca",
+    "type": "特殊系"
+  },
+  {
+    "name": "岩虫",
+    "detailUrl": "https://molibaike.com/Monster/Detail/2532246f-84a9-45d1-a046-6f96d49abc1f",
+    "type": "金属系"
+  },
+  {
+    "name": "利牙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/dfa784f2-46ab-49fd-b53e-0b0daff7cfc7",
+    "type": "不死系"
+  },
+  {
+    "name": "绿魔奥斯本（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/9872f529-330a-4038-a543-1afdd228c9fc",
+    "type": "飞行系"
+  },
+  {
+    "name": "进化奥斯本（仅供参考）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/214f0ead-a528-4daf-aefd-29fee1ccfbca",
+    "type": "飞行系"
+  },
+  {
+    "name": "谢蕾简复刻体（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/12af1080-6837-41ce-8edb-3292b25615f5",
+    "type": "人形系"
+  },
+  {
+    "name": "多拉姆糖（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/9e668bb3-4186-403a-9a33-a71ffbed3876",
+    "type": "野兽系"
+  },
+  {
+    "name": "功夫仙人掌",
+    "detailUrl": "https://molibaike.com/Monster/Detail/17d3b547-fce4-4c6d-ba96-249aa2bf4104",
+    "type": "植物系"
+  },
+  {
+    "name": "交叉反击之史莱姆（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/83148542-e6da-4346-b2fe-ddf0c46f26b4",
+    "type": "特殊系"
+  },
+  {
+    "name": "钢钳螃蟹",
+    "detailUrl": "https://molibaike.com/Monster/Detail/54edcc3f-d68f-48b5-863f-d25452ff0d0b",
+    "type": "金属系"
+  },
+  {
+    "name": "变种布雷欧",
+    "detailUrl": "https://molibaike.com/Monster/Detail/13f0660f-a985-4d09-a1a6-a96f5930ccb2",
+    "type": "飞行系"
+  },
+  {
+    "name": "棕静螳螂",
+    "detailUrl": "https://molibaike.com/Monster/Detail/39910e9e-7653-4815-bea0-be52aa9d482d",
+    "type": "昆虫系"
+  },
+  {
+    "name": "改造巨人",
+    "detailUrl": "https://molibaike.com/Monster/Detail/db672aff-e747-4def-98ab-38b8c5655500",
+    "type": "人形系"
+  },
+  {
+    "name": "西波尔冰熊（档数暂定）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/7dfe81b7-0eee-4d97-8a47-a90f8ab9a050",
+    "type": "野兽系"
+  },
+  {
+    "name": "见习裁判",
+    "detailUrl": "https://molibaike.com/Monster/Detail/73cba092-fe36-4422-a755-a8a2f6b31ecb",
+    "type": "植物系"
+  },
+  {
+    "name": "赤目螳螂",
+    "detailUrl": "https://molibaike.com/Monster/Detail/f237a5f1-923b-4383-acd5-07f07191c07c",
+    "type": "昆虫系"
+  },
+  {
+    "name": "死灰螳螂",
+    "detailUrl": "https://molibaike.com/Monster/Detail/2bc07587-2e0e-4df6-83b0-ae90e2bc9497",
+    "type": "昆虫系"
+  },
+  {
+    "name": "螳螂",
+    "detailUrl": "https://molibaike.com/Monster/Detail/f5a0b37a-3912-4b24-bfcf-16f740e71471",
+    "type": "昆虫系"
+  },
+  {
+    "name": "致命螳螂",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ae347395-28c1-4de3-b984-095110531b23",
+    "type": "昆虫系"
+  },
+  {
+    "name": "杀人螳螂",
+    "detailUrl": "https://molibaike.com/Monster/Detail/47d512a6-9125-4447-97f3-1bdb95b57cd6",
+    "type": "昆虫系"
+  },
+  {
+    "name": "改造螳螂（时道）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/bb762a36-2bba-4b7d-8184-79025daedf3c",
+    "type": "昆虫系"
+  },
+  {
+    "name": "艾德奇美拉(怀旧)",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ac9dd4d8-2b99-47d6-91e8-a59d0ecdc53c",
+    "type": "飞行系"
+  },
+  {
+    "name": "希特拉（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/3b8ff8a0-689d-4155-a1f9-d3a1feb0b873",
+    "type": "龙系"
+  },
+  {
+    "name": "依鲁特奇美拉（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/6496ba6b-3177-40cd-b3b6-2a27e521bef3",
+    "type": "飞行系"
+  },
+  {
+    "name": "女王之刃（仅供参考）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/47768b5f-68f1-4098-a583-a1be4ccf02aa",
+    "type": "金属系"
+  },
+  {
+    "name": "炎龙伊古尼斯",
+    "detailUrl": "https://molibaike.com/Monster/Detail/7b676124-3615-40f8-962e-849ee58f743e",
+    "type": "龙系"
+  },
+  {
+    "name": "沙祖多玛（仅供参考）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/7edaf82a-9d1f-487d-bb19-efcbdaf2e7e8",
+    "type": "龙系"
+  },
+  {
+    "name": "大地鼠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/fd7f3d63-fbea-4905-b0d7-70e29146c7cb",
+    "type": "野兽系"
+  },
+  {
+    "name": "地狱看门犬",
+    "detailUrl": "https://molibaike.com/Monster/Detail/2758d7cf-9b9d-4844-a795-e86a6a4e5559",
+    "type": "野兽系"
+  },
+  {
+    "name": "地狱猎犬",
+    "detailUrl": "https://molibaike.com/Monster/Detail/f8a82122-1e4e-4078-9c7c-913863fe4dd9",
+    "type": "野兽系"
+  },
+  {
+    "name": "独角兽",
+    "detailUrl": "https://molibaike.com/Monster/Detail/c0fc83ce-95ec-4a4e-a556-5285030c9eef",
+    "type": "野兽系"
+  },
+  {
+    "name": "天马",
+    "detailUrl": "https://molibaike.com/Monster/Detail/79838a99-a162-494d-a4a1-5758e4f56f12",
+    "type": "野兽系"
+  },
+  {
+    "name": "麒麟",
+    "detailUrl": "https://molibaike.com/Monster/Detail/79fb16c3-48f0-4c1e-9d91-adf60bbac102",
+    "type": "野兽系"
+  },
+  {
+    "name": "地底龟（时道）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/b10b4915-5011-49ab-9ab5-934be1662d2f",
+    "type": "野兽系"
+  },
+  {
+    "name": "硬壳龟（时道）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/bdc6886e-0371-42a1-b6ec-f158f572fa16",
+    "type": "野兽系"
+  },
+  {
+    "name": "刀锋阿姆鸟",
+    "detailUrl": "https://molibaike.com/Monster/Detail/0ffee19e-66f5-456c-9a96-1f2ef8feca64",
+    "type": "野兽系"
+  },
+  {
+    "name": "第七星阿尔多拉（时道）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/2b46f258-28e7-4dc3-a9bc-b544b9560d01",
+    "type": "野兽系"
+  },
+  {
+    "name": "大犬座（时道）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/4964da3e-983e-437a-a6dd-46ddb0eae5fe",
+    "type": "野兽系"
+  },
+  {
+    "name": "马优尔（时道）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/540677f9-198d-4609-9ed9-bd2438ef978b",
+    "type": "野兽系"
+  },
+  {
+    "name": "改造火焰龟（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/74a73b73-1b19-466d-b28e-fc90ea863e9e",
+    "type": "野兽系"
+  },
+  {
+    "name": "睿智的宝石鼠（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/fd8d44e6-e9a1-4298-94d0-2b66e1702fe1",
+    "type": "野兽系"
+  },
+  {
+    "name": "改造宝石鼠（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/388cf849-50db-436d-ac29-f3d14b118cec",
+    "type": "野兽系"
+  },
+  {
+    "name": "豪力的大地鼠（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/9312320c-0cba-48f1-939c-75d4b9e2af5e",
+    "type": "野兽系"
+  },
+  {
+    "name": "天狼星（时道）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/08c9ed3f-ca07-4914-b197-ab103bdc44cf",
+    "type": "野兽系"
+  },
+  {
+    "name": "幼生独角兽（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/7f0ad599-1664-44d6-8249-7fafbb3caf48",
+    "type": "野兽系"
+  },
+  {
+    "name": "幼生火焰独角兽（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ed7bc188-1ea3-4604-8914-99e3265c2733",
+    "type": "野兽系"
+  },
+  {
+    "name": "毒角狮（时道）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/455a1b1d-aaad-4158-a92f-21bbc883a95b",
+    "type": "野兽系"
+  },
+  {
+    "name": "魔化地鼠（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/8b67cb8d-3d1e-44bf-a005-ba22e6570f86",
+    "type": "野兽系"
+  },
+  {
+    "name": "地狱恶犬（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/6e867266-e6cd-47aa-afee-47c38581cb6e",
+    "type": "野兽系"
+  },
+  {
+    "name": "狂热的宝石鼠（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/9a35f062-c1f9-4a4b-a527-daddd3b27cb9",
+    "type": "野兽系"
+  },
+  {
+    "name": "改造地狱猎犬（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ed6d7aca-ff48-4556-b1f8-57f2aaf0e72b",
+    "type": "野兽系"
+  },
+  {
+    "name": "改造猫妖（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/17379c79-8818-44de-8724-77330947b412",
+    "type": "野兽系"
+  },
+  {
+    "name": "鲁帕斯（时道）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/625aad44-8c3c-4af2-844e-52747c1eb28e",
+    "type": "野兽系"
+  },
+  {
+    "name": "罗刹",
+    "detailUrl": "https://molibaike.com/Monster/Detail/21ed21ef-2e20-4ed9-b9c9-8761097bfedd",
+    "type": "野兽系"
+  },
+  {
+    "name": "魔化水鼠（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/9ea60f8c-043f-4696-8c80-fb7db8300457",
+    "type": "野兽系"
+  },
+  {
+    "name": "冰原狼（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/e362c8f4-3f5a-4d76-94aa-ce7877cc89c8",
+    "type": "野兽系"
+  },
+  {
+    "name": "冥府守门狗（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/9c9eea99-04ff-4efd-8dc9-320bf6ec4c0d",
+    "type": "野兽系"
+  },
+  {
+    "name": "山飞甲（时怀）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/177b1fc7-30ee-418e-b6ce-8609858ccdf9",
+    "type": "野兽系"
+  },
+  {
+    "name": "火焰鼠王子（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/80b5b22d-558a-4873-af55-a910f4690fcb",
+    "type": "野兽系"
+  },
+  {
+    "name": "水蓝鼠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/4b001ca5-c9b5-4b8e-8518-ed2c809bc8df",
+    "type": "野兽系"
+  },
+  {
+    "name": "猫熊",
+    "detailUrl": "https://molibaike.com/Monster/Detail/f93cf5ba-e36e-4c1e-a51e-f4e49ae66e6f",
+    "type": "野兽系"
+  },
+  {
+    "name": "鼠王",
+    "detailUrl": "https://molibaike.com/Monster/Detail/e7321342-edab-454f-bfeb-2c4de2d07401",
+    "type": "野兽系"
+  },
+  {
+    "name": "赤目黑熊",
+    "detailUrl": "https://molibaike.com/Monster/Detail/3de88536-d8a2-44bf-9142-4c0f768db649",
+    "type": "野兽系"
+  },
+  {
+    "name": "巨狼",
+    "detailUrl": "https://molibaike.com/Monster/Detail/499cc124-1bcf-435e-8350-fb12e01db954",
+    "type": "野兽系"
+  },
+  {
+    "name": "改造火焰鼠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/21019038-2962-41cd-8493-6db333f15597",
+    "type": "野兽系"
+  },
+  {
+    "name": "改造大地鼠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/57ff7be3-d3d0-46b3-b84d-17510cc3a685",
+    "type": "野兽系"
+  },
+  {
+    "name": "剑鸵鸟（时道）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/2c1e86de-5e7b-4e71-9aa5-2f499150dc3c",
+    "type": "野兽系"
+  },
+  {
+    "name": "强化围巾兔（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/acaaa4b0-afdf-4cf9-99c8-e1b43ed1a8ab",
+    "type": "野兽系"
+  },
+  {
+    "name": "觉醒亚特拉斯巨神",
+    "detailUrl": "https://molibaike.com/Monster/Detail/b532d9e0-820d-40e1-9f88-6f37bcfec9cf",
+    "type": "人形系"
+  },
+  {
+    "name": "改造强盾",
+    "detailUrl": "https://molibaike.com/Monster/Detail/e10534bd-c01f-4664-8972-9e571b03279f",
+    "type": "金属系"
+  },
+  {
+    "name": "死亡收割者（倍率21;暂不支持百科算档/模拟）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/aa3a5986-dd41-4118-bcf4-9c5195050948",
+    "type": "不死系"
+  },
+  {
+    "name": "冥界审判者（倍率21;暂不支持百科算档/模拟）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/a342feb0-26e1-4c6d-85e4-d5c220412df5",
+    "type": "不死系"
+  },
+  {
+    "name": "冥界处刑者（倍率21;暂不支持百科算档/模拟）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/312a6874-b509-4d73-9885-8401aed232eb",
+    "type": "不死系"
+  },
+  {
+    "name": "坚强的小兔子",
+    "detailUrl": "https://molibaike.com/Monster/Detail/654df08b-fd1d-463e-b1c6-c41dc293b52d",
+    "type": "飞行系"
+  },
+  {
+    "name": "红木蝎",
+    "detailUrl": "https://molibaike.com/Monster/Detail/3d1f3d6b-1aa2-4e3d-86cc-fa08645a6f98",
+    "type": "昆虫系"
+  },
+  {
+    "name": "南瓜镰刀魔",
+    "detailUrl": "https://molibaike.com/Monster/Detail/e3d7a2d3-a6b3-4213-8799-b1ab4cdda100",
+    "type": "不死系"
+  },
+  {
+    "name": "亚成年黄金龙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d6365771-eb28-4ee1-9431-5cdceabef650",
+    "type": "龙系"
+  },
+  {
+    "name": "威雷使魔",
+    "detailUrl": "https://molibaike.com/Monster/Detail/a9ab522e-ab41-4486-b24f-2e727d1bef26",
+    "type": "飞行系"
+  },
+  {
+    "name": "大蛇",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d8f44fab-ccd6-4c71-af1f-a92e20b5f6a5",
+    "type": "龙系"
+  },
+  {
+    "name": "风雷霜刃",
+    "detailUrl": "https://molibaike.com/Monster/Detail/e9397ef3-ae5a-494a-b517-07807afbe7f1",
+    "type": "金属系"
+  },
+  {
+    "name": "烈风之刃",
+    "detailUrl": "https://molibaike.com/Monster/Detail/6bb870f1-8e2b-4174-8d51-d92eebbaf592",
+    "type": "金属系"
+  },
+  {
+    "name": "幽冥之灵",
+    "detailUrl": "https://molibaike.com/Monster/Detail/bcf44d36-2128-469e-b997-123b6d3e70a7",
+    "type": "不死系"
+  },
+  {
+    "name": "仇恨之灵",
+    "detailUrl": "https://molibaike.com/Monster/Detail/5ae05d43-6365-4cc2-b608-25835c3d22d1",
+    "type": "不死系"
+  },
+  {
+    "name": "沙地鲨",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ca5c4ee5-2218-4e04-9ef7-eb8f01a044e4",
+    "type": "飞行系"
+  },
+  {
+    "name": "走路花妖",
+    "detailUrl": "https://molibaike.com/Monster/Detail/adc7abfa-4768-4a96-aca6-16d706eed520",
+    "type": "植物系"
+  },
+  {
+    "name": "史培利昂之刃",
+    "detailUrl": "https://molibaike.com/Monster/Detail/f0e194dc-b85f-4a66-a6a4-12ec6d5c7655",
+    "type": "金属系"
+  },
+  {
+    "name": "变异丧尸",
+    "detailUrl": "https://molibaike.com/Monster/Detail/73e92eb9-2540-45b5-8111-7a6680e5aaba",
+    "type": "不死系"
+  },
+  {
+    "name": "强化小鸭子",
+    "detailUrl": "https://molibaike.com/Monster/Detail/1fd90cdb-a402-4c58-860e-3f4f8a80f2dd",
+    "type": "飞行系"
+  },
+  {
+    "name": "哥布林队长",
+    "detailUrl": "https://molibaike.com/Monster/Detail/f70bf0d9-e77d-40ce-bd36-23cef7ccd470",
+    "type": "人形系"
+  },
+  {
+    "name": "土蜘蛛",
+    "detailUrl": "https://molibaike.com/Monster/Detail/4aac36ed-0fc9-4960-a162-6167114349a0",
+    "type": "昆虫系"
+  },
+  {
+    "name": "红帽哥布林",
+    "detailUrl": "https://molibaike.com/Monster/Detail/6a9e0548-7173-4c1a-a459-5586f422c0f6",
+    "type": "人形系"
+  },
+  {
+    "name": "艾克尼奇美拉（时道）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/7a23b62c-af6b-4aaa-8715-abb35937ccf1",
+    "type": "飞行系"
+  },
+  {
+    "name": "艾克尼奇美拉（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/4ce8e191-2415-4337-9c3f-23ce83caa317",
+    "type": "飞行系"
+  },
+  {
+    "name": "改造旋律影子",
+    "detailUrl": "https://molibaike.com/Monster/Detail/9f7ded57-f887-42cd-b52e-647f9f406cb7",
+    "type": "金属系"
+  },
+  {
+    "name": "改造盗贼",
+    "detailUrl": "https://molibaike.com/Monster/Detail/3037cbe4-8ab9-4ab9-b9b5-55f5f1424ad4",
+    "type": "人形系"
+  },
+  {
+    "name": "改造寒冰翼龙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/a9756a4a-5991-4b7d-9b25-331d61ac6c28",
+    "type": "龙系"
+  },
+  {
+    "name": "改造鸟人",
+    "detailUrl": "https://molibaike.com/Monster/Detail/0b61f586-1a0c-447b-8845-4b8adee3172b",
+    "type": "人形系"
+  },
+  {
+    "name": "异界魔导士（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/9a77598d-68e9-4c28-9874-471eb30a3ff2",
+    "type": "特殊系"
+  },
+  {
+    "name": "灵风",
+    "detailUrl": "https://molibaike.com/Monster/Detail/14b53251-7588-4810-b93f-0a09055d6ac4",
+    "type": "不死系"
+  },
+  {
+    "name": "金牛神使（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/c027b8ee-3409-4e49-801b-f38d4744fd19",
+    "type": "特殊系"
+  },
+  {
+    "name": "围巾兔（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/bb4f0891-c5d9-4354-9ea1-ad922137fb58",
+    "type": "野兽系"
+  },
+  {
+    "name": "招财猫（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/3684899e-d81a-47e9-bbb6-8cab8bdc1a28",
+    "type": "特殊系"
+  },
+  {
+    "name": "芙蕾雅番茄妖精（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/34e77a23-0db9-427c-bee3-a3d78037f029",
+    "type": "特殊系"
+  },
+  {
+    "name": "牧羊神使（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ca9dceb7-6364-45fe-9e2a-e646f8b59c8d",
+    "type": "特殊系"
+  },
+  {
+    "name": "堕天使",
+    "detailUrl": "https://molibaike.com/Monster/Detail/9182ac6c-e30c-43ba-91f4-8e566bfb680e",
+    "type": "飞行系"
+  },
+  {
+    "name": "希特拉",
+    "detailUrl": "https://molibaike.com/Monster/Detail/44198233-84cb-4711-b514-e99433a17727",
+    "type": "龙系"
+  },
+  {
+    "name": "灵魂容器(火)",
+    "detailUrl": "https://molibaike.com/Monster/Detail/220dd1aa-26c2-4f03-86d3-3cdd52a6e8ad",
+    "type": "人形系"
+  },
+  {
+    "name": "灵魂容器(水)",
+    "detailUrl": "https://molibaike.com/Monster/Detail/a4d60edf-5d05-4e53-b99a-bfedc49f8bdc",
+    "type": "人形系"
+  },
+  {
+    "name": "灵魂容器(风)",
+    "detailUrl": "https://molibaike.com/Monster/Detail/0ef2f698-b9a8-43c8-a064-182fc96929ac",
+    "type": "人形系"
+  },
+  {
+    "name": "灵魂容器(地)",
+    "detailUrl": "https://molibaike.com/Monster/Detail/bc5ada34-e2bd-4038-a90d-4ecf729c3163",
+    "type": "人形系"
+  },
+  {
+    "name": "改造颚牙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/8c7213b9-dfe4-4382-a5be-f3666fce23e3",
+    "type": "不死系"
+  },
+  {
+    "name": "颚牙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/a6a4c95d-a055-46ef-bd40-222bc781613d",
+    "type": "不死系"
+  },
+  {
+    "name": "被诅咒者",
+    "detailUrl": "https://molibaike.com/Monster/Detail/51678fcd-9f45-446f-b412-1d7461bea79e",
+    "type": "邪魔系"
+  },
+  {
+    "name": "蓝星缩影",
+    "detailUrl": "https://molibaike.com/Monster/Detail/1ab9c1c0-f936-4a48-aaa4-0d2ba67cd825",
+    "type": "邪魔系"
+  },
+  {
+    "name": "番红妖精",
+    "detailUrl": "https://molibaike.com/Monster/Detail/83ce68dc-9a2e-4379-a70d-67636873805d",
+    "type": "特殊系"
+  },
+  {
+    "name": "改造丸子炸弹",
+    "detailUrl": "https://molibaike.com/Monster/Detail/68a01bfb-01b3-4d18-9dfe-cdab693a2990",
+    "type": "特殊系"
+  },
+  {
+    "name": "改造暗影（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/05e2db07-9a8e-4343-9ad5-bd52841cfef8",
+    "type": "特殊系"
+  },
+  {
+    "name": "星耀星菇",
+    "detailUrl": "https://molibaike.com/Monster/Detail/bd5180fd-e74c-45b6-b360-2fa39f0086ed",
+    "type": "植物系"
+  },
+  {
+    "name": "猪鬼",
+    "detailUrl": "https://molibaike.com/Monster/Detail/aef46f60-0740-473d-b4fd-b4555d17968a",
+    "type": "人形系"
+  },
+  {
+    "name": "钢鬼",
+    "detailUrl": "https://molibaike.com/Monster/Detail/0177d164-4047-4d5c-b553-175c3a1734ec",
+    "type": "人形系"
+  },
+  {
+    "name": "大型半兽人",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d84196ed-8f48-4008-89d1-2de4e8e4842c",
+    "type": "人形系"
+  },
+  {
+    "name": "半兽人",
+    "detailUrl": "https://molibaike.com/Monster/Detail/43cf3b96-3ea9-4fd5-8b46-5aa6b5937e02",
+    "type": "人形系"
+  },
+  {
+    "name": "大地牛头怪（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/f61b7a8c-77ce-492e-ac9f-8935981bd45e",
+    "type": "邪魔系"
+  },
+  {
+    "name": "寒冰牛头怪（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d89aa29c-888f-4a3b-8914-ac28ba6b9eba",
+    "type": "邪魔系"
+  },
+  {
+    "name": "烈风牛头怪（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d3047a26-2f4e-4d00-8d50-261296594998",
+    "type": "邪魔系"
+  },
+  {
+    "name": "火焰牛头怪（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/71beaba1-0e17-4f24-8e01-bb60c54c0ab9",
+    "type": "邪魔系"
+  },
+  {
+    "name": "旋律影子",
+    "detailUrl": "https://molibaike.com/Monster/Detail/cfe95cf8-927e-468b-a617-e119cf990012",
+    "type": "特殊系"
+  },
+  {
+    "name": "幻影",
+    "detailUrl": "https://molibaike.com/Monster/Detail/013bf854-e06a-46c7-a7ae-ea73f4adcc45",
+    "type": "特殊系"
+  },
+  {
+    "name": "暗影",
+    "detailUrl": "https://molibaike.com/Monster/Detail/7f94a0d9-b6bb-44cb-9b2f-9a3af00db20d",
+    "type": "特殊系"
+  },
+  {
+    "name": "阴影",
+    "detailUrl": "https://molibaike.com/Monster/Detail/0ea1e4cb-59b0-45ef-852f-9fd0cc7d2dd4",
+    "type": "特殊系"
+  },
+  {
+    "name": "丸子炸弹",
+    "detailUrl": "https://molibaike.com/Monster/Detail/8751b1e4-f9fd-4c4a-83a8-6dcb880d335c",
+    "type": "特殊系"
+  },
+  {
+    "name": "丘比特",
+    "detailUrl": "https://molibaike.com/Monster/Detail/19ad33bd-4771-452d-bce5-27a13cda2f5a",
+    "type": "飞行系"
+  },
+  {
+    "name": "交叉反击之史莱姆（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/6eb1340f-7074-499d-9ae1-22d7757067ca",
+    "type": "特殊系"
+  },
+  {
+    "name": "红椎菌菇",
+    "detailUrl": "https://molibaike.com/Monster/Detail/efbf6f92-55b7-4f21-b70e-58eab0faf57e",
+    "type": "植物系"
+  },
+  {
+    "name": "黑暗大公鸡（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/2d202331-b044-4837-9fdd-d55e5c24029b",
+    "type": "邪魔系"
+  },
+  {
+    "name": "大公鸡（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/1e066338-3ca1-4fb4-b194-5f13d5e89c28",
+    "type": "邪魔系"
+  },
+  {
+    "name": "改造僵尸",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ce4d46ea-2b1d-4771-95ff-c7a1f0e611f2",
+    "type": "不死系"
+  },
+  {
+    "name": "胖蝙蝠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d56f543b-d8e2-41d8-97a2-089c45760ebb",
+    "type": "飞行系"
+  },
+  {
+    "name": "改造血魔",
+    "detailUrl": "https://molibaike.com/Monster/Detail/7fb6d1ac-61d7-4b27-ab01-81a99211a673",
+    "type": "飞行系"
+  },
+  {
+    "name": "地狱将军",
+    "detailUrl": "https://molibaike.com/Monster/Detail/83ef65f6-505f-41cf-a713-059cf3c25650",
+    "type": "金属系"
+  },
+  {
+    "name": "改造地狱妖犬（时道）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/989c8dfd-8c14-4109-8402-ad4490034609",
+    "type": "野兽系"
+  },
+  {
+    "name": "改造地狱妖犬（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/6ecec3b4-3a33-455b-8d6c-fdf760dc42cc",
+    "type": "野兽系"
+  },
+  {
+    "name": "烈风牛头怪（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/6499b9a5-d613-4c67-893d-ac18528454cd",
+    "type": "人形系"
+  },
+  {
+    "name": "寒冰牛头怪（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/b679e026-d62c-4d9d-91d4-9f5e59567230",
+    "type": "人形系"
+  },
+  {
+    "name": "火焰牛头怪（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/2b9790a7-486b-4bc7-9275-e527badda6e7",
+    "type": "人形系"
+  },
+  {
+    "name": "大地牛头怪（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/7217638c-3d26-4f41-aa25-b4af0dc8dd8e",
+    "type": "人形系"
+  },
+  {
+    "name": "波尔卡舞蹈菇",
+    "detailUrl": "https://molibaike.com/Monster/Detail/dbd03849-4e60-4727-9d01-d113bfa63783",
+    "type": "植物系"
+  },
+  {
+    "name": "龙骨",
+    "detailUrl": "https://molibaike.com/Monster/Detail/7ca6d3d8-03b9-4954-a70c-1b1f73c6164a",
+    "type": "不死系"
+  },
+  {
+    "name": "二次改造水蜘蛛",
+    "detailUrl": "https://molibaike.com/Monster/Detail/c429287d-76e7-4823-9f2a-aa46a60042b7",
+    "type": "昆虫系"
+  },
+  {
+    "name": "围巾兔（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/b0720b8d-fa72-4a29-b083-d6197d9b373c",
+    "type": "野兽系"
+  },
+  {
+    "name": "红魔吓人箱",
+    "detailUrl": "https://molibaike.com/Monster/Detail/de35a468-16df-4e93-8b70-1d751366c97d",
+    "type": "金属系"
+  },
+  {
+    "name": "绿蛙吓人箱",
+    "detailUrl": "https://molibaike.com/Monster/Detail/4c47c1a2-4599-4a52-9b33-89065ba1a163",
+    "type": "金属系"
+  },
+  {
+    "name": "兔耳吓人箱",
+    "detailUrl": "https://molibaike.com/Monster/Detail/131b4e4b-01c1-4f34-b96c-614ccb5267ac",
+    "type": "金属系"
+  },
+  {
+    "name": "吓人箱",
+    "detailUrl": "https://molibaike.com/Monster/Detail/30d278ff-c29d-42eb-8a49-a7238615fb26",
+    "type": "金属系"
+  },
+  {
+    "name": "纯白吓人箱",
+    "detailUrl": "https://molibaike.com/Monster/Detail/f46ffa7c-f3e6-486d-a415-faff0f203295",
+    "type": "金属系"
+  },
+  {
+    "name": "暗黑僧侣",
+    "detailUrl": "https://molibaike.com/Monster/Detail/273e1c4a-e822-4466-9ad1-d208c8b519e5",
+    "type": "不死系"
+  },
+  {
+    "name": "怨灵",
+    "detailUrl": "https://molibaike.com/Monster/Detail/3a458c71-7581-45df-90a2-f8c3c04289ba",
+    "type": "不死系"
+  },
+  {
+    "name": "改造锹型虫",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d0c7fcbe-9ad4-4e79-9b83-f5d82155c769",
+    "type": "昆虫系"
+  },
+  {
+    "name": "锹型虫",
+    "detailUrl": "https://molibaike.com/Monster/Detail/6aef2a7b-2228-4c0e-99b0-5077ffdbd7d7",
+    "type": "昆虫系"
+  },
+  {
+    "name": "变异的年兽",
+    "detailUrl": "https://molibaike.com/Monster/Detail/3b385573-ce19-4af9-a5e9-9d622a91bf05",
+    "type": "飞行系"
+  },
+  {
+    "name": "山梦",
+    "detailUrl": "https://molibaike.com/Monster/Detail/2a6a6fe4-7d52-484a-a8d1-e3aca135b1ab",
+    "type": "植物系"
+  },
+  {
+    "name": "露希艾娜（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/3cb6f221-d9a9-4a02-9321-bdde0f0a6f36",
+    "type": "人形系"
+  },
+  {
+    "name": "朗格多克蝎",
+    "detailUrl": "https://molibaike.com/Monster/Detail/db4a1fc5-ac96-4efc-a641-70038e592db8",
+    "type": "昆虫系"
+  },
+  {
+    "name": "寒冰巨龙（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/0179da4c-ab76-4e2a-b30f-4092832b8b78",
+    "type": "龙系"
+  },
+  {
+    "name": "改造黄蝎",
+    "detailUrl": "https://molibaike.com/Monster/Detail/2e8f0c1b-877b-4106-86f8-e171a6db9d61",
+    "type": "昆虫系"
+  },
+  {
+    "name": "多拉姆糖（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/bf2677c1-d945-4314-bda0-798febe4be7b",
+    "type": "野兽系"
+  },
+  {
+    "name": "黄金幼龙（怀旧·奖）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/2c3c896e-6986-4987-bba8-8c8634a14ca8",
+    "type": "龙系"
+  },
+  {
+    "name": "黄金幼龙（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/8c7860c0-8297-4f9f-83e3-a021d52f51fc",
+    "type": "龙系"
+  },
+  {
+    "name": "强壮的拳击企鹅",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ef2a0603-5be9-4857-afb8-d727501349c2",
+    "type": "飞行系"
+  },
+  {
+    "name": "金属蜥蜴",
+    "detailUrl": "https://molibaike.com/Monster/Detail/4db2c19a-dca3-4780-bde6-236cc9bc70ed",
+    "type": "龙系"
+  },
+  {
+    "name": "贝拉多娜草",
+    "detailUrl": "https://molibaike.com/Monster/Detail/b5c7ec39-24d5-4731-b32b-6d0371744e0e",
+    "type": "植物系"
+  },
+  {
+    "name": "熔岩",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d0a48ba2-f73d-4522-890f-72dd5616c59c",
+    "type": "金属系"
+  },
+  {
+    "name": "暴食鬼",
+    "detailUrl": "https://molibaike.com/Monster/Detail/33f3e348-3ee9-4699-af92-2932a433524b",
+    "type": "不死系"
+  },
+  {
+    "name": "变种狮鹫兽（时怀）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ba43e47b-1d43-42d3-be78-c2d33181e1df",
+    "type": "飞行系"
+  },
+  {
+    "name": "测试功能",
+    "detailUrl": "https://molibaike.com/Monster/Detail/92f099f9-0b97-48a8-b785-360a939977fd",
+    "type": "野兽系"
+  },
+  {
+    "name": "重生的年兽",
+    "detailUrl": "https://molibaike.com/Monster/Detail/36dbf6ad-fd77-49c8-b0a5-a254ec7ccf9b",
+    "type": "飞行系"
+  },
+  {
+    "name": "爱丝波波",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ac6d9131-3799-419b-b92d-6c076d3adf27",
+    "type": "特殊系"
+  },
+  {
+    "name": "圣诞波波",
+    "detailUrl": "https://molibaike.com/Monster/Detail/17a0ce66-9ad9-4ca8-867f-994b5ef54117",
+    "type": "特殊系"
+  },
+  {
+    "name": "丝诺波波",
+    "detailUrl": "https://molibaike.com/Monster/Detail/e0f52eaa-18b1-48d8-b1ba-5fb80ccdbdc0",
+    "type": "特殊系"
+  },
+  {
+    "name": "阿努比斯量产型",
+    "detailUrl": "https://molibaike.com/Monster/Detail/8984f855-35fc-4663-b92a-87347fde6925",
+    "type": "金属系"
+  },
+  {
+    "name": "血咒",
+    "detailUrl": "https://molibaike.com/Monster/Detail/aec7eb7d-46ef-4ba4-81b0-2b15bd560b2f",
+    "type": "不死系"
+  },
+  {
+    "name": "风切",
+    "detailUrl": "https://molibaike.com/Monster/Detail/8a94d4a3-a292-4926-8be6-f88934b11c92",
+    "type": "昆虫系"
+  },
+  {
+    "name": "烈风哥布林",
+    "detailUrl": "https://molibaike.com/Monster/Detail/697fe686-bc69-492b-ad0f-79add2b0fb03",
+    "type": "人形系"
+  },
+  {
+    "name": "一闪",
+    "detailUrl": "https://molibaike.com/Monster/Detail/35f77f59-b8cb-43e6-bc89-3bc3f032ecf9",
+    "type": "飞行系"
+  },
+  {
+    "name": "绳状熔岩",
+    "detailUrl": "https://molibaike.com/Monster/Detail/05984f3e-b70f-4583-972a-d301597704b0",
+    "type": "金属系"
+  },
+  {
+    "name": "谢蕾简克隆体",
+    "detailUrl": "https://molibaike.com/Monster/Detail/6def0e06-9778-44b4-823d-7cf53d32aef7",
+    "type": "人形系"
+  },
+  {
+    "name": "凶暴仙人掌",
+    "detailUrl": "https://molibaike.com/Monster/Detail/b4480852-04ef-4ea9-8229-70b966ad2029",
+    "type": "植物系"
+  },
+  {
+    "name": "幽灵猫",
+    "detailUrl": "https://molibaike.com/Monster/Detail/37dbf93a-0aa0-4dcc-8eda-0c5c4e75528d",
+    "type": "不死系"
+  },
+  {
+    "name": "绿帽哥布林",
+    "detailUrl": "https://molibaike.com/Monster/Detail/5ffbcc1e-da7b-471f-9e96-336919d83c5f",
+    "type": "人形系"
+  },
+  {
+    "name": "原罪之魔",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d6359f0d-7398-4a4d-9921-93d9ffdea2a2",
+    "type": "飞行系"
+  },
+  {
+    "name": "星菇",
+    "detailUrl": "https://molibaike.com/Monster/Detail/3cd42726-4747-416e-9f78-c08613c589b0",
+    "type": "植物系"
+  },
+  {
+    "name": "粉红菇",
+    "detailUrl": "https://molibaike.com/Monster/Detail/4324bad5-1669-4b22-af23-5f3765e653c6",
+    "type": "植物系"
+  },
+  {
+    "name": "水蓝菇",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d8a26218-25e4-4428-9146-8b08456fe81d",
+    "type": "植物系"
+  },
+  {
+    "name": "翠绿菇",
+    "detailUrl": "https://molibaike.com/Monster/Detail/057a98a6-2633-46ee-bc23-df1c2224f1b4",
+    "type": "植物系"
+  },
+  {
+    "name": "活泼的穴龙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/4495cb10-e399-48a3-90c6-683c0302a877",
+    "type": "龙系"
+  },
+  {
+    "name": "穴龙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/dbab3fec-da9a-43fe-b830-d708ee4f8c06",
+    "type": "龙系"
+  },
+  {
+    "name": "改造鬼灵",
+    "detailUrl": "https://molibaike.com/Monster/Detail/0ca1aee1-895c-4247-807d-83258019468c",
+    "type": "不死系"
+  },
+  {
+    "name": "红鬼",
+    "detailUrl": "https://molibaike.com/Monster/Detail/6f6e2dbe-9b9e-4a44-8b2c-3b409b2ea732",
+    "type": "不死系"
+  },
+  {
+    "name": "改造阴影",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ab0afcbd-ea66-455a-97a3-46871682fd62",
+    "type": "特殊系"
+  },
+  {
+    "name": "岩怪",
+    "detailUrl": "https://molibaike.com/Monster/Detail/86eae415-733e-4307-b6a0-a7c31feda5f8",
+    "type": "金属系"
+  },
+  {
+    "name": "影岩",
+    "detailUrl": "https://molibaike.com/Monster/Detail/283aedda-d876-4b1d-9072-1a11c6254500",
+    "type": "金属系"
+  },
+  {
+    "name": "巨鳌螃蟹",
+    "detailUrl": "https://molibaike.com/Monster/Detail/459289d9-de31-412d-b5a8-61df77148b56",
+    "type": "金属系"
+  },
+  {
+    "name": "漂浮炸弹",
+    "detailUrl": "https://molibaike.com/Monster/Detail/3a11da9c-9150-4d01-b647-55c56ce3b298",
+    "type": "特殊系"
+  },
+  {
+    "name": "单眼巨人",
+    "detailUrl": "https://molibaike.com/Monster/Detail/e6b586fb-823c-4412-a56c-f3ad4cf4b0d9",
+    "type": "人形系"
+  },
+  {
+    "name": "岩地跑者",
+    "detailUrl": "https://molibaike.com/Monster/Detail/cd9fa06e-eaa4-4eba-bc23-dedd5d86f564",
+    "type": "飞行系"
+  },
+  {
+    "name": "火焰之刃",
+    "detailUrl": "https://molibaike.com/Monster/Detail/99dc6945-3e67-455d-a7a9-dc6fe05d0d31",
+    "type": "金属系"
+  },
+  {
+    "name": "死灵",
+    "detailUrl": "https://molibaike.com/Monster/Detail/83aca52f-f141-4cef-ba81-255208c08b09",
+    "type": "不死系"
+  },
+  {
+    "name": "印第安仙人掌",
+    "detailUrl": "https://molibaike.com/Monster/Detail/105b37a2-7dfd-49f0-b6c0-bac09e176478",
+    "type": "植物系"
+  },
+  {
+    "name": "拳击企鹅",
+    "detailUrl": "https://molibaike.com/Monster/Detail/52fe4f91-3057-42ec-ab88-2dfac08cbeb8",
+    "type": "飞行系"
+  },
+  {
+    "name": "棉球",
+    "detailUrl": "https://molibaike.com/Monster/Detail/416dfdce-2a85-4c6b-afb9-e24edbfd199f",
+    "type": "特殊系"
+  },
+  {
+    "name": "虚弱的雏鸟",
+    "detailUrl": "https://molibaike.com/Monster/Detail/54a8fbb2-aa7a-4f3b-afcc-a2741f821911",
+    "type": "飞行系"
+  },
+  {
+    "name": "地龙蜥",
+    "detailUrl": "https://molibaike.com/Monster/Detail/79cc1027-7826-4e55-88d0-881b85d3be3a",
+    "type": "龙系"
+  },
+  {
+    "name": "水龙蜥",
+    "detailUrl": "https://molibaike.com/Monster/Detail/82bdeba3-6d55-4ce1-805b-dc9c59fecaf6",
+    "type": "龙系"
+  },
+  {
+    "name": "风龙蜥",
+    "detailUrl": "https://molibaike.com/Monster/Detail/9c165d07-33bc-49f0-b487-65dd6a2af0de",
+    "type": "龙系"
+  },
+  {
+    "name": "风蜘蛛",
+    "detailUrl": "https://molibaike.com/Monster/Detail/44481f08-99ef-49e5-9a3e-d61b5d3811ce",
+    "type": "昆虫系"
+  },
+  {
+    "name": "大刀鸸苗",
+    "detailUrl": "https://molibaike.com/Monster/Detail/dc06f1b7-c6c6-4281-9294-f85b4c5a0a8a",
+    "type": "野兽系"
+  },
+  {
+    "name": "天使之翼（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/9f1a44e1-24b5-435a-8ef7-33129446ce73",
+    "type": "邪魔系"
+  },
+  {
+    "name": "金矿树精",
+    "detailUrl": "https://molibaike.com/Monster/Detail/bf381423-cb96-41be-9a36-2c85174d36e8",
+    "type": "金属系"
+  },
+  {
+    "name": "茁壮的树精",
+    "detailUrl": "https://molibaike.com/Monster/Detail/5e41f15b-b4c2-4b00-8599-52e445fb2310",
+    "type": "植物系"
+  },
+  {
+    "name": "布丁",
+    "detailUrl": "https://molibaike.com/Monster/Detail/f310c638-992a-44c4-bee5-c939d1e46e4f",
+    "type": "特殊系"
+  },
+  {
+    "name": "钢铁猪鬼",
+    "detailUrl": "https://molibaike.com/Monster/Detail/472f057c-59d6-40cb-9fba-b08bc83b6155",
+    "type": "金属系"
+  },
+  {
+    "name": "蓝魔卡尔德（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ea36ab5e-5e14-4b60-9c33-1be90856b319",
+    "type": "飞行系"
+  },
+  {
+    "name": "蓝魔威尔布尔（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/8df98103-97a3-4fa9-ac96-5f4464baa510",
+    "type": "飞行系"
+  },
+  {
+    "name": "超梦",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ef713f61-475e-462f-be87-e7a28f7f43cb",
+    "type": "金属系"
+  },
+  {
+    "name": "地狱使者",
+    "detailUrl": "https://molibaike.com/Monster/Detail/605c06a0-39ae-42c7-b2bf-1fba938537b5",
+    "type": "不死系"
+  },
+  {
+    "name": "恶魔统领",
+    "detailUrl": "https://molibaike.com/Monster/Detail/f8800b02-906b-49ca-babd-6ed31786a4f4",
+    "type": "人形系"
+  },
+  {
+    "name": "归来的木乃伊",
+    "detailUrl": "https://molibaike.com/Monster/Detail/731843d8-85c9-4dde-868e-7a7551536f68",
+    "type": "不死系"
+  },
+  {
+    "name": "快融化的冰怪",
+    "detailUrl": "https://molibaike.com/Monster/Detail/164b3471-21bb-418a-8e06-a1697db44b9f",
+    "type": "金属系"
+  },
+  {
+    "name": "地狱三头犬",
+    "detailUrl": "https://molibaike.com/Monster/Detail/735f151f-166f-4290-ac3f-dbb2f87aa6df",
+    "type": "不死系"
+  },
+  {
+    "name": "火焰鼠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/189db13d-e7c9-4466-8f20-a5f7f71c1f81",
+    "type": "野兽系"
+  },
+  {
+    "name": "改造兔耳蝙蝠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/c7ba5cce-ff07-49c7-9edf-ff37231c51d8",
+    "type": "飞行系"
+  },
+  {
+    "name": "送葬者",
+    "detailUrl": "https://molibaike.com/Monster/Detail/dfd36406-190a-4cf3-ac0f-06cc97368f76",
+    "type": "不死系"
+  },
+  {
+    "name": "水晶螃蟹",
+    "detailUrl": "https://molibaike.com/Monster/Detail/6f5758ee-045d-4aa4-b3f3-5cc5936e6a3f",
+    "type": "金属系"
+  },
+  {
+    "name": "无之纹章红魔乔卡（道）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/68ca54ae-27a1-4bc9-9ad2-25197ba3645b",
+    "type": "邪魔系"
+  },
+  {
+    "name": "闪光飞鹰",
+    "detailUrl": "https://molibaike.com/Monster/Detail/23ac02fd-31d6-45e9-8f0f-b52dca70cfaa",
+    "type": "飞行系"
+  },
+  {
+    "name": "改造黄蜂（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/b6bf562b-34a8-459b-90ae-8c3eccbefa34",
+    "type": "昆虫系"
+  },
+  {
+    "name": "改造水蓝鸟魔",
+    "detailUrl": "https://molibaike.com/Monster/Detail/5d452230-b5a5-43e8-9391-e8f92cb98a92",
+    "type": "飞行系"
+  },
+  {
+    "name": "曼德拉草",
+    "detailUrl": "https://molibaike.com/Monster/Detail/c6c2c14c-c412-4478-b8b2-7ec8df6a7624",
+    "type": "植物系"
+  },
+  {
+    "name": "改造丘比特",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ec4b0d23-340f-4aa8-93b8-7b5ec3538e2d",
+    "type": "飞行系"
+  },
+  {
+    "name": "改造水果蝙蝠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/011825fa-ca4d-4d0d-8a57-1910aede368f",
+    "type": "飞行系"
+  },
+  {
+    "name": "天真的迷你龙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d15589cb-3a61-4a02-b797-e524e74bbf9b",
+    "type": "龙系"
+  },
+  {
+    "name": "不屈之骨",
+    "detailUrl": "https://molibaike.com/Monster/Detail/fd441e63-aaea-4eb3-bb2b-387107b07bf3",
+    "type": "不死系"
+  },
+  {
+    "name": "矿工哥布林",
+    "detailUrl": "https://molibaike.com/Monster/Detail/a4dd893d-af0a-4aee-ba85-0abc09147c8b",
+    "type": "人形系"
+  },
+  {
+    "name": "变异果冻史莱姆",
+    "detailUrl": "https://molibaike.com/Monster/Detail/6e1f2969-6192-4c76-a7a7-e0028d80b3fe",
+    "type": "特殊系"
+  },
+  {
+    "name": "改造大地翼龙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/1c0295fd-7b55-4293-a420-2fe24dc8bf9f",
+    "type": "龙系"
+  },
+  {
+    "name": "极冰之人魔草",
+    "detailUrl": "https://molibaike.com/Monster/Detail/3564d367-475c-476a-bab6-874a0d5de0c4",
+    "type": "植物系"
+  },
+  {
+    "name": "漆黑之羽",
+    "detailUrl": "https://molibaike.com/Monster/Detail/4984d1b9-9a40-408e-ab70-38ae3bf6bdda",
+    "type": "人形系"
+  },
+  {
+    "name": "改造血腥之刃",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ab227d4c-ac21-4072-b452-799b03f0ec04",
+    "type": "金属系"
+  },
+  {
+    "name": "改造螳螂（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/966d44d8-17a0-492a-835f-732fc6ee91a3",
+    "type": "昆虫系"
+  },
+  {
+    "name": "火焰气息",
+    "detailUrl": "https://molibaike.com/Monster/Detail/f45949af-bab1-4bcf-9ac2-edbf53881fa4",
+    "type": "特殊系"
+  },
+  {
+    "name": "海盗头目",
+    "detailUrl": "https://molibaike.com/Monster/Detail/920338a3-9750-439d-aa1b-de485c2606f9",
+    "type": "人形系"
+  },
+  {
+    "name": "山贼",
+    "detailUrl": "https://molibaike.com/Monster/Detail/186ffcdb-a200-4cdf-a374-75100c546564",
+    "type": "人形系"
+  },
+  {
+    "name": "破坏狂",
+    "detailUrl": "https://molibaike.com/Monster/Detail/83337b9a-5a3c-44d0-88be-fbc8eb897cef",
+    "type": "人形系"
+  },
+  {
+    "name": "盗贼",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ca704577-836d-4623-8169-466a665a08a3",
+    "type": "人形系"
+  },
+  {
+    "name": "海盗",
+    "detailUrl": "https://molibaike.com/Monster/Detail/55c17cbc-7b58-4515-b85d-a3ed044e9c80",
+    "type": "人形系"
+  },
+  {
+    "name": "绿龙杜瓦",
+    "detailUrl": "https://molibaike.com/Monster/Detail/e72ec517-a96b-4c29-b7b5-1d55b9dfb82f",
+    "type": "龙系"
+  },
+  {
+    "name": "水精",
+    "detailUrl": "https://molibaike.com/Monster/Detail/dba630f6-67a7-43e9-a059-a54a082c07c9",
+    "type": "特殊系"
+  },
+  {
+    "name": "火精",
+    "detailUrl": "https://molibaike.com/Monster/Detail/9b0c27c5-8310-4186-81d1-8f31d1d08f41",
+    "type": "特殊系"
+  },
+  {
+    "name": "风精",
+    "detailUrl": "https://molibaike.com/Monster/Detail/b310274a-6c22-467a-940b-693f1afaac37",
+    "type": "特殊系"
+  },
+  {
+    "name": "地精",
+    "detailUrl": "https://molibaike.com/Monster/Detail/54921a2f-ea65-491e-bcd8-77ff713a99a1",
+    "type": "特殊系"
+  },
+  {
+    "name": "天之纹章红魔乔卡（道）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/a9f3c076-3c28-4237-9e18-c6b30c0d9112",
+    "type": "邪魔系"
+  },
+  {
+    "name": "变异狮鹫兽",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ad396df1-a13b-4604-94c2-921b4f3eefe3",
+    "type": "飞行系"
+  },
+  {
+    "name": "血腥骑士",
+    "detailUrl": "https://molibaike.com/Monster/Detail/f2322055-bf93-4d81-af23-0192bfa145a0",
+    "type": "特殊系"
+  },
+  {
+    "name": "改造水晶螃蟹",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d5636a72-9b19-456c-a30c-9f29ea00f4d3",
+    "type": "金属系"
+  },
+  {
+    "name": "火柴小精灵",
+    "detailUrl": "https://molibaike.com/Monster/Detail/3e26a297-d046-4256-bdf3-94b27dfa00d4",
+    "type": "人形系"
+  },
+  {
+    "name": "蛟龙（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/270b4a98-561b-466a-a746-dd66814367d9",
+    "type": "龙系"
+  },
+  {
+    "name": "亚斯普（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/96232e54-557d-43a1-a738-59b0413e73ba",
+    "type": "龙系"
+  },
+  {
+    "name": "寒冰巨龙（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/4a26168d-3a22-4390-983d-ca31a729f586",
+    "type": "龙系"
+  },
+  {
+    "name": "改造猎豹蜥蜴",
+    "detailUrl": "https://molibaike.com/Monster/Detail/6ae1efa0-096c-4616-a85e-6aee7caf1dce",
+    "type": "龙系"
+  },
+  {
+    "name": "疾风之刃",
+    "detailUrl": "https://molibaike.com/Monster/Detail/7548753d-6986-49e7-bd7b-710aa07c3293",
+    "type": "金属系"
+  },
+  {
+    "name": "强盗",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d60009be-a43a-4b76-bfeb-188f089b25a9",
+    "type": "人形系"
+  },
+  {
+    "name": "地狱骷髅",
+    "detailUrl": "https://molibaike.com/Monster/Detail/7bd1f55a-d37a-4042-a92e-d90f3f623c9e",
+    "type": "不死系"
+  },
+  {
+    "name": "陆行鲨",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d6dc15eb-962c-4f16-904c-c1d6d1a5423a",
+    "type": "飞行系"
+  },
+  {
+    "name": "九尾灵狐（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/a9b22871-68ea-41ef-8a9a-3546164b6e2e",
+    "type": "野兽系"
+  },
+  {
+    "name": "白夜",
+    "detailUrl": "https://molibaike.com/Monster/Detail/24957e2c-3c87-480f-9795-aced82b2f0cd",
+    "type": "龙系"
+  },
+  {
+    "name": "木乃伊",
+    "detailUrl": "https://molibaike.com/Monster/Detail/97e7d417-a17a-42aa-9d17-ab7106fa1f64",
+    "type": "不死系"
+  },
+  {
+    "name": "急冻古树",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ee3f75ea-13ae-43fc-8662-0726270d24cf",
+    "type": "植物系"
+  },
+  {
+    "name": "魔法黑猫（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/3ca1f44e-5f72-40ac-8444-4c6ddcaa9e0b",
+    "type": "野兽系"
+  },
+  {
+    "name": "雪儿波波",
+    "detailUrl": "https://molibaike.com/Monster/Detail/e6a3f98b-7785-4bd0-a11b-8b62c7d8bf46",
+    "type": "特殊系"
+  },
+  {
+    "name": "雾风",
+    "detailUrl": "https://molibaike.com/Monster/Detail/77357895-7777-4934-a60e-3eb1cac753c1",
+    "type": "金属系"
+  },
+  {
+    "name": "耀阳花（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/1d816979-5253-4fd6-88af-5a95d3c2e7bb",
+    "type": "植物系"
+  },
+  {
+    "name": "冰晶巨蛇（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/879f4dbe-1f92-4d40-976c-daf3ebfcfada",
+    "type": "特殊系"
+  },
+  {
+    "name": "异界魔导士（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/46fcab71-0bf3-44dd-990a-64598020e2e6",
+    "type": "特殊系"
+  },
+  {
+    "name": "南瓜汲魂者",
+    "detailUrl": "https://molibaike.com/Monster/Detail/86b1f6de-c046-4314-a77c-d7125dae0e39",
+    "type": "不死系"
+  },
+  {
+    "name": "南瓜收割者",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ee9307c3-c71d-403c-905b-5a9a51f18144",
+    "type": "不死系"
+  },
+  {
+    "name": "深渊恶魔统领",
+    "detailUrl": "https://molibaike.com/Monster/Detail/a7262628-ac05-4acd-bb82-a587c0f95352",
+    "type": "飞行系"
+  },
+  {
+    "name": "无头骑士的化身",
+    "detailUrl": "https://molibaike.com/Monster/Detail/14f6c2cb-b366-4fc9-8faf-d4293c322f13",
+    "type": "金属系"
+  },
+  {
+    "name": "亚祖兰",
+    "detailUrl": "https://molibaike.com/Monster/Detail/febe3b43-3133-4fce-9f17-360572d93c19",
+    "type": "飞行系"
+  },
+  {
+    "name": "改造异型蜂",
+    "detailUrl": "https://molibaike.com/Monster/Detail/577e72fa-e8ff-4a2a-8fbf-ab935ed6532f",
+    "type": "昆虫系"
+  },
+  {
+    "name": "黑暗龙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/5ed3fa4a-bf20-42a8-8e84-57b0931fa9ff",
+    "type": "邪魔系"
+  },
+  {
+    "name": "妖花",
+    "detailUrl": "https://molibaike.com/Monster/Detail/8d4e8080-c76f-41b1-ad17-699cd093ba2b",
+    "type": "植物系"
+  },
+  {
+    "name": "黄蜂",
+    "detailUrl": "https://molibaike.com/Monster/Detail/dc8a1753-3815-498d-bee0-f2875a7918ae",
+    "type": "昆虫系"
+  },
+  {
+    "name": "虎头蜂",
+    "detailUrl": "https://molibaike.com/Monster/Detail/1789089c-4395-499f-98e0-ac200f2fb261",
+    "type": "昆虫系"
+  },
+  {
+    "name": "红蝎",
+    "detailUrl": "https://molibaike.com/Monster/Detail/9b710075-bb9a-4b44-b11d-b2b8f38dd6dc",
+    "type": "昆虫系"
+  },
+  {
+    "name": "宝石鼠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/5e8fd156-6bf6-48f9-be7e-ee7b4d957bbd",
+    "type": "野兽系"
+  },
+  {
+    "name": "依鲁特奇美拉（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/65d89540-f765-46b2-b732-779ebb4c0ce0",
+    "type": "飞行系"
+  },
+  {
+    "name": "依格罗斯",
+    "detailUrl": "https://molibaike.com/Monster/Detail/9b3f7614-9158-4a1c-ac00-aef65894a26a",
+    "type": "飞行系"
+  },
+  {
+    "name": "血魔",
+    "detailUrl": "https://molibaike.com/Monster/Detail/fd23522b-248b-424c-9915-a94543d1c08e",
+    "type": "飞行系"
+  },
+  {
+    "name": "小石像怪",
+    "detailUrl": "https://molibaike.com/Monster/Detail/744497e4-7d4c-4498-bfc5-f8bfcff23f2b",
+    "type": "飞行系"
+  },
+  {
+    "name": "小恶魔",
+    "detailUrl": "https://molibaike.com/Monster/Detail/47af197c-52c7-4b9d-a9c8-59ed360a77d1",
+    "type": "飞行系"
+  },
+  {
+    "name": "小蝙蝠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/e23420b5-73d4-437a-84c2-c6f82982b803",
+    "type": "飞行系"
+  },
+  {
+    "name": "托罗帝鸟",
+    "detailUrl": "https://molibaike.com/Monster/Detail/7368547e-0ecb-4302-8452-de755b60a1e7",
+    "type": "飞行系"
+  },
+  {
+    "name": "兔耳蝙蝠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/1db8a4b8-84bf-47be-bdcd-2769b9284cc5",
+    "type": "飞行系"
+  },
+  {
+    "name": "天使蝙蝠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ad12f227-c677-4114-93cb-2bc268e0087b",
+    "type": "飞行系"
+  },
+  {
+    "name": "水蓝鸟魔",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ba2d34dc-85b2-4d11-9917-2e0e65e53b49",
+    "type": "飞行系"
+  },
+  {
+    "name": "水果蝙蝠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/63ebadfe-357b-4cfb-822d-cce40cbeb2c6",
+    "type": "飞行系"
+  },
+  {
+    "name": "使魔（英普）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/2503dbb6-6d49-4d38-8a03-3acd0053966f",
+    "type": "飞行系"
+  },
+  {
+    "name": "石像怪",
+    "detailUrl": "https://molibaike.com/Monster/Detail/0b889383-39d6-43d6-9faf-09c3b64bd8ec",
+    "type": "飞行系"
+  },
+  {
+    "name": "狮鹫兽",
+    "detailUrl": "https://molibaike.com/Monster/Detail/535459f9-2c6c-4995-8502-5a42a75d4071",
+    "type": "飞行系"
+  },
+  {
+    "name": "扫把蝙蝠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/6c6a6725-b774-4534-8c08-da4ccedbc76e",
+    "type": "飞行系"
+  },
+  {
+    "name": "强化丘比特",
+    "detailUrl": "https://molibaike.com/Monster/Detail/49b644d6-9fdd-4053-88bd-d42a6d646692",
+    "type": "飞行系"
+  },
+  {
+    "name": "迷你石像怪",
+    "detailUrl": "https://molibaike.com/Monster/Detail/1a26f05b-09e7-4baa-aa9a-3621b7f73ac4",
+    "type": "飞行系"
+  },
+  {
+    "name": "迷你蝙蝠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/7e3d5801-0ece-4f1b-b5ae-a2e00a16ecfb",
+    "type": "飞行系"
+  },
+  {
+    "name": "狂奔鸟",
+    "detailUrl": "https://molibaike.com/Monster/Detail/009ba30d-e14e-403a-93e3-03360f5bc8dc",
+    "type": "飞行系"
+  },
+  {
+    "name": "巨蝙蝠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/20b379f3-649e-4f09-b2a6-c2bc2d2141c3",
+    "type": "飞行系"
+  },
+  {
+    "name": "欧特奇美拉",
+    "detailUrl": "https://molibaike.com/Monster/Detail/21adfbf6-5b6d-4ad1-926d-1003832795e4",
+    "type": "飞行系"
+  },
+  {
+    "name": "火焰啄木鸟",
+    "detailUrl": "https://molibaike.com/Monster/Detail/f4df4141-93ee-411f-913f-55ae5316c4bd",
+    "type": "飞行系"
+  },
+  {
+    "name": "海蝙蝠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/fdebf139-b749-4005-9bdf-f054b2cd72e3",
+    "type": "飞行系"
+  },
+  {
+    "name": "改造扫把蝙蝠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/330a655e-d769-43f7-9ff6-9ad4f8a67de0",
+    "type": "飞行系"
+  },
+  {
+    "name": "恶魔蝙蝠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/0f47f54d-3ac1-4bde-9344-2d35e1c1779d",
+    "type": "飞行系"
+  },
+  {
+    "name": "恶魔",
+    "detailUrl": "https://molibaike.com/Monster/Detail/03f8724b-f933-4417-bfb5-587a2a45f576",
+    "type": "飞行系"
+  },
+  {
+    "name": "改造型牛鬼",
+    "detailUrl": "https://molibaike.com/Monster/Detail/bef58b1e-fe0f-4d86-9956-4383b8f465da",
+    "type": "邪魔系"
+  },
+  {
+    "name": "黑暗大公鸡",
+    "detailUrl": "https://molibaike.com/Monster/Detail/7af5bcc8-a6f4-4512-8fb2-8ac312cf79d9",
+    "type": "邪魔系"
+  },
+  {
+    "name": "大公鸡（时长）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/00054853-2371-4a17-8dc8-c6cb9fff0a6a",
+    "type": "邪魔系"
+  },
+  {
+    "name": "舔食者",
+    "detailUrl": "https://molibaike.com/Monster/Detail/cea66579-3559-4748-9a93-00f6973a16d8",
+    "type": "不死系"
+  },
+  {
+    "name": "大蝙蝠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d6611fb1-125b-4683-942c-8111f405e55f",
+    "type": "飞行系"
+  },
+  {
+    "name": "沼泽树精",
+    "detailUrl": "https://molibaike.com/Monster/Detail/e618be7e-de33-4f83-8322-57afd9ab76b1",
+    "type": "植物系"
+  },
+  {
+    "name": "妖草",
+    "detailUrl": "https://molibaike.com/Monster/Detail/b75586c6-6be2-4bbe-b792-5fd5354c4300",
+    "type": "植物系"
+  },
+  {
+    "name": "舞蹈花妖",
+    "detailUrl": "https://molibaike.com/Monster/Detail/f673a93d-c384-4434-999c-089fb11e83a0",
+    "type": "植物系"
+  },
+  {
+    "name": "武术仙人掌",
+    "detailUrl": "https://molibaike.com/Monster/Detail/e553ea17-a4a8-47f7-ac8b-72ce8958ea3a",
+    "type": "植物系"
+  },
+  {
+    "name": "兔耳仙人掌",
+    "detailUrl": "https://molibaike.com/Monster/Detail/0584bf88-1710-4c15-acc3-6c160e43e31a",
+    "type": "植物系"
+  },
+  {
+    "name": "死亡树精",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d04d11f5-0d62-4c86-bac8-6b95cddb84b7",
+    "type": "植物系"
+  },
+  {
+    "name": "树精",
+    "detailUrl": "https://molibaike.com/Monster/Detail/c22abdb5-71c5-4272-821a-1f9d92d7002c",
+    "type": "植物系"
+  },
+  {
+    "name": "人魔草",
+    "detailUrl": "https://molibaike.com/Monster/Detail/4497653c-2d90-4469-9d04-ac4e0ea52595",
+    "type": "植物系"
+  },
+  {
+    "name": "蔓陀罗草",
+    "detailUrl": "https://molibaike.com/Monster/Detail/43e409c0-f630-4dca-aed9-dad00de388fc",
+    "type": "植物系"
+  },
+  {
+    "name": "绿色口臭鬼",
+    "detailUrl": "https://molibaike.com/Monster/Detail/b873be73-ab9d-45c2-91ef-a6830bc5f831",
+    "type": "植物系"
+  },
+  {
+    "name": "蓝色口臭鬼",
+    "detailUrl": "https://molibaike.com/Monster/Detail/0e4bea73-ff9c-4e7b-8ba1-70760c032847",
+    "type": "植物系"
+  },
+  {
+    "name": "快枯死的树精",
+    "detailUrl": "https://molibaike.com/Monster/Detail/96b4a2eb-7d9f-4205-9aa9-422f8be304bf",
+    "type": "植物系"
+  },
+  {
+    "name": "火焰舞者",
+    "detailUrl": "https://molibaike.com/Monster/Detail/40f37532-b221-405c-ad96-e847dcb2932f",
+    "type": "植物系"
+  },
+  {
+    "name": "黄色口臭鬼",
+    "detailUrl": "https://molibaike.com/Monster/Detail/7eec4ddf-0ac8-4e23-bea8-baadf1a15983",
+    "type": "植物系"
+  },
+  {
+    "name": "黄金树精",
+    "detailUrl": "https://molibaike.com/Monster/Detail/1701e36a-5d46-4bc1-86be-e03c7bb9e69b",
+    "type": "植物系"
+  },
+  {
+    "name": "红色口臭鬼",
+    "detailUrl": "https://molibaike.com/Monster/Detail/21274613-a2e2-47f1-a3c0-9d2e9bda2e07",
+    "type": "植物系"
+  },
+  {
+    "name": "改造沼泽树精",
+    "detailUrl": "https://molibaike.com/Monster/Detail/b1ab5ec4-7ef3-452c-b862-47d117faba08",
+    "type": "植物系"
+  },
+  {
+    "name": "改造绿色口臭鬼",
+    "detailUrl": "https://molibaike.com/Monster/Detail/52e036cb-3c45-4a14-a99e-cff855a6244b",
+    "type": "植物系"
+  },
+  {
+    "name": "惨白树精",
+    "detailUrl": "https://molibaike.com/Monster/Detail/9c8a09cd-377e-4a8d-b237-d823e733e8cd",
+    "type": "植物系"
+  },
+  {
+    "name": "冰冷树精",
+    "detailUrl": "https://molibaike.com/Monster/Detail/1b28d782-e2a9-437b-9e04-f82b9e5153b4",
+    "type": "植物系"
+  },
+  {
+    "name": "泰坦巨人",
+    "detailUrl": "https://molibaike.com/Monster/Detail/4b31fc68-b35e-4091-bb3f-e00555e08ff9",
+    "type": "人形系"
+  },
+  {
+    "name": "影舞者（男）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/19cf4d8b-01b9-42cc-b736-aa03f6bcfb26",
+    "type": "人形系"
+  },
+  {
+    "name": "影舞者（女）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/3cbbdac9-3c93-47de-909d-12852fda08c2",
+    "type": "人形系"
+  },
+  {
+    "name": "鸟人",
+    "detailUrl": "https://molibaike.com/Monster/Detail/12aabcbb-5cd3-4d22-953c-f42e0d7ae78f",
+    "type": "人形系"
+  },
+  {
+    "name": "火焰哥布林",
+    "detailUrl": "https://molibaike.com/Monster/Detail/87c7d64a-2a51-431a-a9ee-112f580b2289",
+    "type": "人形系"
+  },
+  {
+    "name": "巨人",
+    "detailUrl": "https://molibaike.com/Monster/Detail/361c0ab7-aa2c-411b-9cbe-5df202a15236",
+    "type": "人形系"
+  },
+  {
+    "name": "烈风鸟人",
+    "detailUrl": "https://molibaike.com/Monster/Detail/9936052d-9948-4a6e-9ce0-43b5896e9849",
+    "type": "人形系"
+  },
+  {
+    "name": "狠毒鸟人",
+    "detailUrl": "https://molibaike.com/Monster/Detail/b63d904f-b7ac-4cbf-92a9-1d6719827e4c",
+    "type": "人形系"
+  },
+  {
+    "name": "幻歌妖",
+    "detailUrl": "https://molibaike.com/Monster/Detail/e3228aaa-0139-4c68-8c42-fb8372554c89",
+    "type": "人形系"
+  },
+  {
+    "name": "哥布林",
+    "detailUrl": "https://molibaike.com/Monster/Detail/a25887f2-6639-4867-a341-d50744822555",
+    "type": "人形系"
+  },
+  {
+    "name": "改造烈风哥布林",
+    "detailUrl": "https://molibaike.com/Monster/Detail/6b0ad265-9e64-4a36-aa3a-4103ddab9325",
+    "type": "人形系"
+  },
+  {
+    "name": "鸟人酋长",
+    "detailUrl": "https://molibaike.com/Monster/Detail/c9558e54-6923-44b7-8786-9e7ab35d3a53",
+    "type": "人形系"
+  },
+  {
+    "name": "爱莉西雅",
+    "detailUrl": "https://molibaike.com/Monster/Detail/7ddae350-4658-4179-972a-fce0ac9da7d9",
+    "type": "人形系"
+  },
+  {
+    "name": "异型蜂",
+    "detailUrl": "https://molibaike.com/Monster/Detail/8d6ce10b-0088-460c-9485-b51426dffa68",
+    "type": "昆虫系"
+  },
+  {
+    "name": "死亡蜂",
+    "detailUrl": "https://molibaike.com/Monster/Detail/4049747b-3ed6-47ea-acaa-dbff71008af4",
+    "type": "昆虫系"
+  },
+  {
+    "name": "水蜘蛛",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d88ca5fd-561b-4646-8398-65ecbeb35106",
+    "type": "昆虫系"
+  },
+  {
+    "name": "杀手蝎",
+    "detailUrl": "https://molibaike.com/Monster/Detail/461ddc2d-75f4-4803-9e51-b4ac9e0b413f",
+    "type": "昆虫系"
+  },
+  {
+    "name": "杀人蜂",
+    "detailUrl": "https://molibaike.com/Monster/Detail/1d8fb9b3-70c3-485f-b451-8550b737c780",
+    "type": "昆虫系"
+  },
+  {
+    "name": "蓝蝎",
+    "detailUrl": "https://molibaike.com/Monster/Detail/21667828-bd8b-46f7-bf4d-dce52b1dbf25",
+    "type": "昆虫系"
+  },
+  {
+    "name": "堀地虫",
+    "detailUrl": "https://molibaike.com/Monster/Detail/8b4ddfbd-0083-4115-ac06-67eb6ab9228a",
+    "type": "昆虫系"
+  },
+  {
+    "name": "甲虫",
+    "detailUrl": "https://molibaike.com/Monster/Detail/bf18cebb-9ac1-49c1-8a93-b69df687e8ce",
+    "type": "昆虫系"
+  },
+  {
+    "name": "黄蝎",
+    "detailUrl": "https://molibaike.com/Monster/Detail/c88516d7-438f-464e-b654-f599fa7c78d7",
+    "type": "昆虫系"
+  },
+  {
+    "name": "改造蓝蝎",
+    "detailUrl": "https://molibaike.com/Monster/Detail/89cff8c6-191a-42f3-b494-a8c010dd4649",
+    "type": "昆虫系"
+  },
+  {
+    "name": "改造黄蜂（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/e796782f-c235-4aac-b971-7a496ebb4406",
+    "type": "昆虫系"
+  },
+  {
+    "name": "独角仙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/91d5ae8d-7c83-4e74-a5d4-3520c11ad007",
+    "type": "昆虫系"
+  },
+  {
+    "name": "翼龙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/bd42a724-799b-440c-98cd-6d71020b814d",
+    "type": "龙系"
+  },
+  {
+    "name": "烟罗",
+    "detailUrl": "https://molibaike.com/Monster/Detail/6bf571a0-e6d2-4631-afea-1be88f042bc2",
+    "type": "特殊系"
+  },
+  {
+    "name": "亚斯普（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/7ec9d318-5763-4ff3-b0ba-9acfe5fdd5a5",
+    "type": "龙系"
+  },
+  {
+    "name": "迅猛龙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/f5af7f8a-a39e-4c44-9b4a-c19e1542672f",
+    "type": "龙系"
+  },
+  {
+    "name": "蜥蜴战士",
+    "detailUrl": "https://molibaike.com/Monster/Detail/8530ea2f-6515-4787-ba17-08c57a7f2f92",
+    "type": "龙系"
+  },
+  {
+    "name": "蜥蜴武士",
+    "detailUrl": "https://molibaike.com/Monster/Detail/6b52cbed-3f81-40bc-bbc1-25de748a2d7c",
+    "type": "龙系"
+  },
+  {
+    "name": "蜥蜴斗士",
+    "detailUrl": "https://molibaike.com/Monster/Detail/17c1e62f-fe6f-4263-923c-4175c755c902",
+    "type": "龙系"
+  },
+  {
+    "name": "魔法黄金龙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/f5c26040-571d-48af-b896-162de4fa5a48",
+    "type": "龙系"
+  },
+  {
+    "name": "敏捷的雏龙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/b7491592-65de-4fef-9012-69e9b37ec6fe",
+    "type": "龙系"
+  },
+  {
+    "name": "迷你龙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/215d2f00-6da8-42d1-893a-2b7ddc58c213",
+    "type": "龙系"
+  },
+  {
+    "name": "猎豹蜥蜴",
+    "detailUrl": "https://molibaike.com/Monster/Detail/2c29103c-d7e1-47f3-837e-7d69d8ecfe64",
+    "type": "龙系"
+  },
+  {
+    "name": "烈风翼龙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/7259217b-6d1d-46db-99d9-bc19988d37d4",
+    "type": "龙系"
+  },
+  {
+    "name": "口袋龙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/a383a399-80b0-4621-a51d-1284985d55fe",
+    "type": "龙系"
+  },
+  {
+    "name": "蛟龙（时道）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/70aea9fa-9f5c-4863-ab10-b96111a1a8bf",
+    "type": "龙系"
+  },
+  {
+    "name": "火焰翼龙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/665926a1-04cc-44de-9097-97dd1d1a6cba",
+    "type": "龙系"
+  },
+  {
+    "name": "寒冰翼龙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/9df70f53-3ad6-400c-b528-89adc420db61",
+    "type": "龙系"
+  },
+  {
+    "name": "改造蜥蜴战士",
+    "detailUrl": "https://molibaike.com/Monster/Detail/9828e3c8-55f7-4364-8f87-9e1c5f1d0a0f",
+    "type": "龙系"
+  },
+  {
+    "name": "地龙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/34b6aefb-2a8c-488c-aade-49156947ef8c",
+    "type": "龙系"
+  },
+  {
+    "name": "大地翼龙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/37aa6543-28ce-4187-a86f-d995b64e16a7",
+    "type": "龙系"
+  },
+  {
+    "name": "雏龙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/677ace0d-8070-438d-8982-4fafe22d4a26",
+    "type": "龙系"
+  },
+  {
+    "name": "八岐大蛇",
+    "detailUrl": "https://molibaike.com/Monster/Detail/e3578e26-19ab-48ca-a796-fb0f0eb17936",
+    "type": "龙系"
+  },
+  {
+    "name": "阿尔杰斯克隆体",
+    "detailUrl": "https://molibaike.com/Monster/Detail/9c557901-5880-4941-baf7-a854c09afe61",
+    "type": "邪魔系"
+  },
+  {
+    "name": "真·村雨丸",
+    "detailUrl": "https://molibaike.com/Monster/Detail/bbbc8003-e228-4d07-a5a5-6e061b368bc7",
+    "type": "金属系"
+  },
+  {
+    "name": "银怪",
+    "detailUrl": "https://molibaike.com/Monster/Detail/a82d42ed-173d-4c43-8db1-5ed5d8599674",
+    "type": "金属系"
+  },
+  {
+    "name": "血腥之刃",
+    "detailUrl": "https://molibaike.com/Monster/Detail/7395d7e6-ac69-41f8-b510-e0568ecf1a9b",
+    "type": "金属系"
+  },
+  {
+    "name": "铁剪螃蟹",
+    "detailUrl": "https://molibaike.com/Monster/Detail/52cdf269-c093-450c-9575-6e227b7a61f3",
+    "type": "金属系"
+  },
+  {
+    "name": "神盾",
+    "detailUrl": "https://molibaike.com/Monster/Detail/99689bcd-8b7b-45d9-9030-0e1af5d4d801",
+    "type": "金属系"
+  },
+  {
+    "name": "杀意之刃",
+    "detailUrl": "https://molibaike.com/Monster/Detail/66057b93-e905-4a47-aec1-19ebd43397c5",
+    "type": "金属系"
+  },
+  {
+    "name": "杀龙之刃",
+    "detailUrl": "https://molibaike.com/Monster/Detail/084ed591-f148-4942-b967-d25f58b69184",
+    "type": "金属系"
+  },
+  {
+    "name": "强盾",
+    "detailUrl": "https://molibaike.com/Monster/Detail/636dcb5d-6587-4481-84ce-996f21573695",
+    "type": "金属系"
+  },
+  {
+    "name": "潜盾",
+    "detailUrl": "https://molibaike.com/Monster/Detail/2e8aa643-1cca-4bac-899c-bc1e698d5c8c",
+    "type": "金属系"
+  },
+  {
+    "name": "魔动铠甲",
+    "detailUrl": "https://molibaike.com/Monster/Detail/85014af9-0165-47ed-9e66-d7d97bed3aae",
+    "type": "金属系"
+  },
+  {
+    "name": "蓝魔吓人箱",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d5ee22fe-7114-4734-961c-c3d7b8be8b6a",
+    "type": "金属系"
+  },
+  {
+    "name": "金怪",
+    "detailUrl": "https://molibaike.com/Monster/Detail/c0cc9b37-bb15-4e78-a56f-346ab0ebf709",
+    "type": "金属系"
+  },
+  {
+    "name": "黄金螃蟹",
+    "detailUrl": "https://molibaike.com/Monster/Detail/96b43610-ad4b-433c-b5f5-747f96d87b34",
+    "type": "金属系"
+  },
+  {
+    "name": "钢铁骑士",
+    "detailUrl": "https://molibaike.com/Monster/Detail/3da7552b-b446-483d-9f14-36c65a5bab89",
+    "type": "金属系"
+  },
+  {
+    "name": "钢铁领主",
+    "detailUrl": "https://molibaike.com/Monster/Detail/3c35462b-d0c3-49dc-b2f8-fb2622ae42fe",
+    "type": "金属系"
+  },
+  {
+    "name": "恶魔吓人箱",
+    "detailUrl": "https://molibaike.com/Monster/Detail/fe5bea76-4646-41d4-b3a5-4ba9263bd1d9",
+    "type": "金属系"
+  },
+  {
+    "name": "恶魔螃蟹",
+    "detailUrl": "https://molibaike.com/Monster/Detail/60a662d8-1c35-4964-bc13-95c7f3ccb0fa",
+    "type": "金属系"
+  },
+  {
+    "name": "盾",
+    "detailUrl": "https://molibaike.com/Monster/Detail/a2aec53c-95ac-4c7a-93ea-3b05aeb766d4",
+    "type": "金属系"
+  },
+  {
+    "name": "村雨丸",
+    "detailUrl": "https://molibaike.com/Monster/Detail/4b330f64-6ecb-4b54-943a-e3403dacb9ba",
+    "type": "金属系"
+  },
+  {
+    "name": "冰怪",
+    "detailUrl": "https://molibaike.com/Monster/Detail/a66ac168-03ab-49cd-9c56-08cf994e14aa",
+    "type": "金属系"
+  },
+  {
+    "name": "爆岩",
+    "detailUrl": "https://molibaike.com/Monster/Detail/77512a1e-080d-4855-976c-8433d6d0f540",
+    "type": "金属系"
+  },
+  {
+    "name": "斩首者",
+    "detailUrl": "https://molibaike.com/Monster/Detail/6c33438b-6f88-4e6a-8409-1012f1a830b5",
+    "type": "不死系"
+  },
+  {
+    "name": "幽灵",
+    "detailUrl": "https://molibaike.com/Monster/Detail/0b20429c-ea91-4885-b37f-4afa2389d50b",
+    "type": "不死系"
+  },
+  {
+    "name": "牙骨",
+    "detailUrl": "https://molibaike.com/Monster/Detail/9506fcde-ca52-47f8-8850-f168d4533f52",
+    "type": "不死系"
+  },
+  {
+    "name": "血骷髅",
+    "detailUrl": "https://molibaike.com/Monster/Detail/baddeb67-b49e-4060-a71e-c6a4d5cbd464",
+    "type": "不死系"
+  },
+  {
+    "name": "武装骷髅",
+    "detailUrl": "https://molibaike.com/Monster/Detail/b06ff300-90dc-467c-9e2b-7b3fabee17d0",
+    "type": "不死系"
+  },
+  {
+    "name": "巫师之鬼",
+    "detailUrl": "https://molibaike.com/Monster/Detail/3bb5fa25-12b0-4ca0-9e15-45ac7e38432c",
+    "type": "不死系"
+  },
+  {
+    "name": "亡灵",
+    "detailUrl": "https://molibaike.com/Monster/Detail/53f99235-56a9-475b-aa45-5c4e294577df",
+    "type": "不死系"
+  },
+  {
+    "name": "食尸鬼",
+    "detailUrl": "https://molibaike.com/Monster/Detail/42aca87b-008a-4f95-b591-a0da30a6f1ec",
+    "type": "不死系"
+  },
+  {
+    "name": "丧尸",
+    "detailUrl": "https://molibaike.com/Monster/Detail/8d513ea4-55a9-424f-b4c5-0b7a3043576f",
+    "type": "不死系"
+  },
+  {
+    "name": "镰刀魔",
+    "detailUrl": "https://molibaike.com/Monster/Detail/2b9bdbc3-6749-4dd7-937f-f2cdd9cc93b1",
+    "type": "不死系"
+  },
+  {
+    "name": "骷髅海盗",
+    "detailUrl": "https://molibaike.com/Monster/Detail/4640874a-b09e-4f27-93b6-c232316d6599",
+    "type": "不死系"
+  },
+  {
+    "name": "卡特卡普",
+    "detailUrl": "https://molibaike.com/Monster/Detail/e0a3160b-53af-4b1f-bbd3-7bc69cf609b8",
+    "type": "不死系"
+  },
+  {
+    "name": "巨牙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/312c03a2-e9d4-4d60-b65b-035f2db41841",
+    "type": "不死系"
+  },
+  {
+    "name": "僵尸",
+    "detailUrl": "https://molibaike.com/Monster/Detail/e58472f3-48a7-482c-b0bb-1a3523ea61e3",
+    "type": "不死系"
+  },
+  {
+    "name": "顽皮炸弹",
+    "detailUrl": "https://molibaike.com/Monster/Detail/f9fa67f3-b9d3-4f05-b22b-8a7d1595e449",
+    "type": "特殊系"
+  },
+  {
+    "name": "试验型改造史莱姆·重生",
+    "detailUrl": "https://molibaike.com/Monster/Detail/5fe08218-d7b5-4f6a-86ee-642dfecb02a7",
+    "type": "特殊系"
+  },
+  {
+    "name": "试验型改造史莱姆·优化",
+    "detailUrl": "https://molibaike.com/Monster/Detail/4d439df7-f201-48e8-9fce-eaa2e7546035",
+    "type": "特殊系"
+  },
+  {
+    "name": "试验型改造史莱姆·抗咒",
+    "detailUrl": "https://molibaike.com/Monster/Detail/9a8b720e-9777-4982-a797-05f4398169ba",
+    "type": "特殊系"
+  },
+  {
+    "name": "圣诞精灵（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/60c823ce-1a78-4729-991c-2534c281e060",
+    "type": "特殊系"
+  },
+  {
+    "name": "圣诞精灵（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/551ead41-7c5e-4309-ae9a-500fab041f57",
+    "type": "特殊系"
+  },
+  {
+    "name": "葡萄酒粉怪",
+    "detailUrl": "https://molibaike.com/Monster/Detail/dbcb6f4c-cce2-4e5b-a9b9-e221ec22f77c",
+    "type": "特殊系"
+  },
+  {
+    "name": "牛奶粉怪",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ea0a20d1-b74e-42e5-873c-ab5a687f7a7e",
+    "type": "特殊系"
+  },
+  {
+    "name": "玫瑰粉怪",
+    "detailUrl": "https://molibaike.com/Monster/Detail/b72e35e6-203e-4745-bce4-e64cedb64e3a",
+    "type": "特殊系"
+  },
+  {
+    "name": "马卡来粉怪",
+    "detailUrl": "https://molibaike.com/Monster/Detail/f1f3f4a1-98f0-4b02-9bd1-13d652f43b28",
+    "type": "特殊系"
+  },
+  {
+    "name": "绿烟",
+    "detailUrl": "https://molibaike.com/Monster/Detail/899240d4-1150-448f-abe4-2452927c8811",
+    "type": "特殊系"
+  },
+  {
+    "name": "疾风迅雷之史莱姆",
+    "detailUrl": "https://molibaike.com/Monster/Detail/5b0f5e1b-c55a-49ad-88a3-090148d6558b",
+    "type": "特殊系"
+  },
+  {
+    "name": "鬼灵",
+    "detailUrl": "https://molibaike.com/Monster/Detail/eff0f92d-8e0e-41a7-9774-7e6a36a60317",
+    "type": "不死系"
+  },
+  {
+    "name": "腐尸",
+    "detailUrl": "https://molibaike.com/Monster/Detail/4487cfcd-a538-4490-951b-7d546a7f2e13",
+    "type": "不死系"
+  },
+  {
+    "name": "德鲁伊之鬼",
+    "detailUrl": "https://molibaike.com/Monster/Detail/cdc29863-c5b7-4b47-b25c-4debdb85783e",
+    "type": "不死系"
+  },
+  {
+    "name": "烟雾",
+    "detailUrl": "https://molibaike.com/Monster/Detail/f09724df-e067-466e-94be-aa1f1d51d05e",
+    "type": "特殊系"
+  },
+  {
+    "name": "牧羊神使（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/eb00e8cc-6747-4255-b04c-ebac9d81dee1",
+    "type": "特殊系"
+  },
+  {
+    "name": "金牛神使（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/3692c8a0-9f17-4c8a-9238-63e4a292a724",
+    "type": "特殊系"
+  },
+  {
+    "name": "雪人",
+    "detailUrl": "https://molibaike.com/Monster/Detail/41907413-4551-4368-a210-5a79d0623a21",
+    "type": "特殊系"
+  },
+  {
+    "name": "改造水精",
+    "detailUrl": "https://molibaike.com/Monster/Detail/165c035f-aca3-4ac5-9fbe-6826c1a55aa9",
+    "type": "特殊系"
+  },
+  {
+    "name": "改造史莱姆",
+    "detailUrl": "https://molibaike.com/Monster/Detail/51e265fc-58c5-4906-947e-44f9ce79c3b7",
+    "type": "特殊系"
+  },
+  {
+    "name": "改造漂浮炸弹",
+    "detailUrl": "https://molibaike.com/Monster/Detail/9f3fa855-a548-43c0-a7a6-2910455d035f",
+    "type": "特殊系"
+  },
+  {
+    "name": "改造火精",
+    "detailUrl": "https://molibaike.com/Monster/Detail/68bd7e0c-478c-438d-afbc-e85a14575362",
+    "type": "特殊系"
+  },
+  {
+    "name": "改造风精",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d33243b2-43b2-4594-9cd3-a8cffc95b4c0",
+    "type": "特殊系"
+  },
+  {
+    "name": "改造地精",
+    "detailUrl": "https://molibaike.com/Monster/Detail/edc77037-4590-45c7-914d-27f7cf193729",
+    "type": "特殊系"
+  },
+  {
+    "name": "大炸弹",
+    "detailUrl": "https://molibaike.com/Monster/Detail/f3f95bb5-9271-41f5-a8cb-11c16ec2395d",
+    "type": "特殊系"
+  },
+  {
+    "name": "宝贝炸弹",
+    "detailUrl": "https://molibaike.com/Monster/Detail/4c96fa9d-d498-494b-ae4c-af0178a594fd",
+    "type": "特殊系"
+  },
+  {
+    "name": "布丁史莱姆",
+    "detailUrl": "https://molibaike.com/Monster/Detail/976acf20-32a4-45e5-aaa4-61d1e4f3069e",
+    "type": "特殊系"
+  },
+  {
+    "name": "果冻史莱姆",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ed5b7456-68c7-4b79-af20-4b08a3ea82e7",
+    "type": "特殊系"
+  },
+  {
+    "name": "液态史莱姆",
+    "detailUrl": "https://molibaike.com/Monster/Detail/cdc68378-8a0d-4a7d-ac28-51831adee930",
+    "type": "特殊系"
+  },
+  {
+    "name": "史莱姆",
+    "detailUrl": "https://molibaike.com/Monster/Detail/48396902-77af-4b0f-87c1-8fde10719514",
+    "type": "特殊系"
+  },
+  {
+    "name": "魔法师之鬼",
+    "detailUrl": "https://molibaike.com/Monster/Detail/4cd091f2-643a-447b-9ab6-0841a370ba10",
+    "type": "不死系"
+  },
+  {
+    "name": "魔法黑猫（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/09c43762-1063-4478-86ea-3c5aa08fd946",
+    "type": "野兽系"
+  },
+  {
+    "name": "九尾妖狐（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/7cb5c2c8-38b4-4dde-95b4-1e6d5ad69bb4",
+    "type": "野兽系"
+  },
+  {
+    "name": "九尾妖狐（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/70d01c65-f2f2-4afd-bc4c-9c25fcc0074f",
+    "type": "野兽系"
+  },
+  {
+    "name": "九尾天狐（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/b2f44b87-c4a5-4ed2-82ff-86b9ade817fe",
+    "type": "野兽系"
+  },
+  {
+    "name": "九尾天狐（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/966dd092-df59-4c98-a977-dbf2a3103ae5",
+    "type": "野兽系"
+  },
+  {
+    "name": "九尾灵狐（怀旧·奖）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ca56eaeb-7681-40e8-85e2-4250aa43b91d",
+    "type": "野兽系"
+  },
+  {
+    "name": "九尾灵狐（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/879a1f48-bf2a-4b3e-aa54-db94e4b87c75",
+    "type": "野兽系"
+  },
+  {
+    "name": "火焰龟",
+    "detailUrl": "https://molibaike.com/Monster/Detail/033f68e8-8e39-46cd-bb21-01865c43f6a8",
+    "type": "野兽系"
+  },
+  {
+    "name": "海底龟",
+    "detailUrl": "https://molibaike.com/Monster/Detail/4f7e26f6-8ff1-433a-a093-c9a5397a3dab",
+    "type": "野兽系"
+  },
+  {
+    "name": "地狱妖犬",
+    "detailUrl": "https://molibaike.com/Monster/Detail/a2b5f0e0-0249-47c0-867a-8ec949dee798",
+    "type": "野兽系"
+  },
+  {
+    "name": "穴熊",
+    "detailUrl": "https://molibaike.com/Monster/Detail/9641e48d-d629-45c1-a2d9-74bd488952a1",
+    "type": "野兽系"
+  },
+  {
+    "name": "妖狐",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ef3fbf07-fa02-464d-8e5d-1f49b68bc03d",
+    "type": "野兽系"
+  },
+  {
+    "name": "恶魔猫",
+    "detailUrl": "https://molibaike.com/Monster/Detail/faf80d8a-708e-4aaf-a0d9-9d807be0455e",
+    "type": "野兽系"
+  },
+  {
+    "name": "猫人",
+    "detailUrl": "https://molibaike.com/Monster/Detail/1d9a9026-e0d1-4f08-bfac-c7e968b27c04",
+    "type": "野兽系"
+  },
+  {
+    "name": "猫妖",
+    "detailUrl": "https://molibaike.com/Monster/Detail/9978d56b-b44a-45ef-8688-77b569dbe9f1",
+    "type": "野兽系"
+  },
+  {
+    "name": "北极熊",
+    "detailUrl": "https://molibaike.com/Monster/Detail/4d8b746c-0728-4eca-a6d7-c415b6f5d4a1",
+    "type": "野兽系"
+  },
+  {
+    "name": "达亚斯公鸡",
+    "detailUrl": "https://molibaike.com/Monster/Detail/1d9e3042-7695-40de-a13d-71ed4b0e80fc",
+    "type": "邪魔系"
+  },
+  {
+    "name": "大公鸡",
+    "detailUrl": "https://molibaike.com/Monster/Detail/411f8555-8b5b-41e1-a9dd-7d1882758ac8",
+    "type": "邪魔系"
+  },
+  {
+    "name": "被特赦的火鸡",
+    "detailUrl": "https://molibaike.com/Monster/Detail/f13ede6f-6e26-4c32-81d1-b3e5c2e3a49b",
+    "type": "飞行系"
+  },
+  {
+    "name": "改造蜥蜴斗士",
+    "detailUrl": "https://molibaike.com/Monster/Detail/819f1d5a-1382-456e-9145-8f020e77ffaf",
+    "type": "龙系"
+  },
+  {
+    "name": "耀阳花（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/88e51a0a-e8ef-4dbe-a093-22c56becf034",
+    "type": "植物系"
+  },
+  {
+    "name": "幼生神龙（道具）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/3e6f7020-5e8b-4c87-a6f9-254b17ec4609",
+    "type": "龙系"
+  },
+  {
+    "name": "幼生神龙（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/cb2d68ab-a13e-44ec-a227-94d05bf59a44",
+    "type": "龙系"
+  },
+  {
+    "name": "鸟身巫女",
+    "detailUrl": "https://molibaike.com/Monster/Detail/2efeacaa-8fa8-4629-a487-8d96a2cbd3b8",
+    "type": "人形系"
+  },
+  {
+    "name": "亚特拉斯巨神",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d21025ac-67d7-4fab-8d15-864f7739dfea",
+    "type": "人形系"
+  },
+  {
+    "name": "黄金龙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/01f2a275-2efa-4d94-a1bd-2366a91fd616",
+    "type": "龙系"
+  },
+  {
+    "name": "炎龙（魔）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/1d79681f-4eb1-469f-807b-900bd53d85cb",
+    "type": "龙系"
+  },
+  {
+    "name": "冰龙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/25981495-1531-4204-a2fe-e8bb0192f4c2",
+    "type": "龙系"
+  },
+  {
+    "name": "炎龙（攻）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/7746dab9-a0a0-442b-832a-a87e2c4fd8a6",
+    "type": "龙系"
+  },
+  {
+    "name": "火焰巨龙（时道）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/7d1c46c5-9712-4c10-bb84-3f04d7106fa9",
+    "type": "龙系"
+  },
+  {
+    "name": "改造穴龙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/c95a08b6-7ae0-44fc-ac97-ea5275c254b8",
+    "type": "龙系"
+  },
+  {
+    "name": "幼龙？最低",
+    "detailUrl": "https://molibaike.com/Monster/Detail/6ef5128a-f779-4f67-8305-d4d2217ed93f",
+    "type": "龙系"
+  },
+  {
+    "name": "黄金巨龙(道具)",
+    "detailUrl": "https://molibaike.com/Monster/Detail/657a9165-6158-49ce-b66b-0a6f04c268aa",
+    "type": "龙系"
+  },
+  {
+    "name": "西留耶尔",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d98770fe-85d0-4a7a-a40e-437ad0f92abb",
+    "type": "龙系"
+  },
+  {
+    "name": "维尔斯",
+    "detailUrl": "https://molibaike.com/Monster/Detail/2762c476-c21d-4cce-b106-9c81e13f3122",
+    "type": "龙系"
+  },
+  {
+    "name": "修美亚雷",
+    "detailUrl": "https://molibaike.com/Monster/Detail/a45604dd-74ae-4e45-8081-c596366c75d6",
+    "type": "龙系"
+  },
+  {
+    "name": "罗查",
+    "detailUrl": "https://molibaike.com/Monster/Detail/f468e9d2-3907-4a11-8d3a-327a367c794f",
+    "type": "龙系"
+  },
+  {
+    "name": "罗修",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ffb5ce47-8666-45c7-9274-7f5a5cdf5728",
+    "type": "龙系"
+  },
+  {
+    "name": "冰蜥蜴",
+    "detailUrl": "https://molibaike.com/Monster/Detail/3273d377-466e-4db0-9af3-825a67c760a9",
+    "type": "龙系"
+  },
+  {
+    "name": "毒蜥蜴",
+    "detailUrl": "https://molibaike.com/Monster/Detail/a01ca41c-f7b3-4535-8a7a-77fac3c34629",
+    "type": "龙系"
+  },
+  {
+    "name": "火蜥蜴",
+    "detailUrl": "https://molibaike.com/Monster/Detail/a7d50bee-aee4-41cb-846c-35998a20b9a4",
+    "type": "龙系"
+  },
+  {
+    "name": "伪·村雨丸",
+    "detailUrl": "https://molibaike.com/Monster/Detail/074293d9-fe90-45ca-9df2-f9188286d342",
+    "type": "金属系"
+  },
+  {
+    "name": "改造纯白吓人箱",
+    "detailUrl": "https://molibaike.com/Monster/Detail/c597a820-f609-4753-8a6f-82890cabb0f9",
+    "type": "金属系"
+  },
+  {
+    "name": "魔术机戊",
+    "detailUrl": "https://molibaike.com/Monster/Detail/b6d7b0fd-c82b-4172-9a5d-ddb8de81be0f",
+    "type": "金属系"
+  },
+  {
+    "name": "改造影岩",
+    "detailUrl": "https://molibaike.com/Monster/Detail/4d4fffb9-0065-489b-9388-a6db3f1bd809",
+    "type": "金属系"
+  },
+  {
+    "name": "达杰乌鲁姆",
+    "detailUrl": "https://molibaike.com/Monster/Detail/81380bac-6a59-4439-9d1d-13dcb0ecf4f3",
+    "type": "金属系"
+  },
+  {
+    "name": "篮尾龙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/0e558610-65d3-4b2f-9550-7fed6dccf006",
+    "type": "金属系"
+  },
+  {
+    "name": "棱背龙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/72abea66-f272-416a-9c27-d85845c70c9d",
+    "type": "金属系"
+  },
+  {
+    "name": "板龙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/dfadc20c-e8ce-47bb-a182-2e0162323a99",
+    "type": "金属系"
+  },
+  {
+    "name": "魔术机丁",
+    "detailUrl": "https://molibaike.com/Monster/Detail/b6313540-5b11-4b12-8a39-4036976d9b27",
+    "type": "金属系"
+  },
+  {
+    "name": "魔术机丙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/57a89112-1629-49ff-a3a3-f41105b0eb43",
+    "type": "金属系"
+  },
+  {
+    "name": "魔术机乙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/4909834e-73ad-4291-8a7c-de97717bf2de",
+    "type": "金属系"
+  },
+  {
+    "name": "魔术机甲",
+    "detailUrl": "https://molibaike.com/Monster/Detail/1a9d555d-fa85-4104-b32c-176142d7a0f0",
+    "type": "金属系"
+  },
+  {
+    "name": "萨普地雷",
+    "detailUrl": "https://molibaike.com/Monster/Detail/6a382b98-a4ee-406b-8a26-c4f33916804e",
+    "type": "金属系"
+  },
+  {
+    "name": "皮皮地雷",
+    "detailUrl": "https://molibaike.com/Monster/Detail/e3695131-099d-4dbc-907c-b629d8118414",
+    "type": "金属系"
+  },
+  {
+    "name": "碎碎地雷",
+    "detailUrl": "https://molibaike.com/Monster/Detail/738addea-2910-4404-9295-06fa1d961448",
+    "type": "金属系"
+  },
+  {
+    "name": "跳跳地雷",
+    "detailUrl": "https://molibaike.com/Monster/Detail/e5ccdd96-ba01-4bfb-a686-761f873ade28",
+    "type": "金属系"
+  },
+  {
+    "name": "钻石怪",
+    "detailUrl": "https://molibaike.com/Monster/Detail/c176ab5d-7d4d-4d87-8d59-dae3fa45967e",
+    "type": "金属系"
+  },
+  {
+    "name": "水晶怪",
+    "detailUrl": "https://molibaike.com/Monster/Detail/1c756d75-a181-45bf-9bdf-aea3aebd334b",
+    "type": "金属系"
+  },
+  {
+    "name": "红宝石怪",
+    "detailUrl": "https://molibaike.com/Monster/Detail/f9c9ac30-1e12-4f90-a0d5-b863b08d3fb6",
+    "type": "金属系"
+  },
+  {
+    "name": "蛋白石怪",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d6b0939d-eb51-40a8-a174-1496cffa85af",
+    "type": "金属系"
+  },
+  {
+    "name": "暴力史莱姆",
+    "detailUrl": "https://molibaike.com/Monster/Detail/179db51c-9016-4620-b30e-83ca65c2f5df",
+    "type": "特殊系"
+  },
+  {
+    "name": "改造大炸弹",
+    "detailUrl": "https://molibaike.com/Monster/Detail/00d5275a-a346-4032-b34b-67dc5f4f94d7",
+    "type": "特殊系"
+  },
+  {
+    "name": "改造幻影",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ce88fec7-3492-40cb-a76a-d09fea387b59",
+    "type": "特殊系"
+  },
+  {
+    "name": "改造烟罗",
+    "detailUrl": "https://molibaike.com/Monster/Detail/205b971f-21f6-430e-bc90-a2a184562039",
+    "type": "特殊系"
+  },
+  {
+    "name": "改造暗影（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/bdcefa38-c227-40f7-8f21-90a32dd80cd7",
+    "type": "特殊系"
+  },
+  {
+    "name": "招财猫（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d30a724a-e255-407a-a4c5-41b4cd40a52a",
+    "type": "特殊系"
+  },
+  {
+    "name": "芙蕾雅番茄妖精（怀旧）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/713a457a-d00e-4b41-a042-01be754e7e4b",
+    "type": "特殊系"
+  },
+  {
+    "name": "改造水蓝菇",
+    "detailUrl": "https://molibaike.com/Monster/Detail/5bd1c311-d1ba-40e9-882c-c43229c66e22",
+    "type": "植物系"
+  },
+  {
+    "name": "改造树精",
+    "detailUrl": "https://molibaike.com/Monster/Detail/850fc83f-1e76-42c0-9460-c0eb3a0a1d14",
+    "type": "植物系"
+  },
+  {
+    "name": "西比亚",
+    "detailUrl": "https://molibaike.com/Monster/Detail/39a15d08-2533-482c-9c52-204d94bc3b12",
+    "type": "植物系"
+  },
+  {
+    "name": "赛修",
+    "detailUrl": "https://molibaike.com/Monster/Detail/cc5b9e41-5324-4071-ad71-99c3eb77e721",
+    "type": "植物系"
+  },
+  {
+    "name": "亭登",
+    "detailUrl": "https://molibaike.com/Monster/Detail/58afec24-276d-441b-bfd3-755149ee3dca",
+    "type": "植物系"
+  },
+  {
+    "name": "乌杰",
+    "detailUrl": "https://molibaike.com/Monster/Detail/f64f62c7-c717-4b84-bc7f-90735aa75e7b",
+    "type": "植物系"
+  },
+  {
+    "name": "静止花妖",
+    "detailUrl": "https://molibaike.com/Monster/Detail/f60719f5-44b4-48a6-89c4-928ac64e904d",
+    "type": "植物系"
+  },
+  {
+    "name": "跑步花妖",
+    "detailUrl": "https://molibaike.com/Monster/Detail/1c6e600e-d7ad-4f30-987a-e7a8500d2f29",
+    "type": "植物系"
+  },
+  {
+    "name": "耶诞帽怪",
+    "detailUrl": "https://molibaike.com/Monster/Detail/c77727c0-3417-44ec-91a8-5bf8f9d0c328",
+    "type": "昆虫系"
+  },
+  {
+    "name": "咚咚靴怪",
+    "detailUrl": "https://molibaike.com/Monster/Detail/3625b08d-43c8-45bf-819b-fde596a0dbc1",
+    "type": "昆虫系"
+  },
+  {
+    "name": "潜靴怪",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d66670b5-05ad-4dd5-862a-5fe63e8fac77",
+    "type": "昆虫系"
+  },
+  {
+    "name": "舞靴怪",
+    "detailUrl": "https://molibaike.com/Monster/Detail/dc2cea7f-2029-4b48-b26e-ceaba4f43ce7",
+    "type": "昆虫系"
+  },
+  {
+    "name": "戴靴怪",
+    "detailUrl": "https://molibaike.com/Monster/Detail/e57593db-a6e8-4d8b-922a-cde6ae3b5674",
+    "type": "昆虫系"
+  },
+  {
+    "name": "布雷欧（时道）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/475b20de-4344-492a-b6dc-cd94baa27e5e",
+    "type": "飞行系"
+  },
+  {
+    "name": "布雷欧",
+    "detailUrl": "https://molibaike.com/Monster/Detail/5a8f56b7-4e88-462f-9c11-b934c883bb7a",
+    "type": "飞行系"
+  },
+  {
+    "name": "变种狮鹫兽（时道）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/0585b6be-a2e0-42d5-9eef-4b10486af817",
+    "type": "飞行系"
+  },
+  {
+    "name": "米歇尔蝙蝠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/8361e1f9-721c-4b60-8f0d-a9a06b236bcd",
+    "type": "飞行系"
+  },
+  {
+    "name": "陆行鲨后期型",
+    "detailUrl": "https://molibaike.com/Monster/Detail/99f3b108-82e0-49dd-abd2-465ad9d40bf6",
+    "type": "飞行系"
+  },
+  {
+    "name": "欧图蝙蝠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/a1801f89-f2a1-4b18-98eb-8e2105471efc",
+    "type": "飞行系"
+  },
+  {
+    "name": "韦伯蝙蝠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/9dc500a2-d090-484e-9b63-15748d7130d7",
+    "type": "飞行系"
+  },
+  {
+    "name": "欧比尔蝙蝠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/dfb649c2-c081-4ce8-85bd-65e77e8fd2a2",
+    "type": "飞行系"
+  },
+  {
+    "name": "尤拉蝙蝠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/0d011d0b-ee9d-479a-800f-29ee3aba5df7",
+    "type": "飞行系"
+  },
+  {
+    "name": "拉贾",
+    "detailUrl": "https://molibaike.com/Monster/Detail/9ac7ece7-fc02-4f88-aa03-7d4e01ae8ef7",
+    "type": "飞行系"
+  },
+  {
+    "name": "拉札",
+    "detailUrl": "https://molibaike.com/Monster/Detail/23e79ab0-3cd2-4cc3-8548-f86f278e1a6d",
+    "type": "飞行系"
+  },
+  {
+    "name": "罗亨",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d4b6dc8a-064b-44be-a25e-ce5103762e18",
+    "type": "飞行系"
+  },
+  {
+    "name": "雷伊",
+    "detailUrl": "https://molibaike.com/Monster/Detail/a7f7f650-1f6d-488d-b978-8b7b095cb116",
+    "type": "飞行系"
+  },
+  {
+    "name": "小兔子",
+    "detailUrl": "https://molibaike.com/Monster/Detail/240a9241-49b0-475b-ad99-96ee54d1c136",
+    "type": "飞行系"
+  },
+  {
+    "name": "小鸭子",
+    "detailUrl": "https://molibaike.com/Monster/Detail/c17fcd32-1ed4-4ce3-bb11-32f6bced7155",
+    "type": "飞行系"
+  },
+  {
+    "name": "鸭嘴兽",
+    "detailUrl": "https://molibaike.com/Monster/Detail/f140c3e5-06bd-4ada-b4b8-57d310df2952",
+    "type": "飞行系"
+  },
+  {
+    "name": "雏鸟",
+    "detailUrl": "https://molibaike.com/Monster/Detail/e5da42bb-f939-4708-af84-0233a8a1f509",
+    "type": "飞行系"
+  },
+  {
+    "name": "岩石鲨",
+    "detailUrl": "https://molibaike.com/Monster/Detail/27ed3181-4878-498f-9b51-31f5cc178384",
+    "type": "飞行系"
+  },
+  {
+    "name": "丘陵鲨",
+    "detailUrl": "https://molibaike.com/Monster/Detail/854b4b5d-2163-4c78-9855-3987c0d7d7e3",
+    "type": "飞行系"
+  },
+  {
+    "name": "改造黄金龙骨",
+    "detailUrl": "https://molibaike.com/Monster/Detail/666d5a4b-4365-442d-9b3a-ce717a0dc1e7",
+    "type": "不死系"
+  },
+  {
+    "name": "恶梦猫",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d7cbfc0f-4b27-4416-8f4a-6eeb214674c2",
+    "type": "不死系"
+  },
+  {
+    "name": "薛定谔",
+    "detailUrl": "https://molibaike.com/Monster/Detail/b883677c-856f-456e-83e6-5d882d40c5a1",
+    "type": "不死系"
+  },
+  {
+    "name": "毒龙骨",
+    "detailUrl": "https://molibaike.com/Monster/Detail/e9616883-8566-4d70-a6e3-de5db9dbc5c3",
+    "type": "不死系"
+  },
+  {
+    "name": "福尔菲斯",
+    "detailUrl": "https://molibaike.com/Monster/Detail/82131080-a0c2-4c63-9242-c53f77ea2dfa",
+    "type": "不死系"
+  },
+  {
+    "name": "猫脸女神巴斯铁特",
+    "detailUrl": "https://molibaike.com/Monster/Detail/0ce3c12a-2495-4ca7-bed7-1704b5e5d823",
+    "type": "不死系"
+  },
+  {
+    "name": "狮头女神赛克梅特",
+    "detailUrl": "https://molibaike.com/Monster/Detail/6a5e6992-e7cf-4dfd-8b60-445c276061ec",
+    "type": "不死系"
+  },
+  {
+    "name": "黄金龙骨",
+    "detailUrl": "https://molibaike.com/Monster/Detail/e01d0a2c-9c39-4e1a-a41d-b3a2a580ce10",
+    "type": "不死系"
+  },
+  {
+    "name": "暗黑龙骨",
+    "detailUrl": "https://molibaike.com/Monster/Detail/42e3b1d8-cb36-4c1f-8737-8fa23c92572b",
+    "type": "不死系"
+  },
+  {
+    "name": "组",
+    "detailUrl": "https://molibaike.com/Monster/Detail/c4aeb061-33cf-4af7-804e-2d67907796ce",
+    "type": "野兽系"
+  },
+  {
+    "name": "群",
+    "detailUrl": "https://molibaike.com/Monster/Detail/e4444987-95de-457f-860b-a5923c385927",
+    "type": "野兽系"
+  },
+  {
+    "name": "军",
+    "detailUrl": "https://molibaike.com/Monster/Detail/4b3584f1-8566-44e6-a2dd-de834ca8d4ab",
+    "type": "野兽系"
+  },
+  {
+    "name": "连",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d4ca6981-068e-488f-8db8-37762f9e67a9",
+    "type": "野兽系"
+  },
+  {
+    "name": "普拉顿",
+    "detailUrl": "https://molibaike.com/Monster/Detail/3384a6a1-a0e9-49b5-bae3-83a86d65d0e2",
+    "type": "野兽系"
+  },
+  {
+    "name": "卡尔铁特",
+    "detailUrl": "https://molibaike.com/Monster/Detail/31421785-ef50-4161-be38-5e3da3d80166",
+    "type": "野兽系"
+  },
+  {
+    "name": "雨行妖犬",
+    "detailUrl": "https://molibaike.com/Monster/Detail/751ffff0-8ce4-4591-8f4d-bcb6397d582b",
+    "type": "野兽系"
+  },
+  {
+    "name": "奇吉姆那",
+    "detailUrl": "https://molibaike.com/Monster/Detail/5c8b5172-fc0a-4f02-a829-26b6f6bfb49d",
+    "type": "野兽系"
+  },
+  {
+    "name": "榕树怪",
+    "detailUrl": "https://molibaike.com/Monster/Detail/5ac452b9-c84a-40a8-9234-358df75f9128",
+    "type": "野兽系"
+  },
+  {
+    "name": "布卡",
+    "detailUrl": "https://molibaike.com/Monster/Detail/414eb7a2-efb1-43af-8ffd-198bc0799d48",
+    "type": "野兽系"
+  },
+  {
+    "name": "红铜怪",
+    "detailUrl": "https://molibaike.com/Monster/Detail/1e06fa9d-9e30-4617-b009-891c9bce34ee",
+    "type": "野兽系"
+  },
+  {
+    "name": "铁狮",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d8e08227-0954-4fe3-b8a8-ee9aa931da71",
+    "type": "野兽系"
+  },
+  {
+    "name": "黄铜怪",
+    "detailUrl": "https://molibaike.com/Monster/Detail/9ecde428-f015-402e-8ad7-b26361e072ac",
+    "type": "野兽系"
+  },
+  {
+    "name": "银狮",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ccf170ad-ea31-4ddf-a9a2-4728a3441e20",
+    "type": "野兽系"
+  },
+  {
+    "name": "刀鸡",
+    "detailUrl": "https://molibaike.com/Monster/Detail/7acc707b-0d13-480c-b793-1d8834419d69",
+    "type": "野兽系"
+  },
+  {
+    "name": "变种欧特奇美拉",
+    "detailUrl": "https://molibaike.com/Monster/Detail/095a5b06-a658-4744-8680-7c6bc4e4265a",
+    "type": "飞行系"
+  },
+  {
+    "name": "改造欧特奇美拉",
+    "detailUrl": "https://molibaike.com/Monster/Detail/3b5e8ac5-8067-448b-9af0-1d4198020dba",
+    "type": "飞行系"
+  },
+  {
+    "name": "艾德奇美拉（时道）",
+    "detailUrl": "https://molibaike.com/Monster/Detail/eafca7d3-f4a6-450e-ae76-eee4c40699ef",
+    "type": "飞行系"
+  },
+  {
+    "name": "奇美拉",
+    "detailUrl": "https://molibaike.com/Monster/Detail/94d5af49-af81-44d9-be85-d7be13d12446",
+    "type": "飞行系"
+  },
+  {
+    "name": "改造迷你蝙蝠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/62e39c0a-5452-41e2-b537-8a8be8202207",
+    "type": "飞行系"
+  },
+  {
+    "name": "试做型腐尸",
+    "detailUrl": "https://molibaike.com/Monster/Detail/7c4a0325-847b-44ad-931d-368be6a16da5",
+    "type": "不死系"
+  },
+  {
+    "name": "纯银铠甲",
+    "detailUrl": "https://molibaike.com/Monster/Detail/05ce22de-ea8e-4698-b281-4cfb56af1d78",
+    "type": "不死系"
+  },
+  {
+    "name": "大地铠甲",
+    "detailUrl": "https://molibaike.com/Monster/Detail/e021304f-ab95-4f19-ab53-9e120914e530",
+    "type": "不死系"
+  },
+  {
+    "name": "改造北极熊",
+    "detailUrl": "https://molibaike.com/Monster/Detail/c4988ce5-674a-4994-aba6-2e532459bb39",
+    "type": "野兽系"
+  },
+  {
+    "name": "改造水蓝鼠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/012fea94-ed25-4034-94dc-dd90a6cdfe6a",
+    "type": "野兽系"
+  },
+  {
+    "name": "利齿的火焰鼠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/4789bcff-e152-439c-a65c-38ca3b6e7747",
+    "type": "野兽系"
+  },
+  {
+    "name": "愤怒的水蓝鼠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/e8e8ea04-36d8-44d0-a7e7-1e6ede65f63b",
+    "type": "野兽系"
+  },
+  {
+    "name": "强壮的恶梦鼠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/c89044a4-0a7a-42b1-b0ea-94a77908e3b1",
+    "type": "野兽系"
+  },
+  {
+    "name": "敏捷的大地鼠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/466452b1-19b1-4bb5-a62b-7a69ff1a06fb",
+    "type": "野兽系"
+  },
+  {
+    "name": "虎人",
+    "detailUrl": "https://molibaike.com/Monster/Detail/30ff6387-6d32-46bb-bef8-c81caa89fb72",
+    "type": "野兽系"
+  },
+  {
+    "name": "完美黄金幼龙",
+    "detailUrl": "https://molibaike.com/Monster/Detail/d93b554b-bab7-44d1-ab49-59b49c541d88",
+    "type": "龙系"
+  },
+  {
+    "name": "恶梦鼠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/197a9751-3c46-4fb6-bd4b-49fe68fad7a8",
+    "type": "野兽系"
+  },
+  {
+    "name": "改造恶梦鼠",
+    "detailUrl": "https://molibaike.com/Monster/Detail/abb49ebc-b53f-4d57-a3d5-a8391982f2eb",
+    "type": "野兽系"
+  },
+  {
+    "name": "钢铁制裁者",
+    "detailUrl": "https://molibaike.com/Monster/Detail/ca7c1be7-5e31-4ec5-a609-4890d60ff3c1",
+    "type": "金属系"
+  },
+  {
+    "name": "钢铁剑士",
+    "detailUrl": "https://molibaike.com/Monster/Detail/62c565be-66da-42bd-9015-857dbf976f20",
+    "type": "金属系"
+  },
+  {
+    "name": "露比克隆体",
+    "detailUrl": "https://molibaike.com/Monster/Detail/9d87038f-c2a1-47d4-b63c-a345d8fc78f0",
+    "type": "人形系"
+  }
+]
