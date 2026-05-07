@@ -124,7 +124,7 @@ namespace TtWork.Project.Web.Host {
                 else {
                     //注册用户
                     dbUser = new User {
-                        Name = $"玩家{new Random().Next(10000, 99999)}",
+                        Name = $"玩家{Random.Shared.Next(10000, 99999)}",
                         Surname = openid,
                         EmailAddress = openid + "@molitao.top",
                         IsActive = true,

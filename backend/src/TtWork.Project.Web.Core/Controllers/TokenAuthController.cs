@@ -478,8 +478,8 @@ namespace TtWork.Project.Web.Controllers
                     ProviderKey = openid,
                     ProviderName = Consts.LoginProvider.WeChatApp,
                     UserName = openid,
-                    Name = $"玩家{new Random().Next(10000, 99999)}",
-                    Surname = $"玩家{new Random().Next(10000, 99999)}",
+                    Name = $"玩家{Random.Shared.Next(10000, 99999)}",
+                    Surname = $"玩家{Random.Shared.Next(10000, 99999)}",
                     EmailAddress = $"{openid}@molitao.top",
                     HeadImgUrl = "https://cdn.wujiangapp.com.cn/PicGo/202411061606451.png",
                     UserLogins = new Dictionary<string, string>

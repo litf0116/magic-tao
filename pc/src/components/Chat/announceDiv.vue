@@ -19,6 +19,8 @@ import { ElMessageBox, ElMessage } from 'element-plus'
 import { AnnounceDto } from '@/api/appService'
 import announceDialog from './announceDialog.vue'
 import api from '@/api'
+import DOMPURIFY from 'dompurify'
+
 const announceDialogRef = ref<InstanceType<typeof announceDialog> | null>(null)
 const item = ref<AnnounceDto | null>(null)
 
@@ -49,9 +51,12 @@ onMounted(() => {
         var html = ''
         if (bulletinInfo == null || bulletinInfo.id != res.id) {
             if (res.imageUrl) {
-                html = `<img style="width: 100%;height: 300px;" src="${res.imageUrl}">${res.content}`
+                // 使用 DOMPurify 消毒图片URL和内容，防止 XSS
+                const sanitizedImageUrl = DOMPURIFY.sanitize(res.imageUrl, { USE_PROFILES: { html: true } })
+                const sanitizedContent = DOMPURIFY.sanitize(res.content || '', { USE_PROFILES: { html: true } })
+                html = `<img style="width: 100%;height: 300px;" src="${sanitizedImageUrl}">${sanitizedContent}`
             } else {
-                html = `${res.content}`
+                html = DOMPURIFY.sanitize(res.content || '', { USE_PROFILES: { html: true } })
             }
 
             ElMessageBox.alert(html, '公告', {

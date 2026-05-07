@@ -166,6 +166,10 @@
 | 2026-05-07 | P1-2: Backend 空 catch 块添加日志 | ✅ 已修复 | Backend build 0 error |
 | 2026-05-07 | P1-3: PC LineChart.vue 内存泄漏 | ✅ 已修复 | 代码审查 |
 | 2026-05-07 | P1-4: PC auctionItemDetail.vue 内存泄漏 | ✅ 已修复 | 代码审查 |
+| 2026-05-07 | P2-1: PC editAuctionItem.vue XSS | ✅ 已修复 | 代码审查 + DOMPurify |
+| 2026-05-07 | P2-2: PC announceDiv.vue XSS | ✅ 已修复 | 代码审查 + DOMPurify |
+| 2026-05-07 | P2-3: UniApp API Key 环境变量 | ✅ 已修复 | 代码审查 |
+| 2026-05-07 | P2-4: Backend Random.Shared | ✅ 已修复 | Backend build 0 error |
 
 ---
 

@@ -11,10 +11,10 @@ namespace TtWork.Project.Web.Authentication.External {
         private const string ProviderName = Consts.LoginProvider.WeChatPub;
 
         public override async Task<ExternalAuthUserInfo>
-            GetUserInfo(string code, string appid, string appsec) //因为需要获取微信放进User.Name 
+            GetUserInfo(string code, string appid, string appsec) //因为需要获取微信放进User.Name
         {
             var openid = code;
-            var rndname = $"玩家{new Random().Next(10000, 99999)}";
+            var rndname = $"玩家{Random.Shared.Next(10000, 99999)}";
             var authUserInfo = new ExternalAuthUserInfo {
                 ProviderKey = openid,
                 Provider = ProviderName,

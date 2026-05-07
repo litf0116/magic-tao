@@ -42,7 +42,8 @@ export const useAppStore = defineStore('appStore', () => {
 
     function getCity(latitude: number, longitude: number) {
         if (!latitude || !longitude) return
-        const url = `https://geoapi.heweather.net/v2/city/lookup?location=${longitude},${latitude}&key=c6c09cdfe21145ce899908a97aaa0855`
+        const key = import.meta.env.VITE_APP_HEWEATHER_KEY || ''
+        const url = `https://geoapi.heweather.net/v2/city/lookup?location=${longitude},${latitude}&key=${key}`
         uni.request({
             url: url,
             success: (res: any) => {
@@ -64,7 +65,8 @@ export const useAppStore = defineStore('appStore', () => {
     }
 
     function getWeather(latitude: number, longitude: number) {
-        const url = `https://devapi.heweather.net/v7/weather/now?location=${longitude},${latitude}&key=c6c09cdfe21145ce899908a97aaa0855`
+        const key = import.meta.env.VITE_APP_HEWEATHER_KEY || ''
+        const url = `https://devapi.heweather.net/v7/weather/now?location=${longitude},${latitude}&key=${key}`
         uni.request({
             url: url,
             success: (res: any) => {

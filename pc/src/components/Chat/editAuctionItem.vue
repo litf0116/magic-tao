@@ -80,6 +80,7 @@ import api from '@/api'
 import cache from '@/utils/cache'
 import base64 from '@/utils/base64'
 import axios from 'axios'
+import DOMPURIFY from 'dompurify'
 const signature = ref('')
 const imgUrl = import.meta.env.VITE_APP_UPYUN_IMG_URL
 const bucketName = import.meta.env.VITE_APP_UPYUN_BUCKET_NAME
@@ -149,9 +150,10 @@ const show = (e: boolean, id: number) => {
     if (e) {
         api.auctionItem.getForEdit({ id: id }).then((res) => {
             form.value = res.data!
-            // 修复：正确处理description字段，避免null或undefined
+            // 修复：正确处理description字段，避免null或undefined，使用 DOMPurify 防止 XSS
             const description = res.data!.description || ''
-            contentTarget.value!.innerHTML = description
+            const sanitizedHtml = DOMPURIFY.sanitize(description, { USE_PROFILES: { html: true } })
+            contentTarget.value!.innerHTML = sanitizedHtml
             console.log('获取到的description字段:', description)
         })
     }

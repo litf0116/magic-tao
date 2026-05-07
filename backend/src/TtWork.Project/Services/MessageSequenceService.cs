@@ -203,7 +203,7 @@ namespace TtWork.Project.Services
                     _sequenceCache[channelKey] = nextSequence;
                     
                     // 10%采样率记录序列号生成日志，避免高频日志
-                    if (new Random().NextDouble() < 0.1)
+                    if (Random.Shared.NextDouble() < 0.1)
                     {
                         _logger.LogDebug($"序列号生成成功采样: {channelKey} -> {nextSequence}");
                     }
@@ -246,7 +246,7 @@ namespace TtWork.Project.Services
                     _sequenceCache[channelKey] = nextSequence;
                     
                     // 10%采样率记录序列号生成日志，避免高频日志
-                    if (new Random().NextDouble() < 0.1)
+                    if (Random.Shared.NextDouble() < 0.1)
                     {
                         _logger.LogDebug($"序列号生成成功采样: {channelKey} -> {nextSequence}");
                     }

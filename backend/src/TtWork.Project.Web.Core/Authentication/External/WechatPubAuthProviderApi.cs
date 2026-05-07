@@ -34,7 +34,7 @@ namespace TtWork.Project.Web.Authentication.External {
                 userLogins.Add(_providerName, _providerKey);
             }
 
-            var rndname = $"玩家{new Random().Next(10000, 99999)}";
+            var rndname = $"玩家{Random.Shared.Next(10000, 99999)}";
 
             var authUserInfo = new ExternalAuthUserInfo {
                 ProviderKey = _providerKey,
