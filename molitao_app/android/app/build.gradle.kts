@@ -28,6 +28,11 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        
+        // 极光推送配置
+        manifestPlaceholders["JPUSH_PKGNAME"] = applicationId
+        manifestPlaceholders["JPUSH_APPKEY"] = "4e91398522bb1286f6452efb"  // 极光 AppKey
+        manifestPlaceholders["JPUSH_CHANNEL"] = "developer-default"
     }
 
     signingConfigs {
@@ -51,4 +56,10 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // 极光推送核心
+    implementation("cn.jiguang.sdk:jpush:5.6.0")
+    implementation("cn.jiguang.sdk:jcore:3.0.0")
 }
