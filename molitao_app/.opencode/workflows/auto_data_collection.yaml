@@ -1,0 +1,148 @@
+name: auto_data_collection
+description: 自动化数据收集和知识整理流程
+
+ralph_loop: true
+
+variables:
+  research_topics:
+    - "Flutter 3.22 新特性"
+    - "Riverpod 最佳实践 2026"
+    - "GoRouter 深度导航模式"
+    - "Flutter 性能优化技巧"
+
+steps:
+  - name: search_all_topics
+    parallel: true
+    for_each: "${research_topics}"
+    action: crawl4ai.search
+    params:
+      query: "${item}"
+      limit: 5
+    output:
+      save_to: search_results
+
+  - name: fetch_top_content
+    action: batch_process
+    params:
+      items: "${search_results}"
+      batch_size: 3
+      action: crawl4ai.fetch
+      action_params:
+        format: "markdown"
+        extract_text: true
+    output:
+      save_to: content_cache
+
+  - name: analyze_and_summarize
+    action: llm.process
+    params:
+      content: "${content_cache}"
+      prompt: |
+        对收集的技术内容进行深度分析:
+        
+        1. **核心要点提取**
+           - 识别关键技术概念
+           - 提取最佳实践建议
+           - 总结常见问题解决方案
+        
+        2. **技术对比分析**
+           - 不同方案的优缺点
+           - 适用场景对比
+           - 性能影响评估
+        
+        3. **实践建议**
+           - 如何应用到当前项目
+           - 需要注意的坑点
+           - 推荐的实现路径
+        
+        请以结构化的方式输出分析结果。
+    output:
+      save_to: analysis_results
+
+  - name: save_to_knowledge_graph
+    action: graphiti.remember_batch
+    params:
+      items:
+        - content: "${analysis_results.key_concepts}"
+          tags: ["research", "flutter", "concepts"]
+          importance: "high"
+        - content: "${analysis_results.best_practices}"
+          tags: ["research", "flutter", "practices"]
+          importance: "high"
+        - content: "${analysis_results.comparison}"
+          tags: ["research", "flutter", "comparison"]
+          importance: "medium"
+    output:
+      save_to: memory_ids
+
+  - name: generate_report
+    action: file.write
+    params:
+      path: "docs/research/auto_collection_${timestamp}.md"
+      content: |
+        # 自动化技术调研报告
+        
+        **生成时间**: ${timestamp}
+        **调研主题**: ${research_topics}
+        
+        ---
+        
+        ## 📊 核心发现
+        
+        ${analysis_results.key_concepts}
+        
+        ---
+        
+        ## ✨ 最佳实践
+        
+        ${analysis_results.best_practices}
+        
+        ---
+        
+        ## ⚖️ 技术对比
+        
+        ${analysis_results.comparison}
+        
+        ---
+        
+        ## 💡 实践建议
+        
+        ${analysis_results.recommendations}
+        
+        ---
+        
+        ## 📚 参考来源
+        
+        {{#each search_results}}
+        ### ${topic}
+        {{#each results}}
+        - [${title}](${url})
+        {{/each}}
+        {{/each}}
+        
+        ---
+        
+        *此报告由 OpenCode 自主执行系统自动生成*
+
+  - name: notify_completion
+    action: notification.send
+    params:
+      type: "success"
+      message: "数据收集任务完成，已生成报告: docs/research/auto_collection_${timestamp}.md"
+      details: "${analysis_results.summary}"
+
+config:
+  timeout: 600
+  retry:
+    max_attempts: 3
+    delay: 10
+    backoff: exponential
+  error_handling:
+    on_failure: pause
+    notify: true
+  checkpoint:
+    enabled: true
+    save_after_each_step: true
+  logging:
+    level: "info"
+    save_to: "logs/workflows/auto_collection.log"

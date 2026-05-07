@@ -181,8 +181,12 @@
                                 <img :src="qrLoginDataUrl" alt="扫码登录" class="qr-code" />
                                 <div class="qr-status">
                                     <span v-if="qrLoginStatus === 'pending'" class="status-pending">等待扫码...</span>
-                                    <span v-else-if="qrLoginStatus === 'scanned'" class="status-scanned">已扫码，等待确认...</span>
-                                    <span v-else-if="qrLoginStatus === 'confirmed'" class="status-confirmed">登录成功</span>
+                                    <span v-else-if="qrLoginStatus === 'scanned'" class="status-scanned"
+                                        >已扫码，等待确认...</span
+                                    >
+                                    <span v-else-if="qrLoginStatus === 'confirmed'" class="status-confirmed"
+                                        >登录成功</span
+                                    >
                                     <span v-else-if="qrLoginStatus === 'expired'" class="status-expired">已过期</span>
                                 </div>
                                 <div v-if="qrLoginCountdown > 0" class="qr-countdown">

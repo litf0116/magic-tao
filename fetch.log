@@ -1,0 +1,2 @@
+/Users/mac/workspace/magic-tao/fetch_valid.py:28: SyntaxWarning: invalid escape sequence '\s'
+  const rankMatch = bodyText.match(/总档位[：:]\s*(\d+)/);

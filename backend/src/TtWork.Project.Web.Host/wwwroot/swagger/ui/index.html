@@ -41,7 +41,7 @@
     <!-- 引入Swagger UI所需的JavaScript文件 -->
     <script src="swagger-ui-bundle.js"></script>
     <script src="swagger-ui-standalone-preset.js"></script>
-    <!-- 引入自定义的认证处理脚本 -->
+    <!-- 引入自定义的Certification处理脚本 -->
     <script src="/swagger//sm-crypto-v2/crypto-js.js"></script>
     <script src="/swagger/sm-crypto-v2/sm2.js"></script>
     <script src="/swagger/ui/auth.js"></script>
@@ -55,7 +55,7 @@
             configObject.presets = [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset];
             configObject.layout = "StandaloneLayout";
 
-            // 添加请求拦截器，用于在每个请求中添加认证token
+            // 添加请求拦截器，用于在每个请求中添加Certificationtoken
             configObject.requestInterceptor = function (request) {
                 var token = localStorage.getItem("token");
                 if (token) {

@@ -112,6 +112,8 @@ public class JPushService : IJPushService, ITransientDependency
                 }
             };
 
+            _logger.LogInformation("极光推送请求体: {Payload}", System.Text.Json.JsonSerializer.Serialize(payload));
+
             var response = await _client.SendPushAsync(payload);
             return HandleResponse(response);
         }
@@ -166,6 +168,22 @@ public class JPushService : IJPushService, ITransientDependency
             }
         }
 
+        var notificationType = extras?.GetValueOrDefault("type", "system");
+        var channelId = notificationType switch
+        {
+            "auction_start" => "auction_notify",
+            "auction_bid" => "auction_notify",
+            _ => "system_notify"
+        };
+
+        // 根据通知类型设置优先级（高优先级通知支持悬浮显示）
+        var priority = notificationType switch
+        {
+            "auction_start" => 1,  // 高优先级
+            "auction_bid" => 1,    // 高优先级
+            _ => 0                 // 默认优先级
+        };
+
         return new Notification
         {
             Alert = content,
@@ -173,7 +191,10 @@ public class JPushService : IJPushService, ITransientDependency
             {
                 Alert = content,
                 Title = title,
-                Extras = extrasDict
+                Extras = extrasDict,
+                ChannelId = channelId,
+                Priority = priority,
+                AlertType = 1  // 1=声音+振动
             },
             IOS = new IOS
             {
