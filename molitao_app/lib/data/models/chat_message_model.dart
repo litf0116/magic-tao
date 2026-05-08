@@ -80,9 +80,23 @@ class ChatMessage {
       }
     }
 
+    // 解析消息类型
+    ChatMessageType? type = _parseChatMessageType(json['type']);
+
+    // 特殊处理：解码编码的消息类型（如卡秒消息被编码为出价消息）
+    // 后端 MessageSendingService 会将 KasecStatusChanged 消息编码为 AuctionBid 类型发送
+    // 需要在 payload 中检查 messageType 和 encoded 标识来还原真实类型
+    if (type == ChatMessageType.auctionBid && payload is Map<String, dynamic>) {
+      final payloadMap = payload;
+      if (payloadMap['messageType'] == 'KasecStatusChanged' &&
+          payloadMap['encoded'] == true) {
+        type = ChatMessageType.kasecStatusChanged;
+      }
+    }
+
     return ChatMessage(
       id: json['id'],
-      type: _parseChatMessageType(json['type']),
+      type: type,
       status: _parseChatMessageStatus(json['status']),
       chan: json['chan'],
       from: json['from'],
