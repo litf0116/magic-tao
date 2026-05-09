@@ -8,7 +8,7 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - /www/certs:/app/certs
+      - /www/certs:/app/wwwroot/certs
       - /www/wwwroot/www.molitao.top/wwwroot:/app/wwwroot
       - /data2/logs:/app/logs
     environment:
