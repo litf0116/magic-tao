@@ -19,6 +19,7 @@ using TtWork.Abp.DomianServices;
 using TtWork.HttpClient.Weixin.Models;
 using TtWork.Project.Domains;
 using TtWork.Project.Domains.Pays;
+using TtWork.Project.Domains;
 
 namespace TtWork.Project.EntityFrameworkCore {
     public class AbpDbContext : AbpZeroDbContext<Tenant, Role, User, AbpDbContext> {
@@ -54,6 +55,8 @@ namespace TtWork.Project.EntityFrameworkCore {
 
         public DbSet<AuthRequest> AuthRequests { get; set; }
 
+        public DbSet<UserGroupLevel> UserGroupLevels { get; set; } = null!;
+        public DbSet<GroupChatLevelSetting> GroupChatLevelSettings { get; set; } = null!;
 
         #region TtWork.Abp.AppManagement
 
@@ -128,6 +131,14 @@ namespace TtWork.Project.EntityFrameworkCore {
                 //     v => v.ToJsonString(false, false),
                 //     v => v.FromJsonStringExt<WeChatPayPaidEventModel>()
                 // );
+            });
+
+            builder.Entity<UserGroupLevel>(b => {
+                b.HasIndex(x => x.UserId);
+            });
+
+            builder.Entity<GroupChatLevelSetting>(b => {
+                b.HasIndex(x => x.Level);
             });
         }
 
