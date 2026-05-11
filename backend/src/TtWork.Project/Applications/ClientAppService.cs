@@ -184,8 +184,11 @@ public class ClientAppService(
         var userId = AbpSession.UserId;
         if (!userId.HasValue)
         {
+            logger.LogInformation("[GetMyWechatOpenId] UserId is null, returning null");
             return null;
         }
+
+        logger.LogInformation("[GetMyWechatOpenId] Getting WeChat OpenId for UserId={0}", userId.Value);
 
         // 查询用户的微信 App 登录记录
         var userLogin = await userRepository.GetAll()
@@ -194,7 +197,11 @@ public class ClientAppService(
             .Where(l => l.LoginProvider == TtWork.Abp.Consts.LoginProvider.WeChatApp)
             .FirstOrDefaultAsync();
 
-        return userLogin?.ProviderKey;
+        var openId = userLogin?.ProviderKey;
+        logger.LogInformation("[GetMyWechatOpenId] UserId={0}, OpenId={1}, HasOpenId={2}",
+            userId.Value, openId ?? "NULL", openId != null);
+
+        return openId;
     }
 
     /// <summary>

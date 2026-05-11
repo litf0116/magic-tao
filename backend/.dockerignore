@@ -292,3 +292,4 @@ packages
 /src/TtWork.ProjectName.Web.Host/wwwroot/Temp
 /src/TtWork.ProjectName.Web.Host/wwwroot/Upload
 /src/TtWork.ProjectName.Web.Host/wwwroot/Thumb
+*.tar

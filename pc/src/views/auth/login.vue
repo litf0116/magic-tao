@@ -266,23 +266,21 @@ async function login() {
         return
     }
     loading.value = true
-    await userStore.login(form).then(
-        async () => {
-            loading.value = false
-            ElMessage({ type: 'success', message: '登录成功' })
-            await userStore.getUserInfo()
-            clearInterval(interVal)
-            navigateToHome()
-        },
-        async (error: any) => {
-            loading.value = false
-            ElMessage({
-                type: 'error',
-                dangerouslyUseHTMLString: true,
-                message: `<strong>${error.message}</strong><br/><p class="py-4">${error.details}</p>`,
-            })
-        }
-    )
+    try {
+        await userStore.login(form)
+        loading.value = false
+        ElMessage({ type: 'success', message: '登录成功' })
+        await userStore.getUserInfo()
+        clearInterval(interVal)
+        navigateToHome()
+    } catch (error: any) {
+        loading.value = false
+        ElMessage({
+            type: 'error',
+            dangerouslyUseHTMLString: true,
+            message: `<strong>${error?.message || '登录失败'}</strong><br/><p class="py-4">${error?.details || ''}</p>`,
+        })
+    }
 }
 
 async function sendSmsCode() {

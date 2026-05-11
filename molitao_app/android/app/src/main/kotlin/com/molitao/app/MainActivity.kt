@@ -43,7 +43,19 @@ class MainActivity : FlutterActivity() {
                 setShowBadge(true)
             }
 
-            manager.createNotificationChannels(listOf(auctionChannel, systemChannel))
+            // 前台服务通知渠道 - 用于极光推送保活
+            val foregroundChannel = NotificationChannel(
+                "jpush_foreground",
+                "推送服务",
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = "保持推送服务运行"
+                setShowBadge(false)
+                // 静默通知，不发出声音
+                setSound(null, null)
+            }
+
+            manager.createNotificationChannels(listOf(auctionChannel, systemChannel, foregroundChannel))
         }
     }
 }

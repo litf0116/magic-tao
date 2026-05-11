@@ -12,7 +12,7 @@ import utils from './utils'
 import { getAppVersion } from './version'
 import { getPlatform } from './platform'
 
-let host: string = 'https://www.molitao.top'
+let host: string = 'http://192.168.10.32:5000'
 
 const getRequest = utils.httpsPromisify(uni.request)
 

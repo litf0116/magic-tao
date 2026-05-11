@@ -57,35 +57,33 @@ export const useUserStore = defineStore('user', () => {
 
     // optional actions
 
-    function login(payload: { username: string; password: string; rememberClient: boolean }) {
+    async function login(payload: { username: string; password: string; rememberClient: boolean }) {
         let { username } = payload
         const { password } = payload
         username = username.trim()
-        return new Promise((resolve, reject) => {
-            api.tokenAuth
-                .authenticate({
-                    body: {
-                        userNameOrEmailAddress: username.trim(),
-                        password: password,
-                    },
-                })
-                .then(
-                    async (res: any) => {
-                        token.value = res.accessToken!
-                        setToken(res.accessToken!)
-                        if (res.refreshToken) {
-                            setRefreshToken(res.refreshToken)
-                        }
-                        if (res.expireInSeconds) {
-                            setTokenExpireTime(res.expireInSeconds)
-                        }
-                        resolve(res.accessToken!)
-                    },
-                    ({ error }) => {
-                        reject(error)
-                    }
-                )
-        })
+        try {
+            const res: any = await api.tokenAuth.authenticate({
+                body: {
+                    userNameOrEmailAddress: username.trim(),
+                    password: password,
+                },
+            })
+            token.value = res.accessToken!
+            setToken(res.accessToken!)
+            if (res.refreshToken) {
+                setRefreshToken(res.refreshToken)
+            }
+            if (res.expireInSeconds) {
+                setTokenExpireTime(res.expireInSeconds)
+            }
+            return res.accessToken!
+        } catch (err: any) {
+            const error = err?.error || err
+            throw {
+                message: error?.message || error || '登录失败',
+                details: error?.details || '',
+            }
+        }
     }
 
     function SET_USER(payload: UserLoginInfoDto) {

@@ -301,7 +301,7 @@ namespace TtWork.Project.Web.Host.Startup
 #else
                 Redis = new FreeRedis.RedisClient(
                   "8.130.178.251:6379,poolsize=10,password=7yD3Ddd34,syncTimeout=5000,abortConnect=false"),
-                Servers = ["ws.molitao.top"]
+                Servers = ["ws.molitao.top"] 
 #endif
             });
 

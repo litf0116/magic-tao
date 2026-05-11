@@ -603,19 +603,17 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
 
                     find.SetDeal();
 
-                    // 保存成交状态所需的数据，用于事务外执行
+                    // 保存成交状态所需的数据，用于群聊等级计算
                     long? groupChatLevelUserId = find.CurrentPriceUserId;
                     decimal groupChatLevelAmount = maxPrice != null ? Convert.ToDecimal(maxPrice.BidPrice) : 0;
 
-                    await CurrentUnitOfWork.SaveChangesAsync();
-
-                    _logger.LogInformation("成交状态已保存到数据库: AuctionItemId={AuctionItemId}", find.Id);
-
-                    // 群聊等级计算（使用 EF Core Repository，在事务内执行）
+                    // 群聊等级计算（在事务内执行，与成交状态保持原子性）
                     if (groupChatLevelUserId.HasValue && groupChatLevelAmount > 0)
                     {
                         await AddUserGroupChatLevelIncrement(groupChatLevelUserId.Value, groupChatLevelAmount);
                     }
+
+                    _logger.LogInformation("成交状态和群聊等级已处理: AuctionItemId={AuctionItemId}", find.Id);
 
                     // 构建返回结果
                     result = ObjectMapper.Map<AuctionItemDto>(find);
@@ -769,6 +767,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     /// <param name="userId">用户ID</param>
     /// <param name="incrementAmount">增量金额（本次出价金额）</param>
     /// <returns></returns>
+    private const decimal MaxCumulativeAmount = 999999999;
+
     private async Task AddUserGroupChatLevelIncrement(long userId, decimal incrementAmount)
     {
         try
@@ -776,7 +776,6 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
             _logger.LogInformation("开始累加用户群聊等级金额: UserId={UserId}, IncrementAmount={IncrementAmount}",
                 userId, incrementAmount);
 
-            // 检查增量金额范围
             if (incrementAmount < 0)
             {
                 _logger.LogWarning("增量金额为负数，跳过处理: UserId={UserId}, IncrementAmount={IncrementAmount}",
@@ -784,14 +783,13 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 return;
             }
 
-            if (incrementAmount > 999999999) // 10亿限制
+            if (incrementAmount > MaxCumulativeAmount)
             {
                 _logger.LogWarning("增量金额过大，跳过处理: UserId={UserId}, IncrementAmount={IncrementAmount}",
                     userId, incrementAmount);
                 return;
             }
 
-            // 查询用户群聊等级信息（使用 EF Core Repository，复用事务连接）
             var info = await _userGroupLevelRepository.GetAll()
                 .FirstOrDefaultAsync(f => f.UserId == userId);
             if (info == null)
@@ -806,33 +804,30 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                     userId, info.CumulativeAmount, info.GroupChatId);
             }
 
-            // 计算新的累计金额并检查范围
             decimal newCumulativeAmount = info.CumulativeAmount + incrementAmount;
-            if (newCumulativeAmount > 999999999) // 10亿限制
+            if (newCumulativeAmount > MaxCumulativeAmount)
             {
                 _logger.LogWarning(
                     "累计金额过大，限制为最大值: UserId={UserId}, OldAmount={OldAmount}, IncrementAmount={IncrementAmount}, NewAmount={NewAmount}",
                     userId, info.CumulativeAmount, incrementAmount, newCumulativeAmount);
-                newCumulativeAmount = 999999999;
+                newCumulativeAmount = MaxCumulativeAmount;
             }
 
-            // 查询群等级信息（使用 EF Core Repository，复用事务连接）
             var groupChatLevelSetting = await _groupChatLevelSettingRepository.GetAll()
                 .Where(w => w.AmountRequired <= newCumulativeAmount)
                 .OrderByDescending(o => o.AmountRequired)
                 .FirstOrDefaultAsync();
             if (groupChatLevelSetting == null)
             {
-                _logger.LogWarning("没有匹配的群聊等级信息: UserId={UserId}, CumulativeAmount={CumulativeAmount}",
+                _logger.LogWarning("没有匹配的群聊等级信息，跳过等级更新: UserId={UserId}, CumulativeAmount={CumulativeAmount}",
                     userId, newCumulativeAmount);
-                throw new UserFriendlyException($"没有匹配的群聊等级信息！");
+                return;
             }
 
             _logger.LogInformation(
                 "匹配到群聊等级信息: UserId={UserId}, LevelId={LevelId}, LevelName={LevelName}, AmountRequired={AmountRequired}",
                 userId, groupChatLevelSetting.Id, groupChatLevelSetting.Name, groupChatLevelSetting.AmountRequired);
 
-            // 存在用户群聊等级信息就修改
             if (info != null && info.Id != 0)
             {
                 info.CumulativeAmount = newCumulativeAmount;
@@ -863,9 +858,8 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "累加用户群聊等级金额失败: UserId={UserId}, IncrementAmount={IncrementAmount}, Error={Error}",
-                userId, incrementAmount, ex.Message);
-            throw new UserFriendlyException($"累加用户群聊等级金额失败，错误信息：" + ex.Message);
+            _logger.LogError(ex, "累加用户群聊等级金额失败，跳过等级更新: UserId={UserId}, IncrementAmount={IncrementAmount}",
+                userId, incrementAmount);
         }
     }
 
@@ -1104,19 +1098,17 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
 
                 find.SetDeal();
 
-                // 保存成交状态所需的数据
+                // 保存成交状态所需的数据，用于群聊等级计算
                 long? groupChatLevelUserId = find.CurrentPriceUserId;
                 decimal groupChatLevelAmount = maxPrice != null ? Convert.ToDecimal(maxPrice.BidPrice) : 0;
 
-                await CurrentUnitOfWork.SaveChangesAsync();
-
-                _logger.LogInformation("成交状态已保存到数据库: AuctionItemId={AuctionItemId}", find.Id);
-
-                // 群聊等级计算（使用 EF Core Repository，在事务内执行）
+                // 群聊等级计算（在事务内执行，与成交状态保持原子性）
                 if (groupChatLevelUserId.HasValue && groupChatLevelAmount > 0)
                 {
                     await AddUserGroupChatLevelIncrement(groupChatLevelUserId.Value, groupChatLevelAmount);
                 }
+
+                _logger.LogInformation("成交状态和群聊等级已处理: AuctionItemId={AuctionItemId}", find.Id);
 
                 // 构建返回结果
                 result = ObjectMapper.Map<AuctionItemDto>(find);
