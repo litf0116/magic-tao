@@ -1022,6 +1022,7 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
     /// <exception cref="UserFriendlyException"></exception>
     [AbpAuthorize(AppPermissions.Pages.ChatManager)]
     [HttpGet]
+    [UnitOfWork]
     public async Task<AuctionItemDto> EndAuction(EntityDto<long> input)
     {
         try
