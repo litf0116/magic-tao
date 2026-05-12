@@ -2,10 +2,11 @@ name: molitao_app
 description: "魔力淘 - 在线拍卖交易平台"
 publish_to: 'none'
 
-version: 1.5.4
+version: 1.5.4+1
 
 environment:
-  sdk: ^3.9.0
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.0.0'
 
 dependencies:
   flutter:
@@ -69,6 +70,22 @@ dependencies:
   # 二维码扫描
   mobile_scanner: ^6.0.2
 
+  # 文件系统访问
+  path_provider: ^2.1.4
+
+  # 设备信息
+  device_info_plus: ^11.2.0
+
+  # 网络连接状态
+  connectivity_plus: ^6.1.0
+
+  # 应用生命周期
+  flutter_lifecycle_detector: ^0.0.8
+
+  # 国际化
+  flutter_localizations:
+    sdk: flutter
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -79,15 +96,25 @@ dev_dependencies:
 
   # Patrol（完整 E2E 测试）
   patrol: ^3.20.0
-  
 
-
+  # 代码质量检查
   flutter_lints: ^5.0.0
+
+  # 代码生成
   build_runner: ^2.4.13
   json_serializable: ^6.8.0
   freezed: ^2.5.7
   riverpod_generator: ^2.6.3
+
+  # 应用图标生成
   flutter_launcher_icons: ^0.14.3
+
+  # 启动画面生成
+  flutter_native_splash: ^2.4.3
+
+  # 自定义lint规则
+  custom_lint: ^0.7.0
+  riverpod_lint: ^2.6.1
 
 # 应用图标配置
 flutter_launcher_icons:
@@ -98,6 +125,31 @@ flutter_launcher_icons:
   adaptive_icon_background: "#f4835a"
   adaptive_icon_foreground: "assets/images/app-icon.png"
   remove_alpha_ios: true
+
+# 启动画面配置
+flutter_native_splash:
+  color: "#FAF1F0"
+  image: assets/images/splash-logo.png
+  color_dark: "#FAF1F0"
+  image_dark: assets/images/splash-logo.png
+
+  android_12:
+    color: "#FAF1F0"
+    image: assets/images/splash-logo.png
+    color_dark: "#FAF1F0"
+    image_dark: assets/images/splash-logo.png
+
+  ios:
+    color: "#FAF1F0"
+    image: assets/images/splash-logo.png
+    color_dark: "#FAF1F0"
+    image_dark: assets/images/splash-logo.png
+
+  web:
+    color: "#FAF1F0"
+    image: assets/images/splash-logo.png
+    color_dark: "#FAF1F0"
+    image_dark: assets/images/splash-logo.png
 
 flutter:
   uses-material-design: true

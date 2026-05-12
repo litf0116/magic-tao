@@ -20,14 +20,19 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.molitao.app"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // 多ABI支持
+        ndk {
+            abiFilters "armeabi-v7a", "arm64-v8a", "x86_64"
+        }
+
+        // 权限配置
+        manifestPlaceholders["appName"] = "魔力淘"
     }
 
     signingConfigs {
@@ -40,12 +45,39 @@ android {
     }
 
     buildTypes {
-        release {
-            signingConfig = signingConfigs.getByName("release")
-        }
         debug {
             signingConfig = signingConfigs.getByName("release")
+            buildConfigField("boolean", "DEBUG_MODE", "true")
+            manifestPlaceholders["debugMode"] = true
         }
+        release {
+            signingConfig = signingConfigs.getByName("release")
+            buildConfigField("boolean", "DEBUG_MODE", "false")
+            manifestPlaceholders["debugMode"] = false
+
+            // 代码混淆
+            isMinifyEnabled = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+
+            // 移除调试符号
+            isDebuggable = false
+        }
+    }
+
+    buildFeatures {
+        buildConfig = true
+        compose = false
+    }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+
+    lint {
+        abortOnError = false
+        checkReleaseBuilds = false
     }
 }
 
