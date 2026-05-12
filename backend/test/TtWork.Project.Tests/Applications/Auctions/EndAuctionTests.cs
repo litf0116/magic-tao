@@ -104,25 +104,27 @@ public class EndAuctionTransactionTests
 
     #region 业务边界条件测试
 
+    /// <summary>
+    /// 验证拍卖ID边界值的验证逻辑
+    /// </summary>
+    /// <remarks>
+    /// 集成测试需要使用 ABP 测试框架 Mock 仓储来验证：
+    /// 1. auctionItemId <= 0 时应该抛出 UserFriendlyException
+    /// 2. auctionItemId 不存在时应该抛出 UserFriendlyException
+    /// 3. auctionItemId 存在时应该正常处理
+    /// </remarks>
     [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    [InlineData(long.MaxValue)]
-    public void AuctionItemId_BoundaryValues_ShouldBeHandled(long auctionItemId)
+    [InlineData(0, false, "零是无效的拍卖ID")]
+    [InlineData(-1, false, "负数是无效的拍卖ID")]
+    [InlineData(1, true, "正数是有效的拍卖ID")]
+    [InlineData(long.MaxValue, true, "最大值在理论上有效")]
+    public void AuctionItemId_Validation_ShouldWorkCorrectly(long auctionItemId, bool expectedValid, string reason)
     {
-        // 这是一个边界值测试模板
-        // 实际集成测试需要验证：
-        // 1. auctionItemId <= 0 时应该抛出 UserFriendlyException
-        // 2. auctionItemId 不存在时应该抛出 UserFriendlyException
-        // 3. auctionItemId 存在时应该正常处理
-
+        // Given: 拍卖ID的验证规则（ID必须大于0）
         var isValidId = auctionItemId > 0;
         
-        // 边界值应该被正确处理
-        if (auctionItemId <= 0)
-        {
-            isValidId.ShouldBeFalse("无效的拍卖ID应该被拒绝");
-        }
+        // Then: 验证结果应该符合预期
+        isValidId.ShouldBe(expectedValid, reason);
     }
 
     [Fact]

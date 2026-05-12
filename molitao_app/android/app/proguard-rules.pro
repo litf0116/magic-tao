@@ -28,6 +28,19 @@
 -keep class io.flutter.**  { *; }
 -keep class io.flutter.plugins.**  { *; }
 
+# Kotlin 元数据保护（支持 Freezed、JSON Serializable 等）
+-keep class kotlin.Metadata { *; }
+-keepclassmembers class **$WhenMappings {
+    <fields>;
+}
+-keepclassmembers class kotlin.Metadata {
+    public <methods>;
+}
+-keep class kotlin.** { *; }
+-keepclassmembers class **$**$WhenMappings {
+    <methods>;
+}
+
 # 保持注解
 -keepattributes Annotation, InnerClasses, EnclosingMethod
 -keepattributes Signature, Exceptions, MethodParameters
