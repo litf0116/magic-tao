@@ -53,13 +53,16 @@ export function usePayment(options?: Partial<PaymentOptions>) {
             const result: PaymentResult = await getPaymentStatus(query)
 
             switch (result.status) {
-                case PaymentStatus.Success:
+                case '已支付':
                     handleSuccess(result)
                     break
-                case PaymentStatus.Failed:
+                case '已退款':
+                case '取消':
                     handleError(new Error(result.message))
                     break
-                case PaymentStatus.Pending:
+                case '未支付':
+                case '退款中':
+                case '部分退款':
                     break
                 default:
                     console.warn('Unknown payment status:', result.status)

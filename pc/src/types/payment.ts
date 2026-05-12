@@ -38,8 +38,7 @@ export interface PaymentQuery {
  * 支付流程完成后的结果数据
  */
 export interface PaymentResult {
-    /** 支付状态 */
-    status: PaymentStatus
+    status: string
     /** 订单号 */
     orderId: string
     /** 商户订单号 */
