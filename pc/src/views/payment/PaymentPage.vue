@@ -186,6 +186,7 @@ import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElButton, ElIcon } from 'element-plus'
 import { usePayment } from '@/composables/usePayment'
+import { PaymentStatus } from '@/types/payment'
 import QrcodeDisplay from '@/components/Payment/QrcodeDisplay.vue'
 
 // 路由和导航
@@ -238,7 +239,7 @@ const manualCheck = async () => {
     try {
         if (orderNo.value) {
             const result = await getPaymentStatus({ outTradeNo: orderNo.value })
-            if (result.status === '已支付') {
+            if (result.status === PaymentStatus.Success) {
                 paymentSuccess.value = true
                 ElMessage.success('支付成功！')
 

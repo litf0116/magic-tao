@@ -3,12 +3,9 @@
  * 对应后端 GetPayOrderStatus 接口返回的 status 字段
  */
 export enum PaymentStatus {
-    /** 支付中 - 用户已扫码但尚未完成支付 */
-    Pending = 'pending',
-    /** 支付成功 - 用户已完成支付 */
-    Success = 'success',
-    /** 支付失败 - 支付超时或其他原因导致失败 */
-    Failed = 'failed',
+    Success = '已支付',
+    Pending = '未支付',
+    Failed = '失败',
 }
 
 /**
