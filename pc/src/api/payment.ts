@@ -42,7 +42,7 @@ export async function createPaymentOrder(amount = 51): Promise<CreatePaymentOrde
  * @example
  * // 查询订单状态
  * const status = await getPaymentStatus({ outTradeNo: '20250110123456' })
- * if (status.status === PaymentStatus.Success) {
+ * if (status.status === '已支付') {
  *   console.log('支付成功')
  * }
  */

@@ -238,7 +238,7 @@ const manualCheck = async () => {
     try {
         if (orderNo.value) {
             const result = await getPaymentStatus({ outTradeNo: orderNo.value })
-            if (result.status === PaymentStatus.Success) {
+            if (result.status === '已支付') {
                 paymentSuccess.value = true
                 ElMessage.success('支付成功！')
 
