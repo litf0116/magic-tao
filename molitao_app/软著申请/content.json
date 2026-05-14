@@ -1,0 +1,63 @@
+{
+  "title": "魔力淘用户手册",
+  "author": "黑龙江省魔淡网络科技有限公司",
+  "subject": "V1.0.0",
+  "papersize": "A4",
+  "margin": {
+    "top": "2.5cm",
+    "bottom": "2.5cm",
+    "left": "3cm",
+    "right": "2cm"
+  },
+  "header": {
+    "left": "魔力淘 V1.0.0",
+    "right": "",
+    "footer": {
+      "center": "黑龙江省魔淡网络科技有限公司"
+    }
+  },
+  "content": [
+    {
+      "file": "用户手册.md",
+      "preprocess": true
+    }
+  ],
+  "styles": {
+    "heading1": {
+      "font": "SimHei",
+      "size": 16,
+      "bold": true,
+      "color": "333333"
+    },
+    "heading2": {
+      "font": "SimHei",
+      "size": 14,
+      "bold": true,
+      "color": "333333"
+    },
+    "heading3": {
+      "font": "SimHei",
+      "size": 12,
+      "bold": true,
+      "color": "333333"
+    },
+    "body": {
+      "font": "SimSun",
+      "size": 10.5,
+      "color": "333333",
+      "lineheight": 1.5
+    },
+    "code": {
+      "font": "Courier",
+      "size": 9,
+      "color": "333333"
+    },
+    "image": {
+      "maxWidth": "15cm",
+      "align": "center",
+      "caption": true
+    }
+  },
+  "toc": true,
+  "toc_title": "目录"
+}

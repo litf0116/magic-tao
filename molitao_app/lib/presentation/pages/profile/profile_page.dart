@@ -93,6 +93,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         ),
         backgroundColor: const Color(0xfff4835a),
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings, color: Colors.white),
+            onPressed: () => context.push('/settings'),
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: _loadMyCount,
@@ -129,7 +135,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                             onTap: () {
                               if (userState.user != null &&
                                   userState.isLoggedIn) {
-                                context.push('/profile/user-info');
+context.push('/settings');
                               }
                             },
                             child: Row(
@@ -221,15 +227,15 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                              size: 28,
                            ),
                            tooltip: '个人信息设置',
-                           onPressed: () {
-                             if (userState.isLoggedIn && userState.user != null) {
-                               context.push('/profile/user-info');
-                             } else {
-                               ScaffoldMessenger.of(context).showSnackBar(
-                                 const SnackBar(content: Text('请先登录')),
-                               );
-                             }
-                           },
+onPressed: () {
+                              if (userState.isLoggedIn && userState.user != null) {
+                                context.push('/profile/user-info');
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('请先登录')),
+                                );
+                              }
+                            },
                          ),
                        ),
                     ],

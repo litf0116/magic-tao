@@ -45,9 +45,10 @@ let pollTimer: ReturnType<typeof setInterval> | null = null
 
 const pollPaymentStatus = async () => {
     try {
-        const response = await getPaymentStatus({ outTradeNo: props.orderId })
+        const result = await getPaymentStatus({ outTradeNo: props.orderId })
 
-        if (response.status === '已支付' || response.status === '1') {
+        // 支付成功判断：status 为 "已支付" 或 "1"（后端 PayState.已支付）
+        if (result.status === '已支付' || result.status === '1') {
             handleSuccess()
             return
         }

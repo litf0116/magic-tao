@@ -1,0 +1,17 @@
+# App configuration for molitao_app
+# 请填写您的 Apple Developer 账号信息
+
+# Apple ID (用于 App Store Connect)
+apple_id("799849240@qq.com")
+
+# Team ID (在 Apple Developer 账号中可以找到)
+team_id("WX4RK78D62")
+
+# Bundle Identifier
+bundle_identifier("com.molitao.molitaoApp")
+
+# App Name in App Store Connect
+app_name("魔力淘")
+
+# iTunes Connect Team ID (通常和 Team ID 相同，如果有不同请修改)
+itc_team_id("WX4RK78D62")

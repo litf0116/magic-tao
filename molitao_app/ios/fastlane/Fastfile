@@ -1,0 +1,106 @@
+# Fastfile for molitao_app iOS
+
+# 设置默认平台
+default_platform(:ios)
+
+platform :ios do
+  # ==========================================
+  # Match - 证书管理
+  # ==========================================
+  
+  desc "同步开发证书 (Development)"
+  lane :sync_dev_certs do
+    match(
+      type: "development",
+      readonly: true  # 只读取，不创建新证书
+    )
+  end
+  
+  desc "同步 App Store 证书 (Distribution)"
+  lane :sync_appstore_certs do
+    match(
+      type: "appstore",
+      readonly: true
+    )
+  end
+  
+  desc "同步 Ad Hoc 证书 (内部测试)"
+  lane :sync_adhoc_certs do
+    match(
+      type: "adhoc",
+      readonly: true
+    )
+  end
+  
+  desc "同步所有证书"
+  lane :sync_all_certs do
+    sync_dev_certs
+    sync_appstore_certs
+    sync_adhoc_certs
+  end
+  
+  # ==========================================
+  # Match - 创建新证书 (需要手动触发)
+  # ==========================================
+  
+  desc "创建新的开发证书"
+  lane :create_dev_cert do
+    match(
+      type: "development",
+      readonly: false  # 允许创建新证书
+    )
+  end
+  
+  desc "创建新的 App Store 证书"
+  lane :create_appstore_cert do
+    match(
+      type: "appstore",
+      readonly: false
+    )
+  end
+  
+  # ==========================================
+  # 构建
+  # ==========================================
+  
+  desc "构建 Release 版本 (App Store)"
+  lane :build_release do
+    sync_appstore_certs
+    
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      configuration: "Release",
+      export_method: "app-store",
+      output_directory: "./build",
+      output_name: "molitao_app.ipa"
+    )
+  end
+  
+  desc "构建 Ad Hoc 版本 (内部测试)"
+  lane :build_adhoc do
+    sync_adhoc_certs
+    
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      configuration: "Release",
+      export_method: "ad-hoc",
+      output_directory: "./build",
+      output_name: "molitao_app_adhoc.ipa"
+    )
+  end
+  
+  # ==========================================
+  # 上传到 TestFlight
+  # ==========================================
+  
+  desc "上传到 TestFlight"
+  lane :upload_testflight do
+    build_release
+    
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true
+    )
+  end
+end

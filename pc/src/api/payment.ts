@@ -31,7 +31,7 @@ export async function createPaymentOrder(amount = 51): Promise<CreatePaymentOrde
         url,
         params: { amount },
     })
-    return response as CreatePaymentOrderResponse
+    return response as unknown as CreatePaymentOrderResponse
 }
 
 /**
@@ -46,11 +46,13 @@ export async function createPaymentOrder(amount = 51): Promise<CreatePaymentOrde
  *   console.log('支付成功')
  * }
  */
-export function getPaymentStatus(query: PaymentQuery): Promise<PaymentResult> {
+export async function getPaymentStatus(query: PaymentQuery): Promise<PaymentResult> {
     const url = '/api/services/app/Client/GetPayOrderStatus'
-    return request({
+    const response = await request({
         method: 'get',
         url,
         params: { outTradeNo: query.outTradeNo },
-    }).then((response) => response.data)
+    })
+    // normalizeResponse 已经提取了 result，所以 response 直接就是 PayOrderStatusDto
+    return response as unknown as PaymentResult
 }

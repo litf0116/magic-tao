@@ -1,0 +1,2500 @@
+    int r = (hash >> 16) & 0xFF;
+    int g = (hash >> 8) & 0xFF;
+    int b = hash & 0xFF;
+    return Color.fromRGBO(r, g, b, 1.0);
+  }
+
+  String _getChannelDisplayName(model.ChatListItem chatItem) {
+    if (chatItem.id == -10) return '系统公告';
+    if (chatItem.id == -11) return '新手版主群聊';
+    if (chatItem.id == 0) return '勇者招募所';
+    if (chatItem.id == -1) return '秒杀场';
+    return chatItem.name;
+  }
+
+  String _formatTime(int timestamp) {
+    final date = DateTime.fromMillisecondsSinceEpoch(timestamp);
+    return DateFormat('MM-dd HH:mm').format(date);
+  }
+
+  void _navigateToChatDetail(
+    BuildContext context,
+    model.ChatListItem chatItem,
+  ) {
+    if (chatItem.id == null) return;
+
+    // Mark as read
+    ref.read(chatProvider.notifier).markAsRead(chatItem.id!);
+
+    if (chatItem.id == -1) {
+      // Auction
+      context.push('/chat/auction');
+    } else if (chatItem.id == -10) {
+      // Announcement
+      context.push('/chat/group/-10');
+    } else if (chatItem.id == -11) {
+      // Newbie group
+      context.push('/chat/group/-11');
+    } else if (chatItem.id == 0) {
+      // Lobby
+      context.push('/chat/group/0');
+    } else if (chatItem.type == model.ChatListItemType.user) {
+      // Private chat
+      context.push('/chat/private/${chatItem.id}');
+    } else {
+      // Group chat
+      context.push('/chat/group/${chatItem.id}');
+    }
+  }
+
+  void _showContextMenu(
+    BuildContext context,
+    WidgetRef ref,
+    model.ChatListItem chatItem,
+  ) {
+    showAppBottomSheet(
+      context: context,
+      builder: (context) => AppActionSheet(
+        actions: [
+          ActionSheetItem(
+            title: '删除聊天',
+            onTap: () => _confirmDelete(context, ref, chatItem),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDelete(
+    BuildContext context,
+    WidgetRef ref,
+    model.ChatListItem chatItem,
+  ) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('提示'),
+          content: const Text('确定删除聊天记录吗？'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('取消'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // Delete conversation
+                ref.read(chatProvider.notifier).deleteChat(chatItem.id ?? 0);
+              },
+              child: const Text('确定', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/* === lib/presentation/pages/settings/account_security_page.dart === */
+import 'dart:async';
+import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../data/models/login_binding_model.dart';
+import '../../../data/services/login_binding_service.dart';
+import '../../../data/repositories/auth_repository.dart';
+
+class AccountSecurityPage extends StatefulWidget {
+  const AccountSecurityPage({super.key});
+
+  @override
+  State<AccountSecurityPage> createState() => _AccountSecurityPageState();
+}
+
+class _AccountSecurityPageState extends State<AccountSecurityPage> {
+  final _loginBindingService = LoginBindingService();
+  final _authRepository = AuthRepository();
+  List<LoginBindingDto> _bindings = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBindings();
+  }
+
+  Future<void> _loadBindings() async {
+    try {
+      final bindings = await _loginBindingService.getLoginBindings();
+      if (mounted) {
+        setState(() {
+          _bindings = bindings;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('获取绑定信息失败: $e')),
+        );
+      }
+    }
+  }
+
+  bool _hasBinding(LoginBindingType type) {
+    return _bindings.any((b) => b.bindingType == type);
+  }
+
+  LoginBindingDto? _getBinding(LoginBindingType type) {
+    try {
+      return _bindings.firstWhere((b) => b.bindingType == type);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<void> _showBindPhoneDialog() async {
+    final phoneController = TextEditingController();
+    final codeController = TextEditingController();
+    int countdown = 0;
+    Timer? timer;
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('绑定手机号'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: phoneController,
+                    keyboardType: TextInputType.phone,
+                    decoration: InputDecoration(
+                      labelText: '手机号',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: codeController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: '验证码',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      SizedBox(
+                        width: 100,
+                        child: TextButton(
+                          onPressed: countdown > 0
+                              ? null
+                              : () async {
+                                  final phone = phoneController.text.trim();
+                                  if (phone.isEmpty ||
+                                      !RegExp(r'^1[3-9]\d{9}$')
+                                          .hasMatch(phone)) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text('请输入正确的手机号')),
+                                    );
+                                    return;
+                                  }
+                                  try {
+                                    await _authRepository.sendSmsCode(
+                                      phone,
+                                      purpose: 'bindphone',
+                                    );
+                                    setDialogState(() => countdown = 60);
+                                    timer = Timer.periodic(
+                                        const Duration(seconds: 1), (t) {
+                                      if (countdown > 0) {
+                                        setDialogState(() => countdown--);
+                                      } else {
+                                        t.cancel();
+                                      }
+                                    });
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('验证码已发送')),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                            content: Text('发送失败: $e')),
+                                      );
+                                    }
+                                  }
+                                },
+                          style: TextButton.styleFrom(
+                            backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Text(
+                            countdown > 0 ? '${countdown}s' : '获取验证码',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: countdown > 0
+                                  ? AppColors.textHint
+                                  : AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    timer?.cancel();
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('取消'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    final phone = phoneController.text.trim();
+                    final code = codeController.text.trim();
+                    if (phone.isEmpty || code.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('请填写完整信息')),
+                      );
+                      return;
+                    }
+                    try {
+                      await _loginBindingService.bindPhone(phone, code);
+                      timer?.cancel();
+                      Navigator.of(context).pop();
+                      _loadBindings();
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('绑定成功')),
+                        );
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('绑定失败: $e')),
+                        );
+                      }
+                    }
+                  },
+                  child: Text(
+                    '确定',
+                    style: TextStyle(color: AppColors.primary),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    timer?.cancel();
+    phoneController.dispose();
+    codeController.dispose();
+  }
+
+  Future<void> _showUnbindDialog(LoginBindingDto binding) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('解绑确认'),
+          content: Text('确定要解绑${binding.displayName ?? "此登录方式"}吗？'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('取消'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('确定', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true && binding.loginProvider != null) {
+      try {
+        await _loginBindingService.unbindLogin(binding.loginProvider!);
+        _loadBindings();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('解绑成功')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('解绑失败: $e')),
+          );
+        }
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          '账号安全',
+          style: TextStyle(fontSize: 20, color: Colors.white),
+        ),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+      ),
+      backgroundColor: const Color(0xfff6f6f6),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    '登录方式',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xff1a1a1a),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withValues(alpha: 0.2),
+                          spreadRadius: 1,
+                          blurRadius: 5,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        _buildBindingTile(
+                          icon: Icons.chat,
+                          iconColor: const Color(0xff07c160),
+                          title: '微信登录',
+                          binding: _getBinding(LoginBindingType.wechat),
+                          onBind: null,
+                          onUnbind: _hasBinding(LoginBindingType.wechat)
+                              ? () => _showUnbindDialog(
+                                    _getBinding(LoginBindingType.wechat)!)
+                              : null,
+                        ),
+                        _buildDivider(),
+                        _buildBindingTile(
+                          icon: Icons.phone_android,
+                          iconColor: AppColors.primary,
+                          title: '手机号登录',
+                          binding: _getBinding(LoginBindingType.phone),
+                          onBind: _hasBinding(LoginBindingType.phone)
+                              ? null
+                              : _showBindPhoneDialog,
+                          onUnbind: _hasBinding(LoginBindingType.phone)
+                              ? () => _showUnbindDialog(
+                                    _getBinding(LoginBindingType.phone)!)
+                              : null,
+                        ),
+                        _buildDivider(),
+                        _buildBindingTile(
+                          icon: Icons.lock,
+                          iconColor: Colors.blue,
+                          title: '密码登录',
+                          binding: _getBinding(LoginBindingType.password),
+                          onBind: null,
+                          onUnbind: _hasBinding(LoginBindingType.password)
+                              ? () => _showUnbindDialog(
+                                    _getBinding(LoginBindingType.password)!)
+                              : null,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    '提示：解绑所有登录方式后，下次登录将创建新账号',
+                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+    );
+  }
+
+  Widget _buildBindingTile({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required LoginBindingDto? binding,
+    required VoidCallback? onBind,
+    required VoidCallback? onUnbind,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 24, color: iconColor),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Color(0xff1a1a1a),
+                  ),
+                ),
+                if (binding != null && binding.providerKey != null)
+                  Text(
+                    binding.providerKey!,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          if (binding != null)
+            TextButton(
+              onPressed: onUnbind,
+              child: const Text(
+                '解绑',
+                style: TextStyle(color: Colors.red),
+              ),
+            )
+          else if (onBind != null)
+            TextButton(
+              onPressed: onBind,
+              child: Text(
+                '绑定',
+                style: TextStyle(color: AppColors.primary),
+              ),
+            )
+          else
+            const Text(
+              '暂不支持',
+              style: TextStyle(color: AppColors.textHint),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return const Divider(
+      height: 1,
+      indent: 68,
+      endIndent: 16,
+      color: Color(0xffeeeeee),
+    );
+  }
+}
+
+/* === lib/presentation/providers/chat_provider.dart === */
+import 'dart:async';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../data/services/websocket_service.dart';
+import '../../data/api/api_client.dart';
+import '../../data/api/api_endpoints.dart';
+import '../../data/services/storage_service.dart';
+
+// Chat list item type enum
+enum ChatListItemType { group, user, system }
+
+// Chat message type enum
+enum ChatMessageType { text, image, file }
+
+// Chat message status enum
+enum ChatMessageStatus { sending, sent, delivered, read }
+
+// Chat list item model
+class ChatListItem {
+  final int? id;
+  final String name;
+  final ChatListItemType type;
+  final int? time;
+  final String? avatar;
+  final String? lastMsg;
+  final int unread;
+  final int order;
+
+  ChatListItem({
+    this.id,
+    required this.name,
+    required this.type,
+    this.time,
+    this.avatar,
+    this.lastMsg,
+    required this.unread,
+    required this.order,
+  });
+
+  factory ChatListItem.fromJson(Map<String, dynamic> json) {
+    return ChatListItem(
+      id: json['id'],
+      name: json['name'] ?? '',
+      type: ChatListItemType.values[json['type'] ?? 1], // default to user
+      time: json['time'],
+      avatar: json['avatar'],
+      lastMsg: json['lastMsg'],
+      unread: json['unread'] ?? 0,
+      order: json['order'] ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'type': type.index,
+      'time': time,
+      'avatar': avatar,
+      'lastMsg': lastMsg,
+      'unread': unread,
+      'order': order,
+    };
+  }
+}
+
+// Chat message model
+class ChatMessage {
+  final String? id;
+  final ChatMessageType? type;
+  final ChatMessageStatus? status;
+  final String? chan;
+  final int? from;
+  final String? fromName;
+  final bool? fromAdmin;
+  final String? msg;
+  final int? time;
+  final String? avatar;
+  final dynamic payload;
+
+  ChatMessage({
+    this.id,
+    this.type,
+    this.status,
+    this.chan,
+    this.from,
+    this.fromName,
+    this.fromAdmin,
+    this.msg,
+    this.time,
+    this.avatar,
+    this.payload,
+  });
+
+  factory ChatMessage.fromJson(Map<String, dynamic> json) {
+    return ChatMessage(
+      id: json['id'],
+      type: json['type'] != null ? ChatMessageType.values[json['type']] : null,
+      status: json['status'] != null
+          ? ChatMessageStatus.values[json['status']]
+          : null,
+      chan: json['chan'],
+      from: json['from'],
+      fromName: json['fromName'],
+      fromAdmin: json['fromAdmin'],
+      msg: json['msg'],
+      time: json['time'],
+      avatar: json['avatar'],
+      payload: json['payload'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'type': type?.index,
+      'status': status?.index,
+      'chan': chan,
+      'from': from,
+      'fromName': fromName,
+      'fromAdmin': fromAdmin,
+      'msg': msg,
+      'time': time,
+      'avatar': avatar,
+      'payload': payload,
+    };
+  }
+}
+
+// Chat state
+class ChatState {
+  final List<ChatListItem> chatList;
+  final bool isWebSocketConnected;
+  final int unreadCount;
+  final bool isLoading;
+
+  ChatState({
+    required this.chatList,
+    required this.isWebSocketConnected,
+    required this.unreadCount,
+    required this.isLoading,
+  });
+
+  ChatState copyWith({
+    List<ChatListItem>? chatList,
+    bool? isWebSocketConnected,
+    int? unreadCount,
+    bool? isLoading,
+  }) {
+    return ChatState(
+      chatList: chatList ?? this.chatList,
+      isWebSocketConnected: isWebSocketConnected ?? this.isWebSocketConnected,
+      unreadCount: unreadCount ?? this.unreadCount,
+      isLoading: isLoading ?? this.isLoading,
+    );
+  }
+
+  factory ChatState.initial() {
+    return ChatState(
+      chatList: [],
+      isWebSocketConnected: false,
+      unreadCount: 0,
+      isLoading: false,
+    );
+  }
+}
+
+// WebSocket service provider
+final webSocketServiceProvider = Provider<WebSocketService>((ref) {
+  return WebSocketService();
+});
+
+// Chat notifier
+class ChatNotifier extends StateNotifier<ChatState> {
+  final Ref _ref;
+  StreamSubscription<Map<String, dynamic>>? _messageSubscription;
+
+  ChatNotifier(this._ref) : super(ChatState.initial()) {
+    _initializeWebSocket();
+  }
+
+  Future<void> _initializeWebSocket() async {
+    final webSocketService = _ref.read(webSocketServiceProvider);
+
+    // Listen to WebSocket messages
+    _messageSubscription = webSocketService.messageStream.listen(
+      (message) {
+        _handleIncomingMessage(message);
+      },
+      onError: (error) {
+        print('WebSocket error in chat: $error');
+      },
+    );
+  }
+
+  void _handleIncomingMessage(Map<String, dynamic> message) {
+    final target = message['target'];
+
+    if (target == 'ReceiveMessage' || target == 'ReceiveChannelMessage') {
+      final arguments = message['arguments'] as List<dynamic>?;
+      if (arguments != null && arguments.isNotEmpty) {
+        final chatMessage = ChatMessage.fromJson(
+          arguments.first as Map<String, dynamic>,
+        );
+
+        // Update chat list with new message
+        final updatedChatList = [...state.chatList];
+        final existingIndex = updatedChatList.indexWhere(
+          (item) => item.id == chatMessage.from,
+        );
+
+        if (existingIndex != -1) {
+          final existingItem = updatedChatList[existingIndex];
+          updatedChatList[existingIndex] = existingItem.copyWith(
+            lastMsg: chatMessage.msg,
+            time: chatMessage.time,
+            unread: existingItem.unread + 1,
+          );
+        } else {
+          // Add new chat item if not exists
+          updatedChatList.add(
+            ChatListItem(
+              id: chatMessage.from,
+              name: chatMessage.fromName ?? 'Unknown',
+              type: ChatListItemType.user,
+              time: chatMessage.time,
+              avatar: chatMessage.avatar,
+              lastMsg: chatMessage.msg,
+              unread: 1,
+              order: DateTime.now().millisecondsSinceEpoch,
+            ),
+          );
+        }
+
+        // Calculate total unread count
+        final totalUnread = updatedChatList.fold(
+          0,
+          (sum, item) => sum + item.unread,
+        );
+
+        state = state.copyWith(
+          chatList: updatedChatList,
+          unreadCount: totalUnread,
+        );
+      }
+    }
+  }
+
+  Future<void> connectWebSocket() async {
+    print('========== ChatProvider.connectWebSocket() 被调用 ==========');
+
+    final webSocketService = _ref.read(webSocketServiceProvider);
+
+    // 获取 token
+    final storageService = StorageService();
+    final token = await storageService.getToken();
+
+    print(
+      '[ChatProvider] token: ${token != null ? "存在 (${token.length}字符)" : "不存在"}',
+    );
+
+    if (token == null || token.isEmpty) {
+      print('[ChatProvider] 无 token，跳过 WebSocket 连接');
+      return;
+    }
+
+    print('[ChatProvider] 调用 webSocketService.connect()...');
+    await webSocketService.connect(token: token);
+
+    state = state.copyWith(isWebSocketConnected: webSocketService.isConnected);
+    print('[ChatProvider] WebSocket 连接状态: ${webSocketService.isConnected}');
+  }
+
+  Future<void> disconnectWebSocket() async {
+    final webSocketService = _ref.read(webSocketServiceProvider);
+    await webSocketService.disconnect();
+
+    state = state.copyWith(isWebSocketConnected: false);
+  }
+
+  Future<void> loadChatList() async {
+    state = state.copyWith(isLoading: true);
+
+    try {
+      final storageService = StorageService();
+      final token = await storageService.getToken();
+
+      print('loadChatList: token = $token');
+
+      if (token == null || token.isEmpty) {
+        print('loadChatList: No token, returning empty list');
+        state = state.copyWith(chatList: [], isLoading: false);
+        return;
+      }
+
+      final response = await ApiClient().dio.get(ApiEndpoints.getChatList);
+      print('loadChatList: response.data = ${response.data}');
+
+      List<dynamic>? items;
+      if (response.data is List) {
+        items = response.data as List;
+      } else if (response.data is Map && response.data['items'] != null) {
+        items = response.data['items'] as List;
+      }
+
+      print('loadChatList: items count = ${items?.length ?? 0}');
+
+      if (items != null) {
+        final chatList = items
+            .map((json) => ChatListItem.fromJson(json))
+            .toList();
+
+        chatList.sort((a, b) => b.order.compareTo(a.order));
+
+        final totalUnread = chatList.fold(0, (sum, item) => sum + item.unread);
+
+        state = state.copyWith(
+          chatList: chatList,
+          unreadCount: totalUnread,
+          isLoading: false,
+        );
+      } else {
+        state = state.copyWith(chatList: [], isLoading: false);
+      }
+    } catch (e) {
+      print('Error loading chat list: $e');
+      state = state.copyWith(chatList: [], isLoading: false);
+    }
+  }
+
+  Future<void> deleteChat(int chatId) async {
+    try {
+      // Call API to delete chat
+      await ApiClient().dio.delete('${ApiEndpoints.deleteChatList}/$chatId');
+
+      // Remove from local state
+      final updatedChatList = state.chatList
+          .where((item) => item.id != chatId)
+          .toList();
+      final totalUnread = updatedChatList.fold(
+        0,
+        (sum, item) => sum + item.unread,
+      );
+
+      state = state.copyWith(
+        chatList: updatedChatList,
+        unreadCount: totalUnread,
+      );
+    } catch (e) {
+      print('Error deleting chat: $e');
+      // Still remove from local state even if API fails
+      final updatedChatList = state.chatList
+          .where((item) => item.id != chatId)
+          .toList();
+      final totalUnread = updatedChatList.fold(
+        0,
+        (sum, item) => sum + item.unread,
+      );
+
+      state = state.copyWith(
+        chatList: updatedChatList,
+        unreadCount: totalUnread,
+      );
+    }
+  }
+
+  Future<void> markAsRead(int chatId) async {
+    final updatedChatList = [...state.chatList];
+    final index = updatedChatList.indexWhere((item) => item.id == chatId);
+
+    if (index != -1) {
+      updatedChatList[index] = updatedChatList[index].copyWith(unread: 0);
+      final totalUnread = updatedChatList.fold(
+        0,
+        (sum, item) => sum + item.unread,
+      );
+
+      state = state.copyWith(
+        chatList: updatedChatList,
+        unreadCount: totalUnread,
+      );
+    }
+  }
+
+  ChatListItem? getChatById(int chatId) {
+    return state.chatList.firstWhere(
+      (item) => item.id == chatId,
+      orElse: () => state.chatList.first,
+    );
+  }
+
+  @override
+  void dispose() {
+    _messageSubscription?.cancel();
+    final webSocketService = _ref.read(webSocketServiceProvider);
+    webSocketService.dispose();
+    super.dispose();
+  }
+}
+
+// Extension to allow copying ChatListItem with updated values
+extension ChatListItemExtension on ChatListItem {
+  ChatListItem copyWith({
+    int? id,
+    String? name,
+    ChatListItemType? type,
+    int? time,
+    String? avatar,
+    String? lastMsg,
+    int? unread,
+    int? order,
+  }) {
+    return ChatListItem(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      type: type ?? this.type,
+      time: time ?? this.time,
+      avatar: avatar ?? this.avatar,
+      lastMsg: lastMsg ?? this.lastMsg,
+      unread: unread ?? this.unread,
+      order: order ?? this.order,
+    );
+  }
+}
+
+// Chat provider
+final chatProvider = StateNotifierProvider<ChatNotifier, ChatState>((ref) {
+  return ChatNotifier(ref);
+});
+
+/* === lib/presentation/pages/chat/private_chat_page.dart === */
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../providers/chat_emoji_store.dart';
+import '../../providers/chat_store.dart';
+import '../../providers/user_provider.dart';
+import '../../../data/models/chat_message_model.dart';
+import '../../../data/services/upload_service.dart';
+import '../../widgets/chat/messages/message_widget.dart';
+import '../../widgets/chat/chat_input_area.dart';
+
+/// 私聊页面
+/// 与 UniApp chatMain.vue 保持一致
+class PrivateChatPage extends ConsumerStatefulWidget {
+  final int friendId;
+  final String friendName;
+  final String? friendAvatar;
+
+  const PrivateChatPage({
+    super.key,
+    required this.friendId,
+    required this.friendName,
+    this.friendAvatar,
+  });
+
+  @override
+  ConsumerState<PrivateChatPage> createState() => _PrivateChatPageState();
+}
+
+class _PrivateChatPageState extends ConsumerState<PrivateChatPage> {
+  final ScrollController _scrollController = ScrollController();
+  final ImagePicker _imagePicker = ImagePicker();
+  final UploadService _uploadService = UploadService();
+  bool _isUploadingImage = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+
+    // 初始化 - 与 UniApp onLoad 一致
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // 连接 WebSocket
+      await ref.read(chatStoreProvider.notifier).connectServer();
+
+      // 设置当前聊天
+      ref
+          .read(chatStoreProvider.notifier)
+          .setCurrentChatId(
+            widget.friendId,
+            name: widget.friendName,
+            isGroup: false,
+          );
+
+      // 标记已读
+      ref.read(chatStoreProvider.notifier).markAsRead(widget.friendId);
+
+      // 加载历史消息
+      await ref
+          .read(chatStoreProvider.notifier)
+          .getPrivateHistory(widget.friendId);
+
+      // 滚动到底部
+      _scrollToBottom();
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 100) {
+      final messages = ref.read(currentChatMessagesProvider);
+      final lastTime = messages.isNotEmpty ? messages.last.time : null;
+      if (lastTime != null) {
+        ref
+            .read(chatStoreProvider.notifier)
+            .getPrivateHistory(widget.friendId, lastTime: lastTime);
+      }
+    }
+  }
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Future.delayed(const Duration(milliseconds: 50), () {
+          if (_scrollController.hasClients &&
+              _scrollController.position.maxScrollExtent > 0) {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          }
+        });
+      });
+    }
+  }
+
+  Future<void> _onSendText(String text) async {
+    await ref
+        .read(chatStoreProvider.notifier)
+        .sendDirectMsg(
+          toUserId: widget.friendId,
+          message: text,
+          type: ChatMessageType.text,
+        );
+    _scrollToBottom();
+  }
+
+  Future<void> _onPickImage() async {
+    try {
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        // 获取当前用户 ID
+        final userState = ref.read(userProvider);
+        final userId = userState.user?.id;
+
+        // 显示上传中状态
+        setState(() {
+          _isUploadingImage = true;
+        });
+
+        try {
+          // 上传图片
+          final imageUrl = await _uploadService.uploadImage(
+            image.path,
+            userId: userId?.toString(),
+          );
+
+          if (imageUrl != null) {
+            // 获取图片尺寸
+            final file = File(image.path);
+            final bytes = await file.readAsBytes();
+            final decodedImage = await decodeImageFromList(bytes);
+            final width = decodedImage.width;
+            final height = decodedImage.height;
+
+            // 构建 payload，与 UniApp 保持一致
+            final payload = {'url': imageUrl, 'width': width, 'height': height};
+
+            // 发送图片消息
+            await ref
+                .read(chatStoreProvider.notifier)
+                .sendDirectMsg(
+                  toUserId: widget.friendId,
+                  message: imageUrl,
+                  type: ChatMessageType.image,
+                  payload: payload,
+                );
+            _scrollToBottom();
+          } else {
+            if (mounted) {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('图片上传失败，请重试')));
+            }
+          }
+        } finally {
+          // 恢复上传状态
+          if (mounted) {
+            setState(() {
+              _isUploadingImage = false;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isUploadingImage = false;
+        });
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('选择图片失败: $e')));
+      }
+    }
+  }
+
+  /// 选择收藏表情发送（发送图片消息）
+  void _onSelectFavoriteEmoji(dynamic emoji) {
+    final url = emoji.url;
+    if (url == null || url.isEmpty) return;
+
+    // 构建 payload
+    final payload = {'url': url, 'width': 200, 'height': 200};
+
+    // 发送图片消息
+    ref
+        .read(chatStoreProvider.notifier)
+        .sendDirectMsg(
+          toUserId: widget.friendId,
+          message: url,
+          type: ChatMessageType.image,
+          payload: payload,
+        );
+
+    _scrollToBottom();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final messages = ref.watch(currentChatMessagesProvider);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          widget.friendName,
+          style: const TextStyle(fontSize: 20, color: Colors.white),
+        ),
+        backgroundColor: const Color(0xFFF4835A),
+        foregroundColor: Colors.white,
+      ),
+      body: Stack(
+        children: [
+          Column(
+            children: [
+              Expanded(
+                child: Container(
+                  color: const Color(0xFFFAF1F0),
+                  child: messages.isEmpty
+                      ? _buildEmptyState()
+                      : _buildMessageList(messages),
+                ),
+              ),
+              ChatInputArea(
+                onSendText: _onSendText,
+                onSelectImage: _onPickImage,
+                showFavoriteTab: true,
+                onSelectFavoriteEmoji: _onSelectFavoriteEmoji,
+              ),
+            ],
+          ),
+          // 加载遮罩
+          if (_isUploadingImage) _buildLoadingOverlay(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingOverlay() {
+    return Container(
+      color: Colors.black.withOpacity(0.3),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(
+                width: 32,
+                height: 32,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFF4835A)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                '正在发送图片...',
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.person, size: 64, color: Colors.grey.shade400),
+          const SizedBox(height: 16),
+          Text(
+            '暂无消息',
+            style: TextStyle(fontSize: 16, color: Colors.grey.shade500),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '发送第一条消息开始聊天',
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade400),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMessageList(List<ChatMessage> messages) {
+    return ListView.builder(
+      controller: _scrollController,
+      padding: const EdgeInsets.all(16),
+      itemCount: messages.length,
+      itemBuilder: (context, index) {
+        final message = messages[index];
+        return _buildMessageItem(message);
+      },
+    );
+  }
+
+  Widget _buildMessageItem(ChatMessage message) {
+    final isSelf = message.from != null && message.from == _getCurrentUserId();
+
+    if (message.type == ChatMessageType.welcome ||
+        message.type == ChatMessageType.banUser ||
+        message.type == ChatMessageType.backout) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: MessageWidget(message: message),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: isSelf
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!isSelf) ...[_buildAvatar(message), const SizedBox(width: 10)],
+          Flexible(
+            child: Column(
+              crossAxisAlignment: isSelf
+                  ? CrossAxisAlignment.end
+                  : CrossAxisAlignment.start,
+              children: [
+                MessageWidget(
+                  message: message,
+                  onTap: () => debugPrint('消息被点击: ${message.id}'),
+                ),
+              ],
+            ),
+          ),
+          if (isSelf) ...[const SizedBox(width: 10), _buildAvatar(message)],
+        ],
+      ),
+    );
+  }
+
+  int? _getCurrentUserId() {
+    final userState = ref.read(userProvider);
+    return userState.user?.id;
+  }
+
+  Widget _buildAvatar(ChatMessage message) {
+    // 优先使用消息中的 avatar 字段
+    String? avatarUrl;
+    if (message.from != _getCurrentUserId() && message.avatar != null) {
+      final avatar = message.avatar!;
+      avatarUrl = avatar.startsWith('http')
+          ? avatar
+          : 'https://image.molitao.top/$avatar';
+    }
+    // 如果没有 message.avatar，使用传入的 friendAvatar 作为后备
+    avatarUrl ??= widget.friendAvatar;
+
+    if (avatarUrl == null || avatarUrl.isEmpty) {
+      // 显示默认头像（文字）
+      return Container(
+        width: 36,
+        height: 36,
+        decoration: const BoxDecoration(
+          color: Color(0xFFF4835A),
+          shape: BoxShape.circle,
+        ),
+        child: Center(
+          child: Text(
+            _getAvatarText(message.fromName ?? '用户'),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      );
+    }
+
+    // 显示网络头像
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        image: DecorationImage(
+          image: NetworkImage(avatarUrl),
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
+
+  String _getAvatarText(String name) {
+    if (name.isEmpty) return '用';
+    return name.length > 2 ? name.substring(0, 2) : name;
+  }
+}
+
+/* === lib/presentation/pages/chat/chat_message_preview_page.dart === */
+import 'package:flutter/material.dart';
+import 'package:molitao_app/data/models/chat_message_model.dart';
+import 'package:molitao_app/presentation/widgets/chat/messages/message_widget.dart';
+import 'package:molitao_app/presentation/widgets/chat/chat_input_area.dart';
+
+/// 聊天消息预览页面
+/// 用于测试和预览各种消息类型的 UI 效果
+class ChatMessagePreviewPage extends StatefulWidget {
+  const ChatMessagePreviewPage({Key? key}) : super(key: key);
+
+  @override
+  State<ChatMessagePreviewPage> createState() => _ChatMessagePreviewPageState();
+}
+
+class _ChatMessagePreviewPageState extends State<ChatMessagePreviewPage> {
+  final List<ChatMessage> _messages = List.from(mockMessages);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          '消息组件预览',
+          style: TextStyle(fontSize: 20, color: Colors.white),
+        ),
+        backgroundColor: const Color(0xFFF4835A),
+        foregroundColor: Colors.white,
+      ),
+      body: Column(
+        children: [
+          // 消息列表
+          Expanded(
+            child: Container(
+              color: const Color(0xFFFAF1F0),
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: _messages.length,
+                itemBuilder: (context, index) {
+                  final message = _messages[index];
+                  return _buildMessageItem(message);
+                },
+              ),
+            ),
+          ),
+
+          // 输入区域
+          ChatInputArea(
+            onSendText: _handleSendText,
+            onSelectImage: _handleSelectImage,
+            onSelectEmoji: _handleSelectEmoji,
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _handleSendText(String text) {
+    // 添加新消息
+    final newMessage = ChatMessage(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      type: ChatMessageType.text,
+      from: 1001,
+      fromName: '我',
+      msg: text,
+      time: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+    );
+
+    setState(() {
+      _messages.add(newMessage);
+    });
+  }
+
+  void _handleSelectImage() {
+    // 模拟选择图片
+    final newMessage = ChatMessage(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      type: ChatMessageType.image,
+      from: 1001,
+      fromName: '我',
+      msg: 'https://picsum.photos/300/300',
+      payload: {'url': 'https://picsum.photos/300/300'},
+      time: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+    );
+
+    setState(() {
+      _messages.add(newMessage);
+    });
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('图片选择功能待实现')));
+  }
+
+  void _handleSelectEmoji(String emojiCode) {
+    debugPrint('选择了表情: $emojiCode');
+  }
+
+  Widget _buildMessageItem(ChatMessage message) {
+    // 判断是否是自己发送的消息
+    final isSelf = message.from == 1001;
+
+    // 系统消息和欢迎消息居中显示
+    if (message.type == ChatMessageType.welcome ||
+        message.type == ChatMessageType.banUser ||
+        message.type == ChatMessageType.backout) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: MessageWidget(message: message),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: isSelf
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 头像（非自己消息显示在左边）
+          if (!isSelf) ...[_buildAvatar(message), const SizedBox(width: 10)],
+          // 消息内容
+          Flexible(
+            child: Column(
+              crossAxisAlignment: isSelf
+                  ? CrossAxisAlignment.end
+                  : CrossAxisAlignment.start,
+              children: [
+                // 用户名和标签
+                if (!isSelf) _buildUserName(message),
+                const SizedBox(height: 4),
+                // 消息组件
+                MessageWidget(
+                  message: message,
+                  onTap: () => _handleMessageTap(message),
+                ),
+              ],
+            ),
+          ),
+          // 头像（自己消息显示在右边）
+          if (isSelf) ...[const SizedBox(width: 10), _buildAvatar(message)],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAvatar(ChatMessage message) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: _getAvatarColor(message.from ?? 0),
+        shape: BoxShape.circle,
+      ),
+      child: Center(
+        child: Text(
+          _getAvatarText(message.fromName ?? '用户'),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUserName(ChatMessage message) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (message.fromAdmin == true) ...[
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.red,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: const Text(
+              '主持',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+        ],
+        if (message.fromTag != null) ...[
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.orange,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              message.fromTag!,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+        ],
+        Text(
+          message.fromName ?? '未知用户',
+          style: const TextStyle(fontSize: 12, color: Color(0xFF999999)),
+        ),
+      ],
+    );
+  }
+
+  void _handleMessageTap(ChatMessage message) {
+    debugPrint('消息被点击: ${message.id}, 类型: ${message.type}');
+  }
+
+  Color _getAvatarColor(int userId) {
+    final colors = [
+      const Color(0xFFF4835A),
+      const Color(0xFF1890FF),
+      const Color(0xFFFF4D4F),
+      const Color(0xFF722ED1),
+      const Color(0xFF52C41A),
+      const Color(0xFFFA8C16),
+    ];
+    return colors[userId % colors.length];
+  }
+
+  String _getAvatarText(String name) {
+    if (name.isEmpty) return '用';
+    return name.length > 2 ? name.substring(0, 2) : name;
+  }
+}
+
+/// Mock 消息数据
+/// 包含所有消息类型的示例
+final List<ChatMessage> mockMessages = [
+  // 欢迎消息
+  ChatMessage(
+    id: '1',
+    type: ChatMessageType.welcome,
+    fromName: '系统',
+    msg: '欢迎来到秒杀场，请注意遵守交易规则',
+    time: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+  ),
+
+  // 文本消息（带表情）
+  ChatMessage(
+    id: '2',
+    type: ChatMessageType.text,
+    from: 1002,
+    fromName: '张三',
+    msg: '这个看起来不错[微笑]，准备出价了[奋斗]',
+    time: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+  ),
+
+  // 开始秒杀消息
+  ChatMessage(
+    id: '3',
+    type: ChatMessageType.auctionStart,
+    from: 1003,
+    fromName: '秒杀主持',
+    fromAdmin: true,
+    fromTag: '主持',
+    payload: {
+      'id': 12345,
+      'name': '175级神天兵满修号',
+      'description': '起拍价: 50魔力值\n装备齐全，技能全满',
+    },
+    time: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+  ),
+
+  // 出价消息
+  ChatMessage(
+    id: '4',
+    type: ChatMessageType.auctionBid,
+    from: 1004,
+    fromName: '李四',
+    payload: {'id': 12345, 'name': '175级神天兵满修号', 'currentPrice': 68.0},
+    time: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+  ),
+
+  // 出价消息2
+  ChatMessage(
+    id: '5',
+    type: ChatMessageType.auctionBid,
+    from: 1005,
+    fromName: '王五',
+    payload: {'id': 12345, 'name': '175级神天兵满修号', 'currentPrice': 85.0},
+    time: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+  ),
+
+  // 卡秒状态消息 - 开启
+  ChatMessage(
+    id: '6',
+    type: ChatMessageType.kasecStatusChanged,
+    from: 1003,
+    fromName: '秒杀主持',
+    fromAdmin: true,
+    fromTag: '主持',
+    msg: '秒杀主持已开启卡秒模式，需三倍加价！',
+    payload: {'isKasec': true},
+    time: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+  ),
+
+  // 秒杀结束消息
+  ChatMessage(
+    id: '7',
+    type: ChatMessageType.auctionEnd,
+    from: 1003,
+    fromName: '秒杀主持',
+    fromAdmin: true,
+    fromTag: '主持',
+    payload: {
+      'id': 12345,
+      'name': '175级神天兵满修号',
+      'dealUserName': '王五',
+      'finalPrice': 85.0,
+      'status': '已成交',
+      'dealTime': DateTime.now().toIso8601String(),
+    },
+    time: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+  ),
+
+  // 成交通知消息（自己中标）
+  ChatMessage(
+    id: '8',
+    type: ChatMessageType.auctionDeal,
+    from: 1001,
+    fromName: '王五（我）',
+    payload: {
+      'id': 12345,
+      'name': '175级神天兵满修号',
+      'finalPrice': 85.0,
+      'dealTime': DateTime.now().toIso8601String(),
+    },
+    time: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+  ),
+
+  // 系统消息 - 禁言
+  ChatMessage(
+    id: '9',
+    type: ChatMessageType.banUser,
+    fromName: '系统',
+    msg: '用户 张三 已被禁言 60 分钟',
+    time: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+  ),
+
+  // 文本消息（自己发送）
+  ChatMessage(
+    id: '10',
+    type: ChatMessageType.text,
+    from: 1001,
+    fromName: '我',
+    msg: '收到，我会联系的[OK]',
+    time: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+  ),
+
+  // 图片消息
+  ChatMessage(
+    id: '11',
+    type: ChatMessageType.image,
+    from: 1002,
+    fromName: '张三',
+    msg: 'https://picsum.photos/300/300',
+    payload: {'url': 'https://picsum.photos/300/300'},
+    time: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+  ),
+
+  // 卡秒状态消息 - 关闭
+  ChatMessage(
+    id: '12',
+    type: ChatMessageType.kasecStatusChanged,
+    from: 1003,
+    fromName: '秒杀主持',
+    fromAdmin: true,
+    fromTag: '主持',
+    msg: '秒杀主持已关闭卡秒模式，恢复正常加价',
+    payload: {'isKasec': false},
+    time: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+  ),
+];
+
+/* === lib/presentation/pages/trading_post/add_post_page.dart === */
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../../data/repositories/post_repository.dart';
+import '../../../data/services/upload_service.dart';
+
+/// 发布/编辑帖子页面
+class AddPostPage extends ConsumerStatefulWidget {
+  final int? postId;
+
+  const AddPostPage({super.key, this.postId});
+
+  @override
+  ConsumerState<AddPostPage> createState() => _AddPostPageState();
+}
+
+class _AddPostPageState extends ConsumerState<AddPostPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _titleController = TextEditingController();
+  final _contentController = TextEditingController();
+  final _wechatController = TextEditingController();
+  final _qqController = TextEditingController();
+  final ImagePicker _imagePicker = ImagePicker();
+  final UploadService _uploadService = UploadService();
+
+  bool _isLoading = false;
+  bool _isUploadingImage = false;
+  bool _isEditing = false;
+  List<String> _selectedCategories = [];
+
+  final List<Map<String, dynamic>> _categories = [
+    {'id': 1, 'name': '交易'},
+    {'id': 2, 'name': '求购'},
+    {'id': 3, 'name': '问答'},
+    {'id': 4, 'name': '分享'},
+    {'id': 5, 'name': '其他'},
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.postId != null) {
+      _isEditing = true;
+      _loadPostData();
+    }
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _contentController.dispose();
+    _wechatController.dispose();
+    _qqController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadPostData() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final post = await PostRepository().getPostDetail(widget.postId!);
+      if (post != null && mounted) {
+        _titleController.text = post.title ?? '';
+        _contentController.text = post.content ?? '';
+        _wechatController.text = post.wechat ?? '';
+        _qqController.text = post.qq ?? '';
+
+        if (post.categoryName != null) {
+          _selectedCategories = post.categoryName!
+              .split(',')
+              .where((t) => t.isNotEmpty)
+              .toList();
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('加载帖子失败: $e')));
+      }
+    }
+
+    setState(() => _isLoading = false);
+  }
+
+  Future<void> _pickImage() async {
+    try {
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        // 上传图片
+        setState(() => _isUploadingImage = true);
+
+        try {
+          final imageUrl = await _uploadService.uploadImage(image.path);
+
+          if (imageUrl != null) {
+            // 插入图片 HTML 到内容中
+            final imageHtml = '<img src="$imageUrl" />';
+            _contentController.text += imageHtml;
+
+            if (mounted) {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('图片上传成功')));
+            }
+          } else {
+            if (mounted) {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('图片上传失败，请重试')));
+            }
+          }
+        } catch (uploadError) {
+          if (mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('图片上传失败：$uploadError')));
+          }
+        } finally {
+          if (mounted) {
+            setState(() => _isUploadingImage = false);
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('选择图片失败：$e')));
+      }
+    }
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final repository = PostRepository();
+      final categoryIds = _selectedCategories.isNotEmpty
+          ? _categories
+                .where((c) => _selectedCategories.contains(c['name']))
+                .map((c) => c['id'] as int)
+                .toList()
+          : null;
+
+      if (_isEditing) {
+        await repository.updatePost(
+          id: widget.postId!,
+          title: _titleController.text,
+          content: _contentController.text,
+          categoryId: categoryIds?.first,
+        );
+      } else {
+        await repository.createPost(
+          title: _titleController.text,
+          content: _contentController.text,
+          categoryId: categoryIds?.first,
+        );
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(_isEditing ? '修改成功' : '发布成功')));
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('操作失败: $e')));
+      }
+    }
+
+    setState(() => _isLoading = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          _isEditing ? '修改帖子' : '发布帖子',
+          style: const TextStyle(fontSize: 20, color: Colors.white),
+        ),
+        backgroundColor: const Color(0xFFf4835a),
+        foregroundColor: Colors.white,
+        actions: [
+          TextButton(
+            onPressed: _isLoading ? null : _submit,
+            child: const Text(
+              '发布',
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ),
+        ],
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _buildForm(),
+    );
+  }
+
+  Widget _buildForm() {
+    return Form(
+      key: _formKey,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          // 标题输入
+          TextFormField(
+            controller: _titleController,
+            decoration: const InputDecoration(
+              labelText: '标题',
+              hintText: '请输入标题',
+              border: OutlineInputBorder(),
+            ),
+            maxLength: 100,
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return '请输入标题';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+
+          // 分类选择
+          _buildCategorySelector(),
+          const SizedBox(height: 16),
+
+          // 内容输入
+          TextFormField(
+            controller: _contentController,
+            decoration: InputDecoration(
+              labelText: '内容',
+              hintText: '请输入内容',
+              border: const OutlineInputBorder(),
+              suffixIcon: _isUploadingImage
+                  ? const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  : IconButton(
+                      icon: const Icon(Icons.image),
+                      onPressed: _pickImage,
+                      tooltip: '插入图片',
+                    ),
+            ),
+            maxLines: 8,
+            maxLength: 5000,
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return '请输入内容';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+
+          // 联系方式
+          _buildContactSection(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategorySelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          '分类',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: _categories.map((category) {
+            final isSelected = _selectedCategories.contains(category['name']);
+            return FilterChip(
+              label: Text(category['name']),
+              selected: isSelected,
+              onSelected: (selected) {
+                setState(() {
+                  if (selected) {
+                    _selectedCategories.add(category['name']);
+                  } else {
+                    _selectedCategories.remove(category['name']);
+                  }
+                });
+              },
+              selectedColor: const Color(0xFFf4835a).withOpacity(0.2),
+              checkmarkColor: const Color(0xFFf4835a),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildContactSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          '联系方式（可选）',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Icon(Icons.wechat, color: Colors.green.shade600, size: 20),
+            const SizedBox(width: 8),
+            Expanded(
+              child: TextFormField(
+                controller: _wechatController,
+                decoration: const InputDecoration(
+                  labelText: '微信号',
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Icon(Icons.chat, color: Colors.blue.shade600, size: 20),
+            const SizedBox(width: 8),
+            Expanded(
+              child: TextFormField(
+                controller: _qqController,
+                decoration: const InputDecoration(
+                  labelText: 'QQ号',
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/* === lib/presentation/providers/user_provider.dart === */
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../data/services/storage_service.dart';
+import '../../data/services/push_service.dart';
+import '../../data/repositories/auth_repository.dart';
+
+// User data model
+class User {
+  final int? id;
+  final String? userName;
+  final String? fullName;
+  final String? phoneNumber;
+  final String? headImgUrl;
+  final double? depositBalance;
+  final List<String>? permissions;
+  final List<String>? roleNames;
+  final String? qq;
+  final String? wx;
+
+  User({
+    this.id,
+    this.userName,
+    this.fullName,
+    this.phoneNumber,
+    this.headImgUrl,
+    this.depositBalance,
+    this.permissions,
+    this.roleNames,
+    this.qq,
+    this.wx,
+  });
+
+  factory User.fromJson(Map<String, dynamic> json) {
+    return User(
+      id: json['id'],
+      userName: json['userName'],
+      fullName: json['fullName'] ?? json['name'],
+      phoneNumber: json['phoneNumber'],
+      headImgUrl: json['headImgUrl'],
+      depositBalance: json['depositBalance']?.toDouble(),
+      permissions: (json['permissions'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList(),
+      roleNames: (json['roleNames'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList(),
+      qq: json['qq'],
+      wx: json['wx'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'userName': userName,
+      'fullName': fullName,
+      'phoneNumber': phoneNumber,
+      'headImgUrl': headImgUrl,
+      'depositBalance': depositBalance,
+      'permissions': permissions,
+      'roleNames': roleNames,
+      'qq': qq,
+      'wx': wx,
+    };
+  }
+
+  User copyWith({
+    int? id,
+    String? userName,
+    String? fullName,
+    String? phoneNumber,
+    String? headImgUrl,
+    double? depositBalance,
+    List<String>? permissions,
+    List<String>? roleNames,
+    String? qq,
+    String? wx,
+  }) {
+    return User(
+      id: id ?? this.id,
+      userName: userName ?? this.userName,
+      fullName: fullName ?? this.fullName,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      headImgUrl: headImgUrl ?? this.headImgUrl,
+      depositBalance: depositBalance ?? this.depositBalance,
+      permissions: permissions ?? this.permissions,
+      roleNames: roleNames ?? this.roleNames,
+      qq: qq ?? this.qq,
+      wx: wx ?? this.wx,
+    );
+  }
+}
+
+// User state
+class UserState {
+  final bool isLoggedIn;
+  final String? token;
+  final User? user;
+  final bool isLoading;
+  final List<String>? roles;
+
+  UserState({
+    required this.isLoggedIn,
+    this.token,
+    this.user,
+    required this.isLoading,
+    this.roles,
+  });
+
+  UserState copyWith({
+    bool? isLoggedIn,
+    String? token,
+    User? user,
+    bool? isLoading,
+    List<String>? roles,
+  }) {
+    return UserState(
+      isLoggedIn: isLoggedIn ?? this.isLoggedIn,
+      token: token ?? this.token,
+      user: user ?? this.user,
+      isLoading: isLoading ?? this.isLoading,
+      roles: roles ?? this.roles,
+    );
+  }
+
+  factory UserState.initial() {
+    return UserState(isLoggedIn: false, isLoading: false);
+  }
+}
+
+// Storage service provider
+final storageServiceProvider = Provider<StorageService>((ref) {
+  return StorageService();
+});
+
+// Auth repository provider
+final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  return AuthRepository();
+});
+
+// User notifier
+class UserNotifier extends StateNotifier<UserState> {
+  final Ref _ref;
+
+  UserNotifier(this._ref) : super(UserState.initial()) {
+    _initializeUser();
+  }
+
+  /// 应用启动时初始化用户状态
+  Future<void> _initializeUser() async {
+    final storageService = _ref.read(storageServiceProvider);
+
+    final token = await storageService.getToken();
+    print('[UserProvider] _initializeUser: token存在=${token != null}');
+
+    if (token != null && token.isNotEmpty) {
+      // 先恢复本地缓存的用户数据（快速显示）
+      final userData = await storageService.getUserData();
+      User? cachedUser;
+      if (userData != null) {
+        cachedUser = User.fromJson(userData);
+        state = state.copyWith(
+          token: token,
+          isLoggedIn: true,
+          user: cachedUser,
+        );
+      }
+
+      // 使用 token 验证并获取最新用户信息
+      try {
+        print('[UserProvider] 使用 token 获取用户信息...');
+        final authRepository = _ref.read(authRepositoryProvider);
+        final response = await authRepository.getCurrentLoginInformations();
+
+        if (response != null && response['user'] != null) {
+          final user = User.fromJson(response['user'] as Map<String, dynamic>);
+          final roles = (response['roles'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList();
+
+          print('[UserProvider] 解析用户信息:');
+          print('[UserProvider] - user.id: ${user.id}');
+          print('[UserProvider] - user.userName: ${user.userName}');
+          print('[UserProvider] - user.fullName: ${user.fullName}');
+          print('[UserProvider] - user.headImgUrl: ${user.headImgUrl}');
+          print('[UserProvider] - roles: $roles');
+
+          // 更新本地存储和状态
+          await storageService.setUserData(user.toJson());
+          print('[UserProvider] 已保存到本地存储');
+
+          state = state.copyWith(
+            token: token,
+            isLoggedIn: true,
+            user: user,
+            roles: roles,
+          );
+
+          print('[UserProvider] state 已更新:');
+          print('[UserProvider] - state.isLoggedIn: ${state.isLoggedIn}');
+          print(
+            '[UserProvider] - state.user?.userName: ${state.user?.userName}',
+          );
+          print('[UserProvider] 自动登录成功: ${user.userName}');
+
+          final alias = 'user_${user.id}';
+          print('[Push] 设置别名: $alias');
+          PushService().setAlias(alias);
+        } else {
+          // token 无效，清除登录状态
+          print('[UserProvider] token 无效，清除登录状态');
+          _logoutInternal();
+        }
+      } catch (e) {
+        print('[UserProvider] 自动登录失败: $e');
+        // API 调用失败，但保留本地缓存的用户状态（可能是网络问题）
+        if (cachedUser != null) {
+          print('[UserProvider] 使用本地缓存的用户数据');
+          state = state.copyWith(
+            token: token,
+            isLoggedIn: true,
+            user: cachedUser,
+          );
+        }
+      }
+    }
+  }
+
+  /// 登录成功后保存用户信息
+  Future<bool> login(String token, User user, {List<String>? roles}) async {
+    print('[UserProvider] login() 被调用');
+    print('[UserProvider] - token: ${token.substring(0, 20)}...');
+    print('[UserProvider] - user.id: ${user.id}');
+    print('[UserProvider] - user.userName: ${user.userName}');
+    print('[UserProvider] - user.fullName: ${user.fullName}');
+
+    state = state.copyWith(isLoading: true);
+
+    try {
+      final storageService = _ref.read(storageServiceProvider);
+      await storageService.setToken(token);
+      await storageService.setUserData(user.toJson());
+
+      state = state.copyWith(
+        isLoggedIn: true,
+        token: token,
+        user: user,
+        roles: roles,
+        isLoading: false,
+      );
+
+      print('[UserProvider] login() 成功');
+      print('[UserProvider] - state.isLoggedIn: ${state.isLoggedIn}');
+      print('[UserProvider] - state.user: ${state.user?.userName}');
+
+      if (user.id != null) {
+        final alias = 'user_${user.id}';
+        print('[Push] 设置别名: $alias');
+        PushService().setAlias(alias);
+      }
+
+      return true;
+    } catch (e) {
+      print('[UserProvider] login() 异常: $e');
+      state = state.copyWith(isLoading: false);
+      return false;
+    }
+  }
+
+  /// 检查登录状态
+  /// [forceCheck] 如果为 true，会调用 API 验证 token 是否有效
+  Future<bool> checkLogin({bool forceCheck = true}) async {
+    final token = state.token;
+
+    if (token == null || token.isEmpty) {
+      _logoutInternal();
+      return false;
+    }
+
+    // 如果不需要强制检查且已有用户数据，直接返回
+    if (!forceCheck && state.user?.id != null) {
+      return true;
+    }
+
+    try {
+      final authRepository = _ref.read(authRepositoryProvider);
+      final response = await authRepository.getCurrentLoginInformations();
+
+      if (response != null && response['user'] != null) {
+        final user = User.fromJson(response['user'] as Map<String, dynamic>);
+        final roles = (response['roles'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList();
+
+        // 更新本地存储
+        final storageService = _ref.read(storageServiceProvider);
+        await storageService.setUserData(user.toJson());
+
+        state = state.copyWith(user: user, roles: roles, isLoggedIn: true);
+        return true;
+      } else {
+        _logoutInternal();
+        return false;
+      }
+    } catch (e) {
+      _logoutInternal();
+      return false;
+    }
+  }
+
+  /// 退出登录
+  Future<void> logout() async {
+    state = state.copyWith(isLoading: true);
+
+    PushService().deleteAlias();
+
+    try {
+      final authRepository = _ref.read(authRepositoryProvider);
+      await authRepository.logout();
+    } catch (e) {
+      // 即使 API 调用失败，也清除本地状态
+    }
+
+    state = state.copyWith(
+      isLoggedIn: false,
+      token: null,
+      user: null,
+      roles: null,
+      isLoading: false,
+    );
+  }
+
+  void _logoutInternal() {
+    state = state.copyWith(
+      isLoggedIn: false,
+      token: null,
+      user: null,
+      roles: null,
+    );
+    StorageService().clearToken();
+    StorageService().clearUserData();
+  }
+
+  /// 更新用户信息
+  Future<void> updateUser(User user) async {
+    state = state.copyWith(user: user);
+
+    try {
+      final storageService = _ref.read(storageServiceProvider);
+      await storageService.setUserData(user.toJson());
+    } catch (e) {
+      // 静默失败
+    }
+  }
+
+  /// 快速检查是否已登录（不调用 API）
+  bool get isAuthenticated => state.isLoggedIn && state.token != null;
+
+  /// 检查是否是管理员
+  bool get isAdmin => state.roles?.contains('Admin') ?? false;
+}
+
+// User provider
+final userProvider = StateNotifierProvider<UserNotifier, UserState>((ref) {
+  return UserNotifier(ref);
+});
