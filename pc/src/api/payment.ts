@@ -25,12 +25,20 @@ export interface CreatePaymentOrderResponse {
  * console.log(result.outTradeNo) // 订单号
  */
 export async function createPaymentOrder(amount = 51): Promise<CreatePaymentOrderResponse> {
+    console.log('[API] createPaymentOrder 调用，金额:', amount)
     const url = '/api/services/app/Client/PayDepositNative'
+    console.log('[API] 请求 URL:', url)
+    
     const response = await request({
         method: 'get',
         url,
         params: { amount },
     })
+    
+    console.log('[API] createPaymentOrder 返回:', response)
+    console.log('[API] response.code_url:', (response as any)?.code_url)
+    console.log('[API] response.outTradeNo:', (response as any)?.outTradeNo)
+    
     return response as unknown as CreatePaymentOrderResponse
 }
 
@@ -47,12 +55,21 @@ export async function createPaymentOrder(amount = 51): Promise<CreatePaymentOrde
  * }
  */
 export async function getPaymentStatus(query: PaymentQuery): Promise<PaymentResult> {
+    console.log('[API] getPaymentStatus 调用，参数:', query)
+    console.log('[API] outTradeNo:', query.outTradeNo)
+    
     const url = '/api/services/app/Client/GetPayOrderStatus'
+    console.log('[API] 请求 URL:', url)
+    
     const response = await request({
         method: 'get',
         url,
         params: { outTradeNo: query.outTradeNo },
     })
+    
+    console.log('[API] getPaymentStatus 返回:', response)
+    console.log('[API] response.status:', (response as any)?.status)
+    
     // normalizeResponse 已经提取了 result，所以 response 直接就是 PayOrderStatusDto
     return response as unknown as PaymentResult
 }

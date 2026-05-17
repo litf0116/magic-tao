@@ -103,6 +103,9 @@ export function usePayment(options?: Partial<PaymentOptions>) {
     }
 
     const initPayment = async () => {
+        console.log('[usePayment] initPayment 开始执行')
+        console.log('[usePayment] config.amount:', config.amount)
+        
         try {
             qrCodeUrl.value = ''
             orderNo.value = ''
@@ -110,14 +113,24 @@ export function usePayment(options?: Partial<PaymentOptions>) {
             countdown.value = config.expireTime
             isPolling.value = false
 
+            console.log('[usePayment] 调用 createPaymentOrder，金额:', config.amount)
             const response = await createPaymentOrder(config.amount)
+            console.log('[usePayment] createPaymentOrder 返回:', response)
+            console.log('[usePayment] response.code_url:', response.code_url)
+            console.log('[usePayment] response.outTradeNo:', response.outTradeNo)
 
             qrCodeUrl.value = response.code_url
             orderNo.value = response.outTradeNo
+            
+            console.log('[usePayment] orderNo.value 已设置:', orderNo.value)
+            console.log('[usePayment] qrCodeUrl.value 已设置:', qrCodeUrl.value)
 
             startPolling()
             startCountdown()
+            
+            console.log('[usePayment] initPayment 完成，轮询和倒计时已启动')
         } catch (error) {
+            console.error('[usePayment] initPayment 异常:', error)
             handleError(error)
         }
     }
