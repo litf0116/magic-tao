@@ -8,10 +8,16 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final wechatService = WeChatService();
-  await wechatService.initialize();
-
   final pushService = PushService();
-  await pushService.init();
+
+  // 非阻塞初始化，让服务在后台初始化
+  wechatService.initialize().then((_) {
+    debugPrint('[Main] 微信初始化完成');
+  });
+
+  pushService.init().then((_) {
+    debugPrint('[Main] 推送初始化完成');
+  });
 
   runApp(ProviderScope(child: MyApp()));
 }

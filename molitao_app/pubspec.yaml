@@ -126,30 +126,12 @@ flutter_launcher_icons:
   adaptive_icon_foreground: "assets/images/app-icon.png"
   remove_alpha_ios: true
 
-# 启动画面配置
 flutter_native_splash:
   color: "#FAF1F0"
-  image: assets/images/splash-logo.png
   color_dark: "#FAF1F0"
-  image_dark: assets/images/splash-logo.png
-
-  android_12:
-    color: "#FAF1F0"
-    image: assets/images/splash-logo.png
-    color_dark: "#FAF1F0"
-    image_dark: assets/images/splash-logo.png
-
-  ios:
-    color: "#FAF1F0"
-    image: assets/images/splash-logo.png
-    color_dark: "#FAF1F0"
-    image_dark: assets/images/splash-logo.png
-
-  web:
-    color: "#FAF1F0"
-    image: assets/images/splash-logo.png
-    color_dark: "#FAF1F0"
-    image_dark: assets/images/splash-logo.png
+  ios: true
+  android: true
+  web: true
 
 flutter:
   uses-material-design: true
