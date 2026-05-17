@@ -295,7 +295,7 @@ import {
     Key,
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { payApi } from '@/api/pay'
+import { createPaymentOrder, getPaymentStatus } from '@/api/payment'
 import appReleaseAPI from '@/api/appRelease'
 import QRCode from 'qrcode'
 import { generateQrCode, getQrCodeStatus } from '@/api/qrcode'
@@ -432,7 +432,7 @@ const generateQRCode = async () => {
         error.value = ''
         countdown.value = 300
 
-        const response = await payApi.payDepositNative(51)
+        const response = await createPaymentOrder(51)
         qrCodeUrl.value = response.code_url
         orderNo.value = response.outTradeNo || Date.now().toString()
 
@@ -469,7 +469,7 @@ const startPolling = () => {
 const checkPaymentStatus = async () => {
     try {
         if (orderNo.value) {
-            const status = await payApi.getOrderStatus(orderNo.value)
+            const status = await getPaymentStatus({ outTradeNo: orderNo.value })
             if (status.status === '已支付') {
                 ElMessage.success('支付成功！魔力值已到账')
                 clearAllTimers()

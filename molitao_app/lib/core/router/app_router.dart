@@ -21,6 +21,7 @@ import '../../presentation/pages/auth/qr_code_confirm_page.dart';
 import '../../presentation/pages/settings/settings_page.dart';
 import '../../presentation/pages/settings/account_security_page.dart';
 import '../../presentation/pages/about/about_page.dart';
+import '../../presentation/pages/agreement/agreement_page.dart';
 
 import '../../presentation/providers/auth_notifier.dart';
 
@@ -172,26 +173,33 @@ GoRouter _createRouter(AuthNotifier authNotifier) {
                     name: 'auction-success-list',
                     builder: (context, state) => const AuctionSuccessListPage(),
                   ),
-                  GoRoute(
-                    path: 'settings',
-                    name: 'settings',
-                    builder: (context, state) => const SettingsPage(),
-                  ),
-                  GoRoute(
-                    path: 'account-security',
-                    name: 'account-security',
-                    builder: (context, state) => const AccountSecurityPage(),
-                  ),
-                  GoRoute(
-                    path: 'about',
-                    name: 'about',
-                    builder: (context, state) => const AboutPage(),
-                  ),
                 ],
               ),
             ],
           ),
         ],
+      ),
+      // 设置页面（独立路由，隐藏 tabbar）
+      GoRoute(
+        path: '/settings',
+        name: 'settings',
+        builder: (context, state) => const SettingsPage(),
+      ),
+      GoRoute(
+        path: '/account-security',
+        name: 'account-security',
+        builder: (context, state) => const AccountSecurityPage(),
+      ),
+      GoRoute(
+        path: '/about',
+        name: 'about',
+        builder: (context, state) => const AboutPage(),
+      ),
+      // 协议页面
+      GoRoute(
+        path: '/agreement',
+        name: 'agreement',
+        builder: (context, state) => const AgreementPage(),
       ),
       // 聊天详情路由
       GoRoute(

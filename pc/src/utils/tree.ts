@@ -1,5 +1,12 @@
-import { AuditNodeCreateOrEditDto } from '@/api/appService'
 import * as _ from 'lodash'
+
+// 审计节点数据结构（本地定义）
+export interface AuditNodeCreateOrEditDto {
+    id?: string
+    index?: number
+    name?: string
+    [key: string]: any
+}
 
 export interface INodesBlock {
     items: AuditNodeCreateOrEditDto[]
@@ -135,7 +142,7 @@ export function createOUTree(
     return tree
 }
 
-export function treeFind(tree: any[], func: Function) {
+export function treeFind(tree: any[], func: (node: any) => boolean): any {
     for (const data of tree) {
         if (func(data)) return data
         if (data.children && data.children.length > 0) {

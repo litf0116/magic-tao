@@ -15,17 +15,18 @@
                     </div>
                 </div>
                 <div style="border-bottom: 1px dashed #d8d8d8; padding-bottom: 5px">
-                    <el-tag
-                        v-for="(item, index) in postCategory"
-                        v-if="postCategory"
-                        :key="index"
-                        :type="tagTypes[index % tagTypes.length]"
-                        effect="plain"
-                        size="small"
-                        style="margin-left: 5px"
-                    >
-                        {{ item }}
-                    </el-tag>
+                    <template v-if="postCategory">
+                        <el-tag
+                            v-for="(item, index) in postCategory"
+                            :key="index"
+                            :type="tagTypes[index % tagTypes.length]"
+                            effect="plain"
+                            size="small"
+                            style="margin-left: 5px"
+                        >
+                            {{ item }}
+                        </el-tag>
+                    </template>
                 </div>
                 <!-- 内容区域 -->
                 <div class="content" @click="catchImage(post.content)" v-html="post.content"></div>

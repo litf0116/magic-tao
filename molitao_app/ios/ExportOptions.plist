@@ -15,5 +15,9 @@
         <key>com.molitao.molitaoApp</key>
         <string>Molitao_App_Store_Distribution</string>
     </dict>
+    <key>signingStyle</key>
+    <string>manual</string>
+    <key>stripSwiftSymbols</key>
+    <true/>
 </dict>
 </plist>

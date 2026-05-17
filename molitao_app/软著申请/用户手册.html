@@ -9,6 +9,151 @@
     /* Default styles provided by pandoc.
     ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
     */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
     code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
     div.columns{display: flex; gap: min(4vw, 1.5em);}
@@ -25,7 +170,6 @@
     }
     .display.math{display: block; text-align: center; margin: 0.5rem auto;}
   </style>
-  <link rel="stylesheet" href="/dev/null" />
 </head>
 <body>
 <header id="title-block-header">
@@ -46,208 +190,1334 @@
 </ol>
 <hr />
 <h2 id="软件概述">1. 软件概述</h2>
+<h3 id="软件简介">1.1 软件简介</h3>
 <p>魔力淘App是一款闲置物品信息撮合平台移动应用，为用户提供便捷的闲置物品信息浏览、发布、在线沟通等功能。用户可以通过本应用发布闲置物品信息、浏览他人发布的物品、通过平台内置即时通讯工具与对方在线协商，<strong>交易由用户自行线下完成，平台不提供交易担保</strong>。</p>
-<p><strong>主要功能</strong>： - 帖子浏览与搜索 - 闲置物品信息发布与管理 -
-即时消息通讯 - 好友关系管理 - 余额充值与提现（代收代付，非交易担保） -
-个人信息管理 - 系统公告查看 - 秒杀人气活动参与</p>
-<p><strong>平台性质声明</strong>： 本平台仅为用户提供信息发布与在线沟通撮合服务，物品交易由用户自行线下完成。平台不参与交易环节，不提供交易担保，不对交易产生的任何纠纷承担责任。</p>
-<p><strong>技术架构</strong>： - 前端：Flutter 跨平台移动应用框架 -
-后端：C# .NET 8 + ABP Framework - 数据库：MySQL -
-即时通讯：WebSocket</p>
+<p><strong>开发背景</strong>：
+随着社会经济发展和消费升级，闲置物品流通需求日益增长。传统闲置物品交易方式存在信息不对称、沟通效率低、信任成本高等问题。魔力淘App通过移动互联网技术，搭建信息撮合平台，帮助用户高效发现闲置资源、便捷在线沟通，促进资源循环利用。</p>
+<p><strong>平台定位</strong>： -
+信息撮合平台：提供物品信息发布与展示服务 -
+在线沟通工具：内置即时通讯，支持买卖双方在线协商 -
+资源流通桥梁：连接闲置物品供需双方，促进资源合理配置 -
+非交易平台：不参与交易环节，不提供交易担保，不承担交易风险</p>
+<h3 id="主要功能">1.2 主要功能</h3>
+<table>
+<thead>
+<tr>
+<th>功能类别</th>
+<th>功能项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>信息浏览</td>
+<td>帖子浏览与搜索</td>
+<td>分类筛选、关键词搜索、热门推荐</td>
+</tr>
+<tr>
+<td>信息发布</td>
+<td>闲置物品信息发布与管理</td>
+<td>发布、编辑、删除、置顶</td>
+</tr>
+<tr>
+<td>即时通讯</td>
+<td>私聊、群聊、消息推送</td>
+<td>文字、图片、表情消息</td>
+</tr>
+<tr>
+<td>社交关系</td>
+<td>好友关系管理</td>
+<td>添加好友、好友申请、通讯录</td>
+</tr>
+<tr>
+<td>资产管理</td>
+<td>余额充值与提现</td>
+<td>微信支付充值、提现申请</td>
+</tr>
+<tr>
+<td>个人中心</td>
+<td>个人信息管理</td>
+<td>头像、昵称、联系方式</td>
+</tr>
+<tr>
+<td>系统功能</td>
+<td>公告查看、设置</td>
+<td>系统公告、应用配置</td>
+</tr>
+<tr>
+<td>特色功能</td>
+<td>秒杀人气活动</td>
+<td>限时特惠、实时聊天</td>
+</tr>
+</tbody>
+</table>
+<h3 id="适用对象">1.3 适用对象</h3>
+<p><strong>目标用户群体</strong>： - 有闲置物品需要处理的个人用户 -
+寻找特定物品的求购用户 - 希望通过在线沟通协商交易的用户 -
+关注二手物品市场的用户</p>
+<p><strong>使用场景</strong>： | 场景 | 用户行为 | 平台支持 |
+|——|———-|———-| | 闲置处理 | 发布闲置物品信息 |
+帖子发布、图片上传、分类标签 | | 物品求购 | 浏览搜索感兴趣物品 |
+分类筛选、关键词搜索、详情查看 | | 在线协商 | 与对方沟通交易细节 |
+私聊、群聊、消息推送 | | 资产管理 | 充值提现操作 |
+余额查询、微信支付、提现申请 |</p>
+<h3 id="平台性质声明">1.4 平台性质声明</h3>
+<p>本平台仅为用户提供信息发布与在线沟通撮合服务，物品交易由用户自行线下完成。</p>
+<p><strong>平台服务范围</strong>： - ✅ 提供信息发布与展示平台 - ✅
+提供在线即时通讯工具 - ✅ 提供用户关系管理功能 - ✅
+提供资产充值提现服务（代收代付性质）</p>
+<p><strong>平台不承担责任</strong>： - ❌ 不参与交易环节 - ❌
+不提供交易担保 - ❌ 不承担交易纠纷责任 - ❌ 不保证物品信息真实性</p>
+<h3 id="技术架构">1.5 技术架构</h3>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>技术栈</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>前端</td>
+<td>Flutter 3.x + Dart 3.x</td>
+<td>跨平台移动应用框架，支持Android/iOS</td>
+</tr>
+<tr>
+<td>状态管理</td>
+<td>flutter_riverpod</td>
+<td>响应式状态管理</td>
+</tr>
+<tr>
+<td>路由</td>
+<td>go_router</td>
+<td>声明式路由管理</td>
+</tr>
+<tr>
+<td>网络</td>
+<td>dio</td>
+<td>HTTP客户端，支持拦截器</td>
+</tr>
+<tr>
+<td>后端</td>
+<td>C# .NET 8 + ABP Framework</td>
+<td>微服务架构，模块化设计</td>
+</tr>
+<tr>
+<td>数据库</td>
+<td>MySQL</td>
+<td>关系型数据库存储</td>
+</tr>
+<tr>
+<td>缓存</td>
+<td>Redis</td>
+<td>高性能缓存服务</td>
+</tr>
+<tr>
+<td>即时通讯</td>
+<td>WebSocket</td>
+<td>实时双向通信</td>
+</tr>
+<tr>
+<td>支付</td>
+<td>微信支付</td>
+<td>移动应用支付SDK</td>
+</tr>
+</tbody>
+</table>
 <hr />
 <h2 id="运行环境">2. 运行环境</h2>
 <h3 id="android系统要求">2.1 Android系统要求</h3>
-<ul>
-<li><strong>操作系统</strong>：Android 8.0 及以上版本</li>
-<li><strong>存储空间</strong>：至少100MB可用空间</li>
-<li><strong>网络</strong>：需要网络连接（Wi-Fi或移动数据）</li>
-</ul>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>要求</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>操作系统</td>
+<td>Android 8.0 及以上版本</td>
+</tr>
+<tr>
+<td>存储空间</td>
+<td>至少100MB可用空间</td>
+</tr>
+<tr>
+<td>内存</td>
+<td>建议3GB及以上</td>
+</tr>
+<tr>
+<td>网络</td>
+<td>需要网络连接（Wi-Fi或移动数据）</td>
+</tr>
+<tr>
+<td>权限</td>
+<td>网络权限、存储权限、相机权限（拍照上传）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>推荐设备</strong>： -
+主流Android手机（华为、小米、OPPO、vivo等） - Android
+10.0及以上版本获得最佳体验</p>
 <h3 id="ios系统要求">2.2 iOS系统要求</h3>
-<ul>
-<li><strong>操作系统</strong>：iOS 12.0 及以上版本</li>
-<li><strong>存储空间</strong>：至少100MB可用空间</li>
-<li><strong>网络</strong>：需要网络连接（Wi-Fi或移动数据）</li>
-</ul>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>要求</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>操作系统</td>
+<td>iOS 12.0 及以上版本</td>
+</tr>
+<tr>
+<td>存储空间</td>
+<td>至少100MB可用空间</td>
+</tr>
+<tr>
+<td>内存</td>
+<td>建议2GB及以上</td>
+</tr>
+<tr>
+<td>网络</td>
+<td>需要网络连接（Wi-Fi或移动数据）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>推荐设备</strong>： - iPhone 8及以上机型 - iOS
+15.0及以上版本获得最佳体验</p>
+<h3 id="网络要求">2.3 网络要求</h3>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>网络要求</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>信息浏览</td>
+<td>2G/3G/4G/5G/Wi-Fi均可</td>
+</tr>
+<tr>
+<td>即时通讯</td>
+<td>建议3G及以上网络</td>
+</tr>
+<tr>
+<td>图片上传</td>
+<td>建议4G/5G/Wi-Fi网络</td>
+</tr>
+<tr>
+<td>支付操作</td>
+<td>必须稳定网络（建议Wi-Fi或4G+）</td>
+</tr>
+</tbody>
+</table>
 <hr />
 <h2 id="安装说明">3. 安装说明</h2>
 <h3 id="android安装">3.1 Android安装</h3>
-<ol type="1">
-<li>从应用市场下载安装包</li>
-<li>点击安装包进行安装</li>
-<li>安装完成后点击图标启动应用</li>
-<li>首次启动需要授予网络权限</li>
-</ol>
+<p><strong>安装步骤</strong>： 1. 从应用市场搜索”魔力淘”下载安装包 2.
+点击安装包进行安装 3. 如提示”未知来源”，需在设置中允许安装未知来源应用
+4. 安装完成后点击图标启动应用 5. 首次启动需要授予以下权限： -
+网络权限（必需）：用于数据通信 - 存储权限（可选）：用于图片上传 -
+相机权限（可选）：用于拍照上传</p>
+<p><strong>注意事项</strong>： - 安装包大小约50MB -
+安装后首次启动会下载必要资源 - 建议在Wi-Fi环境下安装</p>
 <h3 id="ios安装">3.2 iOS安装</h3>
-<ol type="1">
-<li>从App Store搜索”魔力淘”</li>
-<li>点击”获取”按钮下载安装</li>
-<li>安装完成后点击图标启动应用</li>
-</ol>
+<p><strong>安装步骤</strong>： 1. 打开App Store应用 2.
+在搜索栏输入”魔力淘” 3. 点击搜索结果中的”魔力淘”应用 4.
+点击”获取”按钮下载安装 5. 使用Face ID或Touch ID确认下载 6.
+安装完成后点击图标启动应用</p>
+<p><strong>注意事项</strong>： - 需要Apple ID登录App Store -
+应用大小约80MB - 建议在Wi-Fi环境下下载</p>
+<h3 id="首次启动">3.3 首次启动</h3>
+<p><strong>启动流程</strong>： 1. 点击应用图标启动 2.
+显示启动画面（约2秒） 3. 检查版本更新（如有新版本弹出提示） 4.
+进入登录页面</p>
+<p><strong>权限说明</strong>： | 权限 | 用途 | 是否必需 | |——|——|———-| |
+网络权限 | 数据通信、消息推送 | 必需 | | 存储权限 | 图片上传、缓存存储 |
+可选 | | 相机权限 | 拍照上传头像/商品图 | 可选 | | 通知权限 |
+消息推送通知 | 可选 |</p>
 <hr />
 <h2 id="功能模块说明">4. 功能模块说明</h2>
 <h3 id="首页模块">4.1 首页模块</h3>
 <p><strong>功能描述</strong>：首页是用户进入应用后的第一个界面，展示平台品牌形象、功能入口、内容资讯等。</p>
-<p><strong>界面元素</strong>： - 平台品牌展示与 Banner 广告 -
-交易站快速入口（跳转交易帖子列表） - 秒杀场快速入口（跳转秒杀聊天页面）
-- CMS 文章轮播展示 - 广告位网格展示 - APP 版本更新检测与弹窗提示</p>
-<p><strong>操作说明</strong>： 1. 点击 Banner 广告查看推广内容 2.
-点击交易站入口浏览商品帖子 3. 点击秒杀场入口参与实时交易 4.
-滑动查看轮播文章内容 5. 系统自动检测版本更新</p>
+<h4 id="界面元素详解">4.1.1 界面元素详解</h4>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>顶部状态栏</td>
+<td>显示时间、网络状态、电量等系统信息</td>
+</tr>
+<tr>
+<td>品牌Logo</td>
+<td>平台品牌标识展示</td>
+</tr>
+<tr>
+<td>Banner广告</td>
+<td>轮播展示推广内容，自动切换</td>
+</tr>
+<tr>
+<td>功能入口区</td>
+<td>交易站、秒杀场等快捷入口</td>
+</tr>
+<tr>
+<td>CMS文章区</td>
+<td>平台资讯、活动文章轮播</td>
+</tr>
+<tr>
+<td>广告位网格</td>
+<td>推广内容网格展示</td>
+</tr>
+<tr>
+<td>版本更新弹窗</td>
+<td>有新版本时自动弹出提示</td>
+</tr>
+</tbody>
+</table>
+<h4 id="banner广告">4.1.2 Banner广告</h4>
+<p><strong>展示规则</strong>： - 自动轮播间隔：3秒 - 支持手动左右滑动 -
+显示当前页码指示器 - 点击跳转详情页面</p>
+<p><strong>操作方式</strong>： - 左右滑动切换Banner -
+点击Banner查看推广内容 - 点击关闭按钮关闭详情页</p>
+<h4 id="功能入口">4.1.3 功能入口</h4>
+<table>
+<thead>
+<tr>
+<th>入口名称</th>
+<th>图标</th>
+<th>功能说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>交易站</td>
+<td>购物袋</td>
+<td>跳转帖子列表，浏览闲置物品</td>
+</tr>
+<tr>
+<td>秒杀场</td>
+<td>闪电</td>
+<td>跳转秒杀聊天页，参与特惠活动</td>
+</tr>
+</tbody>
+</table>
+<h4 id="版本更新">4.1.4 版本更新</h4>
+<p><strong>更新检测</strong>： - 每次启动自动检测版本 -
+有新版本时弹出更新提示 - 显示版本号和更新内容</p>
+<p><strong>更新方式</strong>： - Android：跳转下载页面或应用市场 -
+iOS：跳转App Store更新页面</p>
 <figure>
 <img src="截图/01_首页.png" alt="首页界面" />
 <figcaption aria-hidden="true">首页界面</figcaption>
 </figure>
+<h4 id="注意事项">4.1.5 注意事项</h4>
+<ol type="1">
+<li>首页内容自动刷新，下拉可强制刷新</li>
+<li>Banner广告支持后台配置，内容可能变化</li>
+<li>版本更新提示可暂时跳过，下次启动再次提醒</li>
+<li>功能入口位置可能根据版本调整</li>
+</ol>
 <hr />
 <h3 id="认证登录模块">4.2 认证登录模块</h3>
-<p><strong>功能描述</strong>：认证登录模块提供多种登录方式，支持账号密码、短信验证码、微信一键登录等。</p>
-<p><strong>界面元素</strong>： - 用户名密码输入框 - 手机号码输入框 -
-验证码输入框 - 微信登录按钮 - 记住账号选项 - 二维码扫码登录入口</p>
-<p><strong>操作说明</strong>： 1.
-<strong>账号密码登录</strong>：输入用户名和密码，点击登录按钮 2.
-<strong>短信验证码登录</strong>：输入手机号，点击获取验证码，输入收到的验证码登录
-3. <strong>微信一键登录</strong>：点击微信图标，授权后自动登录 4.
-<strong>二维码登录</strong>：点击扫码图标，用微信扫描二维码确认登录 5.
-登录成功后自动跳转目标页面</p>
+<p><strong>功能描述</strong>：认证登录模块提供多种登录方式，确保用户账号安全和便捷登录。</p>
+<h4 id="登录方式">4.2.1 登录方式</h4>
+<table>
+<thead>
+<tr>
+<th>登录方式</th>
+<th>说明</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>账号密码登录</td>
+<td>输入用户名和密码登录</td>
+<td>常规登录方式</td>
+</tr>
+<tr>
+<td>微信一键登录</td>
+<td>微信授权后自动登录</td>
+<td>快速便捷登录</td>
+</tr>
+</tbody>
+</table>
+<h4 id="界面元素详解-1">4.2.2 界面元素详解</h4>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Logo区域</td>
+<td>平台品牌标识展示</td>
+</tr>
+<tr>
+<td>用户名输入框</td>
+<td>输入注册用户名（支持手机号/邮箱）</td>
+</tr>
+<tr>
+<td>密码输入框</td>
+<td>输入登录密码（支持显示/隐藏切换）</td>
+</tr>
+<tr>
+<td>登录按钮</td>
+<td>点击进行账号密码登录</td>
+</tr>
+<tr>
+<td>微信登录按钮</td>
+<td>点击跳转微信授权登录</td>
+</tr>
+<tr>
+<td>记住账号选项</td>
+<td>勾选后下次自动填充用户名</td>
+</tr>
+</tbody>
+</table>
+<h4 id="账号密码登录">4.2.3 账号密码登录</h4>
+<p><strong>操作步骤</strong>： 1. 在用户名输入框输入账号 2.
+在密码输入框输入密码 3. 可勾选”记住账号”方便下次登录 4. 点击”登录”按钮
+5. 验证成功后自动跳转首页</p>
+<p><strong>密码输入说明</strong>： - 默认密码显示为”******” -
+点击眼睛图标可切换明文/密文显示 - 密码错误时提示”账号或密码错误”</p>
+<h4 id="微信一键登录">4.2.4 微信一键登录</h4>
+<p><strong>操作步骤</strong>： 1. 点击微信登录图标按钮 2.
+系统自动唤起微信应用 3. 在微信中确认授权登录 4. 授权成功后自动返回应用
+5. 自动完成登录并跳转首页</p>
+<p><strong>前置条件</strong>： - 手机已安装微信应用 - 微信账号已实名认证
+- 首次使用需绑定魔力淘账号</p>
+<p><strong>异常处理</strong>： | 情况 | 处理方式 | |——|———-| |
+未安装微信 | 提示安装微信应用 | | 微信授权失败 |
+提示重新尝试或使用账号登录 | | 账号未绑定 | 提示先使用账号登录后绑定微信
+|</p>
 <figure>
 <img src="截图/02_登录页.png" alt="登录界面" />
 <figcaption aria-hidden="true">登录界面</figcaption>
 </figure>
+<h4 id="注意事项-1">4.2.5 注意事项</h4>
+<ol type="1">
+<li>连续输错密码5次，账号将被锁定30分钟</li>
+<li>微信登录需要微信应用版本支持</li>
+<li>建议绑定微信以便快速登录</li>
+<li>退出登录后需重新登录</li>
+</ol>
 <hr />
-<h3 id="交易帖子模块">4.3 交易帖子模块</h3>
+<h3 id="撮合帖子模块">4.3 撮合帖子模块</h3>
 <p><strong>功能描述</strong>：撮合帖子模块是核心业务模块，用户可发布、浏览、管理闲置物品信息帖，实现供需双方的信息撮合。</p>
 <h4 id="交易站帖子列表">4.3.1 交易站（帖子列表）</h4>
 <p><strong>功能描述</strong>：交易站展示平台所有撮合帖子信息，用户可按分类浏览、搜索感兴趣的内容。</p>
-<p><strong>界面元素</strong>： -
-分类标签筛选（交易/求购/问答/分享/其他） - 搜索框 + 热搜词快捷搜索 -
-置顶帖子区域展示 - 帖子卡片列表 - 发布帖子按钮</p>
-<p><strong>操作说明</strong>： 1. 点击分类标签筛选帖子类型 2.
-在搜索框输入关键词搜索 3. 点击热搜词快速搜索热门内容 4.
-下拉刷新获取最新帖子 5. 上拉加载更多帖子 6. 点击发布按钮创建新帖子</p>
+<p><strong>界面元素详解</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>搜索栏</td>
+<td>输入关键词搜索帖子</td>
+</tr>
+<tr>
+<td>热搜词</td>
+<td>热门搜索词快速搜索</td>
+</tr>
+<tr>
+<td>分类标签</td>
+<td>帖子分类筛选（交易/求购/问答/分享/其他）</td>
+</tr>
+<tr>
+<td>置顶区域</td>
+<td>平台推荐的置顶帖子</td>
+</tr>
+<tr>
+<td>帖子卡片</td>
+<td>帖子标题、图片、作者、时间、浏览量</td>
+</tr>
+<tr>
+<td>发布按钮</td>
+<td>悬浮按钮，点击发布新帖子</td>
+</tr>
+<tr>
+<td>下拉刷新</td>
+<td>下拉刷新获取最新帖子</td>
+</tr>
+<tr>
+<td>上拉加载</td>
+<td>上拉加载更多历史帖子</td>
+</tr>
+</tbody>
+</table>
+<p><strong>分类标签说明</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>分类</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>全部</td>
+<td>显示所有类型帖子</td>
+</tr>
+<tr>
+<td>交易</td>
+<td>出售闲置物品信息</td>
+</tr>
+<tr>
+<td>求购</td>
+<td>寻找特定物品需求</td>
+</tr>
+<tr>
+<td>问答</td>
+<td>咨询类帖子</td>
+</tr>
+<tr>
+<td>分享</td>
+<td>经验分享类帖子</td>
+</tr>
+<tr>
+<td>其他</td>
+<td>其他类型帖子</td>
+</tr>
+</tbody>
+</table>
+<p><strong>帖子卡片信息</strong>： - 帖子缩略图（最多显示3张） -
+帖子标题（最多显示2行） - 作者头像和昵称 -
+发布时间（几分钟前/几小时前/具体日期） - 浏览量统计</p>
+<p><strong>操作说明</strong>： 1.
+<strong>浏览帖子</strong>：上下滑动查看帖子列表 2.
+<strong>分类筛选</strong>：点击分类标签筛选帖子类型 3.
+<strong>关键词搜索</strong>：在搜索框输入关键词搜索 4.
+<strong>热搜搜索</strong>：点击热搜词快速搜索热门内容 5.
+<strong>下拉刷新</strong>：下拉刷新获取最新帖子 6.
+<strong>上拉加载</strong>：上拉加载更多历史帖子 7.
+<strong>查看详情</strong>：点击帖子卡片进入详情页 8.
+<strong>发布帖子</strong>：点击右下角悬浮按钮发布新帖</p>
 <figure>
 <img src="截图/04_交易站.png" alt="交易站界面" />
 <figcaption aria-hidden="true">交易站界面</figcaption>
 </figure>
 <h4 id="帖子详情页">4.3.2 帖子详情页</h4>
 <p><strong>功能描述</strong>：帖子详情页展示物品信息的完整内容，用户可查看详情并通过内置通讯工具联系发布者进行在线协商。</p>
-<p><strong>界面元素</strong>： - 帖子标题、作者信息、发布时间 -
-联系方式展示（微信、QQ） - 分类标签展示 - 富文本内容展示 - 图片预览功能
-- 联系对方按钮（跳转私聊） - 编辑/删除按钮（仅作者可见）</p>
+<p><strong>界面元素详解</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>返回按钮</td>
+<td>返回帖子列表页</td>
+</tr>
+<tr>
+<td>帖子标题</td>
+<td>帖子完整标题</td>
+</tr>
+<tr>
+<td>作者信息</td>
+<td>作者头像、昵称、发布时间</td>
+</tr>
+<tr>
+<td>分类标签</td>
+<td>帖子所属分类</td>
+</tr>
+<tr>
+<td>内容区域</td>
+<td>富文本内容展示</td>
+</tr>
+<tr>
+<td>图片展示</td>
+<td>帖子图片，支持点击放大</td>
+</tr>
+<tr>
+<td>联系方式</td>
+<td>作者微信/QQ（如有填写）</td>
+</tr>
+<tr>
+<td>联系对方按钮</td>
+<td>跳转私聊进行在线协商</td>
+</tr>
+<tr>
+<td>编辑按钮</td>
+<td>编辑帖子内容（仅作者可见）</td>
+</tr>
+<tr>
+<td>删除按钮</td>
+<td>删除帖子（仅作者可见）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>图片预览功能</strong>： - 点击图片进入全屏预览 -
+支持左右滑动切换图片 - 双指缩放查看细节 - 点击关闭按钮退出预览</p>
 <p><strong>操作说明</strong>： 1. 查看帖子完整内容和图片 2.
-点击图片放大预览 3. 点击"联系对方"跳转私聊进行在线协商 4. 作者可点击编辑修改帖子 5.
-作者可点击删除移除帖子 6. <strong>交易由双方自行线下完成，平台不参与</strong></p>
+点击图片放大预览，双指缩放查看细节 3. 点击”联系对方”跳转私聊进行在线协商
+4. 作者可点击编辑修改帖子内容 5. 作者可点击删除移除帖子 6.
+<strong>交易由双方自行线下完成，平台不参与</strong></p>
+<p><strong>注意事项</strong>： - 联系方式由发布者自愿填写，可能不完整 -
+私聊消息实时发送，请礼貌沟通 - 帖子删除后不可恢复，请谨慎操作</p>
 <figure>
 <img src="截图/10_商品详情.png" alt="商品详情界面" />
 <figcaption aria-hidden="true">商品详情界面</figcaption>
 </figure>
 <h4 id="发布帖子页">4.3.3 发布帖子页</h4>
 <p><strong>功能描述</strong>：用户可通过发布帖子功能，将闲置物品信息发布到平台，等待有意向的用户联系。</p>
-<p><strong>界面元素</strong>： - 标题输入框（最多100字） - 分类选择器 -
-内容编辑器（支持富文本） - 图片上传区域 - 联系方式填写（微信、QQ） -
-发布按钮</p>
-<p><strong>操作说明</strong>： 1. 输入帖子标题 2. 选择帖子分类 3.
-编辑帖子内容，可插入图片 4. 上传物品图片（支持多张） 5.
-填写联系方式（可选） 6. 点击发布提交帖子</p>
+<p><strong>界面元素详解</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>返回按钮</td>
+<td>放弃发布返回上一页</td>
+</tr>
+<tr>
+<td>标题输入框</td>
+<td>输入帖子标题（最多100字）</td>
+</tr>
+<tr>
+<td>分类选择器</td>
+<td>选择帖子分类</td>
+</tr>
+<tr>
+<td>内容编辑器</td>
+<td>编辑帖子内容（支持富文本）</td>
+</tr>
+<tr>
+<td>图片上传区</td>
+<td>上传物品图片（最多9张）</td>
+</tr>
+<tr>
+<td>联系方式输入</td>
+<td>填写微信/QQ（可选）</td>
+</tr>
+<tr>
+<td>发布按钮</td>
+<td>提交帖子到平台</td>
+</tr>
+</tbody>
+</table>
+<p><strong>内容编辑器功能</strong>： - 支持文字输入 - 支持插入图片 -
+支持基本格式（加粗、列表等） - 实时保存草稿</p>
+<p><strong>图片上传说明</strong>： - 支持拍照上传 - 支持相册选择 -
+单张图片最大10MB - 图片自动压缩优化 - 支持拖拽排序</p>
+<p><strong>操作说明</strong>： 1. 输入帖子标题（必填，最多100字） 2.
+选择帖子分类（必选） 3. 编辑帖子内容，可插入图片 4.
+上传物品图片（支持多张，最多9张） 5. 填写联系方式（可选，微信/QQ） 6.
+点击发布提交帖子</p>
+<p><strong>发布后处理</strong>： - 发布成功后自动跳转帖子详情页 -
+帖子进入审核队列（如有审核机制） - 审核通过后在列表展示</p>
 <figure>
 <img src="截图/12_发布帖子.png" alt="发布帖子界面" />
 <figcaption aria-hidden="true">发布帖子界面</figcaption>
 </figure>
 <hr />
 <h3 id="即时通讯模块">4.4 即时通讯模块</h3>
-<p><strong>功能描述</strong>：即时通讯模块提供实时聊天功能，支持私聊、群聊、秒杀场等场景。</p>
+<p><strong>功能描述</strong>：即时通讯模块提供实时聊天功能，支持私聊、群聊、秒杀场等场景，是用户在线协商的核心工具。</p>
 <h4 id="会话列表">4.4.1 会话列表</h4>
-<p><strong>界面元素</strong>： - 会话列表（头像、名称、最新消息、时间）
-- 未读消息红点提示 - 特殊频道入口（系统公告、新手群、秒杀场） -
-消息类型区分图标</p>
+<p><strong>功能描述</strong>：会话列表展示所有聊天会话，包括私聊、群聊、系统频道等。</p>
+<p><strong>界面元素详解</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>搜索栏</td>
+<td>搜索会话名称</td>
+</tr>
+<tr>
+<td>会话列表</td>
+<td>所有聊天会话</td>
+</tr>
+<tr>
+<td>系统频道</td>
+<td>系统公告、新手群等特殊频道</td>
+</tr>
+<tr>
+<td>会话头像</td>
+<td>对方头像或群组头像</td>
+</tr>
+<tr>
+<td>会话名称</td>
+<td>对方昵称或群组名称</td>
+</tr>
+<tr>
+<td>最新消息</td>
+<td>最新一条消息预览</td>
+</tr>
+<tr>
+<td>时间显示</td>
+<td>最新消息时间</td>
+</tr>
+<tr>
+<td>未读红点</td>
+<td>未读消息数量提示</td>
+</tr>
+<tr>
+<td>消息类型图标</td>
+<td>文字/图片/系统消息图标</td>
+</tr>
+</tbody>
+</table>
+<p><strong>会话排序规则</strong>： - 按最新消息时间倒序排列 -
+置顶会话优先显示 - 未读会话优先显示</p>
 <p><strong>操作说明</strong>： 1. 点击会话进入聊天界面 2.
-查看未读消息数量 3. 长按会话可删除聊天记录 4. 点击特殊频道进入群聊</p>
+查看未读消息红点数量 3. 长按会话可删除聊天记录 4. 点击系统频道进入群聊
+5. 下拉刷新会话列表</p>
+<p><strong>特殊频道说明</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>频道</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>系统公告</td>
+<td>接收平台公告通知</td>
+</tr>
+<tr>
+<td>新手群</td>
+<td>新用户引导群聊</td>
+</tr>
+<tr>
+<td>秒杀场</td>
+<td>秒杀活动聊天室</td>
+</tr>
+</tbody>
+</table>
 <figure>
 <img src="截图/03_会话列表.png" alt="会话列表界面" />
 <figcaption aria-hidden="true">会话列表界面</figcaption>
 </figure>
 <h4 id="私聊界面">4.4.2 私聊界面</h4>
-<p><strong>界面元素</strong>： - 聊天消息气泡 - 消息输入框 - 表情选择器
-- 图片发送按钮 - 对方头像和昵称</p>
-<p><strong>操作说明</strong>： 1. 输入文字消息发送 2.
-点击图片按钮发送图片 3. 点击表情选择器发送表情 4. 上拉加载历史消息 5.
-点击对方头像查看资料</p>
+<p><strong>功能描述</strong>：私聊界面支持一对一实时聊天，是用户在线协商的主要工具。</p>
+<p><strong>界面元素详解</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>顶部导航栏</td>
+<td>对方头像、昵称、返回按钮</td>
+</tr>
+<tr>
+<td>消息列表</td>
+<td>聊天消息气泡列表</td>
+</tr>
+<tr>
+<td>消息气泡</td>
+<td>文字/图片/表情消息</td>
+</tr>
+<tr>
+<td>输入框</td>
+<td>消息输入区域</td>
+</tr>
+<tr>
+<td>表情按钮</td>
+<td>打开表情选择器</td>
+</tr>
+<tr>
+<td>图片按钮</td>
+<td>选择图片发送</td>
+</tr>
+<tr>
+<td>发送按钮</td>
+<td>发送消息</td>
+</tr>
+</tbody>
+</table>
+<p><strong>消息类型</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>文字消息</td>
+<td>纯文字内容</td>
+</tr>
+<tr>
+<td>图片消息</td>
+<td>图片内容，支持点击放大</td>
+</tr>
+<tr>
+<td>表情消息</td>
+<td>表情符号</td>
+</tr>
+<tr>
+<td>系统消息</td>
+<td>系统通知（如对方上线）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>消息气泡样式</strong>： - 自己发送：右侧蓝色气泡 -
+对方发送：左侧灰色气泡 - 时间戳：每隔一段时间显示</p>
+<p><strong>操作说明</strong>： 1. 在输入框输入文字消息 2.
+点击发送按钮发送消息 3. 点击图片按钮选择图片发送 4.
+点击表情按钮选择表情发送 5. 上拉加载历史消息 6. 点击对方头像查看资料 7.
+点击图片消息放大查看</p>
+<p><strong>消息状态</strong>： - 发送中：显示加载动画 -
+发送成功：无特殊标识 - 发送失败：显示红色感叹号，可点击重发</p>
 <figure>
 <img src="截图/13_私聊界面.png" alt="私聊界面" />
 <figcaption aria-hidden="true">私聊界面</figcaption>
 </figure>
 <h4 id="群聊界面">4.4.3 群聊界面</h4>
 <p><strong>功能描述</strong>：群聊界面支持多人同时在线交流，适用于秒杀场、兴趣群组等场景。</p>
-<p><strong>界面元素</strong>： - 群成员头像展示 - 实时消息滚动 -
-输入框和发送按钮 - 表情和图片发送</p>
+<p><strong>界面元素详解</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>顶部导航栏</td>
+<td>群名称、成员数量、返回按钮</td>
+</tr>
+<tr>
+<td>成员头像区</td>
+<td>在线成员头像展示</td>
+</tr>
+<tr>
+<td>消息列表</td>
+<td>群聊消息滚动列表</td>
+</tr>
+<tr>
+<td>输入框</td>
+<td>消息输入区域</td>
+</tr>
+<tr>
+<td>表情按钮</td>
+<td>打开表情选择器</td>
+</tr>
+<tr>
+<td>图片按钮</td>
+<td>选择图片发送</td>
+</tr>
+<tr>
+<td>发送按钮</td>
+<td>发送消息</td>
+</tr>
+</tbody>
+</table>
+<p><strong>群聊特性</strong>： - 实时消息同步 - 在线成员展示 -
+消息滚动更新 - 历史消息加载</p>
 <p><strong>操作说明</strong>： 1. 进入群聊查看历史消息 2.
-发送文字、图片、表情消息 3. 查看在线成员列表 4. 点击成员头像查看资料</p>
+发送文字、图片、表情消息 3. 查看在线成员列表 4. 点击成员头像查看资料 5.
+上拉加载更多历史消息</p>
 <figure>
-<img src="截图/群聊.png" alt="群聊界面" />
+<img src="截图/16_群聊.png" alt="群聊界面" />
 <figcaption aria-hidden="true">群聊界面</figcaption>
 </figure>
 <h4 id="秒杀场">4.4.4 秒杀场</h4>
-<p><strong>功能描述</strong>：秒杀场是平台的限时特惠活动专区，用户可以参与商品的超值优惠活动。</p>
-<p><strong>界面元素</strong>： - 限时秒杀商品展示 -
-当前秒杀状态（进行中/已结束） - 下单区域 - 秒杀动态实时滚动 - 公告通知栏
-- 商品详情弹窗</p>
+<p><strong>功能描述</strong>：秒杀场是平台的限时特惠活动专区，用户可以参与商品的超值优惠活动，通过实时聊天了解活动动态。</p>
+<p><strong>界面元素详解</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>商品展示区</td>
+<td>当前秒杀商品图片、名称、价格</td>
+</tr>
+<tr>
+<td>状态标识</td>
+<td>进行中/即将开始/已结束</td>
+</tr>
+<tr>
+<td>价格信息</td>
+<td>原价、秒杀价、折扣信息</td>
+</tr>
+<tr>
+<td>下单区域</td>
+<td>立即秒杀按钮</td>
+</tr>
+<tr>
+<td>动态滚动区</td>
+<td>实时下单动态滚动展示</td>
+</tr>
+<tr>
+<td>公告通知栏</td>
+<td>活动规则、注意事项</td>
+</tr>
+<tr>
+<td>商品详情弹窗</td>
+<td>点击商品查看详细信息</td>
+</tr>
+</tbody>
+</table>
+<p><strong>秒杀状态</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>即将开始</td>
+<td>显示倒计时，等待开始</td>
+</tr>
+<tr>
+<td>进行中</td>
+<td>可以下单参与秒杀</td>
+</tr>
+<tr>
+<td>已结束</td>
+<td>本场活动已结束</td>
+</tr>
+</tbody>
+</table>
 <p><strong>操作说明</strong>： 1. 查看当前秒杀商品信息和价格 2.
-点击”立即秒杀”参与活动 3. 查看实时下单动态 4. 点击商品查看详情 5.
-秒杀成功跳转支付页面</p>
+点击”立即秒杀”参与活动 3. 查看实时下单动态（谁下单了什么） 4.
+点击商品查看详情弹窗 5. 秒杀成功跳转支付页面</p>
+<p><strong>注意事项</strong>： - 秒杀商品数量有限，先到先得 -
+下单后需在规定时间内完成支付 - 秒杀成功后不支持退款 -
+活动规则以后台公告为准</p>
 <figure>
 <img src="截图/09_秒杀场.png" alt="秒杀场界面" />
 <figcaption aria-hidden="true">秒杀场界面</figcaption>
 </figure>
 <hr />
 <h3 id="通讯录模块">4.5 通讯录模块</h3>
-<p><strong>功能描述</strong>：通讯录模块管理好友关系，支持添加好友、处理好友申请等操作。</p>
-<p><strong>界面元素</strong>： - 好友搜索框 - 好友申请列表 - 好友列表 -
-好友状态标识</p>
-<p><strong>操作说明</strong>： 1. 搜索框输入昵称查找好友 2.
-查看好友申请列表 3. 同意或拒绝好友申请 4. 点击好友发起私聊</p>
+<p><strong>功能描述</strong>：通讯录模块管理好友关系，支持添加好友、处理好友申请、快速发起聊天等操作。</p>
+<p><strong>界面元素详解</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>搜索框</td>
+<td>输入昵称搜索好友</td>
+</tr>
+<tr>
+<td>好友申请区</td>
+<td>待处理的好友申请列表</td>
+</tr>
+<tr>
+<td>好友列表</td>
+<td>已添加的好友列表</td>
+</tr>
+<tr>
+<td>好友头像</td>
+<td>好友头像展示</td>
+</tr>
+<tr>
+<td>好友昵称</td>
+<td>好友昵称显示</td>
+</tr>
+<tr>
+<td>在线状态</td>
+<td>在线/离线状态标识</td>
+</tr>
+<tr>
+<td>操作按钮</td>
+<td>同意/拒绝/发起聊天</td>
+</tr>
+</tbody>
+</table>
+<p><strong>好友申请处理</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>同意申请</td>
+<td>点击同意，添加为好友</td>
+</tr>
+<tr>
+<td>拒绝申请</td>
+<td>点击拒绝，忽略申请</td>
+</tr>
+<tr>
+<td>忽略申请</td>
+<td>不处理，保留在申请列表</td>
+</tr>
+</tbody>
+</table>
+<p><strong>操作说明</strong>： 1. 在搜索框输入昵称查找好友 2.
+查看好友申请列表 3. 点击同意或拒绝处理好友申请 4. 点击好友进入私聊界面
+5. 长按好友可删除好友关系</p>
+<p><strong>好友状态说明</strong>： - 在线：显示绿色圆点 -
+离线：显示灰色圆点 - 忙碌：显示红色圆点</p>
 <figure>
 <img src="截图/05_通讯录.png" alt="通讯录界面" />
 <figcaption aria-hidden="true">通讯录界面</figcaption>
 </figure>
 <hr />
 <h3 id="个人中心模块">4.6 个人中心模块</h3>
-<p><strong>功能描述</strong>：个人中心模块管理用户个人信息、资产、订单等。</p>
+<p><strong>功能描述</strong>：个人中心模块管理用户个人信息、资产、订单等核心数据，是用户的个人管理中心。</p>
 <h4 id="个人中心主页">4.6.1 个人中心主页</h4>
-<p><strong>界面元素</strong>： - 用户信息卡片（头像、昵称、编号） -
-统计数据（好友数、余额） - 工作台入口 - 买家功能区（我的订单、我的收藏）
-- 卖家功能区（我发布的、保证金记录） - 设置入口 - APP 版本号</p>
-<p><strong>操作说明</strong>： 1. 点击头像编辑个人信息 2.
+<p><strong>界面元素详解</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>区域</th>
+<th>元素</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>用户信息区</td>
+<td>头像</td>
+<td>用户头像，点击可修改</td>
+</tr>
+<tr>
+<td></td>
+<td>昵称</td>
+<td>用户昵称</td>
+</tr>
+<tr>
+<td></td>
+<td>编号</td>
+<td>用户唯一编号</td>
+</tr>
+<tr>
+<td></td>
+<td>好友数</td>
+<td>好友数量统计</td>
+</tr>
+<tr>
+<td></td>
+<td>余额</td>
+<td>账户余额显示</td>
+</tr>
+<tr>
+<td></td>
+<td>设置按钮</td>
+<td>右上角设置入口</td>
+</tr>
+<tr>
+<td>工作台</td>
+<td>充值入口</td>
+<td>点击跳转充值页面</td>
+</tr>
+<tr>
+<td></td>
+<td>提现入口</td>
+<td>点击跳转提现页面</td>
+</tr>
+<tr>
+<td></td>
+<td>余额明细</td>
+<td>查看余额收支明细</td>
+</tr>
+<tr>
+<td></td>
+<td>保证金记录</td>
+<td>查看保证金记录</td>
+</tr>
+<tr>
+<td>买家功能区</td>
+<td>出价中/待收货</td>
+<td>买家订单入口</td>
+</tr>
+<tr>
+<td></td>
+<td>已成交</td>
+<td>已完成订单入口</td>
+</tr>
+<tr>
+<td>卖家功能区</td>
+<td>我发布的</td>
+<td>已发布帖子列表</td>
+</tr>
+<tr>
+<td></td>
+<td>待发货</td>
+<td>待发货订单入口</td>
+</tr>
+<tr>
+<td></td>
+<td>保证金记录</td>
+<td>缴纳保证金记录</td>
+</tr>
+<tr>
+<td>系统功能区</td>
+<td>功能列表</td>
+<td>其他功能入口</td>
+</tr>
+<tr>
+<td>底部信息</td>
+<td>版本号</td>
+<td>当前APP版本</td>
+</tr>
+</tbody>
+</table>
+<p><strong>操作说明</strong>： 1. 点击头像进入个人信息编辑页 2.
 查看好友数量和账户余额 3. 进入工作台管理资产（充值、提现、余额明细） 4.
-点击功能区快速访问对应页面</p>
+点击买家功能区查看订单 5. 点击卖家功能区管理发布内容 6.
+点击右上角设置进入设置页面</p>
 <figure>
 <img src="截图/06_个人中心.png" alt="个人中心界面" />
 <figcaption aria-hidden="true">个人中心界面</figcaption>
 </figure>
 <h4 id="个人信息编辑">4.6.2 个人信息编辑</h4>
-<p><strong>界面元素</strong>： - 用户编号展示 - 头像上传区域 -
-昵称输入框 - QQ 号输入框 - 微信号输入框 - 保存按钮</p>
-<p><strong>操作说明</strong>： 1. 点击头像更换头像 2. 修改昵称 3.
-填写或修改 QQ 号 4. 填写或修改微信号 5. 点击保存提交修改</p>
+<p><strong>功能描述</strong>：个人信息编辑页面允许用户修改个人资料。</p>
+<p><strong>界面元素详解</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>用户编号</td>
+<td>系统分配的唯一编号，不可修改</td>
+</tr>
+<tr>
+<td>头像区域</td>
+<td>显示当前头像，点击更换</td>
+</tr>
+<tr>
+<td>昵称输入框</td>
+<td>输入昵称（最多20字）</td>
+</tr>
+<tr>
+<td>QQ号输入框</td>
+<td>输入QQ号（可选）</td>
+</tr>
+<tr>
+<td>微信号输入框</td>
+<td>输入微信号（可选）</td>
+</tr>
+<tr>
+<td>保存按钮</td>
+<td>提交修改保存</td>
+</tr>
+</tbody>
+</table>
+<p><strong>头像更换方式</strong>： - 拍照：打开相机拍照上传 -
+相册：从相册选择图片上传 - 图片自动裁剪为正方形</p>
+<p><strong>操作说明</strong>： 1. 点击头像选择拍照或相册更换 2.
+修改昵称（最多20字） 3. 填写或修改QQ号（可选） 4.
+填写或修改微信号（可选） 5. 点击保存按钮提交修改</p>
+<p><strong>注意事项</strong>： - 昵称不能包含敏感词 -
+QQ号和微信号仅供展示，请谨慎填写 - 修改后需要点击保存才会生效</p>
 <figure>
 <img src="截图/07_个人信息修改.png" alt="个人信息修改界面" />
 <figcaption aria-hidden="true">个人信息修改界面</figcaption>
 </figure>
 <h4 id="工作台资产中心">4.6.3 工作台（资产中心）</h4>
 <p><strong>功能描述</strong>：工作台提供账户资产管理功能，包括余额查询、充值、提现、保证金管理、交易记录查询等。</p>
-<p><strong>界面元素</strong>： - 当前余额展示 - 充值按钮 - 提现按钮 -
-保证金记录入口 - 余额明细入口 - 交易记录列表</p>
+<p><strong>界面元素详解</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>余额展示</td>
+<td>当前账户可用余额</td>
+</tr>
+<tr>
+<td>充值按钮</td>
+<td>跳转充值页面</td>
+</tr>
+<tr>
+<td>提现按钮</td>
+<td>跳转提现页面</td>
+</tr>
+<tr>
+<td>保证金记录</td>
+<td>查看保证金缴纳记录</td>
+</tr>
+<tr>
+<td>余额明细</td>
+<td>查看余额收支明细</td>
+</tr>
+<tr>
+<td>交易记录</td>
+<td>查看历史交易记录</td>
+</tr>
+</tbody>
+</table>
+<p><strong>充值流程</strong>： 1. 点击充值按钮 2. 选择或输入充值金额 3.
+确认充值信息 4. 跳转微信支付完成支付 5. 支付成功后余额自动更新</p>
+<p><strong>提现流程</strong>： 1. 点击提现按钮 2. 输入提现金额 3.
+确认提现信息 4. 提交提现申请 5. 等待审核到账</p>
 <p><strong>操作说明</strong>： 1. 查看当前账户余额 2.
 点击充值，跳转微信支付进行充值 3. 点击提现，申请提现到绑定账户 4.
 查看保证金缴纳记录 5. 查看余额收支明细 6. 查看交易记录</p>
+<p><strong>注意事项</strong>： - 充值最小金额为1元 - 提现需绑定收款账户
+- 提现到账时间1-3个工作日 - 余额为虚拟货币，仅限平台内使用</p>
 <figure>
-<img src="截图/工作台.png" alt="工作台界面" />
-<figcaption aria-hidden="true">工作台界面</figcaption>
+<img src="截图/14_魔力值充值.png" alt="魔力值充值界面" />
+<figcaption aria-hidden="true">魔力值充值界面</figcaption>
+</figure>
+<figure>
+<img src="截图/15_魔力值提现.png" alt="魔力值提现界面" />
+<figcaption aria-hidden="true">魔力值提现界面</figcaption>
+</figure>
+<h4 id="已成交记录">4.6.4 已成交记录</h4>
+<p><strong>功能描述</strong>：已成交记录展示用户历史成交的物品信息，方便用户查看交易记录。</p>
+<p><strong>界面元素详解</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>记录列表</td>
+<td>成交记录列表展示</td>
+</tr>
+<tr>
+<td>物品图片</td>
+<td>成交物品缩略图</td>
+</tr>
+<tr>
+<td>物品名称</td>
+<td>成交物品名称</td>
+</tr>
+<tr>
+<td>成交价格</td>
+<td>成交时的价格</td>
+</tr>
+<tr>
+<td>成交时间</td>
+<td>交易完成时间</td>
+</tr>
+</tbody>
+</table>
+<p><strong>操作说明</strong>： 1. 浏览已成交物品列表 2. 点击记录查看详情
+3. 查看成交时间和价格信息 4. 下拉刷新获取最新记录</p>
+<p><strong>注意事项</strong>： - 仅显示已完成的成交记录 -
+记录按时间倒序排列 - 可通过时间筛选查看历史记录</p>
+<figure>
+<img src="截图/18_已成交商品列表.png" alt="已成交商品列表界面" />
+<figcaption aria-hidden="true">已成交商品列表界面</figcaption>
 </figure>
 <hr />
 <h3 id="公告模块">4.7 公告模块</h3>
-<p><strong>功能描述</strong>：公告模块展示平台公告和通知，包括系统公告、活动通知等。</p>
-<p><strong>界面元素</strong>： - 公告列表 -
-分类筛选（系统公告、活动通知） - 公告图片预览 - 发布时间展示</p>
-<p><strong>操作说明</strong>： 1. 浏览公告列表 2. 点击分类筛选公告 3.
-点击公告查看详情 4. 下拉刷新获取最新公告</p>
+<p><strong>功能描述</strong>：公告模块展示平台公告和通知，包括系统公告、活动通知、规则说明等。</p>
+<p><strong>界面元素详解</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>公告列表</td>
+<td>所有公告列表展示</td>
+</tr>
+<tr>
+<td>分类筛选</td>
+<td>系统公告、活动通知等分类</td>
+</tr>
+<tr>
+<td>公告图片</td>
+<td>公告封面图片预览</td>
+</tr>
+<tr>
+<td>标题展示</td>
+<td>公告标题</td>
+</tr>
+<tr>
+<td>发布时间</td>
+<td>公告发布日期</td>
+</tr>
+<tr>
+<td>阅读状态</td>
+<td>已读/未读标识</td>
+</tr>
+</tbody>
+</table>
+<p><strong>公告类型</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>系统公告</td>
+<td>系统更新、维护通知等</td>
+</tr>
+<tr>
+<td>活动通知</td>
+<td>平台活动、优惠信息等</td>
+</tr>
+<tr>
+<td>规则说明</td>
+<td>平台规则、使用指南等</td>
+</tr>
+<tr>
+<td>其他公告</td>
+<td>其他重要信息</td>
+</tr>
+</tbody>
+</table>
+<p><strong>操作说明</strong>： 1. 浏览公告列表 2.
+点击分类标签筛选公告类型 3. 点击公告卡片查看详情 4. 下拉刷新获取最新公告
+5. 查看已读/未读状态</p>
+<p><strong>注意事项</strong>： - 重要公告会推送通知提醒 -
+未读公告显示红点标识 - 公告内容以后台发布为准</p>
 <figure>
 <img src="截图/11_公告列表.png" alt="公告列表界面" />
 <figcaption aria-hidden="true">公告列表界面</figcaption>
@@ -258,114 +1528,797 @@
 </figure>
 <hr />
 <h3 id="设置模块">4.8 设置模块</h3>
-<p><strong>功能描述</strong>：设置模块提供应用基础配置功能，包括推送通知、清除缓存、版本信息等。</p>
-<p><strong>界面元素</strong>： - 推送通知开关 - 清除缓存按钮 -
-缓存大小显示 - 版本信息展示 - 用户协议链接 - 退出登录按钮</p>
-<p><strong>操作说明</strong>： 1. 开启/关闭推送通知 2.
-点击清除缓存释放存储空间 3. 查看当前应用版本号 4.
-点击用户协议阅读相关规定 5. 点击退出登录安全退出账号</p>
+<p><strong>功能描述</strong>：设置模块提供应用基础配置功能，包括推送通知、清除缓存、版本信息、账号安全、关于等。</p>
+<p><strong>界面元素详解</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>推送通知开关</td>
+<td>开启/关闭消息推送</td>
+</tr>
+<tr>
+<td>清除缓存按钮</td>
+<td>清理应用缓存数据</td>
+</tr>
+<tr>
+<td>缓存大小显示</td>
+<td>当前缓存占用空间</td>
+</tr>
+<tr>
+<td>账号安全入口</td>
+<td>跳转账号安全设置</td>
+</tr>
+<tr>
+<td>关于入口</td>
+<td>跳转关于页面</td>
+</tr>
+<tr>
+<td>用户协议链接</td>
+<td>查看用户协议</td>
+</tr>
+<tr>
+<td>隐私政策链接</td>
+<td>查看隐私政策</td>
+</tr>
+<tr>
+<td>退出登录按钮</td>
+<td>安全退出当前账号</td>
+</tr>
+</tbody>
+</table>
+<p><strong>推送通知说明</strong>： - 开启后接收消息推送通知 -
+关闭后仅在使用时接收消息 - 系统消息不受开关影响</p>
+<p><strong>清除缓存说明</strong>： - 清除图片缓存、数据缓存 -
+不影响账号信息和登录状态 - 清除后首次加载可能较慢</p>
+<p><strong>操作说明</strong>： 1. 开启/关闭推送通知开关 2.
+点击清除缓存释放存储空间 3. 点击账号安全进入安全设置 4.
+点击关于查看版本信息 5. 点击用户协议阅读相关规定 6.
+点击退出登录安全退出账号</p>
+<p><strong>注意事项</strong>： - 清除缓存不会删除聊天记录 -
+退出登录需重新登录使用 - 建议定期清除缓存释放空间</p>
 <figure>
 <img src="截图/设置.png" alt="设置界面" />
 <figcaption aria-hidden="true">设置界面</figcaption>
 </figure>
 <hr />
 <h3 id="账号安全模块">4.9 账号安全模块</h3>
-<p><strong>功能描述</strong>：账号安全模块提供账号安全相关设置，包括修改密码、绑定微信、绑定手机号等。</p>
-<p><strong>界面元素</strong>： - 当前登录方式展示 - 修改密码入口 -
-绑定微信入口 - 绑定手机号入口 - 账号安全提示</p>
+<p><strong>功能描述</strong>：账号安全模块提供账号安全相关设置，包括修改密码、绑定微信、绑定手机号等安全功能。</p>
+<p><strong>界面元素详解</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>当前登录方式</td>
+<td>显示已绑定的登录方式</td>
+</tr>
+<tr>
+<td>修改密码入口</td>
+<td>设置或修改登录密码</td>
+</tr>
+<tr>
+<td>绑定微信入口</td>
+<td>绑定微信账号快捷登录</td>
+</tr>
+<tr>
+<td>绑定手机号入口</td>
+<td>绑定或更换手机号</td>
+</tr>
+<tr>
+<td>账号安全提示</td>
+<td>安全建议和提醒</td>
+</tr>
+</tbody>
+</table>
+<p><strong>修改密码流程</strong>： 1. 点击修改密码入口 2.
+输入当前密码验证身份 3. 输入新密码 4. 确认新密码 5. 提交修改完成</p>
+<p><strong>密码要求</strong>： - 长度6-20位 - 建议包含字母和数字 -
+不能与旧密码相同</p>
+<p><strong>绑定微信流程</strong>： 1. 点击绑定微信入口 2.
+系统唤起微信应用 3. 在微信中确认授权 4. 授权成功返回应用 5.
+绑定完成显示已绑定</p>
+<p><strong>绑定手机号流程</strong>： 1. 点击绑定手机号入口 2.
+输入手机号码 3. 获取并输入验证码 4. 验证成功完成绑定</p>
 <p><strong>操作说明</strong>： 1. 查看当前绑定的登录方式 2.
 点击修改密码，设置新密码 3. 点击绑定微信，授权绑定微信账号 4.
 点击绑定手机号，绑定或更换手机号 5. 根据提示完成安全验证</p>
+<p><strong>注意事项</strong>： - 建议绑定多种登录方式 -
+定期修改密码提高安全性 - 绑定微信后可快速登录 - 手机号可用于找回密码</p>
 <figure>
 <img src="截图/账号安全.png" alt="账号安全界面" />
 <figcaption aria-hidden="true">账号安全界面</figcaption>
 </figure>
 <hr />
 <h3 id="关于模块">4.10 关于模块</h3>
-<p><strong>功能描述</strong>：关于模块展示应用版本信息、用户协议、检查更新等功能。</p>
-<p><strong>界面元素</strong>： - 应用图标和名称 - 当前版本号 -
-检查更新按钮 - 用户协议链接 - 隐私政策链接 - 联系方式</p>
-<p><strong>操作说明</strong>： 1. 查看当前应用版本信息 2.
-点击检查更新，检测是否有新版本 3. 点击用户协议阅读相关条款 4.
-点击隐私政策了解数据使用规则 5. 如有问题可联系官方客服</p>
+<p><strong>功能描述</strong>：关于模块展示应用版本信息、用户协议、检查更新、评分反馈等功能。</p>
+<p><strong>界面元素详解</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>应用图标</td>
+<td>平台应用图标展示</td>
+</tr>
+<tr>
+<td>应用名称</td>
+<td>“魔力淘”名称展示</td>
+</tr>
+<tr>
+<td>版本号</td>
+<td>当前版本（格式：v1.0.0 (buildNumber)）</td>
+</tr>
+<tr>
+<td>检查更新</td>
+<td>检测新版本可用性</td>
+</tr>
+<tr>
+<td>用户协议</td>
+<td>查看用户服务协议</td>
+</tr>
+<tr>
+<td>隐私政策</td>
+<td>查看隐私政策内容</td>
+</tr>
+<tr>
+<td>给我们评分</td>
+<td>支持应用评分</td>
+</tr>
+<tr>
+<td>意见反馈</td>
+<td>提交意见建议</td>
+</tr>
+</tbody>
+</table>
+<p><strong>功能说明</strong>：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>功能</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>检查更新</td>
+<td>自动检测新版本，有更新则显示版本说明和下载链接，无更新则提示”已是最新版本”</td>
+</tr>
+<tr>
+<td>用户协议</td>
+<td>弹窗展示用户协议内容，了解平台服务条款</td>
+</tr>
+<tr>
+<td>隐私政策</td>
+<td>弹窗展示隐私政策内容，了解个人信息收集和使用规则</td>
+</tr>
+<tr>
+<td>给我们评分</td>
+<td>显示感谢提示，鼓励用户支持</td>
+</tr>
+<tr>
+<td>意见反馈</td>
+<td>显示功能开发中提示</td>
+</tr>
+</tbody>
+</table>
+<p><strong>操作说明</strong>： 1. 查看当前应用版本信息和构建编号 2.
+点击”检查更新”：系统自动检测新版本 3.
+点击”用户协议”：弹窗展示用户协议内容 4.
+点击”隐私政策”：弹窗展示隐私政策内容 5. 点击”给我们评分”：显示感谢提示
+6. 点击”意见反馈”：显示功能开发中提示</p>
+<p><strong>版本号格式说明</strong>： -
+主版本号.次版本号.修订号（如v1.0.0） - 构建编号为递增数字 -
+新版本可能包含功能更新、Bug修复、性能优化</p>
 <figure>
 <img src="截图/关于.png" alt="关于界面" />
 <figcaption aria-hidden="true">关于界面</figcaption>
 </figure>
 <hr />
 <h2 id="操作流程说明">5. 操作流程说明</h2>
+<p>本章节详细说明主要功能的完整操作流程，帮助用户快速上手使用。</p>
 <h3 id="用户注册登录流程">5.1 用户注册登录流程</h3>
-<ol type="1">
-<li><strong>下载安装</strong>：从应用市场下载并安装应用</li>
-<li><strong>启动应用</strong>：点击图标启动应用</li>
-<li><strong>选择登录方式</strong>：账号密码/短信验证码/微信登录/二维码登录</li>
-<li><strong>完成登录</strong>：输入凭证或授权后进入首页</li>
-<li><strong>完善信息</strong>：首次登录可完善个人资料</li>
-</ol>
-<h3 id="发布帖子流程">5.2 发布帖子流程</h3>
-<ol type="1">
-<li><strong>进入发布页</strong>：点击首页或个人中心发布按钮</li>
-<li><strong>填写信息</strong>：输入标题、选择分类、编辑内容</li>
-<li><strong>上传图片</strong>：选择或拍摄物品图片</li>
-<li><strong>填写联系方式</strong>：输入微信或 QQ 号（可选）</li>
-<li><strong>提交发布</strong>：点击发布按钮完成发布</li>
-</ol>
+<p><strong>流程概述</strong>：新用户首次使用需要下载安装应用，然后选择登录方式进入平台。</p>
+<p><strong>详细步骤</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>操作</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>下载安装</td>
+<td>从应用市场下载并安装应用</td>
+</tr>
+<tr>
+<td>2</td>
+<td>启动应用</td>
+<td>点击图标启动应用</td>
+</tr>
+<tr>
+<td>3</td>
+<td>查看引导</td>
+<td>首次启动可能显示引导页（可跳过）</td>
+</tr>
+<tr>
+<td>4</td>
+<td>选择登录方式</td>
+<td>账号密码登录或微信一键登录</td>
+</tr>
+<tr>
+<td>5a</td>
+<td>账号密码登录</td>
+<td>输入用户名和密码，点击登录</td>
+</tr>
+<tr>
+<td>5b</td>
+<td>微信一键登录</td>
+<td>点击微信图标，授权后自动登录</td>
+</tr>
+<tr>
+<td>6</td>
+<td>完成登录</td>
+<td>验证成功后自动跳转首页</td>
+</tr>
+<tr>
+<td>7</td>
+<td>完善信息</td>
+<td>首次登录可完善个人资料（可选）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>注意事项</strong>： - 首次使用微信登录需绑定已有账号 -
+连续输错密码5次账号锁定30分钟 - 建议绑定多种登录方式便于快速登录</p>
+<p><strong>异常处理</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>情况</th>
+<th>处理方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>账号不存在</td>
+<td>提示账号未注册，联系客服</td>
+</tr>
+<tr>
+<td>密码错误</td>
+<td>提示账号或密码错误，重新输入</td>
+</tr>
+<tr>
+<td>网络异常</td>
+<td>检查网络连接后重试</td>
+</tr>
+<tr>
+<td>微信未安装</td>
+<td>提示安装微信或使用账号登录</td>
+</tr>
+</tbody>
+</table>
+<h3 id="发布商品流程">5.2 发布商品流程</h3>
+<p><strong>流程概述</strong>：用户将闲置物品信息发布到平台，等待其他用户联系协商。</p>
+<p><strong>详细步骤</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>操作</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>进入发布页</td>
+<td>点击首页或个人中心发布按钮</td>
+</tr>
+<tr>
+<td>2</td>
+<td>输入标题</td>
+<td>填写帖子标题（最多100字，必填）</td>
+</tr>
+<tr>
+<td>3</td>
+<td>选择分类</td>
+<td>选择帖子分类（交易/求购等，必选）</td>
+</tr>
+<tr>
+<td>4</td>
+<td>编辑内容</td>
+<td>编辑帖子内容，描述物品详情</td>
+</tr>
+<tr>
+<td>5</td>
+<td>上传图片</td>
+<td>选择或拍摄商品图片（最多9张）</td>
+</tr>
+<tr>
+<td>6</td>
+<td>填写联系方式</td>
+<td>输入微信或QQ号（可选）</td>
+</tr>
+<tr>
+<td>7</td>
+<td>预览确认</td>
+<td>可预览帖子效果</td>
+</tr>
+<tr>
+<td>8</td>
+<td>提交发布</td>
+<td>点击发布按钮完成发布</td>
+</tr>
+<tr>
+<td>9</td>
+<td>查看帖子</td>
+<td>发布成功跳转帖子详情页</td>
+</tr>
+</tbody>
+</table>
+<p><strong>注意事项</strong>： - 标题和分类为必填项 -
+图片建议上传清晰、真实的照片 - 联系方式便于对方联系，建议填写 -
+发布后可在个人中心管理已发布帖子</p>
+<p><strong>内容规范</strong>： - 标题简洁明了，突出物品特点 -
+内容描述真实，不夸大宣传 - 图片清晰可见，展示物品全貌 -
+价格信息可在内容中说明</p>
 <h3 id="撮合沟通流程">5.3 撮合沟通流程</h3>
-<ol type="1">
-<li><strong>浏览帖子</strong>：在帖子列表浏览闲置物品信息</li>
-<li><strong>查看详情</strong>：点击帖子查看详细信息</li>
-<li><strong>联系对方</strong>：点击"联系对方"发起私聊</li>
-<li><strong>在线协商</strong>：通过聊天协商交易细节</li>
-<li><strong>线下成交</strong>：双方自行线下完成交易，平台不参与</li>
-</ol>
-<h3 id="交易沟通流程">5.3 交易沟通流程</h3>
-<ol type="1">
-<li><strong>浏览商品</strong>：在帖子列表浏览商品</li>
-<li><strong>查看详情</strong>：点击帖子查看详细信息</li>
-<li><strong>联系卖家</strong>：点击”联系对方”发起私聊</li>
-<li><strong>在线沟通</strong>：通过聊天协商交易细节</li>
-<li><strong>达成交易</strong>：双方确认后完成交易</li>
-</ol>
+<p><strong>流程概述</strong>：用户浏览帖子后，通过平台内置通讯工具与发布者在线协商。</p>
+<p><strong>详细步骤</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>操作</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>浏览帖子</td>
+<td>在交易站浏览闲置物品信息</td>
+</tr>
+<tr>
+<td>2</td>
+<td>筛选搜索</td>
+<td>按分类筛选或关键词搜索</td>
+</tr>
+<tr>
+<td>3</td>
+<td>查看详情</td>
+<td>点击帖子查看详细信息</td>
+</tr>
+<tr>
+<td>4</td>
+<td>查看图片</td>
+<td>点击图片放大查看物品细节</td>
+</tr>
+<tr>
+<td>5</td>
+<td>查看联系方式</td>
+<td>查看发布者微信/QQ（如有）</td>
+</tr>
+<tr>
+<td>6</td>
+<td>联系对方</td>
+<td>点击”联系对方”发起私聊</td>
+</tr>
+<tr>
+<td>7</td>
+<td>在线协商</td>
+<td>通过聊天协商交易细节</td>
+</tr>
+<tr>
+<td>8</td>
+<td>达成意向</td>
+<td>双方协商达成初步意向</td>
+</tr>
+<tr>
+<td>9</td>
+<td>线下成交</td>
+<td>双方自行线下完成交易</td>
+</tr>
+</tbody>
+</table>
+<p><strong>注意事项</strong>： - 平台仅提供信息展示和沟通工具 -
+<strong>交易由双方自行线下完成</strong> -
+<strong>平台不参与交易环节，不提供交易担保</strong> -
+协商过程中请保持礼貌沟通 - 建议确认物品信息后再线下交易</p>
+<p><strong>沟通技巧</strong>： - 先了解物品详情再发起聊天 -
+明确表达购买意向和需求 - 协商时间、地点、方式等细节 -
+保留聊天记录作为凭证</p>
 <h3 id="充值提现流程">5.4 充值提现流程</h3>
-<ol type="1">
-<li><strong>进入个人中心</strong>：点击底部导航个人中心</li>
-<li><strong>进入工作台</strong>：点击工作台入口</li>
-<li><strong>选择操作</strong>：点击充值或提现</li>
-<li><strong>输入金额</strong>：填写充值或提现金额</li>
-<li><strong>完成支付</strong>：跳转微信完成支付操作</li>
-</ol>
+<p><strong>流程概述</strong>：用户通过微信支付充值账户余额，或申请提现到收款账户。</p>
+<p><strong>充值流程</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>操作</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>进入个人中心</td>
+<td>点击底部导航个人中心</td>
+</tr>
+<tr>
+<td>2</td>
+<td>进入工作台</td>
+<td>点击工作台入口</td>
+</tr>
+<tr>
+<td>3</td>
+<td>点击充值</td>
+<td>点击充值按钮</td>
+</tr>
+<tr>
+<td>4</td>
+<td>选择金额</td>
+<td>选择或输入充值金额</td>
+</tr>
+<tr>
+<td>5</td>
+<td>确认信息</td>
+<td>确认充值金额和支付方式</td>
+</tr>
+<tr>
+<td>6</td>
+<td>微信支付</td>
+<td>跳转微信完成支付</td>
+</tr>
+<tr>
+<td>7</td>
+<td>支付成功</td>
+<td>支付成功返回应用</td>
+</tr>
+<tr>
+<td>8</td>
+<td>查看余额</td>
+<td>余额自动更新</td>
+</tr>
+</tbody>
+</table>
+<p><strong>提现流程</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>操作</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>进入个人中心</td>
+<td>点击底部导航个人中心</td>
+</tr>
+<tr>
+<td>2</td>
+<td>进入工作台</td>
+<td>点击工作台入口</td>
+</tr>
+<tr>
+<td>3</td>
+<td>点击提现</td>
+<td>点击提现按钮</td>
+</tr>
+<tr>
+<td>4</td>
+<td>输入金额</td>
+<td>输入提现金额</td>
+</tr>
+<tr>
+<td>5</td>
+<td>确认信息</td>
+<td>确认提现金额和收款账户</td>
+</tr>
+<tr>
+<td>6</td>
+<td>提交申请</td>
+<td>提交提现申请</td>
+</tr>
+<tr>
+<td>7</td>
+<td>等待审核</td>
+<td>等待平台审核（1-3工作日）</td>
+</tr>
+<tr>
+<td>8</td>
+<td>到账通知</td>
+<td>审核通过后到账通知</td>
+</tr>
+</tbody>
+</table>
+<p><strong>注意事项</strong>： - 充值最小金额为1元 -
+提现需先绑定收款账户 - 提现到账时间1-3个工作日 -
+余额为平台虚拟货币，仅限平台内使用</p>
 <h3 id="账号安全设置流程">5.5 账号安全设置流程</h3>
-<ol type="1">
-<li><strong>进入设置</strong>：从个人中心点击设置入口</li>
-<li><strong>进入账号安全</strong>：点击账号安全选项</li>
-<li><strong>选择操作</strong>：修改密码/绑定微信/绑定手机</li>
-<li><strong>完成验证</strong>：根据提示完成安全验证</li>
-<li><strong>确认成功</strong>：操作完成后显示成功提示</li>
-</ol>
+<p><strong>流程概述</strong>：用户设置账号安全相关配置，提高账号安全性。</p>
+<p><strong>修改密码流程</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>操作</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>进入设置</td>
+<td>从个人中心点击右上角设置按钮</td>
+</tr>
+<tr>
+<td>2</td>
+<td>进入账号安全</td>
+<td>点击账号安全选项</td>
+</tr>
+<tr>
+<td>3</td>
+<td>点击修改密码</td>
+<td>点击修改密码入口</td>
+</tr>
+<tr>
+<td>4</td>
+<td>输入当前密码</td>
+<td>验证当前登录密码</td>
+</tr>
+<tr>
+<td>5</td>
+<td>输入新密码</td>
+<td>输入新密码（6-20位）</td>
+</tr>
+<tr>
+<td>6</td>
+<td>确认新密码</td>
+<td>再次输入新密码确认</td>
+</tr>
+<tr>
+<td>7</td>
+<td>提交修改</td>
+<td>点击提交完成修改</td>
+</tr>
+<tr>
+<td>8</td>
+<td>重新登录</td>
+<td>密码修改成功需重新登录</td>
+</tr>
+</tbody>
+</table>
+<p><strong>绑定微信流程</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>操作</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>进入账号安全</td>
+<td>设置 &gt; 账号安全</td>
+</tr>
+<tr>
+<td>2</td>
+<td>点击绑定微信</td>
+<td>点击绑定微信入口</td>
+</tr>
+<tr>
+<td>3</td>
+<td>唤起微信</td>
+<td>系统自动唤起微信应用</td>
+</tr>
+<tr>
+<td>4</td>
+<td>确认授权</td>
+<td>在微信中确认授权绑定</td>
+</tr>
+<tr>
+<td>5</td>
+<td>返回应用</td>
+<td>授权成功自动返回</td>
+</tr>
+<tr>
+<td>6</td>
+<td>绑定完成</td>
+<td>显示已绑定状态</td>
+</tr>
+</tbody>
+</table>
+<p><strong>注意事项</strong>： - 密码建议包含字母和数字 -
+绑定微信后可快速登录 - 建议绑定多种登录方式 - 定期修改密码提高安全性</p>
 <hr />
 <h2 id="常见问题">6. 常见问题</h2>
-<p><strong>Q1：如何修改个人信息？</strong>
-A：进入个人中心，点击头像进入个人信息编辑页面进行修改。</p>
-<p><strong>Q2：如何联系对方？</strong>
-A：在帖子详情页点击”联系对方”按钮，进入聊天界面发送消息。</p>
-<p><strong>Q3：支付失败怎么办？</strong>
-A：请检查网络连接和支付账户余额，重新尝试支付。如问题持续，请联系客服。</p>
-<p><strong>Q4：如何添加好友？</strong>
-A：在通讯录页面搜索用户昵称，找到后点击添加好友按钮发送申请。</p>
-<p><strong>Q5：如何查看历史订单？</strong>
-A：进入个人中心，在买家/卖家功能区可查看对应订单记录。</p>
-<p><strong>Q6：如何退出登录？</strong>
-A：进入个人中心，点击设置，点击退出登录按钮。</p>
-<p><strong>Q7：忘记密码怎么办？</strong>
-A：在登录页面选择短信验证码登录，登录后在账号安全中设置新密码。</p>
-<p><strong>Q8：如何绑定微信？</strong> A：进入个人中心 &gt; 设置 &gt;
-账号安全，点击绑定微信。</p>
-<p><strong>Q9：如何充值余额？</strong> A：进入个人中心 &gt;
-工作台，点击充值，选择金额后跳转微信完成支付。</p>
-<p><strong>Q10：如何查看版本更新？</strong> A：进入设置 &gt;
-关于，点击检查更新，系统会提示是否有新版本。</p>
+<p>本章节收集用户常见问题和解答，帮助用户快速解决使用中遇到的困惑。</p>
+<h3 id="账号相关">6.1 账号相关</h3>
+<p><strong>Q1：如何修改个人信息？</strong></p>
+<p>A：进入个人中心，点击头像区域进入个人信息编辑页面，可修改头像、昵称、QQ号、微信号等信息，修改完成后点击保存按钮提交。</p>
+<p><strong>Q2：忘记密码怎么办？</strong></p>
+<p>A：请联系客服提供账号信息进行密码重置。为避免此情况，建议绑定微信或手机号，便于快速登录。</p>
+<p><strong>Q3：如何绑定微信？</strong></p>
+<p>A：进入个人中心 &gt; 右上角设置按钮 &gt;
+账号安全，点击绑定微信，在微信中确认授权后完成绑定。</p>
+<p><strong>Q4：如何更换绑定的手机号？</strong></p>
+<p>A：进入个人中心 &gt; 设置 &gt;
+账号安全，点击绑定手机号，输入新手机号并获取验证码，验证成功后完成更换。</p>
+<h3 id="功能使用">6.2 功能使用</h3>
+<p><strong>Q5：如何联系帖子发布者？</strong></p>
+<p>A：在帖子详情页点击”联系对方”按钮，系统会自动跳转到私聊界面，您可以直接发送消息与对方沟通。</p>
+<p><strong>Q6：如何发布闲置物品信息？</strong></p>
+<p>A：点击首页右下角发布按钮或个人中心的发布入口，填写标题、选择分类、编辑内容、上传图片，最后点击发布提交。</p>
+<p><strong>Q7：如何删除已发布的帖子？</strong></p>
+<p>A：进入帖子详情页（需是作者本人），点击删除按钮即可删除帖子。删除后不可恢复，请谨慎操作。</p>
+<p><strong>Q8：如何添加好友？</strong></p>
+<p>A：在通讯录页面使用搜索功能输入对方昵称，找到后点击添加好友按钮发送申请，对方同意后即可成为好友。</p>
+<h3 id="交易相关">6.3 交易相关</h3>
+<p><strong>Q9：平台提供交易担保吗？</strong></p>
+<p>A：本平台仅提供信息展示和沟通工具，不参与交易环节，不提供交易担保。交易由用户自行线下完成，请自行评估交易风险。</p>
+<p><strong>Q10：交易产生纠纷怎么办？</strong></p>
+<p>A：平台不参与交易环节，交易纠纷由用户自行协商解决。建议在交易前充分沟通，确认物品信息和交易细节。</p>
+<p><strong>Q11：支付失败怎么办？</strong></p>
+<p>A：请检查网络连接和支付账户余额，确保网络稳定后重新尝试支付。如问题持续，请联系客服处理。</p>
+<p><strong>Q12：提现多久到账？</strong></p>
+<p>A：提现申请提交后，平台会在1-3个工作日内审核处理，审核通过后资金将到账。具体到账时间取决于收款银行处理速度。</p>
+<h3 id="消息通知">6.4 消息通知</h3>
+<p><strong>Q13：如何开启消息推送？</strong></p>
+<p>A：进入个人中心 &gt; 设置 &gt;
+推送通知开关，打开开关即可接收消息推送通知。</p>
+<p><strong>Q14：为什么收不到消息推送？</strong></p>
+<p>A：请检查以下设置： 1. 应用内推送通知开关是否开启 2.
+手机系统通知权限是否开启 3. 手机是否开启省电模式（可能限制后台推送）</p>
+<h3 id="其他问题">6.5 其他问题</h3>
+<p><strong>Q15：如何查看历史订单？</strong></p>
+<p>A：进入个人中心，在买家功能区或卖家功能区可查看对应的订单记录，包括进行中和已完成订单。</p>
+<p><strong>Q16：如何清除缓存？</strong></p>
+<p>A：进入个人中心 &gt; 设置 &gt;
+清除缓存，点击清除缓存按钮可清理应用缓存数据，不影响账号信息和聊天记录。</p>
+<p><strong>Q17：如何退出登录？</strong></p>
+<p>A：进入个人中心 &gt; 设置 &gt;
+退出登录，点击退出登录按钮，确认后安全退出当前账号。</p>
+<p><strong>Q18：如何查看版本更新？</strong></p>
+<p>A：进入个人中心 &gt; 设置 &gt;
+关于，点击检查更新，系统会自动检测是否有新版本可用。</p>
 <hr />
-<p><strong>文档版本</strong>：V1.0
-<strong>编写日期</strong>：2026年5月</p>
+<h2 id="安全说明">7. 安全说明</h2>
+<h3 id="账号安全">7.1 账号安全</h3>
+<p><strong>安全建议</strong>： - 设置复杂密码，建议包含字母和数字 -
+定期修改登录密码 - 绑定多种登录方式（微信、手机号） -
+不要在公共设备上记住密码 - 发现账号异常及时联系客服</p>
+<p><strong>账号保护</strong>： - 连续输错密码5次锁定30分钟 -
+支持微信快捷登录，避免密码泄露 - 敏感操作需验证身份</p>
+<h3 id="交易安全">7.2 交易安全</h3>
+<p><strong>风险提示</strong>： - 平台仅提供信息展示和沟通工具 -
+<strong>交易由用户自行线下完成</strong> -
+<strong>平台不参与交易环节，不提供交易担保</strong> -
+请自行评估交易风险</p>
+<p><strong>安全建议</strong>： - 充分了解物品信息后再决定交易 -
+通过平台聊天功能保留沟通记录 - 选择安全的交易方式和地点 -
+大额交易建议当面验货</p>
+<h3 id="隐私保护">7.3 隐私保护</h3>
+<p><strong>信息收集说明</strong>： - 用户注册信息（昵称、头像等） -
+联系方式（微信、QQ等用户自愿填写） - 聊天记录（用于消息同步） -
+交易记录（用于账户管理）</p>
+<p><strong>信息使用说明</strong>： - 用于平台功能正常运行 -
+不会向第三方泄露用户信息 - 用户可随时修改个人信息</p>
+<p><strong>隐私设置</strong>： - 用户可在设置中查看用户协议和隐私政策 -
+用户可清除缓存数据 - 用户可删除账号信息</p>
+<hr />
+<h2 id="技术支持">8. 技术支持</h2>
+<h3 id="联系方式">8.1 联系方式</h3>
+<p>如在使用过程中遇到问题，可通过以下方式获取帮助：</p>
+<p><strong>客服支持</strong>： - 在线客服：应用内联系客服功能 -
+工作时间：工作日 9:00-18:00</p>
+<p><strong>反馈渠道</strong>： - 应用内意见反馈功能 -
+官方网站客服入口</p>
+<h3 id="服务说明">8.2 服务说明</h3>
+<p><strong>服务范围</strong>： - 账号问题咨询和解决 - 功能使用指导和帮助
+- 支付问题处理 - 意见建议收集</p>
+<p><strong>响应时间</strong>： - 在线客服实时响应 -
+问题反馈1-3工作日处理</p>
+<h3 id="更新说明">8.3 更新说明</h3>
+<p><strong>版本更新内容</strong>： - 功能优化和新增 - Bug修复和改进 -
+性能优化提升 - 安全补丁更新</p>
+<p><strong>更新方式</strong>： - Android：应用市场更新或官网下载 -
+iOS：App Store更新</p>
+<hr />
+<h2 id="附录">附录</h2>
+<h3 id="a.-术语说明">A. 术语说明</h3>
+<table>
+<thead>
+<tr>
+<th>术语</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>帖子</td>
+<td>用户发布的物品信息帖</td>
+</tr>
+<tr>
+<td>交易站</td>
+<td>帖子列表浏览页面</td>
+</tr>
+<tr>
+<td>秒杀场</td>
+<td>限时特惠活动专区</td>
+</tr>
+<tr>
+<td>撮合</td>
+<td>信息展示和沟通服务</td>
+</tr>
+<tr>
+<td>工作台</td>
+<td>账户资产管理页面</td>
+</tr>
+<tr>
+<td>余额</td>
+<td>平台虚拟货币</td>
+</tr>
+</tbody>
+</table>
+<h3 id="b.-快捷操作">B. 快捷操作</h3>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>快捷方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>发布帖子</td>
+<td>首页右下角悬浮按钮</td>
+</tr>
+<tr>
+<td>发起私聊</td>
+<td>帖子详情页”联系对方”按钮</td>
+</tr>
+<tr>
+<td>充值提现</td>
+<td>个人中心 &gt; 工作台</td>
+</tr>
+<tr>
+<td>修改信息</td>
+<td>个人中心 &gt; 点击头像</td>
+</tr>
+</tbody>
+</table>
+<h3 id="c.-版本信息">C. 版本信息</h3>
+<ul>
+<li><strong>文档版本</strong>：V1.0</li>
+<li><strong>编写日期</strong>：2026年5月</li>
+<li><strong>适用版本</strong>：魔力淘App V1.0.0</li>
+</ul>
+<hr />
+<p><strong>著作权人</strong>：黑龙江省魔淡网络科技有限公司</p>
 </body>
 </html>

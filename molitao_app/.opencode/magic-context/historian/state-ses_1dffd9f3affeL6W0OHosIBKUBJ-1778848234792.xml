@@ -1,0 +1,1068 @@
+<!-- Project memories below are READ-ONLY reference. Do NOT emit them in output. Drop any session fact already covered by a project memory. -->
+<project-memory>
+<USER_DIRECTIVES>
+- 用户手册先生成 HTML，通过浏览器打印生成 PDF，不直接生成 PDF
+- 软著软件说明书需整合前后端源代码，形成单一完整申请材料
+- 用户手册需按中介示例格式编写：功能模块描述+界面截图+操作流程
+- 源代码提交弹性原则：代码可以多但不能少
+- 软著源代码每页最少 50 行，可以多但不能少
+- 软著申请使用"信息撮合平台"定位，描述为用户商品在线沟通撮合，用户自行线下交易，平台不提供交易担保
+- 软件全称应以软件/APP/系统/平台结尾（如"魔力淘 App"）
+- 用户手册描述必须基于实际软件操作和代码实现，不得臆造不存在的功能
+- 所有软著申请材料必须符合官方规定要求
+- 用户手册术语调整："商品浏览"→"帖子浏览"、"联系卖家"→"联系对方"、"达成交易"→"线下成交"、"订单"→"记录"
+- 现在重点梳理材料内容，不着急格式文档
+- 只需要在模拟器上使用
+- 软著申请使用"商城系统"或"二手物品交易平台"定位，隐藏拍卖特性以规避严格审核风险
+- iOS 上架流程已暂停，等待解决 CocoaPods 框架签名问题后继续
+- 只支持苹果官方仍在支持的 iOS 版本
+- 极光推送 alias 格式必须为 `user_${userId}`
+- iOS 上架流程当前在 App Store Connect 提交审核步骤，阻塞于 Apple ID 登录（需用户手动完成双重认证）
+- iOS 上架流程状态（2026-05-13）：IPA 已构建完成（34MB），等待用户通过 Transporter 上传到 App Store Connect。IPA 路径：`molitao_app/build/ios/ipa/molitao_app.ipa`。上传步骤：1. 安装 Transporter App 2. 拖入 IPA 3. 点击交付。证书配置已完成：DEVELOPMENT_TEAM=WX4RK78D62，Distribution 证书已安装，Provisioning Profile 已创建。
+- 极光推送基础版在 App 后台/关闭时无法送达，必须集成厂商通道才能实现后台推送
+- 微信订阅消息不支持直接拉起外部 App，需通过 H5 中转页实现跳转
+- 修改范围只能是解决发现的问题，不能修改原有业务逻辑
+- EndAuction 操作必须保持原子性，SqlSugar 与 EF Core 不能共用同一事务连接
+- iOS 发布前本地处理项：Info.plist 权限配置、Runner.entitlements 文件创建、AppDelegate.swift iOS 初始化
+- App 端订阅时 openId 必须传递（移动应用微信登录获取）
+- 申请厂商 AppKey/AppId、配置华为 agconnect-services.json、在极光控制台填写厂商参数均需手动完成，不在代码修复范围内
+- 微信支付证书使用外部挂载，不在 Dockerfile 中复制文件到镜像
+- 本地修改后禁止部署操作
+- 厂商推送通道代码层配置（build.gradle.kts 依赖和占位符）已撤销并回退
+- 今晚本地部署测试服务进行验证
+- 现在先不着急格式文档。现在重点梳理材料内容。
+- iOS 上架流程当前在 App Store Connect 提交审核步骤，等待用户登录 Apple ID 后继续
+- iOS上架流程当前在App Store Connect提交审核步骤，等待用户登录Apple ID后继续
+- iOS上架流程当前在App Store Connect提交审核步骤，阻塞于Apple ID登录（需用户手动完成双重认证）
+- iOS上架流程状态（2026-05-13）：IPA已构建完成（34MB），等待用户通过Transporter上传到App Store Connect。IPA路径：`molitao_app/build/ios/ipa/molitao_app.ipa`。上传步骤：1. 安装Transporter App 2. 拖入IPA 3. 点击交付。证书配置已完成：DEVELOPMENT_TEAM=WX4RK78D62，Distribution证书已安装，Provisioning Profile已创建。
+- iOS上架流程已暂停，等待解决CocoaPods框架签名问题后继续
+- 只支持苹果官方仍在支持的iOS版本
+- iOS发布前本地处理项：Info.plist权限配置、Runner.entitlements文件创建、AppDelegate.swift iOS初始化
+- EndAuction操作必须保持原子性，SqlSugar与EF Core不能共用同一事务连接
+- App端订阅时openId必须传递（移动应用微信登录获取）
+- 极光推送alias格式必须为`user_${userId}`
+- 微信订阅消息不支持直接拉起外部App，需通过H5中转页实现跳转
+- 微信支付证书使用外部挂载，不在Dockerfile中复制文件到镜像
+- 申请厂商AppKey/AppId、配置华为agconnect-services.json、在极光控制台填写厂商参数均需手动完成，不在代码修复范围内
+- 极光推送基础版在App后台/关闭时无法送达，必须集成厂商通道才能实现后台推送
+- 软著源代码每页最少50行，可以多但不能少
+- 软件全称应以软件/APP/系统/平台结尾（如"魔力淘App"）
+- 厂商推送通道代码层配置（build.gradle.kts依赖和占位符）已撤销并回退
+- 用户手册先生成HTML，通过浏览器打印生成PDF，不直接生成PDF
+- 厂商推送通道代码层配置（build.gradle.kts 依赖和占位符）已完成；申请厂商 AppKey/AppId、配置华为 agconnect-services.json、在极光控制台填写厂商参数均已撤销，不在代码修复范围内
+- 极光推送alias格式必须为 `user_${userId}`
+- 厂商推送通道代码层配置（build.gradle.kts 依赖和占位符）已完成
+- 申请厂商 AppKey/AppId、配置华为 agconnect-services.json、在极光控制台填写厂商参数均已撤销，不在代码修复范围内
+</USER_DIRECTIVES>
+<CONFIG_DEFAULTS>
+- 用户手册结构：每个功能模块说明后紧跟对应截图（模块+截图交替模式）
+- HTML 用户手册图片样式：最大高度 400px，最大宽度 100%，居中显示
+- 用户手册包含 17 张界面截图：首页、登录、交易站、商品详情、发布帖子、会话列表、私聊、群聊、秒杀场、通讯录、个人中心、个人信息修改、公告列表、公告展示、余额明细、魔力值记录、已成交
+- 软著页码位置：右上角连续页码
+- 软著源代码字体：等宽字体（Consolas/Courier）或宋体五号
+- 软著源代码行号：左侧连续行号
+- 软著软件说明书字体：宋体小四号，1.5 倍行距
+- 软著软件说明书页数：前 30 页+后 30 页=60 页（不足则全部），每页 ≥30 行
+- 软著源代码文档页数：前 30 页+后 30 页=60 页，每页 ≥50 行（结束页 ≥15 行）
+- 软著软件说明书必须包含界面截图或流程图
+- 软著页脚格式：著作权人全称
+- 软著页眉格式：软件全称+版本号（如"魔力淘 App V1.0"）
+- 软著名称：魔力淘 App（Android 版）
+- 软著申请材料目录：`molitao_app/软著申请/`
+- iOS 最低版本：iOS 15.0
+- 微信 iOS URL Scheme：wxbfbe7d50ed28ed41
+- 微信支付证书 Docker 容器内路径：`/app/certs/`
+- 极光推送 alias 格式：`user_${userId}`
+- 微信订阅消息不支持直接拉起外部 App，需通过 H5 中转页实现跳转
+- HTML用户手册图片样式：最大高度400px，最大宽度100%，居中显示
+- 微信订阅消息不支持直接拉起外部App，需通过H5中转页实现跳转
+- 用户手册包含17张界面截图：首页、登录、交易站、商品详情、发布帖子、会话列表、私聊、群聊、秒杀场、通讯录、个人中心、个人信息修改、公告列表、公告展示、余额明细、魔力值记录、已成交
+- 软著页眉格式：软件全称+版本号（如"魔力淘App V1.0"）
+- 软著名称：魔力淘App（Android版）
+- 软著源代码文档页数：前30页+后30页=60页，每页≥50行（结束页≥15行）
+- 软著软件说明书页数：前30页+后30页=60页（不足则全部），每页≥30行
+- iOS最低版本：iOS 15.0
+- 软著软件说明书字体：宋体小四号，1.5倍行距
+- 微信iOS URL Scheme：wxbfbe7d50ed28ed41
+- 微信支付证书Docker容器内路径：`/app/certs/`
+- 极光推送alias格式：`user_${userId}`
+- 微信支付证书Docker容器内路径：/app/certs/
+- 极光推送alias格式必须为user_${userId}
+- 软著申请材料目录：molitao_app/软著申请/
+- 微信支付证书 Docker 容器内路径为 `/app/certs/`
+- 软著页眉格式：软件全称+版本号（如"魔力淘 V1.0"）
+- 软著源代码字体：等宽字体或宋体五号
+- 极光推送 alias 格式必须为 `user_${userId}`
+- 用户手册包含13张界面截图：首页、登录、交易站、商品详情、发布帖子、会话列表、私聊、秒杀场、通讯录、个人中心、个人信息修改、公告列表、公告展示
+- 软著申请材料目录：molitao_app/软著申请/。
+- 软著名称：魔力淘App（Android版）。
+- iOS最低版本：iOS 12.0
+- 微信支付证书Docker容器内路径为 `/app/certs/`
+- App 端订阅时 openId 必须传递（移动应用微信登录获取）
+</CONFIG_DEFAULTS>
+<CONSTRAINTS>
+- 极光推送基础版在 App 后台/关闭时无法送达，必须集成厂商通道（HMS/Mi Push/OPPO/vivo/荣耀/魅族）才能实现后台推送
+- App 端订阅时 openId 必须传递（移动应用微信登录获取）
+- 本地处理的定义：代码层面可完成的配置，不依赖外部账号/证书申请
+- iOS 模拟器构建不需要分发证书和描述文件
+- 修改范围只能是解决发现的问题，不能修改原有业务逻辑
+- 微信支付证书使用外部挂载，不在 Dockerfile 中复制文件到镜像
+- Promise 重构必须保持原有业务执行流程与逻辑不变，执行结果一致
+- 微信订阅消息不支持直接拉起外部 App，需通过 H5 中转页实现跳转（URL Scheme 或 Universal Link）
+- 系统不提供交易功能支持和交易担保，用户自行线下交易
+- 极光推送 alias 格式必须为 `user_${userId}`，App 端与推送 API 调用端必须保持一致
+- EndAuction 操作必须保持原子性，SqlSugar 与 EF Core 不能共用同一事务连接
+- 用户手册内容必须基于实际代码页面梳理，不得臆造功能
+- 安卓应用上架软著名称需与应用名称一致
+- 软著申请截图共需 20 张，当前缺失 3 张：设置页面、账号安全页面、关于页面（获取路径：个人中心 → 右上角设置）
+- 软著软件说明书必须包含界面截图或流程图
+- 软著申请截图共需 21 张，当前缺失 3 张：设置页面、账号安全页面、关于页面（获取路径：个人中心 → 右上角设置）
+- 软著申请截图共需 17 张，当前缺失 4 张：设置页面、账号安全页面、关于页面、工作台页面
+- Promise重构必须保持原有业务执行流程与逻辑不变，执行结果一致
+- EndAuction操作必须保持原子性，SqlSugar与EF Core不能共用同一事务连接
+- 微信支付证书使用外部挂载，不在Dockerfile中复制文件到镜像
+- App端订阅时openId必须传递（移动应用微信登录获取）
+- 微信订阅消息不支持直接拉起外部App，需通过H5中转页实现跳转
+- 极光推送alias格式必须为`user_${userId}`，App端与推送API调用端必须保持一致
+- 极光推送基础版在App后台/关闭时无法送达，必须集成厂商通道
+- iOS模拟器构建不需要分发证书和描述文件
+- 软著申请截图共需17张，当前缺失4张：设置页面、账号安全页面、关于页面、工作台页面
+- 极光推送alias格式必须为`user_${userId}`（如`user_7509`），App端与推送API调用端必须保持一致
+- 极光推送基础版在App后台/关闭时无法送达，必须集成厂商通道（HMS/Mi Push/OPPO/vivo/荣耀/魅族）才能实现后台推送
+- 安卓应用上架软著名称需与应用名称一致，不一致会导致审核驳回
+- 微信订阅消息不支持直接拉起外部App，需通过H5中转页实现跳转（URL Scheme或Universal Link）
+- 极光推送基础版在App后台/关闭时无法送达，必须集成厂商通道才能实现后台推送
+- 极光推送alias格式必须为user_${userId}，App端与推送API调用端必须保持一致
+- 极光推送 alias 格式必须为 `user_${userId}`（如 `user_7509`），App 端与推送 API 调用端必须保持一致
+- 极光推送基础版在 App 后台/关闭时无法送达，必须集成厂商通道才能实现后台推送
+- 微信订阅消息不支持直接拉起外部 App，需通过 H5 中转页实现跳转
+- 用户手册内容必须基于实际代码页面梳理，不得臆造功能。
+- 软著申请截图共需17张，当前缺失4张：设置页面、账号安全页面、关于页面、工作台页面。
+- 极光推送alias格式必须为`user_${userId}`
+- 极光推送 alias 格式必须为 `user_${userId}`
+- `EndAuction` 操作必须保持原子性，SqlSugar 与 EF Core 不能共用同一事务连接
+</CONSTRAINTS>
+<ARCHITECTURE_DECISIONS>
+- 极光推送测试成功：msg_id `18103100279553893`，alias `user_7509`，channel_id `auction_notify`，Priority=1，AlertType=1
+- Backend Random 统一使用 `Random.Shared` 替代 `new Random()`
+- UniApp 敏感配置（API Key）存放于环境变量文件，不写在源码
+- 软著相关资料仅存在于文档层面（`molitao_app/软著申请/`），不涉及后端代码实现
+- iOS 后台推送模式：UIBackgroundModes remote-notification
+- iOS 最低版本：iOS 15.0（官方支持的最低版本）
+- iOS entitlements 文件位置：ios/Runner/Runner.entitlements
+- 本地开发使用相对路径 `certs/apiclient_cert.p12`，代码拼接 wwwroot；生产环境使用绝对路径 `/app/certs/apiclient_cert.p12`
+- 微信支付证书 Docker 容器内路径为 `/app/certs/`，通过 docker-compose.yml volumes 从外部挂载
+- fluwx 库 `WeChatSubscribeMsgResponse.isSuccessful` 基于 `errCode==0` 判断，但微信订阅成功时 `errCode` 为 `null`，正确判断应使用 `action` 字段（非 `reject` 即成功）
+- `UserGroupLevelEntity` 和 `GroupChatLevelSettingEntity` 同时保留 SqlSugar 版本（其他模块使用）和 EF Core 版本（原子事务专用）
+- 系统实体统一使用 `long` 作为主键类型
+- 后端 GetPayOrderStatus 接口返回中文状态值（已支付/未支付/已退款/取消/退款中/部分退款/NOT_FOUND）
+- 微信支付证书路径解析：绝对路径直接返回，相对路径拼接 WebRootPath；统一路径解析器 `ICertificatePathResolver` 自动判断
+- 前端 PaymentStatus 枚举值使用中文，与后端返回值一一对应
+- PC XSS 防护使用 DOMPurify 对 innerHTML 内容消毒
+- 微信订阅消息显示在微信 App「服务通知」中，不直接推送到 Flutter App
+- Backend 使用 C# .NET 8 + ABP Framework
+- PC 端使用 Vue 3 + TypeScript + Pinia
+- UniApp 仅支持微信小程序平台（`mp-weixin`）
+- 设置页面入口位于个人中心页面 AppBar 右上角，跳转路径为 `/settings`
+- 个人中心包含两个设置按钮：AppBar 右上角按钮跳转 `/settings`，用户信息卡片按钮跳转 `/profile/user-info`（个人信息修改）
+- 平台定位为信息撮合平台（用户在线沟通撮合，交易由用户线下完成，平台不提供交易担保），非交易平台
+- 设置页面入口位于个人中心页面AppBar右上角，跳转路径为`/settings`
+- UniApp仅支持微信小程序平台（`mp-weixin`）
+- 微信订阅消息显示在微信App「服务通知」中，不直接推送到Flutter App
+- PC XSS防护使用DOMPurify对innerHTML内容消毒
+- 平台定位为信息撮合平台（用户在线沟通撮合，交易由用户线下完成，平台不提供交易担保）
+- Backend使用C# .NET 8 + ABP Framework
+- PC端使用Vue 3 + TypeScript + Pinia
+- 前端PaymentStatus枚举值使用中文，与后端返回值一一对应
+- `UserGroupLevelEntity`和`GroupChatLevelSettingEntity`同时保留SqlSugar版本和EF Core版本
+- fluwx库`WeChatSubscribeMsgResponse.isSuccessful`判断应使用`action`字段（非`reject`即成功）
+- 系统实体统一使用`long`作为主键类型
+- 微信支付证书Docker容器内路径为`/app/certs/`，通过docker-compose.yml volumes从外部挂载
+- 后端GetPayOrderStatus接口返回中文状态值
+- 微信支付证书路径解析：绝对路径直接返回，相对路径拼接WebRootPath
+- Backend Random统一使用`Random.Shared`替代`new Random()`
+- UniApp敏感配置存放于环境变量文件，不写在源码
+- iOS entitlements文件位置：ios/Runner/Runner.entitlements
+- iOS后台推送模式：UIBackgroundModes remote-notification
+- iOS最低版本：iOS 15.0
+- 软著相关资料仅存在于文档层面，不涉及后端代码实现
+- 个人中心包含两个设置按钮：AppBar右上角按钮跳转`/settings`，用户信息卡片按钮跳转`/profile/user-info`
+- 个人中心包含两个设置按钮：AppBar右上角按钮跳转`/settings`，用户信息卡片按钮跳转`/profile/user-info`（个人信息修改）
+- iOS最低版本：iOS 15.0（官方支持的最低版本）
+- UniApp敏感配置（API Key）存放于环境变量文件，不写在源码
+- 微信支付证书路径解析：绝对路径直接返回，相对路径拼接WebRootPath；统一路径解析器`ICertificatePathResolver`自动判断
+- 后端GetPayOrderStatus接口返回中文状态值（已支付/未支付/已退款/取消/退款中/部分退款/NOT_FOUND）
+- 前端PaymentStatus枚举值使用中文（Success='已支付'、Pending='未支付'、Failed='失败'），与后端返回值一一对应
+- `UserGroupLevelEntity`和`GroupChatLevelSettingEntity`同时保留SqlSugar版本（其他模块使用）和EF Core版本（原子事务专用）
+- fluwx库`WeChatSubscribeMsgResponse.isSuccessful`基于`errCode==0`判断，但微信订阅成功时`errCode`为`null`，正确判断应使用`action`字段（非`reject`即成功）
+- 本地开发使用相对路径`certs/apiclient_cert.p12`，代码拼接WebRootPath；生产环境使用绝对路径`/app/certs/apiclient_cert.p12`
+- 设置页面入口位于个人中心页面AppBar右上角，跳转路径为/settings
+- 本地开发使用相对路径certs/apiclient_cert.p12，代码拼接WebRootPath；生产环境使用绝对路径/app/certs/apiclient_cert.p12
+- UniApp仅支持微信小程序平台（mp-weixin）
+- fluwx库WeChatSubscribeMsgResponse.isSuccessful基于errCode==0判断，但微信订阅成功时errCode为null，正确判断应使用action字段（非reject即成功）
+- 平台定位为信息撮合平台，非交易平台：仅提供用户商品在线沟通撮合，不提供交易功能支持和交易担保，用户自行线下交易
+- 极光推送 alias 格式必须为 `user_${userId}`（如 `user_7509`），App 端与推送 API 调用端必须保持一致
+- 前端 PaymentStatus 枚举值使用中文（Success='已支付'、Pending='未支付'、Failed='失败'），与后端返回值一一对应
+- fluwx 库 `WeChatSubscribeMsgResponse.isSuccessful` 基于 `errCode == 0` 判断，但微信订阅成功时 `errCode` 为 `null`，正确判断应使用 `action` 字段（非 `reject` 即成功）
+- `UserGroupLevelEntity` 和 `GroupChatLevelSettingsEntity` 同时保留 SqlSugar 版本（其他模块使用）和 EF Core 版本（原子事务专用）
+- 极光推送基础版在 App 后台/关闭时无法送达，必须集成厂商通道（HMS/Mi Push/OPPO/vivo/荣耀/魅族）才能实现后台推送
+- `UserGroupLevelEntity`（SqlSugar，主键 `int`）和 `UserGroupLevel`（EF Core，主键 `long`）同时映射数据库表 `t_UserGroupLevel`，前者供其他模块使用，后者专用于原子事务
+- 设置页面入口位于个人中心页面AppBar右上角（Positioned定位），跳转路径为`/settings`
+- 平台定位为信息撮合平台（用户在线沟通撮合，交易由用户线下完成，平台不提供交易担保），非交易平台。
+- 系统定位为信息撮合平台，非交易平台：仅提供用户商品在线沟通撮合，不提供交易功能支持和交易担保，用户自行线下交易
+- UniApp 仅支持微信小程序平台 (`mp-weixin`)
+- 微信支付证书 Docker 容器内路径为 `/app/certs/`，通过 docker-compose.yml volumes 从 `/www/certs` 外部挂载
+- 本地开发使用相对路径 `certs/apiclient_cert.p12`，代码拼接 wwwroot；生产环境挂载外部证书到 wwwroot 下，无需修改配置
+- 个人中心设置按钮位于AppBar右上角（Positioned定位），跳转路径为`/settings`
+- 设置页面入口位于个人中心页面右上角的 tabbar 右侧操作按钮，跳转路径为 `/settings`
+- 微信支付证书路径解析：绝对路径（如 `/app/certs/apiclient_cert.p12`）直接返回，相对路径（如 `certs/apiclient_cert.p12`）拼接 WebRootPath；统一路径解析器 `ICertificatePathResolver` 自动判断
+- 微信支付证书路径：绝对路径直接返回，相对路径拼接 WebRootPath
+- 极光推送 alias 格式必须为 `user_${userId}`
+- 微信支付证书路径：绝对路径直接返回，相对路径拼接WebRootPath
+- 极光推送alias格式必须为 `user_${userId}`
+- 微信支付证书绝对路径直接返回，相对路径拼接 WebRootPath
+- `UserGroupLevelEntity`（SqlSugar，主键 `int`）和 `UserGroupLevel`（EF Core，主键 `int`）同时映射数据库表 `t_UserGroupLevel`，前者供其他模块使用，后者专用于原子事务
+- 微信支付证书使用外部挂载，不在 Dockerfile 中复制文件到镜像
+- 本地开发使用相对路径 `certs/apiclient_cert.p12`，代码拼接 WebRootPath；生产环境使用绝对路径 `/app/certs/apiclient_cert.p12`
+- 极光推送基础版在App后台/关闭时无法送达，必须集成厂商通道才能实现后台推送
+- 微信支付证书Docker容器内路径为 `/app/certs/`，通过docker-compose.yml volumes从外部挂载
+- 极光推送alias格式必须为 `user_${userId}`（如 `user_7509`），App端与推送API调用端必须保持一致
+- 微信支付证书路径解析：绝对路径直接返回，相对路径拼接 WebRootPath
+- 微信订阅消息显示在微信 App"服务通知"中，不直接推送到 Flutter App
+- 微信支付证书路径：绝对路径（如 `/app/certs/apiclient_cert.p12`）直接返回，相对路径（如 `certs/apiclient_cert.p12`）拼接 WebRootPath
+- 统一路径解析器 `ICertificatePathResolver` 自动判断：绝对路径直接返回，相对路径拼接 WebRootPath
+- 微信支付证书 Docker 容器内路径为 `/app/wwwroot/certs/`，通过 docker-compose.yml volumes 从 `/www/certs` 外部挂载到 `/app/wwwroot/certs`
+- 微信支付证书 Docker 容器内路径为 `/app/certs/`
+</ARCHITECTURE_DECISIONS>
+<ENVIRONMENT>
+- 当前 Provisioning Profile 是 App Store Distribution 类型，不支持真机测试，需创建 iOS App Development Provisioning Profile 才能真机调试
+- iPhone 真机已连接（iOS 26.1，UDID `00008110-000C64612EF2801E`）
+- Xcode 26.4.1 最高支持 iOS 16.4，不支持 iOS 18.x 真机构建
+- 后端部署脚本位置：`backend/scripts/deploy-to-server.sh`
+- 后端 Web 服务目录：`/data/dotnetapi`
+- 本地开发数据库操作使用 `LocalDevController.cs` 的 `POST /api/localdev/reset-password` 接口（仅限 127.0.0.1 调用）
+- Transporter App 未安装，iOS IPA 上传需用户手动安装 Transporter 并上传
+- Android 真机已连接（Android 14 设备），App 包名为 com.molitao.app，用于软著截图采集
+- PC 端测试账号：用户 7509 / 密码 123456
+- PC 端 Nginx root：`/www/wwwroot/www.molitao.top`
+- SSH 别名：`molitao`
+- iOS Provisioning Profile 已安装（Molitao_App_Store_Distribution，App Store Distribution 类型）
+- iOS 上架 IPA 文件位置：`molitao_app/build/ios/ipa/molitao_app.ipa`（34MB，版本 1.5.4 Build 1）
+- iOS 推送配置已完成：APNS Key 已上传极光控制台，Info.plist、Runner.entitlements、Flutter push_service.dart 配置完整
+- Flutter App API baseUrl 生产地址为 `https://www.molitao.top`
+- iOS Distribution 证书已安装（iPhone Distribution: TengFei Li，Team ID WX4RK78D62）
+- Apple 开发者账号到期日：2027-05-13
+- iOS APNS 环境：production
+- APNS Key ID：6VUQS8645G（Key Name: MolitaoAPNS2，.p8 文件位于 ~/Downloads/AuthKey_6VUQS8645G.p8）
+- DEVELOPMENT_TEAM：WX4RK78D62
+- 极光推送 AppKey：4e91398522bb1286f6452efb
+- iOS Bundle ID：com.molitao.molitaoApp
+- 用户手册 Word 文件：`软著申请/用户手册.docx`
+- 源代码 Word 文件：`软著申请/源代码_100页.docx`
+- 用户手册路径：`/Users/mac/workspace/magic-tao/molitao_app/软著申请/用户手册.html`
+- 用户手册 HTML 文件：`软著申请/用户手册.html`（含目录导航）
+- 软著申请目录：`/Users/mac/workspace/magic-tao/molitao_app/软著申请/`
+- 软著截图目录：`/Users/mac/workspace/magic-tao/molitao_app/软著申请/截图/`
+- Flutter API baseUrl 已更新为生产地址 `https://www.molitao.top`（从本地开发地址 `http://192.168.10.32:12580` 切换）
+- 用户手册 Word 文件：`软著申请/用户手册.docx`（6.5MB，pandoc 从 HTML 转换）
+- 软著申请源文件目录：`/Users/mac/workspace/magic-tao/软著申请/`（包含源代码 PDF 和 TXT）
+- 源代码 PDF 文件：`软著申请/源代码_100页.pdf`（100 页，仅 Flutter App 代码，每页 50 行）
+- 用户手册 HTML 文件：`软著申请/用户手册.html`（含目录导航，缺失截图用占位符标注）
+- 用户手册 PDF 文件：`软著申请/用户手册_pandoc.pdf`（5.1MB，包含截图）
+- 软著申请材料已移除所有 PDF 文件，保留 md/html/docx 格式和截图
+- 后端服务健康检查通过：Swagger 端点返回 200
+- iOS Development 证书已安装（Apple Development: TengFei Li，Team ID RMU23HWRE4）
+- Apple 开发者账号已续费（TengFei Li 个人账号，Team ID WX4RK78D62，RMB 688/年，到期日 2027/05/13）
+- PC 前端开发服务器代理配置位于 `vite.config.ts`，当前代理目标为 `http://192.168.10.32:12580`
+- PROVISIONING_PROFILE_SPECIFIER 已配置为 `Molitao_App_Store_Distribution`
+- 极光推送已配置：AppKey `4e91398522bb1286f6452efb`，iOS APNS 环境 `production`，Android Channel `developer-default`
+- iOS 推送配置文件：`ios/Runner/Runner.entitlements`（aps-environment: production）、`ios/Runner/Info.plist`（极光 AppKey）
+- iOS 项目签名配置：CODE_SIGNING_REQUIRED = YES, PROVISIONING_PROFILE_REQUIRED = YES
+- iOS 项目 Debug 配置已改为 Automatic 签名，Release/Profile 仍为 Manual 签名
+- Flutter App API baseUrl 配置位于 `molitao_app/lib/data/api/api_client.dart`
+- Android 推送配置文件：`android/app/src/main/AndroidManifest.xml`（极光推送 + 保活服务）
+- Flutter 推送服务实现：`lib/data/services/push_service.dart`
+- iOS 推送配置已完成：APNS Key ID 6VUQS8645G 已上传极光控制台，环境 Production，AppKey 4e91398522bb1286f6452efb
+- 软著申请材料存放路径：`molitao_app/软著申请/`
+- 源代码 Word 文件：`软著申请/源代码_100页.docx`（55KB）
+- 本地开发数据库操作使用 `LocalDevController.cs` 的 `POST /api/localdev/reset-password` 接口（仅限 127.0.0.1 调用），需要 `UserId` 参数
+- APNS Key ID为6VUQS8645G（Key Name: MolitaoAPNS2，.p8文件位于~/Downloads/AuthKey_6VUQS8645G.p8）
+- Flutter API baseUrl已更新为生产地址`https://www.molitao.top`（从本地开发地址`http://192.168.10.32:12580`切换）
+- 极光推送AppKey为4e91398522bb1286f6452efb
+- iOS APNS环境为production
+- iOS Bundle ID为com.molitao.molitaoApp
+- DEVELOPMENT_TEAM为WX4RK78D62
+- iOS Distribution证书已安装（iPhone Distribution: TengFei Li，Team ID WX4RK78D62）
+- Apple开发者账号到期日为2027-05-13
+- 软著申请源文件目录：`/Users/mac/workspace/magic-tao/软著申请/`（包含源代码PDF和TXT）
+- 源代码PDF文件：`软著申请/源代码_100页.pdf`（100页，仅Flutter App代码，每页50行）
+- 用户手册HTML文件：`软著申请/用户手册.html`（含目录导航，缺失截图用占位符标注）
+- 用户手册PDF文件：`软著申请/用户手册_pandoc.pdf`（5.1MB，包含截图）
+- 用户手册Word文件：`软著申请/用户手册.docx`（6.5MB，pandoc从HTML转换）
+- iOS推送配置已完成：APNS Key已上传极光控制台，Info.plist、Runner.entitlements、Flutter push_service.dart配置完整
+- 软著申请材料已移除所有PDF文件，保留md/html/docx格式和截图
+- PC前端开发服务器代理配置位于`vite.config.ts`，当前代理目标为`http://192.168.10.32:12580`
+- 后端服务健康检查通过：Swagger端点返回200
+- Apple开发者账号已续费（TengFei Li个人账号，Team ID WX4RK78D62，RMB 688/年，到期日2027/05/13）
+- iOS Development证书已安装（Apple Development: TengFei Li，Team ID RMU23HWRE4）
+- iOS项目签名配置：CODE_SIGNING_REQUIRED = YES, PROVISIONING_PROFILE_REQUIRED = YES
+- iOS Distribution证书已安装
+- iOS Provisioning Profile已安装（Molitao_App_Store_Distribution，App Store Distribution类型）
+- 极光推送已配置：AppKey `4e91398522bb1286f6452efb`，iOS APNS环境 `production`，Android Channel `developer-default`
+- iOS推送配置文件：`ios/Runner/Runner.entitlements`（aps-environment: production）、`ios/Runner/Info.plist`（极光AppKey）
+- PROVISIONING_PROFILE_SPECIFIER已配置为`Molitao_App_Store_Distribution`
+- Flutter推送服务实现：`lib/data/services/push_service.dart`
+- 当前Provisioning Profile是App Store Distribution类型，不支持真机测试，需创建iOS App Development Provisioning Profile才能真机调试
+- Android推送配置文件：`android/app/src/main/AndroidManifest.xml`（极光推送 + 保活服务）
+- iOS项目Debug配置已改为Automatic签名，Release/Profile仍为Manual签名
+- iOS APNS Key ID：6VUQS8645G（Key Name: MolitaoAPNS2，.p8文件位于~/Downloads/AuthKey_6VUQS8645G.p8）
+- iPhone真机已连接（iOS 26.1，UDID `00008110-000C64612EF2801E`）
+- Flutter App API baseUrl配置位于`molitao_app/lib/data/api/api_client.dart`
+- Xcode 26.4.1最高支持iOS 16.4，不支持iOS 18.x真机构建
+- Android真机已连接（Android 14设备），App包名为com.molitao.app，用于软著截图采集
+- iOS推送配置已完成：APNS Key ID 6VUQS8645G已上传极光控制台，环境Production，AppKey 4e91398522bb1286f6452efb
+- 源代码Word文件：`软著申请/源代码_100页.docx`（55KB）
+- PC端测试账号：用户7509 / 密码123456
+- iOS APNS环境：production
+- APNS Key ID：6VUQS8645G
+- iOS上架IPA文件位置：`molitao_app/build/ios/ipa/molitao_app.ipa`（34MB，版本1.5.4 Build 1）
+- 极光推送AppKey：4e91398522bb1286f6452efb
+- Apple开发者账号到期日：2027-05-13
+- PC端Nginx root：`/www/wwwroot/www.molitao.top`
+- SSH别名：molitao
+- 后端Web服务目录：`/data/dotnetapi`
+- Transporter App未安装，iOS IPA上传需用户手动安装Transporter并上传
+- Flutter App API baseUrl生产地址为`https://www.molitao.top`
+- 本地开发数据库操作使用`LocalDevController.cs`的`POST /api/localdev/reset-password`接口（仅限127.0.0.1调用）
+- 本地开发数据库操作使用LocalDevController.cs的POST /api/localdev/reset-password接口（仅限127.0.0.1调用）
+- 后端部署脚本位置：backend/scripts/deploy-to-server.sh
+- Flutter App API baseUrl生产地址为https://www.molitao.top
+- 后端Web服务目录：/data/dotnetapi
+- PC端Nginx root：/www/wwwroot/www.molitao.top
+- iOS上架IPA文件位置：molitao_app/build/ios/ipa/molitao_app.ipa（34MB，版本1.5.4 Build 1）
+- 软著截图目录：/Users/mac/workspace/magic-tao/molitao_app/软著申请/截图/
+- 用户手册路径：/Users/mac/workspace/magic-tao/molitao_app/软著申请/用户手册.html
+- PC端测试账号：用户 7509 / 密码 123456
+- Flutter App API baseUrl 配置位于 `molitao_app/lib/data/api/api_client.dart`，生产地址为 `https://www.molitao.top`
+- iOS APNS Key ID：6VUQS8645G（Key Name: MolitaoAPNS2，.p8 文件位于 ~/Downloads/AuthKey_6VUQS8645G.p8）
+- iOS Distribution 证书已安装
+- DEVELOPMENT_TEAM 已配置为 `WX4RK78D62`（project.pbxproj 中 Debug/Release/Profile 均已设置）
+- iOS IPA 文件位置：`build/ios/ipa/molitao_app.ipa`（版本 1.5.4 Build 1）
+- iOS 项目 Bundle ID：`com.molitao.molitaoApp`
+- PC前端开发服务器代理配置位于 `vite.config.ts`，当前代理目标为 `http://192.168.10.32:12580`
+- SSH别名：`molitao`
+- PC 前端开发服务器代理到 `http://192.168.10.32:12580`
+- 后端 Web 服务目录为 `/data/dotnetapi`
+- 后端部署脚本位于 `backend/scripts/deploy-to-server.sh`
+- 软著申请材料已移除所有PDF文件，保留 md/html/docx 格式和截图
+- iOS 上架 IPA 文件位于 `molitao_app/build/ios/ipa/molitao_app.ipa`（34MB，版本 1.5.4 Build 1）
+- Apple 开发者账号到期日为 2027-05-13
+- iOS Bundle ID 为 com.molitao.molitaoApp
+- DEVELOPMENT_TEAM 为 WX4RK78D62
+- 极光推送 AppKey 为 4e91398522bb1286f6452efb
+- iOS APNS 环境为 production
+- APNS Key ID 为 6VUQS8645G（Key Name: MolitaoAPNS2，.p8 文件位于 ~/Downloads/AuthKey_6VUQS8645G.p8）
+- Flutter App API baseUrl 配置位于 `molitao_app/lib/data/api/api_client.dart`，当前默认值为 `http://192.168.10.32:12580`
+- 用户手册PDF文件：`软著申请/用户手册_pandoc.pdf`（5.1MB，包含13张截图）
+- 用户手册HTML文件：`软著申请/用户手册.html`（28KB，含目录导航，缺失截图用占位符标注）
+- 用户手册HTML文件：`软著申请/用户手册.html`（17KB，含目录导航）
+- 源代码PDF文件：`软著申请/源代码.pdf`（100页，仅Flutter App代码，每页50行）
+- 源代码PDF文件：`软著申请/源代码.pdf`（63页，含页眉页脚行号）
+- APNS Key ID：6VUQS8645G（Key Name: MolitaoAPNS2，.p8 文件路径：~/Downloads/AuthKey_6VUQS8645G.p8）
+- iOS 上架 IPA 文件位置：molitao_app/build/ios/ipa/molitao_app.ipa（34MB，版本 1.5.4 Build 1）
+- iOS 推送配置已完成：APNS Key ID 6VUQS8645G 已上传到极光控制台，环境 Production，AppKey 4e91398522bb1286f6452efb
+- APNS Key ID：BD75J7M38G（Key Name: MolitaoAPNS）
+- iOS上架IPA文件位置：molitao_app/build/ios/ipa/molitao_app.ipa（34MB，版本1.5.4 Build 1）。IPA上传阻塞于Transporter App未安装，需用户手动安装并上传。
+- iOS上架IPA文件位置：molitao_app/build/ios/ipa/molitao_app.ipa
+- iOS IPA 文件位置：`molitao_app/build/ios/ipa/molitao_app.ipa`（版本 1.5.4 Build 1，34MB）
+- iOS 开发证书 exists (Apple Development: TengFei Li)
+- APNS environment is production
+- iOS 发布证书 exists (iPhone Distribution: TengFei Li)
+- 极光 AppKey is 4e91398522bb1286f6452efb
+- Team ID is WX4RK78D62
+- Bundle ID is com.molitao.molitaoApp
+- iOS 项目签名配置启用：CODE_SIGNING_REQUIRED = YES, PROVISIONING_PROFILE_REQUIRED = YES
+- iOS 项目 Bundle ID 为 `com.molitao.molitaoApp`
+- Apple 开发者账号已续费（TengFei Li 个人账号，Team ID WX4RK78D62，RMB 688/年，到期日 2027 年 5 月 13 日）
+- iOS Provisioning Profile 已创建并安装（Bundle ID `com.molitao.molitaoApp`，App Store Distribution 类型）
+- 本地已有开发证书 `Apple Development: TengFei Li`（Team ID `RMU23HWRE4`），缺少发布证书和 Provisioning Profile
+- Apple 开发者账号已续费（TengFei Li 个人账号，Team ID WX4RK78D62，RMB 688/年）
+- 后端服务健康检查通过：Swagger 端点返回 200。
+- 后端 Web 服务目录为 `/data/dotnetapi`。
+- 本地开发数据库操作使用 `LocalDevController.cs` 的 `POST /api/localdev/reset-password` 接口（仅限 127.0.0.1 调用）。
+- 后端部署脚本位于 `backend/scripts/deploy-to-server.sh`。
+- PC 前端开发服务器代理到 `http://192.168.10.32:12580`。
+- 本地已有开发证书 `Apple Development: TengFei Li`（Team ID `RMU23HWRE4`），缺少发布证书和 Provisioning Profile。
+- iOS 项目签名配置启用：CODE_SIGNING_REQUIRED = YES, PROVISIONING_PROFILE_REQUIRED = YES。
+- DEVELOPMENT_TEAM 已配置为 `WX4RK78D62`（project.pbxproj 中 Debug/Release/Profile 均已设置）。
+- iOS 项目 Bundle ID 为 `com.molitao.molitaoApp`。
+- Apple 开发者账号已续费（TengFei Li 个人账号，Team ID WX4RK78D62，RMB 688/年）。
+- DEVELOPMENT_TEAM 未配置（project.pbxproj 为空），续费后需设为 `WX4RK78D62`。
+- DEVELOPMENT_TEAM 未配置（project.pbxproj 为空），续费后需设为 `RMU23HWRE4`
+- 后端服务健康检查：Swagger 端点返回 200，服务正常运行
+- 本地开发数据库操作：使用 `LocalDevController.cs` 的 `POST /api/localdev/reset-password` 接口（仅限 127.0.0.1 调用）
+- DEVELOPMENT_TEAM 未配置（项目 project.pbxproj 中为空），续费后需设为 `RMU23HWRE4`
+- 本地已有开发证书 `Apple Development: TengFei Li`（Team ID `RMU23HWRE4`），缺少发布证书（Distribution）和 Provisioning Profile
+- iOS 项目签名配置: CODE_SIGNING_REQUIRED = YES, PROVISIONING_PROFILE_REQUIRED = YES
+- iOS 项目 Bundle ID: `com.molitao.molitaoApp`
+- DEVELOPMENT_TEAM 未配置，需续费后设置
+</ENVIRONMENT>
+<WORKFLOW_RULES>
+- Promise 重构必须保持原有业务执行流程与逻辑不变，执行结果一致
+- Android App 保活配置完成：RECEIVE_BOOT_COMPLETED 权限（开机自启动）、FOREGROUND_SERVICE 权限（前台服务）、PushService 配置 foregroundServiceType="specialUse"、PushReceiver 监听 BOOT_COMPLETED、MainActivity.kt 创建 jpush_foreground 通知渠道（IMPORTANCE_LOW，静默）
+- iOS 上架流程需先完成 Apple 开发者账号续费，然后才能申请证书、配置签名、打包构建、上架提交
+- APNS Key 创建需要登录 Apple Developer（developer.apple.com/account），需完成 Apple ID 双重认证
+- 真机测试需创建 iOS App Development Provisioning Profile 或配置 Automatic 签名，并选择测试设备 UDID
+- 安卓应用上架软著名称需与应用名称一致，不一致会导致审核驳回
+- 用户手册结构：每个功能模块说明后紧跟对应截图
+- 当需要进行软著相关研究时，调研范围应覆盖 App 端文档、后端代码库、申报材料状态
+- 极光控制台配置入口：https://www.jiguang.cn → 控制台 → 应用 4e91398522bb1286f6452efb → 推送设置
+- iOS App Store 上架流程：开发者账号续费 → 配置 DEVELOPMENT_TEAM → 申请发布证书 → 创建 Provisioning Profile → 整理推送配置 → Flutter 构建 IPA → 用户上传 IPA 到 App Store Connect
+- IPA 上传必须通过 Transporter App 或 App Store Connect 网页手动完成，Apple 安全机制要求 Apple ID 认证
+- 极光推送 iOS 配置：创建 APNS Key（.p8）→ 上传到极光控制台（推送设置 → iOS → 认证方式 Token）→ 填写 Key ID、Team ID、Bundle ID → 上传 .p8 文件
+- 软著截图命名规范：序号_功能名称.png
+- 推送完整流程测试：订阅记录创建 → 开拍触发 → 推送日志验证
+- 后端服务停止后需用户手动重启，重启完成后再通知继续
+- 软著申请材料需提交 PDF 格式，不接受 markdown 格式
+- iOS 模拟器截图默认保存到用户桌面，格式为"Simulator Screenshot - [设备名] - [日期时间].png"
+- 用户手册内容必须基于实际代码页面梳理，不得臆造功能
+- 问题无法解决则回退版本或跳过，继续循环直到所有严重问题解决
+- 事务修复需保持原子性：全部成功或全部回滚
+- 本地开发数据库操作通过 `LocalDevController.cs` 执行，禁止操作正式服务器
+- 创建新分支时使用日期前缀 `YYYYMMDD_***`
+- 本地修改后禁止部署操作
+- 用户手册先生成 HTML，通过浏览器打印生成 PDF，不直接生成 PDF
+- 禁止使用空 catch 块
+- 本地测试时 App API 地址指向 `http://192.168.10.32:12580`
+- Code Review 优先审查最近一次提交
+- 所有输出使用中文
+- H5 部署使用 skill `molitao-h5-deploy`
+- PC 端部署：构建后上传到 `/www/wwwroot/www.molitao.top/`，然后重载 Nginx
+- 修复后自行测试验证，修复完成无问题则提交 Git
+- 软著源代码行号：左侧连续行号
+- 软著页码位置：右上角连续页码
+- 软著软件说明书必须包含界面截图或流程图
+- 软著软件说明书页数：前 30 页+后 30 页=60 页（不足则全部），每页 ≥30 行
+- 软著软件说明书字体：宋体小四号，1.5 倍行距
+- 软著页眉格式：软件全称+版本号（如"魔力淘 V1.0"）
+- 软著页脚格式：著作权人全称
+- 软著源代码字体：等宽字体（Consolas/Courier）或宋体五号
+- 软著源代码文档页数：前 30 页+后 30 页=60 页，每页 ≥50 行（结束页 ≥15 行）
+- H5部署使用skill `molitao-h5-deploy`
+- PC端部署：构建后上传到`/www/wwwroot/www.molitao.top/`，然后重载Nginx
+- 本地测试时App API地址指向`http://192.168.10.32:12580`
+- 修复后自行测试验证，修复完成无问题则提交Git
+- 禁止使用空catch块
+- Code Review优先审查最近一次提交
+- 创建新分支时使用日期前缀`YYYYMMDD_***`
+- 本地开发数据库操作通过`LocalDevController.cs`执行，禁止操作正式服务器
+- 用户手册先生成HTML，通过浏览器打印生成PDF
+- Promise重构必须保持原有业务执行流程与逻辑不变
+- 当需要进行软著相关研究时，调研范围应覆盖App端文档、后端代码库、申报材料状态
+- 后端服务停止后需用户手动重启
+- 软著申请材料需提交PDF格式，不接受markdown格式
+- iOS模拟器截图默认保存到用户桌面
+- 极光推送iOS配置：创建APNS Key（.p8）→ 上传到极光控制台 → 填写Key ID、Team ID、Bundle ID → 上传.p8文件
+- 真机测试需创建iOS App Development Provisioning Profile或配置Automatic签名，并选择测试设备UDID
+- APNS Key创建需要登录Apple Developer，需完成Apple ID双重认证
+- IPA上传必须通过Transporter App或App Store Connect网页手动完成
+- Android App保活配置完成：RECEIVE_BOOT_COMPLETED权限、FOREGROUND_SERVICE权限、PushService配置foregroundServiceType="specialUse"、PushReceiver监听BOOT_COMPLETED、MainActivity.kt创建jpush_foreground通知渠道
+- iOS App Store上架流程：开发者账号续费 → 配置DEVELOPMENT_TEAM → 申请发布证书 → 创建Provisioning Profile → 整理推送配置 → Flutter构建IPA → 用户上传IPA到App Store Connect
+- iOS上架流程需先完成Apple开发者账号续费，然后才能申请证书、配置签名、打包构建、上架提交
+- When user explicitly pauses a task flow, respect the pause decision instead of auto-continuing
+- Android App保活配置完成：RECEIVE_BOOT_COMPLETED权限（开机自启动）、FOREGROUND_SERVICE权限（前台服务）、PushService配置foregroundServiceType="specialUse"、PushReceiver监听BOOT_COMPLETED、MainActivity.kt创建jpush_foreground通知渠道（IMPORTANCE_LOW，静默）
+- IPA上传必须通过Transporter App或App Store Connect网页手动完成，Apple安全机制要求Apple ID认证
+- APNS Key创建需要登录Apple Developer（developer.apple.com/account），需完成Apple ID双重认证
+- 软著截图命名规范：序号_功能名称.png（如14_魔力值充值.png）
+- 极光推送iOS配置：创建APNS Key（.p8）→ 上传到极光控制台（推送设置 → iOS → 认证方式Token）→ 填写Key ID、Team ID、Bundle ID → 上传.p8文件
+- iOS模拟器截图默认保存到用户桌面，格式为"Simulator Screenshot - [设备名] - [日期时间].png"
+- 当需要进行软著相关研究时，调研范围应覆盖 App 端文档（`molitao_app/软著申请/`）、后端代码库（实体/迁移/服务）、申报材料状态（`PENDING_MATERIALS.md`）
+- 用户手册结构：每个功能模块说明后紧跟对应截图（模块+截图交替模式）
+- Promise重构必须保持原有业务执行流程与逻辑不变，执行结果一致
+- 用户手册先生成HTML，通过浏览器打印生成PDF，不直接生成PDF
+- PC端部署：构建后上传到/www/wwwroot/www.molitao.top/，然后重载Nginx
+- 本地测试时App API地址指向http://192.168.10.32:12580
+- H5部署使用skill molitao-h5-deploy
+- 本地开发数据库操作通过LocalDevController.cs执行，禁止操作正式服务器
+- 创建新分支时使用日期前缀 YYYYMMDD_***
+- 当需要进行软著相关研究时，调研范围应覆盖 App 端文档（`molitao_app/软著申请/`）、后端代码库（实体/迁移/服务）、申报材料状态（`PENDING_MATERIALS.md`）
+- 软著源代码文档页数：前30页+后30页=60页，每页≥50行（结束页≥15行）
+- 软著源代码字体：等宽字体或宋体五号
+- 软著软件说明书页数：前30页+后30页=60页（不足则全部），每页≥30行
+- 软著软件说明书字体：宋体小四号，1.5倍行距
+- 极光推送 iOS 配置：创建 APNS Key（.p8）或 Certificate（.p12）→ 上传到极光控制台 → 推送设置 → iOS
+- 极光推送iOS配置：创建APNS Key（.p8）或Certificate（.p12）→ 上传到极光控制台 → 推送设置 → iOS
+- 真机测试需创建 iOS App Development Provisioning Profile 并选择测试设备 UDID
+- iOS 上架流程：1. 续费 Apple 开发者账号（RMB 688/年）- 需要用户手动支付 2. 配置 DEVELOPMENT_TEAM = WX4RK78D62（在 project.pbxproj 中设置）3. 申请 iOS 发布证书 4. 创建 Provisioning Profile（App Store Distribution）5. Flutter iOS 打包构建：flutter build ios --release 6. App Store Connect 提交审核（需用户安装 Transporter 上传 IPA）。账号信息：TengFei Li（个人账号），Team ID WX4RK78D62，Bundle ID com.molitao.molitaoApp，项目路径 molitao_app/ios/Runner.xcodeproj/
+- iOS 上架流程：1. 续费 Apple 开发者账号（RMB 688/年）- 需要用户手动支付 2. 配置 DEVELOPMENT_TEAM = WX4RK78D62（在 project.pbxproj 中设置）3. 申请 iOS 发布证书 4. 创建 Provisioning Profile（App Store Distribution）5. Flutter iOS 打包构建：flutter build ios --release 6. App Store Connect 提交审核（需用户登录 Apple ID 完成双重认证）。账号信息：TengFei Li（个人账号），Team ID WX4RK78D62，Bundle ID com.molitao.molitaoApp，项目路径 molitao_app/ios/Runner.xcodeproj/
+- iOS 上架流程：1. 续费 Apple 开发者账号（RMB 688/年）- 需要用户手动支付 2. 配置 DEVELOPMENT_TEAM = WX4RK78D62（在 project.pbxproj 中设置）3. 申请 iOS 发布证书4. 创建 Provisioning Profile（App Store Distribution）5. Flutter iOS 打包构建：flutter build ios --release 6. App Store Connect 提交审核。账号信息：TengFei Li（个人账号），Team ID WX4RK78D62，续费方式 Apple Developer App 或网页续费（需国际信用卡），Bundle ID com.molitao.molitaoApp，项目路径 molitao_app/ios/Runner.xcodeproj/
+- iOS 上架流程状态（2026-05-13）：IPA 已构建完成（34MB），等待用户通过 Transporter 上传到 App Store Connect。IPA 路径：molitao_app/build/ios/ipa/molitao_app.ipa。上传步骤：1. 安装 Transporter App 2. 拖入 IPA 3. 点击交付。证书配置已完成：DEVELOPMENT_TEAM=WX4RK78D62，Distribution 证书已安装，Provisioning Profile 已创建。
+- iOS 上架流程（待续费后执行）：1. 续费 Apple 开发者账号（RMB 688/年）- 需要用户手动支付 2. 配置 DEVELOPMENT_TEAM = WX4RK78D62（在 project.pbxproj 中设置）3. 申请 iOS 发布证书（iOS Distribution Certificate）4. 创建 Provisioning Profile（App Store Distribution）5. Flutter iOS 打包构建：flutter build ios --release 6. App Store Connect 提交审核。账号信息：TengFei Li（个人账号），Team ID WX4RK78D62，续费方式 Apple Developer App 或网页续费（需国际信用卡），Bundle ID com.molitao.molitaoApp，项目路径 molitao_app/ios/Runner.xcodeproj/
+- 真机测试需要创建 iOS App Development Provisioning Profile 并选择测试设备 UDID
+- 事务修复需保持原子性：全部成功或全部回滚。
+- 后端服务停止后需用户手动重启，重启完成后再通知继续。
+- Android App 保活配置完成：RECEIVE_BOOT_COMPLETED 权限（开机自启动）、FOREGROUND_SERVICE 权限（前台服务）、PushService 配置 foregroundServiceType="specialUse"、PushReceiver 监听 BOOT_COMPLETED、MainActivity.kt 创建 jpush_foreground 通知渠道（IMPORTANCE_LOW，静默）。
+- 修复后自行测试验证，修复完成无问题则提交 Git。
+- 本地修改后禁止部署操作。
+- Code Review 优先审查最近一次提交。
+- 当需要进行软著相关研究时，调研范围应覆盖 App 端文档（`molitao_app/软著申请/`）、后端代码库（实体/迁移/服务）、申报材料状态（`PENDING_MATERIALS.md`）。
+- 本地开发数据库操作通过 `LocalDevController.cs` 执行，禁止操作正式服务器。
+- 推送完整流程测试：订阅记录创建 → 开拍触发 → 推送日志验证。
+- 问题无法解决则回退版本或跳过，继续循环直到所有严重问题解决。
+- 本地测试时 App API 地址指向 `http://192.168.10.32:12580`。
+- Promise 重构必须保持原有业务执行流程与逻辑不变，执行结果一致。
+- iOS 上架流程（待续费后执行）：1. 续费 Apple 开发者账号（RMB 688/年）- 需要用户手动支付 2. 配置 DEVELOPMENT_TEAM = WX4RK78D62（在 project.pbxproj 中设置）3. 申请 iOS 发布证书 4. 创建 Provisioning Profile（App Store Distribution）5. Flutter iOS 打包构建：flutter build ios --release 6. App Store Connect 提交审核。账号信息：用户名 TengFei Li（个人账号），Team ID WX4RK78D62，续费方式 Apple Developer App 或网页续费（需要国际信用卡），项目配置：Bundle ID com.molitao.molitaoApp，项目路径 molitao_app/ios/Runner.xcodeproj/，当前 DEVELOPMENT_TEAM 为空需续费后设置。
+- iOS 上架流程（待续费后执行）：1. 续费 Apple 开发者账号（RMB 688/年）- 需要用户手动支付 2. 配置 DEVELOPMENT_TEAM = WX4RK78D62（在 project.pbxproj 中设置）3. 申请 iOS 发布证书4. 创建 Provisioning Profile（App Store Distribution）5. Flutter iOS 打包构建：flutter build ios --release 6. App Store Connect 提交审核。账号信息：用户名 TengFei Li（个人账号），Team ID WX4RK78D62，续费方式 Apple Developer App 或网页续费（需要国际信用卡），项目配置：Bundle ID com.molitao.molitaoApp，项目路径 molitao_app/ios/Runner.xcodeproj/，当前 DEVELOPMENT_TEAM 为空需续费后设置。
+- iOS 上架流程（待续费后执行）：
+1. 续费 Apple 开发者账号（RMB 688/年）- 需要用户手动支付
+2. 配置 DEVELOPMENT_TEAM = WX4RK78D62（在 project.pbxproj 中设置）
+3. 申请 iOS 发布证书（iOS Distribution Certificate）
+4. 创建 Provisioning Profile（App Store Distribution）
+5. Flutter iOS 打包构建：flutter build ios --release
+6. App Store Connect 提交审核
+
+账号信息：
+- 用户名：TengFei Li（个人账号）
+- Team ID：WX4RK78D62
+- 续费方式：Apple Developer App 或 网页续费（需要国际信用卡）
+
+项目配置：
+- Bundle ID：com.molitao.molitaoApp
+- 项目路径：molitao_app/ios/Runner.xcodeproj/
+- 当前 DEVELOPMENT_TEAM 为空，需续费后设置
+- 后端服务停止后需用户手动重启，重动完成后再通知继续
+- 本地数据库操作通过 `LocalDevController.cs` 执行，禁止操作正式服务器
+- 修复后自行测试验证
+- 修复完成无问题则提交 Git
+</WORKFLOW_RULES>
+<KNOWN_ISSUES>
+- `EndAuction` API返回500：`MySqlTransaction.Commit()`时抛出`NullReferenceException`，堆栈指向`MySqlDataReader.ActivateResultSet`，可能存在并发调用或事务状态异常
+- `AddUserGroupLevelIncrement`使用SqlSugar（Singleton）与EF Core事务（Scoped）共用连接冲突，需改用EF Core原生SQL实现原子事务 ✅ 已修复
+- `EndAuction` API返回500：`MySqlTransaction.Commit()`时抛出`NullReferenceException`，堆栈指向`MySqlDataReader.ActivateResultSet`，实际根因为SqlSugar与EF Core共用连接导致`This MySqlConnection is already in use` ✅ 已修复
+- `AddUserGroupChatLevelIncrement`使用SqlSugar（Singleton）与EF Core事务（Scoped）共用连接冲突，需改用EF Core原生SQL实现原子事务 ✅ 已修复（commit `97e36e7`）
+- `ClientAppService.cs`中`PayDeposit`方法支持绝对路径，但其他方法仍使用相对路径拼接逻辑
+- `LocalDevController.cs`提供`POST /reset-password`接口，仅允许`127.0.0.1`调用
+- `EndAuction` API返回500：`MySqlTransaction.Commit()`时抛出`NullReferenceException`，根因为SqlSugar与EF Core共用连接导致`This MySqlConnection is already in use` ✅ 已修复（commit `97e36e7`）
+- fluwx库`WeChatSubscribeMsgResponse.isSuccessful`基于`errCode==0`判断，微信订阅成功时`errCode`为`null`，正确判断应使用`action`字段
+- `StartAuction` API返回500错误，需检查后端日志确定根因
+- `EndAuction` API返回500错误（`MySqlTransaction.Commit()` NullReferenceException） ✅ 已修复（commit `97e36e7`）
+- SqlSugar版`UserGroupLevelEntity`和`GroupChatLevelSettingsEntity`也缺少多租户支持（非本次提交引入）
+- 新增`UserGroupLevel`和`GroupChatLevelSetting`实体缺少`IMustHaveTenant`实现，存在多租户数据隔离风险
+- `AddUserGroupChatLevelIncrement`异常抛出破坏原子性 ✅ 已修复（commit `e3d52ab`）
+- `EndAuction`中的累加上限魔法数字`999999999` ✅ 已提取为常量`MaxCumulativeAmount`（commit `e3d52ab`）
+- Android后台/关闭状态下推送无法送达：App缺少厂商推送通道配置
+- `UserGroupLevel`和`GroupChatLevelSetting`不需要多租户支持（用户确认，与SqlSugar版本一致）
+- `EndAuction`事务原子性问题：中间`SaveChangesAsync()`提前提交 ✅ 已修复（commit `e3d52ab`）
+- `GetPayOrderStatus`接口查询条件为`OutTradeNo+CreatorUserId`，PC端轮询时用户必须已登录且CreatorUserId要和创建订单时一致
+- StartAuction/EndAuction快速连续操作存在间歇性失败，间隔1秒以上可规避
+- `GetPayOrderStatus`接口`Status`字段返回中文（"已支付"/"未支付"），与前端英文枚举（"success"/"pending"）不匹配，导致轮询时前端异常 ✅ 已修复（commit `558269e`）
+- `GetPayOrderStatus`接口Status字段与前端PaymentStatus枚举不匹配，导致轮询时前端异常 ✅ 已修复（commit 31df41a回退后端中文 + 7fbeff5枚举改中文）
+- PaymentPage.vue manualCheck函数使用枚举值'success'，与后端返回'已支付'不匹配 ✅ 已修复（commit 111ff06）
+- iOS发布仍需外部操作：Apple Developer Program（$99/年）、App ID创建、APNs SSL证书（上传极光控制台）、iOS Distribution证书、mobileprovision描述文件、Xcode签名配置（Team ID + Bundle ID）
+- 扫码支付状态检查失败：后端返回中文 vs 前端期望英文 ✅ 已修复（方案：前端枚举值改为中文，与后端一一对应）
+- GitHub访问超时：pod install无法直接下载依赖，需配置国内镜像
+- AppDelegate.swift推送注册方法调用位置错误：registerForRemoteNotifications()不能在条件块内
+- iOS构建失败：`package_info_plus.framework`等CocoaPods依赖框架签名失败，需排查框架签名配置
+- fluwx库`WeChatSubscribeMsgResponse.isSuccessful`基于`errCode==0`判断，但微信订阅成功时`errCode`为`null`，正确判断应使用`action`字段（非`reject`即成功）
+- 扫码支付状态检查失败：后端返回中文 vs 前端期望英文 ✅ 已修复
+- iOS上架IPA上传步骤无法自动化，必须用户通过Transporter手动操作
+- iOS上架IPA上传步骤无法自动化，必须用户通过Transporter手动操作完成Apple ID双重认证
+- 极光推送iOS配置缺少APNS凭证（.p8 Key或.p12 Certificate），需上传到极光控制台
+- 当前Provisioning Profile是App Store Distribution类型，不支持真机测试，需创建iOS App Development Provisioning Profile或使用Automatic签名
+- iOS构建失败：`package_info_plus.framework`等CocoaPods依赖框架签名失败，需排查框架签名配置 ✅ 已修复（设置Pod targets签名为Automatic）
+- PC端静态检查发现37个TypeScript类型错误：auctionStore.ts（number vs string比较）、userStore.ts（类型缺少属性）、chatStore.ts（Timeout类型）、tree.ts（模块导出缺失）、Tuu.tsx（JSX fragment）
+- PC端ESLint发现4个错误：`vue/no-use-v-if-with-v-for`（v-if和v-for同级使用）
+- `EndAuction`方法缺少`[UnitOfWork]`属性声明
+- iOS发布仍需外部操作：APNs SSL证书（.p8 Key或.p12 Certificate）需上传极光控制台
+- Android 8.0+设备后台推送无法显示悬浮通知
+- 后端`BuildNotification`方法缺少Android通知渠道配置和优先级配置
+- Android后台推送送达依赖厂商通道
+- APNS Key创建阻塞于Apple Developer登录，需用户手动完成Apple ID认证和双重认证
+- 极光推送送达状态需在极光控制台查看，API查询返回404
+- 极光控制台APNS凭证上传需用户手动登录操作，无法自动化
+- vue-tsc 1.8.x与TypeScript 5.4.x版本不兼容，无法运行类型检查
+- `LocalDevController`的`POST /api/localdev/reset-password`接口需要`UserId`参数而非`username`，调用时返回500错误
+- PC端ESLint剩余458个警告（456个any类型、2个未使用变量），不影响项目运行
+- Xcode版本不兼容iOS 18.x真机构建：Xcode 26.4.1最高支持iOS 16.4，iPhone运行iOS 26.1（iOS 18.x）需升级Xcode到16+版本
+- APNS .p8文件需手动下载（只能下载一次），然后上传到极光控制台完成iOS推送配置
+- iOS 18+真机构建需要在设备上手动启用开发者模式（设置 → 隐私与安全 → 开发者模式 → 开启 → 重启）
+- `AuctionStatusEnum.拍卖中 = 2`，业务逻辑检查的是Status==2
+- `SubStartNotify`订阅API的platform参数默认值为`"miniprogram"`，App端调用时需显式传`platform: 'app'`
+- `ClientAppService.cs`中`PayDeposit`方法支持绝对路径，但`PayDepositUniapp`、`GetPayOrderStatus`、`IsSignValidAsync`方法仍使用相对路径拼接逻辑
+- 同一个微信用户的小程序OpenId（wx8178f2258942133d）和移动应用OpenId（wxbfbe7d50ed28ed41）是不同的；`GetMyWechatOpenId`只查询`WeChatApp` provider，用户若只在微信小程序登录过则返回null
+- App WebSocket地址硬编码为`www.molitao.top`，暂未本地化
+- `appsettings.Production.json`缺少`app`配置（移动应用微信appid），仅配置了`pub`和`uniapp`
+- `EndAuction`方法缺少`[UnitOfWork]`属性声明（待修复）
+- `PushNotificationBanner`只监听极光推送，不监听WebSocket消息
+- CertificateProvider.cs不读取配置文件，Linux硬编码路径，macOS硬编码路径，均不读取appsettings配置
+- Android 8.0+设备后台推送无法显示悬浮通知：后端已配置`NotificationPriority=1`和`AlertType=1`，`MainActivity.kt`已配置`auction_notify`渠道为`IMPORTANCE_HIGH`，但悬浮通知仍未显示；可能原因包括系统设置中渠道权限未开启、App重启后渠道配置才生效、或厂商定制系统有额外通知控制限制
+- 微信订阅消息发送可能失败：App端获取openid使用的appid必须与发送消息时查询配置的appid一致
+- `UserGroupLevel`和`GroupChatLevelSetting`不需要多租户支持（用户确认）
+- 缺少iOS App Development Provisioning Profile，当前App Store Distribution Profile不支持真机测试
+- 扫码支付状态检查失败：后端返回中文 vs 前端期望英文 ✅ 已修复（前端枚举值改为中文，与后端一一对应）
+- Android后台推送无法保证100%送达：自启动权限只能提高存活率；内存紧张、系统省电、一键清理、厂商ROM激进管理均可能导致进程被杀掉
+- 新增`UserGroupLevel`和`GroupChatLevelSetting`实体缺少`IMustHaveTenant`实现，存在多租户数据隔离风险（待修复）
+- `UserGroupLevelEntity`（`int`主键）与`UserGroupLevel`（`long`主键）主键类型不一致，需确认数据库表实际主键类型
+- PC端v-if与v-for混用已修复：postDetail.vue（1处）、tradingPost.vue（2处）✅ 已修复
+- `AddUserGroupChatLevelIncrement`使用SqlSugar（Singleton）与EF Core事务（Scoped）共用连接冲突，需改用EF Core原生SQL实现原子事务 ✅ 已修复
+- `EndAuction` API返回500错误（`MySqlTransaction.Commit()` NullReferenceException） ✅ 已修复（commit `97e36e7`），根因是SqlSugar与EF Core共用连接冲突
+- PC端tree.ts类型定义已修复：本地定义`AuditNodeCreateOrEditDto`类型 ✅ 已修复
+- PC端admin/index.vue TSX Fragment测试代码已删除 ✅ 已修复
+- PC 端 tree.ts 类型定义已修复：本地定义 `AuditNodeCreateOrEditDto` 类型 ✅ 已修复
+- PC 端 admin/index.vue TSX Fragment 测试代码已删除 ✅ 已修复
+- `AddUserGroupChatLevelIncrement` 使用 SqlSugar（Singleton）与 EF Core 事务（Scoped）共用连接冲突，需改用 EF Core 原生 SQL 实现原子事务 ✅ 已修复
+- `EndAuction` API 返回 500 错误（`MySqlTransaction.Commit()` NullReferenceException） ✅ 已修复（commit `97e36e7`），根因是 SqlSugar 与 EF Core 共用连接冲突
+- PC 端 v-if 与 v-for 混用已修复：postDetail.vue（1处）、tradingPost.vue（2处）✅ 已修复
+- 新增 `UserGroupLevel` 和 `GroupChatLevelSetting` 实体缺少 `IMustHaveTenant` 实现，存在多租户数据隔离风险（待修复）
+- `UserGroupLevelEntity`（`int` 主键）与 `UserGroupLevel`（`long` 主键）主键类型不一致，需确认数据库表实际主键类型
+- Android 后台推送无法保证 100% 送达：自启动权限只能提高存活率；内存紧张、系统省电、一键清理、厂商 ROM 激进管理均可能导致进程被杀掉
+- 缺少 iOS App Development Provisioning Profile，当前 App Store Distribution Profile 不支持真机测试
+- StartAuction/EndAuction 快速连续操作存在间歇性失败，间隔 1 秒以上可规避
+- `UserGroupLevel` 和 `GroupChatLevelSetting` 不需要多租户支持（用户确认）
+- 微信订阅消息发送可能失败：App 端获取 openid 使用的 appid 必须与发送消息时查询配置的 appid 一致
+- `GetPayOrderStatus` 接口查询条件为 `OutTradeNo+CreatorUserId`，PC 端轮询时用户必须已登录且 CreatorUserId 要和创建订单时一致
+- CertificateProvider.cs 不读取配置文件，Linux 硬编码路径，macOS 硬编码路径，均不读取 appsettings 配置
+- Android 8.0+ 设备后台推送无法显示悬浮通知：后端已配置 `NotificationPriority=1` 和 `AlertType=1`，`MainActivity.kt` 已配置 `auction_notify` 渠道为 `IMPORTANCE_HIGH`，但悬浮通知仍未显示；可能原因包括系统设置中渠道权限未开启、App 重启后渠道配置才生效、或厂商定制系统有额外通知控制限制
+- `EndAuction` 方法缺少 `[UnitOfWork]` 属性声明（待修复）
+- `appsettings.Production.json` 缺少 `app` 配置（移动应用微信 appid），仅配置了 `pub` 和 `uniapp`
+- `PushNotificationBanner` 只监听极光推送，不监听 WebSocket 消息
+- App WebSocket 地址硬编码为 `www.molitao.top`，暂未本地化
+- 同一个微信用户的小程序 OpenId（wx8178f2258942133d）和移动应用 OpenId（wxbfbe7d50ed28ed41）是不同的；`GetMyWechatOpenId` 只查询 `WeChatApp` provider，用户若只在微信小程序登录过则返回 null
+- `ClientAppService.cs` 中 `PayDeposit` 方法支持绝对路径，但 `PayDepositUniapp`、`GetPayOrderStatus`、`IsSignValidAsync` 方法仍使用相对路径拼接逻辑
+- `SubStartNotify` 订阅 API 的 platform 参数默认值为 `"miniprogram"`，App 端调用时需显式传 `platform: 'app'`
+- `AuctionStatusEnum.拍卖中 = 2`，业务逻辑检查的是 Status==2
+- iOS 上架 IPA 上传步骤无法自动化，必须用户通过 Transporter 手动操作完成 Apple ID 双重认证
+- APNS .p8 文件需手动下载（只能下载一次），然后上传到极光控制台完成 iOS 推送配置
+- iOS 18+ 真机构建需要在设备上手动启用开发者模式（设置 → 隐私与安全 → 开发者模式 → 开启 → 重启）
+- Xcode 版本不兼容 iOS 18.x 真机构建：Xcode 26.4.1 最高支持 iOS 16.4，iPhone 运行 iOS 26.1（iOS 18.x）需升级 Xcode 到 16+ 版本
+- `LocalDevController` 的 `POST /api/localdev/reset-password` 接口需要 `UserId` 参数而非 `username`，调用时返回500错误
+- 极光控制台 APNS 凭证上传需用户手动登录操作，无法自动化
+- 极光推送送达状态需在极光控制台查看，API 查询返回 404
+- 极光推送 iOS 配置缺少 APNS 凭证（.p8 Key 或 .p12 Certificate），需上传到极光控制台
+- APNS Key 创建阻塞于 Apple Developer 登录，需用户手动完成 Apple ID 认证和双重认证
+- Android 后台推送送达依赖厂商通道
+- 后端 `BuildNotification` 方法缺少 Android 通知渠道配置和优先级配置
+- Android 8.0+ 设备后台推送无法显示悬浮通知
+- `EndAuction` 方法缺少 `[UnitOfWork]` 属性声明
+- iOS 发布仍需外部操作：APNs SSL 证书（.p8 Key 或 .p12 Certificate）需上传极光控制台
+- GitHub 访问超时：pod install 无法直接下载依赖，需配置国内镜像
+- AppDelegate.swift 推送注册方法调用位置错误：registerForRemoteNotifications() 不能在条件块内
+- PC 端 ESLint 发现 4 个错误：`vue/no-use-v-if-with-v-for`（v-if 和 v-for 同级使用）
+- PC 端静态检查发现 37 个 TypeScript 类型错误：auctionStore.ts（number vs string 比较）、userStore.ts（类型缺少属性）、chatStore.ts（Timeout 类型）、tree.ts（模块导出缺失）、Tuu.tsx（JSX fragment）
+- iOS 构建失败：`package_info_plus.framework` 等 CocoaPods 依赖框架签名失败，需排查框架签名配置 ✅ 已修复（设置 Pod targets 签名为 Automatic）
+- 当前 Provisioning Profile 是 App Store Distribution 类型，不支持真机测试，需创建 iOS App Development Provisioning Profile 或使用 Automatic 签名
+- fluwx 库 `WeChatSubscribeMsgResponse.isSuccessful` 基于 `errCode == 0` 判断，但微信订阅成功时 `errCode` 为 `null`，正确判断应使用 `action` 字段（非 `reject` 即成功）
+- iOS 构建失败：`package_info_plus.framework` 等 CocoaPods 依赖框架签名失败，需排查框架签名配置
+- PaymentPage.vue manualCheck 函数使用枚举值 'success'，与后端返回 '已支付' 不匹配 ✅ 已修复（commit 111ff06）
+- `GetPayOrderStatus` 接口 Status 字段与前端 PaymentStatus 枚举不匹配，导致轮询时前端异常 ✅ 已修复（commit 31df41a 回退后端中文 + 7fbeff5 枚举改中文）
+- `GetPayOrderStatus` 接口 `Status` 字段返回中文（"已支付"/"未支付"），与前端英文枚举（"success"/"pending"）不匹配，导致轮询时前端异常 ✅ 已修复（commit `558269e`）
+- `GetPayOrderStatus` 接口查询条件为 `OutTradeNo+CreatorUserId`，PC端轮询时用户必须已登录且CreatorUserId要和创建订单时一致
+- 扫码支付状态检查失败：用户反映支付成功但对方显示检查支付状态失败，可能原因包括微信回调未送达、订单号不一致、CreatorUserId匹配失败
+- StartAuction/EndAuction 快速连续操作存在间歇性失败，间隔1秒以上可规避
+- Android 后台/关闭状态下推送无法送达：App 缺少厂商推送通道配置
+- `UserGroupLevel` 和 `GroupChatLevelSetting` 不需要多租户支持（用户确认，与 SqlSugar 版本一致）
+- `EndAuction` 事务原子性问题：中间 `SaveChangesAsync()` 提前提交 ✅ 已修复（commit `e3d52ab`）
+- `AddUserGroupChatLevelIncrement` 异常抛出破坏原子性 ✅ 已修复（commit `e3d52ab`）
+- `EndAuction` 中的累加上限魔法数字 `999999999` ✅ 已提取为常量 `MaxCumulativeAmount`（commit `e3d52ab`）
+- `EndAuction` API 返回 500 错误（`MySqlTransaction.Commit()` NullReferenceException） ✅ 已修复（commit `97e36e7`）
+- `EndAuction` 中的累加上限魔法数字 `999999999` ✅ 已提取为常量（commit `e3d52ab`）
+- SqlSugar 版 `UserGroupLevelEntity` 和 `GroupChatLevelSettingsEntity` 也缺少多租户支持（非本次提交引入）
+- 新增 `UserGroupLevel` 和 `GroupChatLevelSetting` 实体缺少 `IMustHaveTenant` 实现，存在多租户数据隔离风险
+- `EndAuction` API 返回 500：`MySqlTransaction.Commit()` 时抛出 `NullReferenceException`，根因为 SqlSugar 与 EF Core 共用连接导致 `This MySqlConnection is already in use` ✅ 已修复（commit `97e36e7`）
+- fluwx 库 `WeChatSubscribeMsgResponse.isSuccessful` 基于 `errCode==0` 判断，但微信订阅成功时 `errCode` 为 `null`，正确判断应使用 `action` 字段
+- `StartAuction` API 返回 500 错误，需检查后端日志确定根因
+- `AddUserGroupChatLevelIncrement` 使用 SqlSugar（Singleton）与 EF Core 事务（Scoped）共用连接冲突，需改用 EF Core 原生 SQL 实现原子事务 ✅ 已修复（commit `97e36e7`）
+- fluwx 库 `WeChatSubscribeMsgResponse.isSuccessful` 基于 `errCode==0` 判断，微信订阅成功时 `errCode` 为 `null`，正确判断应使用 `action` 字段
+- `ClientAppService.cs` 中 `PayDeposit` 方法支持绝对路径，但其他方法仍使用相对路径拼接逻辑
+- `LocalDevController.cs` 提供 `POST /reset-password` 接口，仅允许 `127.0.0.1` 调用
+- `AddUserGroupLevelIncrement` 使用 SqlSugar（Singleton）与 EF Core 事务（Scoped）共用连接冲突，需改用 EF Core 原生 SQL 实现原子事务 ✅ 已修复
+- `EndAuction` API 返回 500：`MySqlTransaction.Commit()` 时抛出 `NullReferenceException`，堆栈指向 `MySqlDataReader.ActivateResultSet`，实际根因为 SqlSugar 与 EF Core 共用连接导致 `This MySqlConnection is already in use` ✅ 已修复
+- `EndAuction` API 返回 500：`MySqlTransaction.Commit()` 时抛出 `NullReferenceException`，堆栈指向 `MySqlDataReader.ActivateResultSet`，实际根因为 SqlSugar 与 EF Core 共用连接导致 `This MySqlConnection is already in use`
+- `AddUserGroupLevelIncrement` 使用 SqlSugar（Singleton）与 EF Core 事务（Scoped）共用连接冲突，需改用 EF Core 原生 SQL 实现原子事务
+- `EndAuction` API 返回 500：`MySqlTransaction.Commit()` 时抛出 `NullReferenceException`，堆栈指向 `MySqlDataReader.ActivateResultSet`，可能存在并发调用或事务状态异常
+- 极光推送后台送达问题：App后台运行或被清理时无法收到推送，因未集成厂商通道
+- Android后台推送送达依赖厂商通道：只有集成厂商推送通道才能在App被系统完全清理后通过厂商系统级推送送达
+- 极光推送后台送达问题：App后台运行（锁屏）或被清理时无法收到推送，因为未集成厂商通道；根本解决需申请软著后上架厂商市场并开通厂商推送
+- 同一个微信用户的小程序OpenId（wx8178f2258942133d）和移动应用OpenId（wxbfbe7d50ed28ed41）是不同的；`GetMyWechatOpenId`只查询`WeChatApp`provider，用户若只在微信小程序登录过则返回null
+- 微信订阅消息发送可能失败：App端获取openid使用的appid必须与发送消息时查询配置的appid一致，否则微信返回40003错误；当前Notify()使用`app`配置（wxbfbe7d50ed28ed41）
+- 微信订阅消息发送可能失败：App端获取openid使用的appid必须与发送消息时查询配置的appid一致，否则微信返回40003错误；当前Notify()使用`app`配置（wxbfbe7d50ed28ed41），需确认App端获取openid的appid是否匹配
+- 极光推送后台送达问题：App 后台运行（锁屏）或被清理时无法收到推送，因为未集成厂商通道；临时应对为设置自启动权限、关闭省电模式、将 App 加入系统白名单；根本解决需申请软著后上架厂商市场并开通厂商推送
+- Android 后台推送无法保证 100% 送达：自启动权限只能提高存活率，不能 100% 保活；内存紧张、系统省电、一键清理、厂商 ROM 激进管理均可能导致进程被杀掉
+- Android 后台推送送达依赖厂商通道：只有集成厂商推送通道（华为 HMS、小米、OPPO、VIVO、荣耀、魅族）才能在 App 被系统完全清理后通过厂商系统级推送送达
+- `AuctionStatusEnum.拍卖中 = 2`（不是1），业务逻辑检查的是 Status==2
+- Android 后台/关闭状态下推送无法送达：App 缺少厂商推送通道配置，极光 SDK 必须集成厂商通道才能在 App 关闭时接收推送
+- `PushNotificationBanner` 只监听极光推送（`PushService().onMessage`），不监听 WebSocket 消息，无法触发横幅通知
+- 微信订阅消息发送可能失败：App 端使用 `"app"` AppName 查询微信配置，模板 ID `aCmoAwuGevXMgA6mlq6x5pXrj7yNx5HJ6akzkHDCDPg`，用户订阅成功但微信 App 内未收到通知
+- 用户 7509 的极光推送 alias 最近注册（已重新激活），独立推送接口测试成功
+- 后端 `BuildNotification` 方法（JPushService）缺少 Android 通知渠道配置（channel_id: `auction_notify`，channel_name: `拍卖通知`）
+- 后端 `BuildNotification` 方法（JPushService）缺少 `NotificationPriority=1`（高优先级）和 `AlertType=1`（声音+振动）配置
+- 需验证完整链路：订阅 → 开拍 → 推送是否正常
+- 用户 7509 的极光推送 alias 未注册或已过期，发送推送时返回"cannot find user by this audience or has been inactive for more than 255 days"
+- App 端缺少 Android NotificationChannel 通知渠道创建代码，导致 Android 8.0+ 设备后台推送无法显示
+- CertificateProvider.cs 不读取配置文件，Linux 硬编码 `/app/apiclient_cert.p12`（缺少 /certs/ 子目录），macOS 硬编码 `wwwroot/certs/apiclient_cert.p12`，均不读取 appsettings 配置
+- 微信支付证书路径问题：Docker 容器内路径为 `/app/certs/`，但 `CertificateProvider.cs` 硬编码 `/app/apiclient_cert.p12`（缺少 /certs/ 子目录）
+- 微信支付证书路径问题：Docker 容器内路径为 `/app/certs/`，但代码中 `CertificateProvider.cs` 硬编码 `/app/apiclient_cert.p12`（缺少 /certs/ 子目录），`ClientAppService.cs` 拼接 `/app/wwwroot/certs/`，配置 `appsettings.json` 为相对路径拼接后指向 wwwroot 而非 /app/certs/
+- CertificateProvider 硬编码路径，不读取配置文件，无法适配不同环境
+- 微信支付证书路径已修正：Linux 环境使用 `/app/wwwroot/certs/apiclient_cert.p12`（外部挂载到 wwwroot）
+- `appsettings.Production.json` 的 `certPath` 配置为相对路径 `certs/apiclient_cert.p12`，拼接后指向 `/app/wwwroot/certs/` 而非 `/app/certs/`
+- 微信支付证书路径已修正：Linux 环境使用 `/app/certs/apiclient_cert.p12`（外部挂载）
+- 极光推送 alias 格式必须为 `user_${userId}`（如 `user_7509`），App 端与推送 API 调用端必须保持一致
+- 微信支付证书 Dockerfile 已修复：证书文件现复制到 `/app/certs/`
+- 微信支付证书路径已修正：Linux 环境使用 `/app/certs/apiclient_cert.p12`
+- 微信支付证书 Dockerfile 未将源码证书文件复制到容器内 `/app/certs/`
+- 微信支付证书在 Docker 容器内查找路径为 `/app/wwwroot/certs/apiclient_cert.p12`，但实际挂载路径为 `/app/certs/`
+- 微信订阅消息发送可能失败：App 端使用 `"app"` AppName 查询微信配置（appid/appsec），模板 ID `aCmoAwuGevXMgA6mlq6x5pXrj7yNx5HJ6akzkHDCDPg`，用户订阅成功但微信 App 内未收到通知
+- fluwx 库 `WeChatSubscribeMsgResponse.isSuccessful` 基于 `errCode == 0` 判断，但微信订阅成功时 `errCode` 为 `null`，导致判断错误。正确判断应使用 `action` 字段（非 `reject` 即成功）
+- Android 后台/关闭状态下推送无法送达：App 缺少厂商推送通道（华为 HMS、小米、OPPO、VIVO、荣耀）配置，极光 SDK 必须集成厂商通道才能在 App 关闭时接收推送；用户选择撤销多厂商通道支持，当前仅保留极光基础推送
+- 后端 `BuildNotification` 方法（JPushService）缺少 Android 通知渠道配置（channel_id/channel_name），需添加 `channel_id: "auction_notify"` 和 `channel_name: "拍卖通知"`
+- Android 8.0+ 设备后台推送无法显示悬浮通知：后端已配置 `NotificationPriority=1` 和 `AlertType=1`，`MainActivity.kt` 已配置 `auction_notify` 渠道为 `IMPORTANCE_HIGH`，但悬浮通知仍未显示；可能原因包括系统设置中渠道权限未开启、App 重启后渠道配置才生效、或厂商定制系统（OPPO/VIVO/华为）有额外通知控制限制
+- Android 后台/关闭状态下推送无法送达：App 缺少厂商推送通道（华为 HMS、小米、OPPO、VIVO、荣耀）配置，极光 SDK 必须集成厂商通道才能在 App 关闭时接收推送
+- Android 后台/关闭状态下推送无法送达：App 缺少厂商推送通道（华为 HMS、小米、OPPO、VIVO、魅族）配置，极光 SDK 必须集成厂商通道才能在 App 关闭时接收推送
+- 后端 `BuildNotification` 方法（JPushService）缺少 `NotificationPriority=1`（高优先级）和 `AlertType=1`（声音+振动）配置，导致悬浮通知无法触发
+- fluwx 库 `WeChatSubscribeMsgResponse.isSuccessful` 基于 `errCode == 0` 判断，但微信订阅消息成功时 `errCode` 为 `null`，导致判断错误。正确判断应使用 `action` 字段（非 `reject` 即成功）
+</KNOWN_ISSUES>
+</project-memory>
+
+<compartment start="1" end="11" title="软著申请模板填充与生成">
+用户提供了其他项目的软著申请模板作为参考，需用魔力淘项目实际信息填充。生成软著申请信息至`软著申请/软著申请信息.txt`：软件名称(魔力淘)、版本(V1.0)、源程序量(23,501行)、编程语言(Dart)、运行平台(Android 8.0+/iOS 12.0+)、面向领域(电子商务)、软件分类(应用软件)、软件用途(在线交易平台)。
+U: 我们提供的是其他项目的模板 需要根据项目资料进行修改
+U: 我们仅仅描述我们的系统是一个 在线交易平台
+简化软件用途描述，避免过度详细的技术特征罗列。
+</compartment>
+
+<compartment start="12" end="53" title="软件说明书重写与定位调整">
+用户要求将markdown转换为PDF（中介不接受markdown）。使用pandoc+xelatex转换`软件说明书.md`和`源代码.md`为PDF。用户提出将软件定位从"拍卖平台"改为"商城系统"以规避审核风险。启动后台探索任务获取App和后端功能模块信息，重写软件说明书：定位从"拍卖交易平台"改为"二手物品交易平台"，模块重命名（拍卖模块→交易站模块，出价记录→交易记录，拍卖状态→订单状态），术语调整（起拍价→商品价格，成交→交易完成）。生成新PDF并打开确认。
+U: 我们是否可以提现这是一个 商城系统。隐藏当前的拍卖（最近检查严格 怕爬不通过）。
+U: 针对现在的相关资料。我们根据系统功能我们进行重新优化。
+明确软著申请策略：使用通用商城系统定位，避免拍卖敏感词触发严格审查。基于实际功能而非模板重新编写软件说明书，确保描述与代码一致。
+</compartment>
+
+<compartment start="54" end="81" title="源代码PDF合并生成与合规分析">
+研究规范后识别五项合规差距：软件说明书页数不足（当前约10页，规范要求60页）、页眉页脚缺失、源代码无行号、缺少界面截图、PDF格式字符显示异常。确认官方规范：代码量≥3000行时提交前30页+后30页=60页。创建专用脚本生成符合软著规范的源代码PDF：总3128行代码按每页50行排版，生成63页PDF，包含页眉（魔力淘 V1.0.0）、页脚（页码）、左侧连续行号、等宽字体（Courier）。文件保存至`软著申请/源代码.pdf`。
+U: 软件说明书。我们需要将我们需要的前后代码也添加到这个文档中
+U: 源代码前30页 源代码后30页 整理到一个pdf 文件中
+明确软著申请文档策略：软件说明书需包含功能描述和源代码，形成单一完整申请材料。源代码提交格式：前后各30页合并为单一PDF文件。
+</compartment>
+
+<compartment start="82" end="128" title="用户手册框架创建与Android上架策略">
+用户要求按中介示例格式准备用户手册（功能模块+截图+操作说明）。创建详细用户手册框架至`软著申请/用户手册.md`：包含9个功能模块（首页、认证登录、交易帖子、即时通讯、通讯录、个人中心、设置、公告、支付）、4个操作流程说明、8个常见问题。同步创建`软著申请/截图清单.md`，标注15张待截图位置。用户询问申请整个系统软著还是独立App软著用于Android上架。分析后确定：当前独立App软著方案已足够，材料描述Flutter App功能，Android上架需移动应用软著。核心规则：软著名称必须与App名称一致。用户确认晚上准备完善用户手册截图，提交并推送软著申请材料初稿（commit 60f25ae），包含软著申请信息.txt、源代码.pdf、用户手册.md、截图清单.md。
+U: 下面重点准备 用户手册。 中介给的用户手册。重点描述了系统功能。每一个功能模块的截图以及可以实现的操作。我们按照这样的书写方式完成相关资料的收集
+U: 直接创建把。我们先整理相关数据资料。对应模块的截图，我后面根据需要去进行截取
+U: 我们现在分析一下 我们需要申请整个系统的软著申请还是独立 app的软著申请。 我们为了安卓app上架应用市场。是否可以使用整个系统的软著?
+U: 我们需要晚上准备完善 用户手册
+U: 提交所有修改
+独立App软著方案已足够满足Android上架需求，材料状态：软著申请信息.txt✅、源代码.pdf✅、用户手册.md✅、截图清单.md✅、用户手册.pdf⏳待生成。
+</compartment>
+
+<compartment start="129" end="164" title="真机截图环境搭建与App构建安装">
+用户要求推送仓库并启动Android模拟器截图。检测到系统无Android模拟器，尝试启动Android Studio模拟器但设备连接丢失。用户改用真机设备截图，检测到真机已连接（Android 14设备）。随后用户要求重新安装新版本App，卸载旧版，更新依赖，构建Debug APK时遇到Gradle Kotlin DSL语法错误（abiFilters需使用`+=`操作符），修复后构建超时，最终禁用配置缓存并成功构建。APK安装成功到真机，启动App并截取首页保存至`~/Desktop/魔力淘截图/01_首页.png`。
+</compartment>
+
+<compartment start="165" end="222" title="截图分类整理与设置入口添加">
+用户提示桌面上已完成多张截图。扫描桌面发现10张PNG截图（2026-05-14凌晨截取），用户逐一确认界面名称：010945=首页、011214=登录页、011229=会话列表、011236=交易站、011242=通讯录、011248=个人中心、011307=个人信息修改、011320=公告展示、011338=秒杀场、011346=商品详情、011401=公告列表。完成全部11张截图分类后，将截图重命名并整理到软著申请目录（01_首页.png 到 11_公告列表.png）。用户询问还缺哪些截图，助手对照用户手册梳理后列出缺失清单：发布帖子页、设置界面、账号安全界面、私聊界面（共4张）。用户提供桌面上新增的两张截图后，助手将其识别并重命名为`12_发布帖子.png`和`13_私聊界面.png`，保存到`软著申请/`目录。当前截图进度为13/15，仍缺少设置界面和账号安全界面两张截图。随后用户要求在个人中心页面右上角添加设置页面跳转入口，最初修改位置错误，用户指出应修改页面tabbar中的右侧操作按钮，最终将右侧操作按钮跳转从`/profile/user-info`修改为`/settings`，重新构建Debug APK。
+U: 现在应用的设计页面暂时没有入口。我们在个人中心页面的右上角 添加设置页面的跳转操作。
+U: 修改错了。我们项修改的不是这个 操作按钮。而是这个页面 tabbar 中的右侧操作按钮
+在个人中心页面 tabbar 右侧操作按钮添加跳转到 `/settings` 页面。
+</compartment>
+
+<compartment start="223" end="283" title="用户手册PDF与HTML版本生成">
+U: 我们只使用现在的13个图片 完善用户手册。
+用户决定不补齐缺失的设置和账号安全截图，直接使用现有13张截图完成用户手册。助手更新用户手册内容，调整章节结构与截图对应（包含首页、登录、交易站、商品详情、发布帖子、会话列表、私聊、秒杀场、通讯录、个人中心、个人信息修改、公告列表、公告展示共13个界面）。创建content.json配置文件，使用pandoc+xelatex引擎生成5.1MB的PDF文件至`软著申请/用户手册_pandoc.pdf`。随后用户要求重新调整用户手册结构，改为每个功能模块说明后紧跟对应截图的模式，使结构更清晰。更新markdown文件并重新生成PDF（5.1 MB），新结构包含13个章节，每个章节由"功能描述+界面元素+操作说明"组成，后附对应界面截图。用户要求生成简易HTML版本用户手册。创建HTML文件（17 KB）包含目录导航和13张截图。用户反馈截图尺寸过大，添加CSS样式限制图片最大高度400px、最大宽度100%、居中显示。
+</compartment>
+
+<compartment start="284" end="296" title="源代码扩展至100页PDF生成">
+中介反馈要求：截图需要多截一点（缺少设置界面、账号安全界面），代码可以多放一点但不能少。用户决定扩展源代码从63页到100页（前50页+后50页），仅获取Flutter App项目代码。合并App端核心代码文件（lib/目录下Dart文件），按每页50行排版，生成100页源代码PDF文件至 `软著申请/` 目录。
+U: 代码可以多但不能少
+U: 每页最少50行
+U: 也是可以多。但是不能少
+明确源代码提交弹性原则：允许超出规范页数和每页行数，但不能低于规范要求（最少60页、每页最少50行）。
+</compartment>
+
+<compartment start="297" end="308" title="源代码PDF规范确认与目录打开">
+验证了100页源代码PDF（`软著申请/源代码_100页.pdf`，186KB）符合规范，每页50行共5000行，内容为App端核心Dart代码。使用open命令打开`软著申请/`目录供用户查看确认生成的源代码PDF文件。
+</compartment>
+
+<compartment start="309" end="316" title="用户手册截图状态与缺失分析">
+分析了用户手册当前状态：6大章节394行，包含13张截图。通过读取用户手册和App页面目录，识别出缺失截图清单：关于页面（about_page.dart）、设置页面（settings_page.dart）、账号安全页面（account_security_page.dart）为高优先级缺失项。同时发现秒杀场描述需从"竞拍"改为"秒杀/特惠"，个人中心工作台（充值、提现、余额明细）未收录，版本信息/用户协议/检查更新功能未收录。
+</compartment>
+
+<compartment start="317" end="365" title="用户手册HTML生成、修正与模块补充">
+用户决定用户手册不直接生成PDF，改为先生成HTML，再通过浏览器的打印功能生成PDF。生成更新版HTML用户手册（`软著申请/用户手册.html`，28KB），对缺失截图使用占位符标注。用户指出用户手册描述必须基于实际软件操作，不能瞎编功能。读取帖子详情页、发布帖子页、会话列表、设置页面、账号安全页面、关于页面等实际代码后，逐一修正用户手册中不存在的功能，删除收藏/分享/举报、绑定微信/绑定手机号、检查更新/联系方式等未实现功能，只保留代码中实际实现的功能。随后进行Code Review，识别出22个App页面与用户手册的覆盖情况，发现9个缺失功能模块。读取余额明细页、保证金记录页、已成交页、关于页、私聊页、群聊页等实际代码后，更新HTML用户手册：补充个人中心工作台/买家/卖家区域描述、新增余额明细/魔力值记录/已成交模块、补充关于模块实际功能、新增私聊/群聊模块。所有新增内容基于实际代码验证，避免臆造不存在的功能。待补充截图清单：工作台/余额明细、魔力值记录、已成交、群聊共4张。
+U: 用户手册 我们不直接生成 PDF 我们生成HTML。通过浏览器的打印 生成PDF。这样的流程更加方便
+确立了用户手册的生成流程：HTML先行，浏览器打印转PDF。
+U: 以上用户手册描述的内容。需要根据实际的软件操作进行书写。不要瞎编功能。使用的时候没有对应功能就尴尬了
+所有功能描述已基于实际代码重新核实，删除了不存在的功能，只保留代码中实际实现的功能。
+</compartment>
+
+<compartment start="366" end="405" title="截图收集、清理与同步">
+用户询问iOS模拟器截图位置，随后提供桌面上的4张截图路径。助手将截图复制到软著目录，用户确认分别为：魔力值充值、魔力值提现、群聊界面、个人中心。助手重命名为14_魔力值充值.png、15_魔力值提现.png、16_群聊.png、17_个人中心.png，并更新用户手册HTML替换占位符。用户提供桌面新增的已成交商品列表截图，助手复制为18_已成交商品列表.png并更新用户手册，确认当前共18张截图已全部同步。用户要求移除未使用的截图（17、18、20）。助手检查发现17_个人中心.png未使用、18_已成交商品列表.png已使用、20不存在，删除了17_个人中心.png。最终确认软著目录17张截图已与用户手册引用完全同步，但设置、账号安全、关于3个章节仍需补充截图。
+</compartment>
+
+<compartment start="406" end="437" title="修复个人中心设置按钮导航并测试">
+用户询问设置、账号安全、关于三个页面的截图获取方式。提供了完整的App内导航路径：个人中心→右上角设置按钮→设置页面→账号安全/关于我们。用户指出tabbar上没有右侧按钮配置，要求查找设置按钮实际位置。通过grep搜索代码发现设置按钮位于个人中心页面的AppBar右上角（Positioned定位），不是tabbar。分析了个人中心页面布局结构：Scaffold包含AppBar（橙色标题栏）+用户信息区（头像/昵称/统计数据/右上角设置按钮）+工作台（魔力值增减）+买家区（出价中秒杀/待收货/已成交）+卖家区（我要卖/待发货/订单）+系统功能列表。Added settings button to AppBar right side (jumps to `/settings`) and corrected user info card settings button to jump to `/profile/user-info` for personal info modification. Built Debug APK at `build/app/outputs/flutter-apk/app-debug.apk`. Device disconnected during installation attempt. 随后执行了完整的iOS模拟器测试流程：构建iOS模拟器版本、列出可用模拟器、启动模拟器、安装App、启动App进行测试。
+U: AppBar 中右侧增加 设置按钮 跳转设置页面
+Added new settings button on AppBar right side with navigation to `/settings` page.
+U: 用户信息区 的设计按钮。还是跳转到 用户信息的信息修改页面
+Corrected user info card settings button to navigate to `/profile/user-info` for personal info modification.
+</compartment>
+
+<compartment start="438" end="490" title="软著申请文档Word格式转换">
+用户要求将用户手册HTML转换为Word文档。尝试使用minimax-docx skill和C# OpenXml方案，但遇到编译错误和sed替换破坏代码的问题。最终使用pandoc直接将HTML转换为Word文档成功，生成文件至 `软著申请/用户手册.docx`（6.5 MB），保留了标题层级、段落格式、图片引用和列表格式。用户打开软著申请目录，确认用户手册Word文档已整理完成，需要将已有的100页源代码PDF转换为Word格式。在上级目录找到 `源代码_100页.pdf` 和 `源代码_100页.txt`，使用 pandoc 将文本转换为 Word 文档，生成文件 `源代码_100页.docx`（55KB）并复制到目标目录。用户打开文档检查代码缩进和行号显示是否正常。
+U: 我们重新回顾一下软著申请相关的任务资料。我们使用构建了用户手册HTML 我们是否可以使用同样的内容生成 一个 Word 文档呢
+使用pandoc将HTML用户手册转换为Word格式，保留了完整的文档结构。
+</compartment>
+
+<compartment start="491" end="526" title="软著申请合规化调研与材料修改">
+用户要求网络调研软著"下证"基本条件并分析当前文档差距。通过网络搜索获取中国版权保护中心官方要求后，整理出完整的软著申请材料清单和当前差距：
+
+**软著下证基本条件**：
+1. 申请表（在线填写）：软件全称、版本号、权利取得方式、开发完成日期等
+2. 程序鉴别材料（源代码PDF）：代码≥3000行时提交前30页+后30页=60页，每页≥50行，需页眉（软件全称+版本号）、页脚（连续页码）
+3. 文档鉴别材料（用户手册PDF）：文档≥60页时提交前30页+后30页，每页≥30行，需页眉页脚，图文结合
+4. 身份证明文件：营业执照副本复印件（加盖公章）
+
+**当前差距**：
+- 🔴 缺少截图3张：设置页面、账号安全页面、关于页面
+- 🔴 文档格式不符合：用户手册和源代码需确认是否有页眉页脚
+- 🔴 源代码Word文档无左侧连续行号（PDF版本有）
+- 🟡 用户手册可能不足60页（当前13章节）
+- 🟢 缺少合作开发协议（单人开发则不需要）
+
+用户询问软件名称是否符合软著申请条件。读取软著申请信息后发现当前软件全称"魔力淘"不符合规范要求——软件全称应以软件/APP/系统/平台结尾。根据官方规范要求，对软著申请材料进行全面合规化修改：
+1. 更新 `软著申请信息.txt`：软件全称改为"魔力淘App"，开发目的改为"为用户提供一个便捷的二手物品交易平台"，软件用途改为"用户可以在平台上发布闲置物品、浏览商品信息、与其他用户进行即时通讯交流"，主要功能移除"拍卖"、"实时出价"等敏感词
+2. 更新 `用户手册.md`：标题改为"魔力淘App用户手册"，功能描述从"拍卖平台"改为"交易平台"，"拍卖模块"改为"交易站模块"，"起拍价/成交价"改为"商品价格/交易价格"，"出价"改为"购买/下单"
+3. 生成新版HTML用户手册并替换旧文件
+
+所有修改确保与软著申请策略一致（隐藏拍卖特性，使用商城系统/二手物品交易平台定位）。修正用户手册编写日期为2026年5月，同步更新markdown和HTML版本。随后梳理软著申请材料清单：软著申请信息表已完善（软件全称改为"魔力淘App"，开发目的和主要功能改为"在线交易平台"相关描述）；用户手册需扩充至60页（当前约20页），缺少设置、账号安全、关于、工作台4张截图；源代码文档100页基本符合要求。用户明确优先梳理材料内容而非格式文档。系统触发TODO继续执行，当前进度2/8。助手分析用户手册内容缺口：当前521行Markdown内容，按软著要求（文档≥60页，每页≥30行）需约1800行，缺口约1300行。识别出需要补充的模块：4.3交易帖子模块（可补充更多操作细节）、4.4即时通讯（可补充群聊细节）、4.6个人中心（可补充余额明细、保证金记录等）、4.8设置模块（简略）、4.9账号安全（简略）、4.10关于模块（简略）。同时获取App页面文件列表以准确补充缺失功能描述。
+U: 针对不合适的地方我们进行优化修改。使得所有的准备材料都要服务 相关规定要求
+明确要求所有软著申请材料必须符合官方规定要求。
+</compartment>
+
+<compartment start="527" end="551" title="系统定位修正为信息撮合平台">
+用户明确系统核心定位：不提供商品交易功能支持，仅支持用户商品的在线沟通撮合。用户自行线下交易，平台不做交易担保。这是关键的业务定位修正——系统是**信息撮合平台**而非交易平台。软著申请信息已更新（开发目的、功能描述），用户手册中涉及"交易"、"购买"、"支付"等描述需改为"撮合"表述（"商品浏览"→"帖子浏览"、"联系卖家"→"联系对方"、"达成交易"→"线下成交"、"订单"→"记录"）。修订了软著申请信息.txt、用户手册.md和用户手册.html中的描述，明确声明"交易由用户自行线下完成，平台不提供交易担保"。
+U: 我们当前系统有一点需要补充。我们的系统不提供商品交易功能支持。仅支持用户商品的在线沟通撮合。用户自行线下交易。不做交易担保。
+明确了系统定位：信息撮合平台，非交易平台。平台不提供交易担保，交易由用户线下完成。
+</compartment>
+
+<compartment start="552" end="561" title="尝试补充缺失截图">
+尝试补充软著申请缺失的4张截图（设置/账号安全/关于/工作台页面）。检查了iOS模拟器和Android设备状态，构建了iOS模拟器版本，尝试安装并启动App进行截图，但截图操作尚未成功完成。
+</compartment>
+
+<compartment start="562" end="582" title="软著申请材料Git提交完成">
+用户请求重新分析当前主要任务。综合梳理了软著申请材料的完成状态：已完成软著申请信息、用户手册、源代码100页PDF；缺失4张截图（设置、账号安全、关于、工作台页面）；待用户补充截图并打印PDF，待检查源代码文档格式并提交Git。处理剩余软著申请任务，检查源代码PDF页数（63页符合≥60页要求），确认`源代码_100页.docx`存在但未转换为PDF。跳过需用户手动完成的截图任务，提交Git并推送到`origin/master`（commit: bff1f21），敏感文件（iOS证书、极光AuthKey）已排除。
+</compartment>
+
+<compartment start="583" end="583" title="TODO continuation signal">
+Received a TODO continuation directive with 1 remaining task marked for manual user completion: supplementing missing screenshots for Settings/Account Security/About/Workbench pages. The system prompted continuation, but the task cannot be automated and awaits user action.
+</compartment>
+
+<compartment start="584" end="594" title="移除软著相关PDF文件">
+用户要求移除软著相关PDF文件。检查 `molitao_app/软著申请/` 目录发现有5个PDF文件（软件说明书.pdf、用户手册_pandoc.pdf、用户手册.pdf、源代码.pdf、源代码_100页.pdf），已全部删除。剩余软著材料保留：软著申请信息.txt、用户手册.md、用户手册.html、用户手册.docx、源代码_100页.docx、截图17张。
+</compartment>
+
+<compartment start="595" end="598" title="软著申请工作进度检查">
+用户询问软著申请工作的待完成项。检查截图目录发现已有17张截图（已覆盖用户手册中的所有功能模块）。完成状态：软著申请信息.txt、用户手册（md/html/docx）、源代码_100页.docx、17张截图均已就绪。剩余工作：3张缺失截图（设置/账号安全/关于页面）、用户手册PDF（需浏览器打印生成）、源代码PDF（需带行号页眉页脚的脚本处理）。
+</compartment>
+
+<compartment start="599" end="603" title="用户手册完整性审查">
+用户询问用户手册内容是否完整，是否还有需要修改的地方。我读取了用户手册HTML文件和截图目录，同时检查了App页面Dart文件列表，进行了对照分析。发现以下问题：1) 截图引用路径错误（群聊引用`截图/群聊.png`但实际是`截图/16_群聊.png`）；2) 缺失4张截图（工作台/设置/账号安全/关于）；3) 未覆盖页面（余额明细、保证金记录、已成交商品列表缺少独立章节）；4) 提供了优先级排序的修改建议。
+</compartment>
+
+<compartment start="604" end="605" title="确认群聊截图存在">
+用户询问是否有群聊界面截图。检查后发现群聊截图已存在于 `软著申请/截图/16_群聊.png`，用户手册截图列表中包含群聊界面。
+</compartment>
+
+<compartment start="606" end="606" title="确认群聊截图引用">
+用户在用户手册相关讨论中引用群聊截图文件 `截图/16_群聊.png`，该截图已在之前的截图整理工作中完成分类和重命名（对应群聊界面）。用户手册HTML中的群聊章节引用此截图，用户确认截图文件存在且可用。
+</compartment>
+
+<compartment start="607" end="614" title="用户手册修正：移除二维码登录功能">
+用户指出APP中没有二维码登录确认功能，助手修正了用户手册（md和html版本），删除所有二维码登录相关内容，并同步修正群聊截图路径为`截图/16_群聊.png`。当前用户手册仍缺少4张截图：工作台、设置、账号安全、关于页面。
+U: 二维码登录确认 我们APP中没有这个功能
+已从用户手册（md和html）中删除二维码登录入口、操作步骤、流程描述等所有相关内容。
+</compartment>
+
+<compartment start="615" end="616" title="软著用户手册登录功能确认">
+用户询问是否可将未完全支持的短信验证码登录写入软著文件。基于用户之前确立的原则（"不要瞎编功能"），建议移除以规避审核风险。实际登录功能仅保留：账号密码登录 + 微信一键登录。
+</compartment>
+
+<compartment start="617" end="623" title="移除用户手册短信验证码登录描述">
+根据用户建议，从用户手册中移除短信验证码登录相关描述，确保文档与实际软件功能一致。修改了用户手册.md和用户手册.html两个文件，移除手机号码/验证码输入框描述、短信验证码登录操作说明，并更新Q7忘记密码答案。当前登录功能仅保留账号密码登录和微信一键登录两种方式。
+</compartment>
+
+<compartment start="624" end="632" title="验证用户手册与实际代码一致性">
+检查用户手册描述是否与实际App代码实现一致，识别影响软著申请的问题。通过读取用户手册并检查登录、设置、账号安全、关于等关键页面代码，发现用户手册大部分描述正确，之前的担忧是错误的。登录模块已移除短信验证码（代码保留备用），账号安全实际支持微信/手机号绑定，关于页面实际有检查更新、给我们评分、意见反馈功能。需补充关于页面的"给我们评分"和"意见反馈"功能描述，以及检查更新的完整操作流程。
+</compartment>
+
+<compartment start="633" end="641" title="更新用户手册匹配实际功能">
+更新用户手册（用户手册.md 和 用户手册.html）以准确反映 App 实际实现。补充"关于"模块的"给我们评分"和"意见反馈"功能描述，修正登录流程为"账号密码登录或微信一键登录"（移除不存在的短信验证码/二维码登录）。验证确认用户手册内容与实际代码一致，不存在虚假功能描述。
+</compartment>
+
+<compartment start="642" end="644" title="用户手册截图缺失分析">
+用户询问用户手册还缺少哪些模块的截图。通过检查截图目录内容和用户手册.md中的图片引用，识别出截图状态：已存在的13张截图（01_首页到13_私聊界面）全部匹配，但用户手册引用了4张缺失的截图——工作台.png、设置.png、账号安全.png、关于.png。同时发现截图目录存在但用户手册未引用的文件：14_魔力值充值.png、15_魔力值提现.png、18_已成交商品列表.png。
+</compartment>
+
+<compartment start="645" end="657" title="补充截图到软著用户手册">
+在软著申请用户手册（md 和 html 两个文件）中补充了 3 张截图：`14_魔力值充值.png`（资产中心充值功能）、`15_魔力值提现.png`（资产中心提现功能）、`18_已成交商品列表.png`（新增 4.6.4 已成交记录模块）。截图覆盖状态更新：已覆盖 18 张，仍缺 3 张（设置、账号安全、关于页面），获取路径为"个人中心 → 右上角设置 → 设置页面/账号安全/关于我们"。
+</compartment>
+
+<compartment start="658" end="663" title="软著申请材料完整性检查">
+检查软著申请材料完整性，生成缺口分析报告。当前状态：软著申请信息.txt 完整（18项），用户手册.md 549行≈18页（需≥60页），源代码_100页.docx 存在，截图17/20张（缺3张：设置、账号安全、关于）。用户手册需增加约1300行，截图需补充3张。
+</compartment>
+
+<compartment start="664" end="666" title="软著用户手册页数规范确认">
+通过网络搜索获取中国版权保护中心官方规定：文档≥60页时提交前30页+后30页（共60页），文档不足60页时提交全部内容。当前用户手册约18页，按官方规定可以提交全部，无需强行凑够60页。用户手册规范内容要求：页眉（软件全称+版本号）、页脚（连续页码）、字体（宋体小四号，1.5倍行距）、每页≥30行、图文结合。推荐内容结构：封面、目录、软件概述、运行环境、功能模块说明（核心部分）、操作流程说明、常见问题解答、技术支持、附录。
+</compartment>
+
+<compartment start="667" end="694" title="用户手册适度扩充完成">
+U: 我们选择方案B 进行适度扩展。根据实际情况进行相关内容的描述
+用户选择方案B进行适度扩展，基于实际软件功能扩充用户手册。从549行（~18页）扩充至1,368行（~45页），增量819行。扩充内容包括：软件概述（补充背景、目标用户、技术架构）、功能模块（10个模块界面元素详解与操作步骤细化）、操作流程（5个流程详细步骤表格与异常处理）、常见问题（从10个扩展到18个Q&A）、新增章节（安全说明、技术支持、附录）。生成HTML版本（2,324行），更新Word文档（6.2MB）。缺失截图状态：仍缺3张（设置、账号安全、关于页面），获取路径为"个人中心 → 右上角设置按钮"。
+</compartment>
+
+<!-- Rewrite all facts below into canonical present-tense operational form. Do not copy wording verbatim. Drop stale or task-local facts. Drop facts already covered by project memories above. -->
+
+<ARCHITECTURE_DECISIONS>
+* 平台定位为信息撮合平台（用户在线沟通撮合，交易由用户线下完成，平台不提供交易担保），非交易平台
+* 设置页面入口位于个人中心页面 AppBar 右上角，跳转路径为 `/settings`
+* 个人中心包含两个设置按钮：AppBar 右上角按钮跳转 `/settings`，用户信息卡片按钮跳转 `/profile/user-info`（个人信息修改）
+* 微信订阅消息显示在微信 App「服务通知」中，不直接推送到 Flutter App
+* UniApp 仅支持微信小程序平台（`mp-weixin`）
+* PC XSS 防护使用 DOMPurify 对 innerHTML 内容消毒
+* Backend 使用 C# .NET 8 + ABP Framework
+* PC 端使用 Vue 3 + TypeScript + Pinia
+* 前端 PaymentStatus 枚举值使用中文，与后端返回值一一对应
+* 后端 GetPayOrderStatus 接口返回中文状态值（已支付/未支付/已退款/取消/退款中/部分退款/NOT_FOUND）
+* 微信支付证书路径解析：绝对路径直接返回，相对路径拼接 WebRootPath；统一路径解析器 `ICertificatePathResolver` 自动判断
+* 微信支付证书 Docker 容器内路径为 `/app/certs/`，通过 docker-compose.yml volumes 从外部挂载
+* fluwx 库 `WeChatSubscribeMsgResponse.isSuccessful` 基于 `errCode==0` 判断，但微信订阅成功时 `errCode` 为 `null`，正确判断应使用 `action` 字段（非 `reject` 即成功）
+* `UserGroupLevelEntity` 和 `GroupChatLevelSettingEntity` 同时保留 SqlSugar 版本（其他模块使用）和 EF Core 版本（原子事务专用）
+* 系统实体统一使用 `long` 作为主键类型
+* iOS 最低版本：iOS 15.0（官方支持的最低版本）
+* iOS entitlements 文件位置：ios/Runner/Runner.entitlements
+* iOS 后台推送模式：UIBackgroundModes remote-notification
+* UniApp 敏感配置（API Key）存放于环境变量文件，不写在源码
+* Backend Random 统一使用 `Random.Shared` 替代 `new Random()`
+* 软著相关资料仅存在于文档层面（`molitao_app/软著申请/`），不涉及后端代码实现
+* 本地开发使用相对路径 `certs/apiclient_cert.p12`，代码拼接 wwwroot；生产环境使用绝对路径 `/app/certs/apiclient_cert.p12`
+* 极光推送测试成功：msg_id `18103100279553893`，alias `user_7509`，channel_id `auction_notify`，Priority=1，AlertType=1
+</ARCHITECTURE_DECISIONS>
+
+<CONFIG_DEFAULTS>
+* 软著申请材料目录：`molitao_app/软著申请/`
+* 软著名称：魔力淘 App（Android 版）
+* 软著页眉格式：软件全称+版本号（如"魔力淘 App V1.0"）
+* 软著页脚格式：著作权人全称
+* 软著页码位置：右上角连续页码
+* 软著软件说明书页数：前 30 页+后 30 页=60 页（不足则全部），每页 ≥30 行
+* 软著软件说明书字体：宋体小四号，1.5 倍行距
+* 软著软件说明书必须包含界面截图或流程图
+* 软著源代码文档页数：前 30 页+后 30 页=60 页，每页 ≥50 行（结束页 ≥15 行）
+* 软著源代码字体：等宽字体（Consolas/Courier）或宋体五号
+* 软著源代码行号：左侧连续行号
+* 用户手册结构：每个功能模块说明后紧跟对应截图（模块+截图交替模式）
+* HTML 用户手册图片样式：最大高度 400px，最大宽度 100%，居中显示
+* 用户手册 Markdown 版本：`软著申请/用户手册.md`（1,368行 ≈ 45页）
+* 用户手册 HTML 版本：`软著申请/用户手册.html`（2,324行）
+* 用户手册 Word 版本：`软著申请/用户手册.docx`（6.2MB）
+</CONFIG_DEFAULTS>
+
+<CONSTRAINTS>
+* 软著申请截图共需 20 张，当前缺失 3 张：设置页面、账号安全页面、关于页面（获取路径：个人中心 → 右上角设置）
+* 用户手册内容必须基于实际代码页面梳理，不得臆造功能
+* 安卓应用上架软著名称需与应用名称一致
+* EndAuction 操作必须保持原子性，SqlSugar 与 EF Core 不能共用同一事务连接
+* 修改范围只能是解决发现的问题，不能修改原有业务逻辑
+* 微信支付证书使用外部挂载，不在 Dockerfile 中复制文件到镜像
+* Promise 重构必须保持原有业务执行流程与逻辑不变，执行结果一致
+* 极光推送 alias 格式必须为 `user_${userId}`，App 端与推送 API 调用端必须保持一致
+* 微信订阅消息不支持直接拉起外部 App，需通过 H5 中转页实现跳转（URL Scheme 或 Universal Link）
+* 系统不提供交易功能支持和交易担保，用户自行线下交易
+* 极光推送基础版在 App 后台/关闭时无法送达，必须集成厂商通道（HMS/Mi Push/OPPO/vivo/荣耀/魅族）才能实现后台推送
+* App 端订阅时 openId 必须传递（移动应用微信登录获取）
+* iOS 模拟器构建不需要分发证书和描述文件
+* 本地处理的定义：代码层面可完成的配置，不依赖外部账号/证书申请
+</CONSTRAINTS>
+
+<ENVIRONMENT>
+* 软著申请目录：`/Users/mac/workspace/magic-tao/molitao_app/软著申请/`
+* 软著截图目录：`/Users/mac/workspace/magic-tao/molitao_app/软著申请/截图/`
+* 用户手册路径：`/Users/mac/workspace/magic-tao/molitao_app/软著申请/用户手册.html`
+* 用户手册 HTML 文件：`软著申请/用户手册.html`（2,324行，含目录导航）
+* 用户手册 Markdown 文件：`软著申请/用户手册.md`（1,368行 ≈ 45页）
+* 用户手册 Word 文件：`软著申请/用户手册.docx`（6.2MB）
+* 源代码 Word 文件：`软著申请/源代码_100页.docx`
+* iOS Bundle ID：com.molitao.molitaoApp
+* DEVELOPMENT_TEAM：WX4RK78D62
+* 极光推送 AppKey：4e91398522bb1286f6452efb
+* iOS APNS 环境：production
+* APNS Key ID：6VUQS8645G（Key Name: MolitaoAPNS2，.p8 文件位于 ~/Downloads/AuthKey_6VUQS8645G.p8）
+* Apple 开发者账号到期日：2027-05-13
+* iOS Distribution 证书已安装（iPhone Distribution: TengFei Li，Team ID WX4RK78D62）
+* iOS Provisioning Profile 已安装（Molitao_App_Store_Distribution，App Store Distribution 类型）
+* iOS 推送配置已完成：APNS Key 已上传极光控制台，Info.plist、Runner.entitlements、Flutter push_service.dart 配置完整
+* iOS 上架 IPA 文件位置：`molitao_app/build/ios/ipa/molitao_app.ipa`（34MB，版本 1.5.4 Build 1）
+* Flutter App API baseUrl 生产地址为 `https://www.molitao.top`
+* PC 端 Nginx root：`/www/wwwroot/www.molitao.top`
+* SSH 别名：`molitao`
+* 后端 Web 服务目录：`/data/dotnetapi`
+* Transporter App 未安装，iOS IPA 上传需用户手动安装 Transporter 并上传
+* 本地开发数据库操作使用 `LocalDevController.cs` 的 `POST /api/localdev/reset-password` 接口（仅限 127.0.0.1 调用）
+* 后端部署脚本位置：`backend/scripts/deploy-to-server.sh`
+* PC 端测试账号：用户 7509 / 密码 123456
+* Android 真机已连接（Android 14 设备），App 包名为 com.molitao.app，用于软著截图采集
+* Xcode 26.4.1 最高支持 iOS 16.4，不支持 iOS 18.x 真机构建
+* 当前 Provisioning Profile 是 App Store Distribution 类型，不支持真机测试，需创建 iOS App Development Provisioning Profile 才能真机调试
+* iPhone 真机已连接（iOS 26.1，UDID `00008110-000C64612EF2801E`）
+</ENVIRONMENT>
+
+<KNOWN_ISSUES>
+* `EndAuction` API返回500：`MySqlTransaction.Commit()`时抛出`NullReferenceException`，堆栈指向`MySqlDataReader.ActivateResultSet`，可能存在并发调用或事务状态异常
+</KNOWN_ISSUES>
+
+<USER_DIRECTIVES>
+* 现在重点梳理材料内容，不着急格式文档
+* 所有软著申请材料必须符合官方规定要求
+* 用户手册描述必须基于实际软件操作和代码实现，不得臆造不存在的功能
+* 用户手册术语调整："商品浏览"→"帖子浏览"、"联系卖家"→"联系对方"、"达成交易"→"线下成交"、"订单"→"记录"
+* 软件全称应以软件/APP/系统/平台结尾（如"魔力淘 App"）
+* 软著申请使用"信息撮合平台"定位，描述为用户商品在线沟通撮合，用户自行线下交易，平台不提供交易担保
+* 软著软件说明书需整合前后端源代码，形成单一完整申请材料
+* 软著源代码每页最少 50 行，可以多但不能少
+* 源代码提交弹性原则：代码可以多但不能少
+* 用户手册需按中介示例格式编写：功能模块描述+界面截图+操作流程
+* 用户手册先生成 HTML，通过浏览器打印生成 PDF，不直接生成 PDF
+</USER_DIRECTIVES>
+
+<WORKFLOW_RULES>
+* 修复后自行测试验证，修复完成无问题则提交 Git
+* H5 部署使用 skill `molitao-h5-deploy`
+* PC 端部署：构建后上传到 `/www/wwwroot/www.molitao.top/`，然后重载 Nginx
+* 本地测试时 App API 地址指向 `http://192.168.10.32:12580`
+* Code Review 优先审查最近一次提交
+* 所有输出使用中文
+* 禁止使用空 catch 块
+* 用户手册先生成 HTML，通过浏览器打印生成 PDF，不直接生成 PDF
+* 本地修改后禁止部署操作
+* 本地开发数据库操作通过 `LocalDevController.cs` 执行，禁止操作正式服务器
+* 创建新分支时使用日期前缀 `YYYYMMDD_***`
+* 问题无法解决则回退版本或跳过，继续循环直到所有严重问题解决
+* 事务修复需保持原子性：全部成功或全部回滚
+* 软著申请材料需提交 PDF 格式，不接受 markdown 格式
+* iOS 模拟器截图默认保存到用户桌面，格式为"Simulator Screenshot - [设备名] - [日期时间].png"
+* 用户手册内容必须基于实际代码页面梳理，不得臆造功能
+* 推送完整流程测试：订阅记录创建 → 开拍触发 → 推送日志验证
+* 后端服务停止后需用户手动重启，重启完成后再通知继续
+* 当需要进行软著相关研究时，调研范围应覆盖 App 端文档、后端代码库、申报材料状态
+* 极光控制台配置入口：https://www.jiguang.cn → 控制台 → 应用 4e91398522bb1286f6452efb → 推送设置
+* 极光推送 iOS 配置：创建 APNS Key（.p8）→ 上传到极光控制台（推送设置 → iOS → 认证方式 Token）→ 填写 Key ID、Team ID、Bundle ID → 上传 .p8 文件
+* 软著截图命名规范：序号_功能名称.png
+* iOS App Store 上架流程：开发者账号续费 → 配置 DEVELOPMENT_TEAM → 申请发布证书 → 创建 Provisioning Profile → 整理推送配置 → Flutter 构建 IPA → 用户上传 IPA 到 App Store Connect
+* IPA 上传必须通过 Transporter App 或 App Store Connect 网页手动完成，Apple 安全机制要求 Apple ID 认证
+* APNS Key 创建需要登录 Apple Developer（developer.apple.com/account），需完成 Apple ID 双重认证
+* 真机测试需创建 iOS App Development Provisioning Profile 或配置 Automatic 签名，并选择测试设备 UDID
+* iOS 上架流程需先完成 Apple 开发者账号续费，然后才能申请证书、配置签名、打包构建、上架提交
+* 安卓应用上架软著名称需与应用名称一致，不一致会导致审核驳回
+* Android App 保活配置完成：RECEIVE_BOOT_COMPLETED 权限（开机自启动）、FOREGROUND_SERVICE 权限（前台服务）、PushService 配置 foregroundServiceType="specialUse"、PushReceiver 监听 BOOT_COMPLETED、MainActivity.kt 创建 jpush_foreground 通知渠道（IMPORTANCE_LOW，静默）
+* Promise 重构必须保持原有业务执行流程与逻辑不变，执行结果一致
+* 用户手册结构：每个功能模块说明后紧跟对应截图
+</WORKFLOW_RULES>

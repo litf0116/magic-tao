@@ -60,3 +60,4 @@ scripts/publish-app.sh
 *.tar
 scripts/*.tar
 molitao-backend-*.tar
+.opencode/

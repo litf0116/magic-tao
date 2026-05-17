@@ -67,16 +67,17 @@
                     <div class="post-categories">
                         <el-tag v-if="post.isTop != 0" type="danger" effect="plain" size="small">置顶</el-tag>
                         <el-tag v-if="post.isEssence != 0" type="success" effect="plain" size="small">精华</el-tag>
-                        <el-tag
-                            v-for="(item, index) in post.postCategory"
-                            v-if="post.postCategory"
-                            :key="index"
-                            :type="tagTypes[index % tagTypes.length]"
-                            effect="plain"
-                            size="small"
-                        >
-                            {{ item }}
-                        </el-tag>
+                        <template v-if="post.postCategory">
+                            <el-tag
+                                v-for="(item, index) in post.postCategory"
+                                :key="index"
+                                :type="tagTypes[index % tagTypes.length]"
+                                effect="plain"
+                                size="small"
+                            >
+                                {{ item }}
+                            </el-tag>
+                        </template>
                     </div>
 
                     <!-- 标题 -->
@@ -119,16 +120,17 @@
                         <div class="post-categories">
                             <el-tag v-if="post.isTop != 0" type="danger" effect="plain" size="small">置顶</el-tag>
                             <el-tag v-if="post.isEssence != 0" type="success" effect="plain" size="small">精华</el-tag>
-                            <el-tag
-                                v-for="(item, index) in post.postCategory"
-                                v-if="post.postCategory"
-                                :key="index"
-                                :type="tagTypes[index % tagTypes.length]"
-                                effect="plain"
-                                size="small"
-                            >
-                                {{ item }}
-                            </el-tag>
+                            <template v-if="post.postCategory">
+                                <el-tag
+                                    v-for="(item, index) in post.postCategory"
+                                    :key="index"
+                                    :type="tagTypes[index % tagTypes.length]"
+                                    effect="plain"
+                                    size="small"
+                                >
+                                    {{ item }}
+                                </el-tag>
+                            </template>
                         </div>
 
                         <!-- 标题 -->

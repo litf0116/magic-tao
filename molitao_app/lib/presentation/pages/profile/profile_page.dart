@@ -132,12 +132,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                         children: [
                           // User avatar and name
                           GestureDetector(
-                            onTap: () {
-                              if (userState.user != null &&
-                                  userState.isLoggedIn) {
-context.push('/settings');
-                              }
-                            },
+                             onTap: () {
+                               if (userState.user != null &&
+                                   userState.isLoggedIn) {
+                                 context.push('/profile/user-info');
+                               }
+                             },
                             child: Row(
                               children: [
                                 if (!userState.isLoggedIn ||

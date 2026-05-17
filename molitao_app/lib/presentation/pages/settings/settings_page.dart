@@ -199,7 +199,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage>
                   _buildListTile(
                     icon: Icons.security_outlined,
                     title: '账号安全',
-                    onTap: () => context.push('/profile/account-security'),
+                    onTap: () => context.push('/account-security'),
                     showArrow: true,
                   ),
                   _buildDivider(),
@@ -238,21 +238,21 @@ class _SettingsPageState extends ConsumerState<SettingsPage>
                   _buildListTile(
                     icon: Icons.info_outline,
                     title: '关于我们',
-                    onTap: () => context.push('/profile/about'),
+                    onTap: () => context.push('/about'),
                     showArrow: true,
                   ),
                   _buildDivider(),
                   _buildListTile(
                     icon: Icons.description_outlined,
                     title: '用户协议',
-                    onTap: () => _showUserAgreement(context),
+                    onTap: () => context.push('/agreement?type=user-agreement'),
                     showArrow: true,
                   ),
                   _buildDivider(),
                   _buildListTile(
                     icon: Icons.privacy_tip_outlined,
                     title: '隐私政策',
-                    onTap: () => _showPrivacyPolicy(context),
+                    onTap: () => context.push('/agreement?type=privacy-policy'),
                     showArrow: true,
                   ),
                 ],
@@ -606,77 +606,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage>
                 Navigator.of(context).pop();
                 _clearCache();
               },
-              child: const Text(
-                '确定',
-                style: TextStyle(color: Color(0xfff4835a)),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showUserAgreement(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('用户协议'),
-          content: const SingleChildScrollView(
-            child: Text(
-              '欢迎使用魔力淘！\n\n'
-              '在使用本应用前，请仔细阅读以下条款：\n\n'
-              '1. 服务说明\n'
-              '魔力淘是一个在线拍卖交易平台，为用户提供游戏虚拟物品的拍卖服务。\n\n'
-              '2. 用户责任\n'
-              '用户应遵守相关法律法规，不得利用平台进行违法违规活动。\n\n'
-              '3. 交易规则\n'
-              '所有交易均需遵守平台规则，确保交易公平、公正、公开。\n\n'
-              '4. 隐私保护\n'
-              '我们重视用户隐私，具体见隐私政策。',
-              style: TextStyle(fontSize: 14),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                '确定',
-                style: TextStyle(color: Color(0xfff4835a)),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showPrivacyPolicy(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('隐私政策'),
-          content: const SingleChildScrollView(
-            child: Text(
-              '魔力淘隐私政策\n\n'
-              '生效日期：2024年1月1日\n\n'
-              '我们重视并保护您的隐私，本政策说明我们如何收集、使用和保护您的个人信息：\n\n'
-              '1. 信息收集\n'
-              '我们收集您注册时提供的基本信息（用户名、手机号等）以及交易过程中产生的数据。\n\n'
-              '2. 信息使用\n'
-              '您的信息仅用于提供服务、改进用户体验和保障交易安全。\n\n'
-              '3. 信息保护\n'
-              '我们采用多种安全措施保护您的个人信息，防止未经授权的访问、使用或泄露。\n\n'
-              '4. 信息共享\n'
-              '除法律法规要求或经您同意外，我们不会向第三方共享您的个人信息。',
-              style: TextStyle(fontSize: 14),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
               child: const Text(
                 '确定',
                 style: TextStyle(color: Color(0xfff4835a)),
