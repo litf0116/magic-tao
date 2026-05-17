@@ -203,8 +203,8 @@ const returnContext = ref<string>((route.query.returnContext as string) || '')
 const showRules = ref(false)
 const checking = ref(false)
 
-// 计算支付金额（支持URL参数，默认51元）
-const amount = Number(route.query.amount) || 51
+// 计算支付金额（固定51元，不从URL获取）
+const amount = 51
 
 // 使用支付 Hook（金额固定51元）
 const { qrCodeUrl, orderNo, countdown, errorMessage, isPolling, initPayment, retry, formatCountdown, cleanup } =
