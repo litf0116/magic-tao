@@ -36,8 +36,6 @@ declare module 'vue' {
     KasecStatusMessage: typeof import('./src/components/Chat/KasecStatusMessage.vue')['default']
     LeftSidebarTools: typeof import('./src/components/LeftSidebarTools.vue')['default']
     ListAuctionItem: typeof import('./src/components/Chat/listAuctionItem.vue')['default']
-    MyButton: typeof import('./src/components/MyButton/index.vue')['default']
-    NextButton: typeof import('./src/components/MyButton/NextButton.vue')['default']
     OrderQueryFilter: typeof import('./src/components/paged-table/orderQueryFilter.vue')['default']
     PagedTable: typeof import('./src/components/paged-table/index.vue')['default']
     ProfileCompletionGuide: typeof import('./src/components/ProfileCompletionGuide.vue')['default']
