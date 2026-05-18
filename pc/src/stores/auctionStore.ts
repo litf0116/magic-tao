@@ -255,9 +255,14 @@ export const useAuctionStore = defineStore('auction', () => {
     }
 
     //出价
-    function bid(auctionItemId: number, bidPrice: number) {
-        api.auctionItem
-            .bid({
+    async function bid(auctionItemId: number, bidPrice: number) {
+        console.log('【Bid 出价开始】', {
+            auctionItemId,
+            bidPrice,
+            timestamp: new Date().toISOString(),
+        })
+        try {
+            await api.auctionItem.bid({
                 body: {
                     auctionItemId,
                     bidPrice,
@@ -265,10 +270,21 @@ export const useAuctionStore = defineStore('auction', () => {
                     bidUserAvatar: userStore.user.headImgUrl,
                 },
             })
-            .then(() => {
-                // 注意：出价消息已由后端发送，前端无需重复发送
-                Tips.success('出价成功')
+            Tips.success('出价成功')
+        } catch (error) {
+            console.error('【Bid 出价失败】', {
+                auctionItemId,
+                bidPrice,
+                error,
+                errorMessage: error?.message,
+                errorCode: error?.code,
+                errorResponse: error,
+                userAgent: navigator.userAgent,
+                timestamp: new Date().toISOString(),
             })
+            const msg = error?.message || error?.error?.message || '网络异常，请稍后重试'
+            ElMessage.error(msg)
+        }
     }
 
     function getList(status: number | undefined = undefined, maxResultCount = 100) {
