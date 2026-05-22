@@ -6,7 +6,6 @@ public class SendSmsCodeInput
 {
     [StringLength(20)]
     [Required]
-    [Phone]
     public string PhoneNumber { get; set; }
 
     public string Purpose { get; set; } = "Login";
