@@ -18,6 +18,21 @@ namespace TtWork.Abp.Core.Net.Sms
 
         private readonly SmsSettings _smsSettings;
 
+        // 复用 HttpClient，避免每次创建导致 socket 资源耗尽
+        // 使用 SocketsHttpHandler 连接池 + DNS 刷新 (5分钟)
+        private static readonly SocketsHttpHandler _httpHandler = new()
+        {
+            PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+            PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2),
+            MaxConnectionsPerServer = 10,
+            AutomaticDecompression = System.Net.DecompressionMethods.GZip
+        };
+
+        private static readonly System.Net.Http.HttpClient _httpClient = new(_httpHandler)
+        {
+            Timeout = TimeSpan.FromSeconds(15)
+        };
+
         public SmsSender()
         {
             Logger = NullLogger.Instance;
@@ -56,10 +71,6 @@ namespace TtWork.Abp.Core.Net.Sms
 
                 Logger.Info($"[阿里云短信] 短信发送成功 - 手机号: {number}, 验证码: {code}");
             }
-            catch (UserFriendlyException)
-            {
-                throw;
-            }
             catch (Exception ex)
             {
                 Logger.Error($"[阿里云短信] 发送异常: {ex.Message}", ex);
@@ -97,14 +108,21 @@ namespace TtWork.Abp.Core.Net.Sms
             var queryString = BuildQueryString(parameters);
             var requestUrl = $"https://dysmsapi.aliyuncs.com/?{queryString}";
 
-            using var httpClient = new System.Net.Http.HttpClient();
-            var response = await httpClient.GetAsync(requestUrl);
+            var response = await _httpClient.GetAsync(requestUrl);
             var responseContent = await response.Content.ReadAsStringAsync();
 
             Logger.Info($"[阿里云短信] API响应: {responseContent}");
 
-            return JsonConvert.DeserializeObject<SendSmsResponse>(responseContent)
-                ?? new SendSmsResponse { Code = "ERROR", Message = "Failed to parse response" };
+            try
+            {
+                return JsonConvert.DeserializeObject<SendSmsResponse>(responseContent)
+                    ?? new SendSmsResponse { Code = "ERROR", Message = "响应解析为空" };
+            }
+            catch (JsonReaderException ex)
+            {
+                Logger.Error($"[阿里云短信] 响应解析失败: {ex.Message}, 原始响应: {responseContent}");
+                return new SendSmsResponse { Code = "ERROR", Message = "响应解析失败" };
+            }
         }
 
         private static string ComputeSignature(
