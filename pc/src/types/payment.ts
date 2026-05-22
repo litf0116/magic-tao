@@ -1,11 +1,13 @@
 /**
  * 支付结果状态枚举
  * 对应后端 GetPayOrderStatus 接口返回的 status 字段
+ * 后端 PayState 枚举名通过 ToString() 输出
  */
 export enum PaymentStatus {
-    Success = '已支付',
-    Pending = '未支付',
-    Failed = '失败',
+    Success = 'PAID',
+    Pending = 'UNPAID',
+    Cancelled = 'CANCELLED',
+    Refunded = 'REFUNDED',
 }
 
 /**

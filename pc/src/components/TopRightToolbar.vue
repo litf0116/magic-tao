@@ -470,7 +470,7 @@ const checkPaymentStatus = async () => {
     try {
         if (orderNo.value) {
             const status = await getPaymentStatus({ outTradeNo: orderNo.value })
-            if (status.status === '已支付') {
+            if (status.status === 'PAID') {
                 ElMessage.success('支付成功！魔力值已到账')
                 clearAllTimers()
                 await userStore.getUserInfo()

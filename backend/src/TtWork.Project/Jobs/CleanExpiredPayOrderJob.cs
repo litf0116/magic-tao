@@ -23,7 +23,7 @@ public class CleanExpiredPayOrderJob(
         var cutoffTime = DateTime.Now.AddHours(-24);
         
         var expiredOrders = payOrderRepository.GetAll()
-            .Where(x => x.State == PayState.未支付 && x.CreationTime < cutoffTime)
+            .Where(x => x.State == PayState.UNPAID && x.CreationTime < cutoffTime)
             .ToList();
 
         if (expiredOrders.Count == 0)
@@ -34,7 +34,7 @@ public class CleanExpiredPayOrderJob(
 
         foreach (var order in expiredOrders)
         {
-            order.State = PayState.取消;
+            order.State = PayState.CANCELLED;
         }
 
         await unitOfWorkManager.Current.SaveChangesAsync();

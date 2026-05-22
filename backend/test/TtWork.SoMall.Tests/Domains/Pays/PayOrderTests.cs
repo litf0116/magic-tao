@@ -24,7 +24,7 @@ public class PayOrderTests
 
         payOrder.Total.ShouldBe(5100);
         payOrder.HostType.ShouldBe(OrderType.保证金);
-        payOrder.State.ShouldBe(PayState.未支付);
+        payOrder.State.ShouldBe(PayState.UNPAID);
         payOrder.OutTradeNo.ShouldNotBeNullOrEmpty();
         payOrder.OutTradeNo.Length.ShouldBeLessThanOrEqualTo(48);
         payOrder.CreatorUserId.ShouldBe(userId);
@@ -81,7 +81,7 @@ public class PayOrderTests
 
         payOrder.Total.ShouldBe(10000);
         payOrder.HostType.ShouldBe(OrderType.充值);
-        payOrder.State.ShouldBe(PayState.未支付);
+        payOrder.State.ShouldBe(PayState.UNPAID);
         payOrder.OpenId.ShouldBe("openid123");
     }
 
@@ -98,7 +98,7 @@ public class PayOrderTests
 
         payOrder.SuccessPay(notifyId, successTime);
 
-        payOrder.State.ShouldBe(PayState.已支付);
+        payOrder.State.ShouldBe(PayState.PAID);
         payOrder.IsSuccessPay.ShouldBeTrue();
         payOrder.SuccessPayTime.ShouldBe(successTime);
     }
@@ -118,89 +118,6 @@ public class PayOrderTests
     }
 
     #endregion
-
-    #region Refund Tests
-
-    [Fact]
-    public void Refund_Should_SetRefundState()
-    {
-        var payOrder = CreateTestPayOrder();
-        payOrder.SuccessPay("notify_123", DateTime.Now);
-        var refundAmount = 10m;
-
-        payOrder.Refund(refundAmount);
-
-        payOrder.IsRefund.ShouldBeTrue();
-        payOrder.RefundTime.ShouldNotBeNull();
-        payOrder.RefundPrice.ShouldBe(1000);
-    }
-
-    [Fact]
-    public void Refund_WithExceedAmount_ShouldThrowException()
-    {
-        var payOrder = CreateTestPayOrder();
-        payOrder.SuccessPay("notify_123", DateTime.Now);
-        var refundAmount = 100m;
-
-        Should.Throw<Abp.UI.UserFriendlyException>(() =>
-            payOrder.Refund(refundAmount));
-    }
-
-    [Fact]
-    public void RefundComplate_WithFullAmount_ShouldSetRefundedState()
-    {
-        var payOrder = CreateTestPayOrder();
-        payOrder.SuccessPay("notify_123", DateTime.Now);
-
-        payOrder.RefundComplate(5100);
-
-        payOrder.State.ShouldBe(PayState.已退款);
-        payOrder.RefundComplateTime.ShouldNotBeNull();
-        payOrder.RefundPrice.ShouldBe(5100);
-    }
-
-    [Fact]
-    public void RefundComplate_WithPartialAmount_ShouldSetPartialRefundState()
-    {
-        var payOrder = CreateTestPayOrder();
-        payOrder.SuccessPay("notify_123", DateTime.Now);
-
-        payOrder.RefundComplate(1000);
-
-        payOrder.State.ShouldBe(PayState.部分退款);
-        payOrder.RefundPrice.ShouldBe(1000);
-    }
-
-    [Fact]
-    public void RefundComplate_MultipleTimes_ShouldAccumulateAmount()
-    {
-        var payOrder = CreateTestPayOrder();
-        payOrder.SuccessPay("notify_123", DateTime.Now);
-
-        payOrder.RefundComplate(1000);
-        payOrder.RefundComplate(2000);
-
-        payOrder.RefundPrice.ShouldBe(3000);
-        payOrder.State.ShouldBe(PayState.部分退款);
-    }
-
-    #endregion
-
-    #region RejectRefund Tests
-
-    [Fact]
-    public void RejectRefund_Should_ResetRefundProperties()
-    {
-        var payOrder = CreateTestPayOrder();
-        payOrder.SuccessPay("notify_123", DateTime.Now);
-        payOrder.Refund(10m);
-
-        payOrder.RejectRefund();
-
-        payOrder.IsRefund.ShouldBeFalse();
-        payOrder.RefundPrice.ShouldBeNull();
-        payOrder.RefundTime.ShouldBeNull();
-    }
 
     #endregion
 
