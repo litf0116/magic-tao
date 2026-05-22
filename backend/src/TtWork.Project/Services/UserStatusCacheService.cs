@@ -147,7 +147,7 @@ namespace TtWork.Project.Services
                 if (_memoryCache.TryGetValue(cacheKey, out BanStatusInfo cachedInfo))
                 {
                     // Validate cached ban hasn't expired
-                    if (cachedInfo?.IsBanned == true && cachedInfo.BanEndTime <= DateTime.Now)
+                    if (cachedInfo?.IsBanned == true && cachedInfo.BanEndTime <= DateTime.UtcNow)
                     {
                         // Cache entry is stale, clear it and return fresh data
                         _memoryCache.Remove(cacheKey);
@@ -429,7 +429,7 @@ namespace TtWork.Project.Services
             try
             {
                 var banedUser = await _banedUserRepository.FirstOrDefaultAsync(a =>
-                    a.UserId == userId && (a.Chan == null || a.Chan == channel) && a.EndTime > DateTime.Now);
+                    a.UserId == userId && (a.Chan == null || a.Chan == channel) && a.EndTime > DateTime.UtcNow);
 
                 return banedUser != null 
                     ? new BanStatusInfo 

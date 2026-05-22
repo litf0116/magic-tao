@@ -31,8 +31,8 @@ public class BanedUserAppService : AbpAsyncCrudAppService<BanedUser, BanedUserDt
 
     protected override IQueryable<BanedUser> CreateFilteredQuery(AppResultRequestDto input) {
         return base.CreateFilteredQuery(input)
-                .WhereIf(input.Status is 1, x => x.EndTime > DateTime.Now)
-                .WhereIf(input.Status is 0, x => x.EndTime <= DateTime.Now)
+                .WhereIf(input.Status is 1, x => x.EndTime > DateTime.UtcNow)
+                .WhereIf(input.Status is 0, x => x.EndTime <= DateTime.UtcNow)
             ;
     }
 }

@@ -69,7 +69,7 @@ public class UserDepositJob(
                 await userDepositLogRepository.GetAll().Where(x => x.Id == log.Id)
                     .ExecuteUpdateAsync(setter => setter
                         .SetProperty(b => b.IsSuccess, true)
-                        .SetProperty(b => b.SuccessTime, DateTime.Now)
+                        .SetProperty(b => b.SuccessTime, DateTime.UtcNow)
                         .SetProperty(b => b.AfterAmount, afterAmount)
                     );
                 logger.LogInformation($"[UserDepositJob]用户:{log.CreatorUserId}保证金操作成功,当前保证金{afterAmount}");
