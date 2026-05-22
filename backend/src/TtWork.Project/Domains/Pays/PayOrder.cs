@@ -61,7 +61,7 @@ public class PayOrder : FullAuditedAggregateRoot<Ulid>, IMustHaveTenant, IExtend
     public void SuccessPay(string notifyId, DateTime? time) {
             State = PayState.PAID;
         IsSuccessPay = true;
-        SuccessPayTime = time ?? DateTime.Now;
+        SuccessPayTime = time ?? DateTime.UtcNow;
         this.SetData("Notification_Id", notifyId);
     }
 

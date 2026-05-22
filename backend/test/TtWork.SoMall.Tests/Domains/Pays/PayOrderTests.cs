@@ -1,3 +1,4 @@
+using Abp.UI;
 using Shouldly;
 using TtWork.Project.Applications;
 using TtWork.Project.Domains.Pays;
@@ -157,7 +158,7 @@ public class PayOrderTests
     {
         var payOrder = new PayOrder();
 
-        Should.Throw<Exception>(() =>
+        Should.Throw<UserFriendlyException>(() =>
             payOrder.CreateDepositPay(51m, 1, "", "", "appid", "mchid", 1));
     }
 
