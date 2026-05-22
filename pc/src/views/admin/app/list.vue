@@ -246,7 +246,7 @@ async function getOssSignature(): Promise<{ signature: string; policy: string }>
         return { signature: cachedata.signature, policy: cachedata.policy }
     }
 
-    const date = new Date().toGMTString()
+    const date = new Date().toUTCString()
     const opts = {
         'save-key': `/apps/${userName}/{year}-{mon}-{day}/{random32}{.suffix}`,
         bucket: bucketName,

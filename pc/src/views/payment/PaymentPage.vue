@@ -236,35 +236,22 @@ const retryPayment = async () => {
 
 // 手动检查支付状态
 const manualCheck = async () => {
-    console.log('[PaymentPage] manualCheck 开始执行')
-    console.log('[PaymentPage] orderNo.value:', orderNo.value)
-    console.log('[PaymentPage] orderNo 类型:', typeof orderNo.value)
-    console.log('[PaymentPage] orderNo 长度:', orderNo.value?.length)
-
     checking.value = true
     try {
-        console.log('[PaymentPage] 准备调用 getPaymentStatus')
-
         if (!orderNo.value) {
             console.error('[PaymentPage] orderNo 为空，无法检查支付状态')
             ElMessage.error('订单号不存在，请刷新页面重试')
             return
         }
 
-        console.log('[PaymentPage] 调用 getPaymentStatus，参数:', { outTradeNo: orderNo.value })
         const result = await getPaymentStatus({ outTradeNo: orderNo.value })
-        console.log('[PaymentPage] getPaymentStatus 返回结果:', result)
-        console.log('[PaymentPage] result.status:', result.status)
-        console.log('[PaymentPage] PaymentStatus.Success:', PaymentStatus.Success)
 
         if (result.status === PaymentStatus.Success) {
-            console.log('[PaymentPage] 支付成功，准备跳转')
             paymentSuccess.value = true
             ElMessage.success('支付成功！')
 
             // 延迟跳转
             setTimeout(() => {
-                console.log('[PaymentPage] 执行跳转，returnUrl:', returnUrl.value)
                 if (returnUrl.value) {
                     router.push(returnUrl.value)
                 } else {
@@ -272,7 +259,6 @@ const manualCheck = async () => {
                 }
             }, 1500)
         } else {
-            console.log('[PaymentPage] 支付未完成，状态:', result.status)
             ElMessage.info('支付尚未完成，请继续支付')
         }
     } catch (error) {
@@ -281,7 +267,6 @@ const manualCheck = async () => {
         ElMessage.error('检查支付状态失败')
     } finally {
         checking.value = false
-        console.log('[PaymentPage] manualCheck 执行结束')
     }
 }
 

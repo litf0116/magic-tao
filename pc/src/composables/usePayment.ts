@@ -56,20 +56,11 @@ export function usePayment(options?: Partial<PaymentOptions>) {
                 case PaymentStatus.Success:
                     handleSuccess(result)
                     break
-                case PaymentStatus.Failed:
-                    handleError(new Error(result.message))
-                    break
                 case PaymentStatus.Pending:
                     break
-                default: {
-                    const status = result.status
-                    if (status === '已退款' || status === '部分退款' || status === '退款中') {
-                        handleError(new Error(result.message || '支付退款'))
-                    } else if (status === '失败' || status === '取消') {
-                        handleError(new Error(result.message || '支付失败'))
-                    }
+                default:
+                    handleError(new Error(result.message || '支付失败'))
                     break
-                }
             }
         } catch (error) {
             console.error('Failed to check payment status:', error)

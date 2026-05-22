@@ -303,7 +303,7 @@ public class ClientAppService(
             };
         }
 
-        if (payOrder.State != PayState.已支付)
+        if (payOrder.State != PayState.PAID)
         {
             var app = await mediator.Send(new QueryApp(payOrder.AppName, false));
             var mchid = app.GetValue("mchId");
@@ -377,12 +377,10 @@ public class ClientAppService(
     {
         return state switch
         {
-            PayState.未支付 => "等待支付",
-            PayState.已支付 => "支付成功",
-            PayState.取消 => "订单已取消",
-            PayState.退款中 => "退款处理中",
-            PayState.已退款 => "已退款",
-            PayState.部分退款 => "部分退款",
+            PayState.UNPAID => "等待支付",
+            PayState.PAID => "支付成功",
+            PayState.CANCELLED => "订单已取消",
+            PayState.REFUNDED => "已退款",
             _ => "未知状态"
         };
     }
@@ -403,7 +401,7 @@ public class ClientAppService(
             throw new UserFriendlyException($"当前订单不存在");
         }
 
-        if (payOrder.State != PayState.已支付)
+        if (payOrder.State != PayState.PAID)
         {
             throw new UserFriendlyException($"当前订单状态不正确，订单状态：" + (PayState)payOrder.State);
         }
@@ -469,7 +467,7 @@ public class ClientAppService(
                 userInfo.DepositBalance -= (payOrder.Total / 100m);
                 await userRepository.UpdateAsync(userInfo);
                 //
-                payOrder.State = PayState.已退款;
+                payOrder.State = PayState.REFUNDED;
                 payOrderRepository.Update(payOrder);
             }
 

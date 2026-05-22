@@ -78,17 +78,12 @@ export const useChatStore = defineStore('chat', () => {
     const initQr = (str: string) => {
         if (str) {
             const qrLoginUrl = `${BASE_API_URL}/api/tokenAuth/qrLogin?state=${str}`
-            console.log('[DEBUG initQr] qrLoginUrl:', qrLoginUrl)
-            console.log('[DEBUG initQr] BASE_API_URL:', BASE_API_URL)
             qrUrl.value = `${BASE_API_URL}/home/qr?str=${qrLoginUrl}`
             qrLoading.value = true
             qrError.value = ''
-            console.log('[DEBUG initQr] 调用 PubQrLogin API, state:', str)
             api.tokenAuth
                 .pubQrLogin({ state: str })
                 .then((res) => {
-                    console.log('[DEBUG initQr] PubQrLogin 成功返回:', res)
-                    console.log('[DEBUG initQr] pubQrUrl 设置为:', res)
                     pubQrUrl.value = res
                 })
                 .catch((err) => {
@@ -99,7 +94,6 @@ export const useChatStore = defineStore('chat', () => {
                     qrError.value = typeof err === 'string' ? err : '获取二维码失败，请刷新重试'
                 })
                 .finally(() => {
-                    console.log('[DEBUG initQr] finally, qrLoading设为false')
                     qrLoading.value = false
                 })
         } else {
@@ -126,7 +120,6 @@ export const useChatStore = defineStore('chat', () => {
             api.client
                 .getChatList()
                 .then((res: any) => {
-                    console.log(res)
                     chatList.value = convertObjectImageUrlsArray(res, ['avatar'])
                     resolve()
                 })
@@ -168,33 +161,24 @@ export const useChatStore = defineStore('chat', () => {
                         }
                         onmessage(msg)
                     } catch (e) {
-                        console.log(e)
                         return
                     }
                 }
 
                 gsocket.value.onclose = (e) => {
                     clearTimeout(gsocketTimeId.value)
-                    // Tips.info('聊天服务器连接断开', e)
-                    console.log('聊天服务器连接断开 ', e)
-                    // api.ws.offline({ websocketId: websocketId.value })
-                    //检查是不是在聊天室路由,如果是,则重新连接
                     if (route.path.startsWith('/chat')) {
-                        console.log('route.path', route.path)
                         gsocket.value = null
-                        console.log('websocket onclose 5秒后重新连接', e)
                         gsocketTimeId.value = setTimeout(function () {
                             connectServer(true)
                         }, 5000)
                     } else {
                         gsocket.value = null
-                        console.log('非聊天室路由,不重连')
                     }
                 }
 
-                gsocket.value.onerror = (e) => {
+                gsocket.value.onerror = () => {
                     clearTimeout(gsocketTimeId.value)
-                    console.log('websocket error 5秒后重新连接', e)
                     gsocket.value = null
                     gsocketTimeId.value = setTimeout(function () {
                         connectServer(true)
@@ -202,10 +186,7 @@ export const useChatStore = defineStore('chat', () => {
                 }
 
                 gsocket.value.onopen = async (e: any) => {
-                    console.log('websocket connect')
                     Tips.success('聊天服务器连接成功')
-                    // await joinChannel('0_lobby')
-                    // await getChannels()
 
                     await getGropus()
 
@@ -216,8 +197,6 @@ export const useChatStore = defineStore('chat', () => {
     }
 
     const SetCurrentChat = (item: ChatListItem) => {
-        console.log('SetCurrentChat', item)
-
         currentChat.value = item
     }
     const SetCurrentChatId = (id: number, name = '', isGroup = true) => {
@@ -287,9 +266,7 @@ export const useChatStore = defineStore('chat', () => {
         if (msg.chan && msg.type === ChatMessageType.Goodbye) {
             //房主解散房间,所有人退出
             const _id = parseInt(msg.chan.split('_')[0])
-            console.log('ChatMessageType.Goodbye', msg)
             if (!msg.msg) {
-                console.log('房主解散房间,所有人退出', msg)
                 //delete from chatList
                 chatList.value = chatList.value.filter((item) => item.id !== _id)
                 chatMap.value.delete(`${_id}`)
@@ -300,7 +277,6 @@ export const useChatStore = defineStore('chat', () => {
             } else {
                 //踢出某人
                 const userId = parseInt(msg.msg)
-                console.log('踢出某人', msg.msg, userId)
 
                 if (userId && userId === websocketId.value && currentChat.value.id === _id) {
                     //被踢出
@@ -312,11 +288,9 @@ export const useChatStore = defineStore('chat', () => {
             }
         } else if (msg.type === ChatMessageType.Backout) {
             // 处理消息撤回 - 删除对应ID的消息
-            console.log('收到撤回消息，删除消息ID:', msg.id)
             removeMessage(msg.id)
             // 如果 payload 中有价格信息，更新拍卖价格
             if (msg.payload && msg.payload.id) {
-                console.log('撤回消息包含价格信息，更新价格:', msg.payload)
                 auctionStore.updateAuctionItemFromBidMessage(msg.payload)
             }
             return
@@ -401,16 +375,8 @@ export const useChatStore = defineStore('chat', () => {
 
         // 特殊处理：解码卡秒消息、出价消息和成交消息
         if (msg.type === ChatMessageType.AuctionBid && msg.payload) {
-            console.log('=== 检测到出价消息 ===')
-            console.log('消息类型:', msg.type)
-            console.log('消息payload:', msg.payload)
-            console.log('payload类型:', typeof msg.payload)
-
             // 检查是否是编码的卡秒消息
             if (msg.payload.messageType === 'KasecStatusChanged' && msg.payload.encoded) {
-                console.log('=== 检测到编码的卡秒消息 ===')
-                console.log('卡秒消息payload:', msg.payload)
-
                 // 解码：将消息类型从 AuctionBid 转换为 KasecStatusChanged
                 msg.type = ChatMessageType.KasecStatusChanged
 
@@ -435,29 +401,19 @@ export const useChatStore = defineStore('chat', () => {
             }
 
             // 处理正常的出价消息
-            console.log('=== 处理正常出价消息 ===')
             // 使用新的增量更新方法，避免重新请求整个列表
             auctionStore.updateAuctionItemFromBidMessage(msg.payload)
 
             // 如果是系统消息(from=0)，只更新价格不添加到聊天列表
             if (msg.from === 0) {
-                console.log('系统价格更新消息，不添加到聊天列表')
                 return
             }
         }
 
         // 检查是否是编码的成交消息
         if (msg.type === ChatMessageType.AuctionEnd && msg.payload) {
-            console.log('=== 检测到AuctionEnd消息 ===')
-            console.log('消息类型:', msg.type)
-            console.log('消息payload:', msg.payload)
-            console.log('payload类型:', typeof msg.payload)
-
             // 检查是否是编码的成交消息
             if (msg.payload.messageType === 'AuctionDeal' && msg.payload.encoded) {
-                console.log('=== 检测到编码的成交消息 ===')
-                console.log('成交消息payload:', msg.payload)
-
                 // 解码：将消息类型从 AuctionEnd 转换为 AuctionDeal
                 msg.type = ChatMessageType.AuctionDeal
 
@@ -465,17 +421,12 @@ export const useChatStore = defineStore('chat', () => {
                 if (msg.payload.originalPayload) {
                     msg.payload = msg.payload.originalPayload
                 }
-
-                console.log('=== 成交消息解码完成 ===')
-                console.log('解码后消息类型:', msg.type)
-                console.log('解码后payload:', msg.payload)
             }
         }
 
         // 特殊处理：监听拍卖结束消息，为中拍用户创建聊天频道
         // 需要在解码后处理，因为 AuctionDeal 消息被编码为 AuctionEnd 传输，解码后类型变回 AuctionDeal
         if ((msg.type === 'AuctionEnd' || msg.type === ChatMessageType.AuctionDeal) && msg.payload) {
-            console.log('检测到拍卖结束消息，为中拍用户创建聊天频道', msg.payload)
             const userStore = useUserStore()
 
             // 检查 payload 中是否有成交用户信息
@@ -519,7 +470,6 @@ export const useChatStore = defineStore('chat', () => {
 
         // 处理拍卖开始消息，刷新拍品列表
         if (msg.type === ChatMessageType.AuctionStart && msg.payload) {
-            console.log('检测到拍卖开始消息，刷新拍品列表', msg.payload)
             if (currentChat.value.id === -1) {
                 auctionStore.getList()
             }
@@ -571,7 +521,6 @@ export const useChatStore = defineStore('chat', () => {
         lastTime = lastTime || new Date().getTime()
         return new Promise<ChatMessage[]>((resolve) => {
             api.message.getPrivateHistory({ id: id, lastTime: lastTime! }).then((res) => {
-                console.log('getPrivateHistory', res.items)
                 if (res.items) {
                     if (chatMap.value.has(`${id}`) && !reload) {
                         chatMap.value.set(
@@ -722,7 +671,7 @@ export const useChatStore = defineStore('chat', () => {
                 .then((res) => {
                     // 使用服务端返回的消息数据，包含正确的时间戳
                     const serverMessage = res.data.message
-                    console.log('server message: {}', serverMessage)
+                    console.debug('server message: {}', serverMessage)
                     chatList.value = [
                         {
                             id: to,
@@ -785,7 +734,7 @@ export const useChatStore = defineStore('chat', () => {
     }
 
     const deleteChat = (x: ChatListItem) => {
-        console.log('deleteChat', x)
+        console.debug('deleteChat', x)
         if (x.type === 1) {
             api.client.deleteChatList({ id: x.id }).then(() => {
                 // 删除聊天记录成功
@@ -802,12 +751,12 @@ export const useChatStore = defineStore('chat', () => {
     }
 
     const removeMessage = (id: string) => {
-        console.log('removeMessage', id)
+        console.debug('removeMessage', id)
         //从chatmap中删除此id的消息
         for (const [key, chatMessages] of chatMap.value.entries()) {
-            console.log(key, chatMessages)
+            console.debug(key, chatMessages)
             const index = chatMessages.findIndex((message) => message.id === id)
-            console.log(index)
+            console.debug(index)
             if (index !== -1) {
                 chatMessages.splice(index, 1)
                 break
@@ -880,7 +829,7 @@ export const useChatStore = defineStore('chat', () => {
             chatMap.value.set(`${dealUserId}`, [chatItem.msg!])
         }
 
-        console.log('已为中拍用户创建聊天频道', dealUserName)
+        console.debug('已为中拍用户创建聊天频道', dealUserName)
     }
 
     const getServerLastId = () => {

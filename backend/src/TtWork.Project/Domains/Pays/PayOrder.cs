@@ -29,7 +29,7 @@ public class PayOrder : FullAuditedAggregateRoot<Ulid>, IMustHaveTenant, IExtend
     [StringLength(48)] public string HostId { get; protected set; }
     public PayType PayType { get; protected set; }
     /// <summary>
-    /// 状态 0 未支付 1已支付
+        /// 状态：-1 CANCELLED 0 UNPAID 1 PAID 3 REFUNDED
     /// </summary>
     public PayState State { get;  set; }
 
@@ -49,7 +49,6 @@ public class PayOrder : FullAuditedAggregateRoot<Ulid>, IMustHaveTenant, IExtend
 
     public bool IsRefund { get; protected set; }
     public DateTime? RefundTime { get; protected set; }
-    public DateTime? RefundComplateTime { get; protected set; }
     public int? RefundPrice { get; protected set; } = null;
 
     #endregion
@@ -59,56 +58,11 @@ public class PayOrder : FullAuditedAggregateRoot<Ulid>, IMustHaveTenant, IExtend
 
     [StringLength(512)] public string ExtensionData { get; set; }
 
-    public void Refund(in decimal refundPrice, string reason) {
-        var canRefundPrice = Total - (RefundPrice ?? 0);
-        if (refundPrice * 100 > canRefundPrice) {
-            throw new UserFriendlyException($"退款金额不能大于可退款金额,当前可退金额:{canRefundPrice / 100m:0.00}");
-        }
-
-        State = PayState.退款中;
-        IsRefund = true;
-        RefundTime = DateTime.Now;
-
-        // EventBus.Default.Trigger(new PayOrderRefundEvent(this, refundPrice, reason));
-    }
-
-    public void RefundComplate(int refundPrice) {
-        RefundPrice ??= 0;
-
-        RefundPrice += refundPrice;
-
-        if (RefundPrice == Total) {
-            RefundComplateTime = DateTime.Now;
-            State = PayState.已退款;
-        }
-        else {
-            IsRefund = false;
-            State = PayState.部分退款;
-        }
-    }
-
     public void SuccessPay(string notifyId, DateTime? time) {
-        State = PayState.已支付;
+            State = PayState.PAID;
         IsSuccessPay = true;
         SuccessPayTime = time ?? DateTime.Now;
         this.SetData("Notification_Id", notifyId);
-    }
-
-    /// <summary>
-    /// 退款操作
-    /// </summary>
-    /// <param name="value">退款金额，单位：分</param>
-    public void Refund(int value) {
-        IsRefund = true;
-        RefundPrice = value;
-        RefundTime = DateTime.Now;
-    }
-
-
-    public void RejectRefund() {
-        IsRefund = false;
-        RefundPrice = null;
-        RefundTime = null;
     }
 
     public void CreateDepositPay(decimal amount, long userId, string openid, string appName, string appid, string mchId, int tenantId) {
@@ -160,10 +114,8 @@ public enum OrderType {
 }
 
 public enum PayState {
-    取消 = -1,
-    未支付 = 0,
-    已支付 = 1,
-    退款中 = 2,
-    已退款 = 3,
-    部分退款 = 4
+    CANCELLED = -1,
+    UNPAID = 0,
+    PAID = 1,
+    REFUNDED = 3,
 }

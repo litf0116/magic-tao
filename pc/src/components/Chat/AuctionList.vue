@@ -273,54 +273,28 @@ function end() {
 // LINK 出价
 async function bid() {
     const userId = userStore.user.id
-    console.log('开始出价流程 - 用户ID:', userId)
 
     try {
-        console.log('正在获取拍卖列表...')
         await auctionStore.getList()
         if (!onAuctionItem.value) {
-            console.log('没有正在拍卖的商品')
             ElMessage.error('没有正在拍卖的商品')
             return
         }
 
-        console.log('当前拍卖商品信息:', {
-            id: onAuctionItem.value.id,
-            name: onAuctionItem.value.name,
-            currentPrice: onAuctionItem.value.currentPrice,
-            status: onAuctionItem.value.status,
-        })
-
         // 获取实时用户信息
-        console.log('正在获取实时用户信息...')
         const currentUser = await api.user.get({ id: userId })
         const deposit = currentUser.depositBalance || 0
-        console.log('用户信息获取成功:', {
-            userId: currentUser.id,
-            userName: currentUser.userName,
-            depositBalance: deposit,
-            isActive: currentUser.isActive,
-        })
 
         // 使用工具方法计算最低出价
         const minPrice = calculateMinBidPrice(onAuctionItem.value.currentPrice, auctionStore.isKasec)
-        console.log('计算最低出价:', minPrice)
 
         // 获取用户等级信息
-        console.log('正在获取用户等级信息...')
         const levelResponse = await GetUserLevelInfo(userId)
         const levelInfo = levelResponse.data
         const userLevel = levelInfo?.levelSettings?.level ?? 0
         const cumulativeAmount = levelInfo?.userLevel?.cumulativeAmount ?? 0
-        console.log('用户等级信息:', {
-            userLevel,
-            cumulativeAmount,
-            levelSettings: levelInfo?.levelSettings,
-            userLevelInfo: levelInfo?.userLevel,
-        })
 
         if (userLevel === 0 && deposit < 50) {
-            console.log('新用户诚信履约金不足:', { userLevel, deposit })
             ElMessageBox.confirm('新用户参与拍卖，需要缴纳 51 元（50 元诚信履约金 +1 元提现手续费）。', '出价须知', {
                 confirmButtonText: '去缴纳',
                 cancelButtonText: '取消',
@@ -357,7 +331,6 @@ async function bid() {
                 message
         }
 
-        console.log('显示出价弹窗...')
         ElMessageBox.prompt(message, dialogTitle, {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
@@ -368,7 +341,6 @@ async function bid() {
             dangerouslyUseHTMLString: true,
         })
             .then(({ value }) => {
-                console.log('用户输入出价金额:', value)
                 const bidAmount = parseInt(value)
 
                 // 验证最低出价为5R
@@ -380,7 +352,6 @@ async function bid() {
                 auctionStore.bid(onAuctionItem.value!.id!, bidAmount)
             })
             .catch(() => {
-                console.log('用户取消出价')
                 Tips.info('取消出价')
             })
     } catch (error) {
@@ -428,10 +399,6 @@ function buildKasecConfirmMessage(auctionItem: any, isKasec: boolean) {
 }
 
 async function toggleKasec() {
-    console.log('=== 开始卡秒操作 ===')
-    console.log('当前拍品信息:', onAuctionItem.value)
-    console.log('当前卡秒状态:', auctionStore.isKasec)
-
     if (!onAuctionItem.value || !onAuctionItem.value.id) {
         ElMessage.error('没有正在拍卖的商品或商品ID无效')
         return
@@ -441,31 +408,19 @@ async function toggleKasec() {
     const action = isKasec ? '开启' : '关闭'
     const type = isKasec ? 'warning' : 'info'
 
-    console.log('卡秒操作参数:', {
-        auctionItemId: onAuctionItem.value.id,
-        currentKasec: auctionStore.isKasec,
-        targetKasec: isKasec,
-        action: action,
-        type: type,
-    })
-
     try {
         // 构建确认消息
         const message = buildKasecConfirmMessage(onAuctionItem.value, isKasec)
-        console.log('确认框消息已构建')
 
         // 显示确认框 - 使用更简单的配置
-        console.log('准备显示确认框...')
         await ElMessageBox.confirm(message, `${action}卡秒模式`, {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
             type: type,
             dangerouslyUseHTMLString: true,
         })
-        console.log('用户已确认操作')
 
         // 用户确认后执行操作
-        console.log('开始执行API调用:', { auctionItemId: onAuctionItem.value.id, isKasec })
 
         // 显示加载状态
         const loadingInstance = ElLoading.service({
@@ -473,12 +428,9 @@ async function toggleKasec() {
             text: `${action}卡秒模式中...`,
             background: 'rgba(0, 0, 0, 0.7)',
         })
-        console.log('加载状态已显示')
 
         try {
-            console.log('调用 auctionStore.setKasec...')
             const result = await auctionStore.setKasec(onAuctionItem.value.id, isKasec)
-            console.log('setKasec 调用完成，结果:', result)
 
             if (result) {
                 // 检查状态是否真的改变了
@@ -486,15 +438,12 @@ async function toggleKasec() {
                 if (actualKasecState === isKasec) {
                     // 状态确实改变了
                     ElMessage.success(`${action}卡秒模式成功`)
-                    console.log('操作成功，显示成功消息')
                 } else {
                     // 状态没有改变，说明后端状态已经是目标状态
                     ElMessage.info(`卡秒状态已经是${isKasec ? '开启' : '关闭'}状态`)
-                    console.log('状态已经是目标状态，显示提示消息')
                 }
             } else {
                 ElMessage.error(`${action}卡秒模式失败，请重试`)
-                console.log('操作失败，显示失败消息')
             }
         } catch (error) {
             console.error('卡秒操作异常:', error)
@@ -511,20 +460,15 @@ async function toggleKasec() {
             }
         } finally {
             loadingInstance.close()
-            console.log('加载状态已关闭')
         }
     } catch (error) {
-        console.log('确认框异常处理，错误类型:', error)
-
         // 用户取消操作
         if (error === 'cancel') {
-            console.log('用户取消卡秒操作')
             return
         }
 
         // 确认框关闭（非确认）
         if (error === 'close') {
-            console.log('用户关闭确认框')
             return
         }
 
@@ -532,8 +476,6 @@ async function toggleKasec() {
         console.error('确认框异常:', error)
         ElMessage.error('操作异常，请重试')
     }
-
-    console.log('=== 卡秒操作结束 ===')
 }
 </script>
 

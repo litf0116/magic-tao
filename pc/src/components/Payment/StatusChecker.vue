@@ -47,8 +47,8 @@ const pollPaymentStatus = async () => {
     try {
         const result = await getPaymentStatus({ outTradeNo: props.orderId })
 
-        // 支付成功判断：status 为 "已支付" 或 "1"（后端 PayState.已支付）
-        if (result.status === '已支付' || result.status === '1') {
+        // 支付成功判断：status 为 "Paid"（后端 PayState.Paid）
+        if (result.status === 'PAID') {
             handleSuccess()
             return
         }
