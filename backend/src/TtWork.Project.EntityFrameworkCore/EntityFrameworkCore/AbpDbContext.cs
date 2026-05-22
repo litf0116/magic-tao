@@ -114,6 +114,12 @@ namespace TtWork.Project.EntityFrameworkCore {
                 b.HasIndex(x => x.ExpiresAt);
             });
 
+            // SmsVerificationCode: 复合索引优化手机号+用途查询和频率限制检查
+            builder.Entity<SmsVerificationCode>(b => {
+                b.HasIndex(ba => new { ba.PhoneNumber, ba.Purpose, ba.CreationTime })
+                    .IsDescending(false, false, true);
+            });
+
             builder.Entity<ChatChannel>(b => {
                 b.HasKey(x => x.Id);
                 b.HasIndex(x => x.ChannelId)
