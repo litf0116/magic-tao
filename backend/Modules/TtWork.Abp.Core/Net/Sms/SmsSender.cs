@@ -1,14 +1,13 @@
 using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Abp.Dependency;
 using Abp.UI;
 using Castle.Core.Logging;
-using Newtonsoft.Json;
+using AlibabaCloud.SDK.Dysmsapi20170525;
+using AlibabaCloud.SDK.Dysmsapi20170525.Models;
+using AlibabaCloud.OpenApiClient.Models;
+using Tea;
 
 namespace TtWork.Abp.Core.Net.Sms
 {
@@ -18,25 +17,30 @@ namespace TtWork.Abp.Core.Net.Sms
 
         private readonly SmsSettings _smsSettings;
 
-        // 复用 HttpClient，避免每次创建导致 socket 资源耗尽
-        // 使用 SocketsHttpHandler 连接池 + DNS 刷新 (5分钟)
-        private static readonly SocketsHttpHandler _httpHandler = new()
-        {
-            PooledConnectionLifetime = TimeSpan.FromMinutes(5),
-            PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2),
-            MaxConnectionsPerServer = 10,
-            AutomaticDecompression = System.Net.DecompressionMethods.GZip
-        };
-
-        private static readonly System.Net.Http.HttpClient _httpClient = new(_httpHandler)
-        {
-            Timeout = TimeSpan.FromSeconds(15)
-        };
+        private Client _client;
 
         public SmsSender()
         {
             Logger = NullLogger.Instance;
             _smsSettings = new SmsSettings();
+        }
+
+        private Client EnsureClient()
+        {
+            if (_client != null)
+                return _client;
+
+            var config = new Config
+            {
+                AccessKeyId = _smsSettings.AccessKeyId,
+                AccessKeySecret = _smsSettings.AccessKeySecret,
+                Endpoint = "dysmsapi.aliyuncs.com",
+                ConnectTimeout = 5000,
+                ReadTimeout = 10000
+            };
+
+            _client = new Client(config);
+            return _client;
         }
 
         public async Task SendAsync(string number, string message)
@@ -61,15 +65,30 @@ namespace TtWork.Abp.Core.Net.Sms
                     return;
                 }
 
-                var response = await SendSmsAsync(number, code);
-                Logger.Info($"[阿里云短信] 发送结果 - Code: {response.Code}, Message: {response.Message}");
-
-                if (response.Code != "OK")
+                var client = EnsureClient();
+                var request = new SendSmsRequest
                 {
-                    throw new UserFriendlyException($"短信发送失败: {response.Message}");
+                    PhoneNumbers = number,
+                    SignName = _smsSettings.SignName,
+                    TemplateCode = _smsSettings.TemplateCode,
+                    TemplateParam = $"{{\"code\":\"{code}\"}}"
+                };
+
+                var response = await client.SendSmsAsync(request);
+
+                Logger.Info($"[阿里云短信] 发送结果 - Code: {response.Body.Code}, Message: {response.Body.Message}, BizId: {response.Body.BizId}");
+
+                if (response.Body.Code != "OK")
+                {
+                    throw new UserFriendlyException($"短信发送失败: {response.Body.Message}");
                 }
 
                 Logger.Info($"[阿里云短信] 短信发送成功 - 手机号: {number}, 验证码: {code}");
+            }
+            catch (TeaException ex)
+            {
+                Logger.Error($"[阿里云短信] SDK 异常: {ex.Message}, Code: {ex.Code}");
+                throw new UserFriendlyException($"短信发送异常: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -77,96 +96,6 @@ namespace TtWork.Abp.Core.Net.Sms
                 throw new UserFriendlyException($"短信发送异常: {ex.Message}");
             }
         }
-
-        private async Task<SendSmsResponse> SendSmsAsync(string phoneNumber, string code)
-        {
-            var parameters = new SortedDictionary<string, string>
-            {
-                { "AccessKeyId", _smsSettings.AccessKeyId },
-                { "Action", "SendSms" },
-                { "Format", "JSON" },
-                { "PhoneNumbers", phoneNumber },
-                { "SignName", _smsSettings.SignName },
-                { "SignatureMethod", "HMAC-SHA256" },
-                { "SignatureNonce", Guid.NewGuid().ToString() },
-                { "SignatureVersion", "1.0" },
-                { "TemplateCode", _smsSettings.TemplateCode },
-                { "TemplateParam", $"{{\"code\":\"{code}\"}}" },
-                { "Timestamp", DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ") },
-                { "Version", "2017-05-25" }
-            };
-
-            var signature = ComputeSignature(
-                parameters,
-                _smsSettings.AccessKeySecret,
-                "GET",
-                "dysmsapi.aliyuncs.com",
-                "/"
-            );
-            parameters["Signature"] = signature;
-
-            var queryString = BuildQueryString(parameters);
-            var requestUrl = $"https://dysmsapi.aliyuncs.com/?{queryString}";
-
-            var response = await _httpClient.GetAsync(requestUrl);
-            var responseContent = await response.Content.ReadAsStringAsync();
-
-            Logger.Info($"[阿里云短信] API响应: {responseContent}");
-
-            try
-            {
-                return JsonConvert.DeserializeObject<SendSmsResponse>(responseContent)
-                    ?? new SendSmsResponse { Code = "ERROR", Message = "响应解析为空" };
-            }
-            catch (JsonReaderException ex)
-            {
-                Logger.Error($"[阿里云短信] 响应解析失败: {ex.Message}, 原始响应: {responseContent}");
-                return new SendSmsResponse { Code = "ERROR", Message = "响应解析失败" };
-            }
-        }
-
-        private static string ComputeSignature(
-            SortedDictionary<string, string> parameters,
-            string accessKeySecret,
-            string method,
-            string host,
-            string path)
-        {
-            var canonicalizedQuery = BuildCanonicalizedQuery(parameters);
-            var stringToSign = $"{method}\n{host}\n{path}\n{canonicalizedQuery}";
-
-            using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(accessKeySecret + "&"));
-            var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(stringToSign));
-            return Convert.ToBase64String(hash);
-        }
-
-        private static string BuildCanonicalizedQuery(SortedDictionary<string, string> parameters)
-        {
-            var result = new StringBuilder();
-            foreach (var param in parameters)
-            {
-                if (result.Length > 0)
-                    result.Append("&");
-
-                result.Append(Uri.EscapeDataString(param.Key));
-                result.Append("=");
-                result.Append(Uri.EscapeDataString(param.Value));
-            }
-            return result.ToString();
-        }
-
-        private static string BuildQueryString(SortedDictionary<string, string> parameters)
-        {
-            return BuildCanonicalizedQuery(parameters);
-        }
-    }
-
-    public class SendSmsResponse
-    {
-        public string Code { get; set; } = "";
-        public string Message { get; set; } = "";
-        public string RequestId { get; set; } = "";
-        public string BizId { get; set; } = "";
     }
 
     public class SmsSettings
@@ -178,9 +107,9 @@ namespace TtWork.Abp.Core.Net.Sms
             Environment.GetEnvironmentVariable("ALIYUN_SMS_ACCESSKEYSECRET") ?? "";
 
         public string SignName { get; set; } =
-            Environment.GetEnvironmentVariable("ALIYUN_SMS_SIGNNAME") ?? "魔力淘";
+            Environment.GetEnvironmentVariable("ALIYUN_SMS_SIGNNAME") ?? "黑龙江省魔淡网络科技";
 
         public string TemplateCode { get; set; } =
-            Environment.GetEnvironmentVariable("ALIYUN_SMS_TEMPLATE_CODE") ?? "SMS_333905928";
+            Environment.GetEnvironmentVariable("ALIYUN_SMS_TEMPLATE_CODE") ?? "SMS_506845124";
     }
 }
