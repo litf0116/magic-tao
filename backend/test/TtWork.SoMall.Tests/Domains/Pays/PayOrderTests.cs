@@ -1,4 +1,5 @@
 using Shouldly;
+using TtWork.Project.Applications;
 using TtWork.Project.Domains.Pays;
 using Xunit;
 
@@ -156,7 +157,7 @@ public class PayOrderTests
     {
         var payOrder = new PayOrder();
 
-        Should.Throw<Abp.UI.UserFriendlyException>(() =>
+        Should.Throw<Exception>(() =>
             payOrder.CreateDepositPay(51m, 1, "", "", "appid", "mchid", 1));
     }
 
@@ -206,8 +207,8 @@ public class PayOrderTests
         var afterCall = DateTime.Now;
 
         payOrder.SuccessPayTime.ShouldNotBeNull();
-        payOrder.SuccessPayTime.ShouldBeGreaterThanOrEqualTo(beforeCall);
-        payOrder.SuccessPayTime.ShouldBeLessThanOrEqualTo(afterCall);
+        payOrder.SuccessPayTime.Value.ShouldBeGreaterThanOrEqualTo(beforeCall);
+        payOrder.SuccessPayTime.Value.ShouldBeLessThanOrEqualTo(afterCall);
     }
 
     #endregion
