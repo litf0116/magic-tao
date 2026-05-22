@@ -27,7 +27,7 @@ const props = defineProps<{
 const emit = defineEmits<{
     (e: 'update:modelValue', value: string): void
     (e: 'focus'): void
-    (e: 'fileUploaded', data: { url: string; data: any }): void
+    (e: 'fileUploaded', data: { url: string; data: Record<string, unknown> }): void
     (e: 'onPressEnter', event: KeyboardEvent): void
 }>()
 
@@ -59,8 +59,7 @@ async function pasting(event: ClipboardEvent) {
     }
 }
 
-function handleChange(file: any) {
-    console.log(file)
+function handleChange(file: { raw?: File; name?: string } | File) {
     let formData = new FormData()
     formData.append('authorization', `UPYUN ${userName}:${signature.value}`)
     formData.append('policy', policy.value)
@@ -68,11 +67,10 @@ function handleChange(file: any) {
     axios
         .post(actionUrl.value, formData)
         .then((res) => {
-            console.log('upload result', res)
             emit('fileUploaded', { url: `${imgUrl}${res.data.url}`, data: res.data })
         })
         .catch((err) => {
-            console.log(err)
+            console.error(err)
             Tips.error('上传失败')
         })
 }
@@ -87,8 +85,7 @@ const getAuth = async () => {
         signature.value = cachedata.signature
         policy.value = cachedata.policy
     } else {
-        // @ts-ignore
-        const date = new Date().toGMTString()
+        const date = new Date().toUTCString()
         const opts = {
             'save-key': `/{year}{mon}{day}/{random32}{.suffix}`,
             bucket: bucketName,

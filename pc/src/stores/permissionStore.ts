@@ -8,10 +8,10 @@ const hasPermission = (permissions: string[], roles: string[], route: RouteRecor
         let b1 = false
         let b2 = false
         if (route.meta.permissions) {
-            if (permissions.length) b1 = permissions.some((p) => (route.meta as any).permissions.includes(p))
+            if (permissions.length) b1 = permissions.some((p) => route.meta!.permissions!.includes(p))
         } else b1 = true
         if (route.meta.roles) {
-            if (roles.length) b2 = roles.some((role) => (route.meta as any).roles.includes(role))
+            if (roles.length) b2 = roles.some((role) => route.meta!.roles!.includes(role))
             // console.log(route.path, route.meta.roles, b1 && b2)
             // debugger;
         } else b2 = true

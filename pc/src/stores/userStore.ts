@@ -136,7 +136,6 @@ export const useUserStore = defineStore('user', () => {
     const chatStore = useChatStore()
 
     const logout = () => {
-        console.log('logout action')
         api.tokenAuth
             .logOut()
             .then(() => {

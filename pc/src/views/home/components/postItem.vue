@@ -217,8 +217,7 @@ const getAuth = async () => {
         signature.value = cachedata.signature
         policy.value = cachedata.policy
     } else {
-        // @ts-ignore
-        const date = new Date().toGMTString()
+        const date = new Date().toUTCString()
         const opts = {
             'save-key': `/{year}{mon}{day}/{random32}{.suffix}`,
             bucket: bucketName,

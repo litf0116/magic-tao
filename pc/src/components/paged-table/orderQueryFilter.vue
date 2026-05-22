@@ -64,7 +64,7 @@ onMounted(() => {
 
 const emit = defineEmits(['update:modelValue', 'change'])
 
-function onFiter(e: any) {
+function onFiter(e: { status: string | number }) {
     emit('update:modelValue', e.status)
     emit('change')
 }
