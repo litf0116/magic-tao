@@ -49,6 +49,9 @@
                 </div>
             </div>
         </div>
+
+        <!-- 用户设置弹窗 -->
+        <UserSetting ref="userSettingRef" />
     </div>
 </template>
 
@@ -57,9 +60,11 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Wallet, Trophy, Shop, User, ArrowUp } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import UserSetting from '@/components/UserSetting.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
+const userSettingRef = ref<InstanceType<typeof UserSetting> | null>(null)
 
 // 状态管理
 const showBackTop = ref(false)
@@ -114,7 +119,7 @@ const goToProfile = () => {
         router.push('/auth/login')
         return
     }
-    ElMessage.info('个人中心功能开发中')
+    userSettingRef.value?.show(true)
 }
 </script>
 

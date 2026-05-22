@@ -32,8 +32,6 @@ class _AppState extends ConsumerState<App> {
 
   Future<void> _checkAppUpdate() async {
     if (!mounted) return;
-    await Future.delayed(const Duration(seconds: 2));
-    if (!mounted) return;
     try {
       final packageInfo = await PackageInfo.fromPlatform();
       debugPrint('[App] 当前版本: ${packageInfo.version}');

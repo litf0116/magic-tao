@@ -281,6 +281,14 @@ service.interceptors.response.use(
                     location.href = '/'
                 })
             } else {
+                console.error('【API 错误拦截】', {
+                    status,
+                    errorMsg,
+                    errorData,
+                    url: err.config?.url,
+                    method: err.config?.method,
+                    timestamp: new Date().toISOString(),
+                })
                 const errorMsg = errorData?.error?.message || errorData?.message || '请求失败'
                 if (errorData?.error?.code) {
                     Tips.confirm(errorMsg, '错误', 'error')
@@ -375,6 +383,14 @@ export function useRequest(config = baseConfig) {
             }
 
             ElMessage.error(err.message || '网络请求失败')
+            console.error('【Network/系统错误】', {
+                message: err.message,
+                name: err.name,
+                url: err.config?.url,
+                method: err.config?.method,
+                status: err.response?.status,
+                timestamp: new Date().toISOString(),
+            })
             return Promise.reject(err)
         }
     )
