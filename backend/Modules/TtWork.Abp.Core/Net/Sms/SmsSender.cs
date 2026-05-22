@@ -5,7 +5,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Web;
 using Abp.Dependency;
 using Abp.UI;
 using Castle.Core.Logging;
@@ -77,7 +76,7 @@ namespace TtWork.Abp.Core.Net.Sms
                 { "Format", "JSON" },
                 { "PhoneNumbers", phoneNumber },
                 { "SignName", _smsSettings.SignName },
-                { "SignatureMethod", "HMAC-SHA1" },
+                { "SignatureMethod", "HMAC-SHA256" },
                 { "SignatureNonce", Guid.NewGuid().ToString() },
                 { "SignatureVersion", "1.0" },
                 { "TemplateCode", _smsSettings.TemplateCode },
@@ -86,7 +85,13 @@ namespace TtWork.Abp.Core.Net.Sms
                 { "Version", "2017-05-25" }
             };
 
-            var signature = ComputeSignature(parameters, _smsSettings.AccessKeySecret, "GET", "dysmsapi.aliyuncs.com", "/");
+            var signature = ComputeSignature(
+                parameters,
+                _smsSettings.AccessKeySecret,
+                "GET",
+                "dysmsapi.aliyuncs.com",
+                "/"
+            );
             parameters["Signature"] = signature;
 
             var queryString = BuildQueryString(parameters);
@@ -98,40 +103,43 @@ namespace TtWork.Abp.Core.Net.Sms
 
             Logger.Info($"[阿里云短信] API响应: {responseContent}");
 
-            return JsonConvert.DeserializeObject<SendSmsResponse>(responseContent) ?? new SendSmsResponse { Code = "ERROR", Message = "Failed to parse response" };
+            return JsonConvert.DeserializeObject<SendSmsResponse>(responseContent)
+                ?? new SendSmsResponse { Code = "ERROR", Message = "Failed to parse response" };
         }
 
-        private static string ComputeSignature(SortedDictionary<string, string> parameters, string accessKeySecret, string method, string host, string path)
+        private static string ComputeSignature(
+            SortedDictionary<string, string> parameters,
+            string accessKeySecret,
+            string method,
+            string host,
+            string path)
         {
-            var sortedParams = new StringBuilder();
-            foreach (var param in parameters)
-            {
-                if (sortedParams.Length > 0)
-                    sortedParams.Append("&");
-                sortedParams.Append(Uri.EscapeDataString(param.Key));
-                sortedParams.Append("=");
-                sortedParams.Append(Uri.EscapeDataString(param.Value));
-            }
+            var canonicalizedQuery = BuildCanonicalizedQuery(parameters);
+            var stringToSign = $"{method}\n{host}\n{path}\n{canonicalizedQuery}";
 
-            var stringToSign = $"{method}\n{host}\n{path}\n{sortedParams}";
-
-            using var hmac = new HMACSHA1(Encoding.UTF8.GetBytes(accessKeySecret + "&"));
+            using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(accessKeySecret + "&"));
             var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(stringToSign));
             return Convert.ToBase64String(hash);
         }
 
-        private static string BuildQueryString(SortedDictionary<string, string> parameters)
+        private static string BuildCanonicalizedQuery(SortedDictionary<string, string> parameters)
         {
             var result = new StringBuilder();
             foreach (var param in parameters)
             {
                 if (result.Length > 0)
                     result.Append("&");
+
                 result.Append(Uri.EscapeDataString(param.Key));
                 result.Append("=");
                 result.Append(Uri.EscapeDataString(param.Value));
             }
             return result.ToString();
+        }
+
+        private static string BuildQueryString(SortedDictionary<string, string> parameters)
+        {
+            return BuildCanonicalizedQuery(parameters);
         }
     }
 
@@ -145,12 +153,16 @@ namespace TtWork.Abp.Core.Net.Sms
 
     public class SmsSettings
     {
-        public string AccessKeyId { get; set; } = Environment.GetEnvironmentVariable("ALIYUN_SMS_ACCESSKEYID") ?? "";
+        public string AccessKeyId { get; set; } =
+            Environment.GetEnvironmentVariable("ALIYUN_SMS_ACCESSKEYID") ?? "";
 
-        public string AccessKeySecret { get; set; } = Environment.GetEnvironmentVariable("ALIYUN_SMS_ACCESSKEYSECRET") ?? "";
+        public string AccessKeySecret { get; set; } =
+            Environment.GetEnvironmentVariable("ALIYUN_SMS_ACCESSKEYSECRET") ?? "";
 
-        public string SignName { get; set; } = Environment.GetEnvironmentVariable("ALIYUN_SMS_SIGNNAME") ?? "魔力淘";
+        public string SignName { get; set; } =
+            Environment.GetEnvironmentVariable("ALIYUN_SMS_SIGNNAME") ?? "魔力淘";
 
-        public string TemplateCode { get; set; } = Environment.GetEnvironmentVariable("ALIYUN_SMS_TEMPLATE_CODE") ?? "SMS_333905928";
+        public string TemplateCode { get; set; } =
+            Environment.GetEnvironmentVariable("ALIYUN_SMS_TEMPLATE_CODE") ?? "SMS_333905928";
     }
 }
