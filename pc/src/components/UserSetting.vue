@@ -1,5 +1,15 @@
 <template>
     <el-dialog v-model="dialogVisible" title="用户设置" width="600px">
+        <!-- 只读信息区域 -->
+        <div class="user-info-display">
+            <span class="info-label">用户编号：</span>
+            <span class="info-value">{{ userId }}</span>
+            <span class="info-label">诚信履约金：</span>
+            <span class="info-value">¥{{ depositBalance }}</span>
+            <el-button type="success" size="small" @click="handleDeposit"> 充值 </el-button>
+            <el-button type="primary" size="small" @click="withdrawDialogVisible = true"> 提现 </el-button>
+        </div>
+
         <el-form
             ref="ruleFormRef"
             style="max-width: 600px"
@@ -9,9 +19,6 @@
             class="demo-ruleForm"
             status-icon
         >
-            <el-form-item label="用户编号" prop="id">
-                {{ form.id }}
-            </el-form-item>
             <el-form-item label="头像" prop="headImgUrl">
                 <tt-upload
                     v-model="form.headImgUrl"
@@ -23,31 +30,17 @@
                     <img v-if="form.headImgUrl" :src="form.headImgUrl" class="avatar" />
                     <div v-else class="i-carbon:plus size-6 text-gray-500"></div>
                 </tt-upload>
-
-                <div style="width: 75%; text-align: center">
-                    诚信履约金：¥{{ form.depositBalance }}
-                    <div style="margin-top: 10px">
-                        <el-button type="success" @click="handleDeposit"> 充值 </el-button>
-                        <el-button type="primary" @click="withdrawDialogVisible = true"> 提现 </el-button>
-                    </div>
-                </div>
             </el-form-item>
 
             <el-form-item label="昵称" prop="name">
                 <el-input v-model="form.name" />
             </el-form-item>
-            <!-- <el-form-item label="手机号码" prop="phoneNumber">
-                <el-input v-model="form.phoneNumber" />
-            </el-form-item> -->
             <el-form-item label="qq" prop="qq">
                 <el-input v-model="form.qq" />
             </el-form-item>
             <el-form-item label="微信号" prop="wx">
                 <el-input v-model="form.wx" />
             </el-form-item>
-            <!-- <el-form-item label="邮箱" prop="emailAddress">
-                <el-input v-model="form.emailAddress" />
-            </el-form-item> -->
             <el-form-item label="登录用户名" prop="userName">
                 <el-input v-model="form.userName" />
             </el-form-item>
@@ -73,19 +66,23 @@ import { UserEditDto } from '@/api/appService'
 import withdrawDialog from '@/components/CustomModal.vue'
 import api from '@/api'
 import { useRouter } from 'vue-router'
+
 const userStore = useUserStore()
 const router = useRouter()
 const ruleFormRef = ref<FormInstance>()
-const form = ref<UserEditDto>({
-    id: -1,
+
+// 只读字段，不参与表单提交
+const userId = ref<number>(0)
+const depositBalance = ref<number>(0)
+
+const form = ref<Omit<UserEditDto, 'id' | 'depositBalance'>>({
     name: '',
     userName: '',
     password: '',
     headImgUrl: '',
     qq: '',
     wx: '',
-    depositBalance: 0,
-} as UserEditDto)
+})
 
 const rules = reactive<FormRules<UserEditDto>>({
     name: [
@@ -96,47 +93,56 @@ const rules = reactive<FormRules<UserEditDto>>({
         { required: true, message: '请输入登录用户名', trigger: ['change', 'blur'] },
         { min: 4, max: 32, message: '长度不能小于4个字符', trigger: ['change', 'blur'] },
     ],
-    // phoneNumber: [
-    //     { required: true, message: '请输入正确的手机号码', trigger: ['change', 'blur'] },
-    //     { min: 11, max: 11, message: '请输入正确的手机号码', trigger: ['change', 'blur'] },
-    // ],
     qq: [{ required: true, message: '请输入QQ号', trigger: ['change', 'blur'] }],
-    // emailAddress: [{ type: 'email', required: true, message: '请输入正确的邮箱', trigger: ['change', 'blur'] }],
 })
 
 const submitForm = async () => {
     if (!ruleFormRef.value) return
-    await ruleFormRef.value.validate((valid: boolean, fields: object) => {
-        console.log(valid, fields)
-        // console.log(typeof valid, typeof fields)
+    await ruleFormRef.value.validate((valid: boolean, _fields: object) => {
         if (valid) {
             debounce(realSave, 300)()
         } else {
-            Tips.error("请检查表单错误!'")
-            // console.log('error submit!', fields)
+            Tips.error('请检查表单错误!')
         }
     })
 }
 
-function realSave() {
-    api.user.update({ body: form.value }).then((res) => {
+async function realSave() {
+    try {
+        await api.user.update({ body: form.value })
         Tips.success('更新成功')
         userStore.getUserInfo()
         dialogVisible.value = false
-    })
+    } catch (err) {
+        Tips.error((err as Error).message || '更新失败')
+    }
 }
 
 function handleUploaded(e: { url: string }) {
-    form.value = { ...form.value, headImgUrl: `${e.url}!w300` }
+    form.value.headImgUrl = `${e.url}!w300`
 }
 
 const dialogVisible = ref(false)
-const show = (e: boolean) => {
+const show = async (e: boolean) => {
     dialogVisible.value = e
     if (e) {
-        api.user.getCurrentUser().then((res) => {
-            if (res.user) form.value = { ...res.user! }
-        })
+        try {
+            const res = await api.user.getCurrentUser()
+            if (res.user) {
+                userId.value = res.user.id ?? 0
+                depositBalance.value = res.user.depositBalance ?? 0
+                form.value = {
+                    name: res.user.name ?? '',
+                    userName: res.user.userName ?? '',
+                    password: '',
+                    headImgUrl: res.user.headImgUrl ?? '',
+                    qq: res.user.qq ?? '',
+                    wx: res.user.wx ?? '',
+                }
+            }
+        } catch (err) {
+            Tips.error((err as Error).message || '获取用户信息失败')
+        }
     }
 }
 
@@ -160,10 +166,145 @@ defineExpose({
     show,
 })
 </script>
-<style scoped>
-.avatar-uploader .avatar {
-    width: 96px;
-    height: 96px;
-    display: block;
+<style lang="scss" scoped>
+// 系统主色调
+$primary-color: #833a00;
+$primary-light: #ae6f4d;
+$bg-light: #fff2e8;
+$border-color: #ae6f4d;
+
+// 弹窗容器样式
+:deep(.el-dialog) {
+    border-radius: 20px;
+    border: 3px solid $border-color;
+    box-shadow: 0 8px 32px rgba(131, 58, 0, 0.25);
+    overflow: hidden;
+}
+
+// 标题栏样式
+:deep(.el-dialog__header) {
+    background: linear-gradient(135deg, $primary-color 0%, $primary-light 100%);
+    margin: 0;
+    padding: 0;
+
+    .el-dialog__title {
+        color: #fff;
+        font-weight: 600;
+        font-size: 18px;
+    }
+
+    .el-dialog__headerbtn {
+        top: 12px;
+        right: 16px;
+
+        .el-dialog__close {
+            color: #fff;
+            font-size: 20px;
+
+            &:hover {
+                color: #fff2e8;
+            }
+        }
+    }
+}
+
+// 弹窗 body 背景
+:deep(.el-dialog__body) {
+    background: $bg-light;
+    padding: 32px;
+}
+
+// 表单样式
+:deep(.el-form-item) {
+    margin-bottom: 24px;
+
+    .el-form-item__label {
+        color: $primary-color;
+        font-weight: 600;
+    }
+}
+
+// 输入框样式
+:deep(.el-input) {
+    .el-input__wrapper {
+        border-radius: 8px;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+
+        &:hover {
+            border-color: $primary-light;
+        }
+
+        &.is-focus {
+            border-color: $primary-color;
+            box-shadow: 0 0 0 3px rgba(131, 58, 0, 0.15);
+        }
+    }
+}
+
+// 按钮样式
+:deep(.el-button--primary) {
+    background: linear-gradient(135deg, $primary-color 0%, $primary-light 100%);
+    border: none;
+    border-radius: 8px;
+    padding: 12px 32px;
+    font-weight: 600;
+
+    &:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+}
+
+:deep(.el-button) {
+    border-radius: 8px;
+    padding: 12px 24px;
+}
+
+// 头像上传样式
+.avatar-uploader {
+    :deep(.avatar) {
+        width: 96px;
+        height: 96px;
+        border-radius: 50%;
+        border: 3px solid $border-color;
+        object-fit: cover;
+    }
+}
+
+// 弹窗内容布局
+.demo-ruleForm {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+// 只读信息区域
+.user-info-display {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+    background: rgba(131, 58, 0, 0.08);
+    border-radius: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+
+    .info-label {
+        color: $primary-color;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .info-value {
+        color: $primary-light;
+        font-weight: 600;
+        font-size: 14px;
+        margin-right: 8px;
+    }
+
+    .el-button {
+        padding: 8px 16px;
+        font-size: 12px;
+    }
 }
 </style>
