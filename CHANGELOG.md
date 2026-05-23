@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.1] - 2026-05-23
+
+### Added
+- SMS: 阿里云短信服务集成，使用官方 SDK 替换手写 HMAC-SHA256 签名
+- SMS: 验证码登录流程（手机号 + 短信验证码）
+- SMS: 验证码防双花机制（原子性 `ExecuteUpdateAsync`）
+- SMS: per-key 信号量锁解决 TOCTOU 频率限制竞争
+- Docs: SMS 测试验证报告
+
+### Changed
+- 全局: 统一系统时间为 `DateTime.Now`（北京时间 UTC+8），仅保留 3 处 Unix 时间戳计算场景使用 `DateTime.UtcNow`
+- PayOrder: `SuccessPayTime` 时间字段对齐使用 `DateTime.Now`
+- SMS: 先发送短信成功后再入库，避免发送失败产生脏数据
+- SMS: `SmsSender` 使用官方 SDK，移除手动 HTTP 签名实现
+- SMS: `SmsVerificationCodeService` 使用 `Random.Shared` 替代 `new Random()`
+- TokenAuth: `SendSmsCode` 返回 `{success: true}` 结构化响应
+- TokenAuth: 手机号正则为 `private const string` 常量
+
+### Fixed
+- SMS: 修复 `SmsSender` 每次请求创建 `new HttpClient()` 的 socket 资源泄漏
+- SMS: 修复 HTTP 请求无超时设置的安全隐患（官方 SDK 内置超时）
+- SMS: 修复短信验证码发送无事务保护（先发送后入库）
+
+### Performance
+- SMS: 添加 `SmsVerificationCodes` 复合索引 `IX_PhoneNumber_Purpose_CreationTime` 优化查询
+
 ## [1.3.0] - 2026-04-14
 
 ### Added
