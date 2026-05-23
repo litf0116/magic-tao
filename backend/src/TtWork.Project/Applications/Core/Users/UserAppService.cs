@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
@@ -51,8 +52,6 @@ namespace TtWork.Project.Applications.Core.Users
     public class UserAppService :
         AbpAsyncCrudAppService<User, UserDto, long, AppResultRequestDto, CreateUserDto, UserEditDto>
     {
-        private static readonly string WechatAppId = "wx8178f2258942133d";
-        private static readonly string WechatAppSecret = "ec39ddccf124f18474738f15cb57a38e";
         private readonly IWeixinApi _weixinApi;
         private readonly UserManager _userManager;
         private readonly RoleManager _roleManager;
@@ -63,10 +62,11 @@ namespace TtWork.Project.Applications.Core.Users
         private readonly UserCache _userCache;
         private readonly ITenantCache _tenantCache;
         private readonly IRedisClient _redisClient;
-        private readonly System.Net.Http.HttpClient _httpClient;
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<UserAppService> _logger;
         private readonly ISqlSugarClient _sqlSugarClient;
         private readonly ChatUserCache _chatUserCache;
+        private readonly IOptions<WechatSettings> _wechatSettings;
 
         public UserAppService(
             IRedisClient redisClient,
@@ -81,10 +81,11 @@ namespace TtWork.Project.Applications.Core.Users
             UserCache userCache,
             ITenantCache tenantCache,
             IWeixinApi weixinApi,
-            System.Net.Http.HttpClient httpClient,
+            IHttpClientFactory httpClientFactory,
             ILogger<UserAppService> logger,
             ISqlSugarClient sqlSugarClient,
-            ChatUserCache chatUserCache
+            ChatUserCache chatUserCache,
+            IOptions<WechatSettings> wechatSettings
         )
             : base(repository, iocManager)
         {
@@ -98,10 +99,11 @@ namespace TtWork.Project.Applications.Core.Users
             _userCache = userCache;
             _tenantCache = tenantCache;
             _weixinApi = weixinApi;
-            _httpClient = httpClient;
+            _httpClientFactory = httpClientFactory;
             _logger = logger;
             _sqlSugarClient = sqlSugarClient;
             _chatUserCache = chatUserCache;
+            _wechatSettings = wechatSettings;
 
             base.GetAllPermissionName = AppPermissions.Administration;
             base.DeletePermissionName = AppPermissions.Administration;
@@ -386,7 +388,7 @@ namespace TtWork.Project.Applications.Core.Users
                         else
                         {
                             // 3. 获取 access token (带缓存)
-                            var accessToken = await _weixinApi.GetAccessTokenAsync(WechatAppId, WechatAppSecret);
+                            var accessToken = await _weixinApi.GetAccessTokenAsync(_wechatSettings.Value.AppId, _wechatSettings.Value.AppSecret);
 
                             // 4. imgSecCheck 图片审核
                             var checkResult = await _weixinApi.ImgSecCheck(accessToken, imageBytes);
@@ -455,7 +457,8 @@ namespace TtWork.Project.Applications.Core.Users
         {
             try
             {
-                var response = await _httpClient.GetAsync(imageUrl);
+                var client = _httpClientFactory.CreateClient();
+                var response = await client.GetAsync(imageUrl);
                 if (!response.IsSuccessStatusCode)
                 {
                     _logger.LogWarning("下载图片失败: {Url}, StatusCode={StatusCode}",
@@ -511,11 +514,11 @@ namespace TtWork.Project.Applications.Core.Users
         }
 
         /// <summary>
-        /// 获取微信配置 (使用静态变量)
+        /// 获取微信配置
         /// </summary>
         private (string appId, string appSecret) GetWeixinConfig()
         {
-            return (WechatAppId, WechatAppSecret);
+            return (_wechatSettings.Value.AppId, _wechatSettings.Value.AppSecret);
         }
 
         [AbpAuthorize(AppPermissions.Administration)]

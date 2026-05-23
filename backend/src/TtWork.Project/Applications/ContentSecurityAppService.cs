@@ -10,11 +10,18 @@ using Abp.Runtime.Session;
 using Abp.UI;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using TtWork.Abp.DomianServices.Weixin;
 using TtWork.HttpClient.Weixin;
 using TtWork.HttpClient.Weixin.WeixiinResult;
 
 namespace TtWork.Project.Applications;
+
+public class WechatSettings
+{
+    public string AppId { get; set; }
+    public string AppSecret { get; set; }
+}
 
 /// <summary>
 /// 内容安全检查服务
@@ -23,27 +30,24 @@ namespace TtWork.Project.Applications;
 [Route("api/ContentSecurity")]
 public class ContentSecurityAppService : AbpController
 {
-    /// <summary>
-    /// 微信小程序静态配置
-    /// </summary>
-    private static readonly string WechatAppId = "wx8178f2258942133d";
-    private static readonly string WechatAppSecret = "ec39ddccf124f18474738f15cb57a38e";
-
     private readonly WeixinManger _weixinManger;
     private readonly IWeixinApi _weixinApi;
     private readonly ILogger<ContentSecurityAppService> _logger;
-    private readonly System.Net.Http.HttpClient _httpClient;
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IOptions<WechatSettings> _wechatSettings;
 
     public ContentSecurityAppService(
         WeixinManger weixinManger,
         IWeixinApi weixinApi,
         ILogger<ContentSecurityAppService> logger,
-        System.Net.Http.HttpClient httpClient)
+        IHttpClientFactory httpClientFactory,
+        IOptions<WechatSettings> wechatSettings)
     {
         _weixinManger = weixinManger;
         _weixinApi = weixinApi;
         _logger = logger;
-        _httpClient = httpClient;
+        _httpClientFactory = httpClientFactory;
+        _wechatSettings = wechatSettings;
     }
 
     /// <summary>
@@ -53,7 +57,8 @@ public class ContentSecurityAppService : AbpController
     {
         try
         {
-            var response = await _httpClient.GetAsync(imageUrl);
+            var client = _httpClientFactory.CreateClient();
+            var response = await client.GetAsync(imageUrl);
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning("下载图片失败: {Url}, StatusCode={StatusCode}",
@@ -79,9 +84,9 @@ public class ContentSecurityAppService : AbpController
     {
         try
         {
-            var appId = WechatAppId;
+            var appId = _wechatSettings.Value.AppId;
 
-            var accessToken = await _weixinManger.GetAccessTokenAsync(appId, WechatAppSecret);
+            var accessToken = await _weixinManger.GetAccessTokenAsync(appId, _wechatSettings.Value.AppSecret);
 
             return Ok(new
             {
@@ -136,8 +141,8 @@ public class ContentSecurityAppService : AbpController
     {
         try
         {
-            var appId = WechatAppId;
-            var accessToken = await _weixinManger.GetAccessTokenAsync(appId, WechatAppSecret);
+            var appId = _wechatSettings.Value.AppId;
+            var accessToken = await _weixinManger.GetAccessTokenAsync(appId, _wechatSettings.Value.AppSecret);
 
             var userOpenid = openid ?? "";
 
@@ -224,8 +229,8 @@ public class ContentSecurityAppService : AbpController
                 throw new UserFriendlyException("图片大小不能超过1MB，请先压缩图片");
             }
 
-            var appId = WechatAppId;
-            var accessToken = await _weixinManger.GetAccessTokenAsync(appId, WechatAppSecret);
+            var appId = _wechatSettings.Value.AppId;
+            var accessToken = await _weixinManger.GetAccessTokenAsync(appId, _wechatSettings.Value.AppSecret);
             var checkResult = await _weixinApi.ImgSecCheck(accessToken, imageBytes);
             _logger.LogInformation("图片安全检查结果: errcode={Errcode}, errmsg={Errmsg}",
                 checkResult.errcode, checkResult.errmsg);

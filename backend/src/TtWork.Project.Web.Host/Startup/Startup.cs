@@ -40,6 +40,7 @@ using TtWork.Abp.Dapper;
 using TtWork.Abp.Identity;
 using TtWork.Abp.Oss.UpYun;
 using TtWork.Lib.Redis;
+using TtWork.Project.Applications;
 using TtWork.Project.Applications.Core.Users;
 using TtWork.Project.Web.Common;
 using TTWork.WeiXinMiddleware;
@@ -84,6 +85,7 @@ namespace TtWork.Project.Web.Host.Startup
 
             services.Configure<RedisOptions>(_appConfiguration.GetSection("Redis"));
             services.Configure<JPushSettings>(_appConfiguration.GetSection("JPush"));
+            services.Configure<WechatSettings>(_appConfiguration.GetSection("Wechat"));
             services.Configure<WebPushSettings>(_appConfiguration.GetSection("WebPush"));
 
             // 注册 IDistributedCache 实现（基于现有的 IRedisClient）
