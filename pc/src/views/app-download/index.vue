@@ -214,9 +214,9 @@ function onResize() {
     isMobile.value = window.innerWidth < 768
 }
 
-// Android 下载页二维码（指向独立 H5 下载页）
+// Android 下载页二维码（指向 Vue 下载页）
 const androidQrCode = computed(() => {
-    const pageUrl = 'https://www.molitao.top/app-download/'
+    const pageUrl = 'https://www.molitao.top/#/app-download'
     return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(pageUrl)}`
 })
 
