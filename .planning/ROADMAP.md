@@ -2,100 +2,94 @@
 
 **Milestone:** v1.0 项目梳理与移动端发布
 **Defined:** 2026-05-22
+**Updated:** 2026-05-22 (Phase 2-5 restructured after Phase 1 audit)
 **Phases:** 7 | **Requirements mapped:** 23/23 ✓
 
 ---
 
-## Phase 1: 项目梳理与分析
+## Phase 1: 项目梳理与分析 ✓ 完成
 
 **Goal:** 深入理解后端业务逻辑与数据模型，完成需求文档化，识别技术债与优化机会。
 
 **Requirements:** ANAL-01, ANAL-02
 
 **Success criteria:**
-1. 核心业务流程（用户、商品、聊天、订单）的后端 API 和数据模型已梳理清楚
-2. 需求文档已完成，可作为后续开发阶段的输入
-3. 已识别并记录至少 5 个技术债/优化项
-4. Flutter App 的数据库表和 API 接口清单已整理完成
-
-**Suggested tasks:**
-- 梳理用户相关 API（认证、个人信息）
-- 梳理商品/服务相关 API 和数据模型
-- 梳理即时通讯相关 API 和数据模型
-- 梳理个人中心相关 API
-- 检查推送通知相关 API
-- 输出需求梳理文档
-- 扫描当前技术债并记录
+1. ✅ 核心业务流程（用户、认证、聊天、支付、推送）已梳理
+2. ✅ 产出 5 份分析文档（database-schema / data-models / business-flows / api-inventory / tech-debt-log）
+3. ✅ 识别 18 项技术债（2 critical / 7 high / 5 medium / 4 low）
+4. ✅ Flutter App 代码审计确认：所有核心功能已实现，无需从零开发
 
 ---
 
-## Phase 2: Flutter — 用户登录注册
+## Phase 2: Flutter 发布准备与配置 (iOS + Android)
 
-**Goal:** 实现 Flutter App 的微信登录和手机号验证码登录功能。
+**Goal:** 完成 Flutter App iOS + Android 首次上架所需的全部平台配置工作。
 
-**Requirements:** AUTH-01, AUTH-02, AUTH-03
+**背景:** Phase 1 代码审计确认 Flutter App 所有核心功能已实现。本阶段不开发新功能，只做平台配置。
 
-**Success criteria:**
-1. 用户可点击微信登录按钮，拉起微信授权，完成登录
-2. 用户可输入手机号，获取短信验证码并完成登录
-3. 登录 Token 持久化，应用关闭后重新打开无需重新登录
-4. 登录态失效时自动跳转到登录页
-5. 现有后端认证 API 无需修改即可复用
+**需求:** CONFIG-01, CONFIG-02, CONFIG-03, CONFIG-04
 
-**Key context:** 后端已有完整的微信登录和 SMS 验证码 API，Flutter App 仅需集成客户端逻辑。
+**决策锚点（来自 discuss-phase）：**
+- iOS + Android 同时首发
+- 微信支付：保留 H5 引导，不接入 IAP
+- iOS 端禁用 APK 版本更新弹窗
+- 提现入口从 Profile 页面隐藏
+- UI 范围：最小改动过审核
 
----
-
-## Phase 3: Flutter — 商品/服务浏览
-
-**Goal:** 实现 Flutter App 端的商品/服务信息流浏览、分类筛选、搜索和详情页。
-
-**Requirements:** BROWSE-01, BROWSE-02, BROWSE-03, BROWSE-04
-
-**Success criteria:**
-1. 首页展示商品/服务信息流列表（分页加载）
-2. 用户可按分类标签筛选列表
-3. 用户可输入关键词搜索商品/服务
-4. 用户点击可进入商品/服务详情页，查看完整信息
-5. 列表加载流畅，无卡顿
-6. 网络异常时有友好提示
-
-**Key context:** 后端已有商品/服务相关 API，参考 H5/PC 端的现有实现。
+**Scope:**
+1. iOS 发布证书 + Provisioning Profile 创建配置
+2. Android 签名密钥（keystore）检查和配置
+3. 极光推送 iOS 生产环境配置（上传 APNS Key 到极光控制台）
+4. Universal Link 服务端 `apple-app-site-association` 文件配置验证
+5. Info.plist / AndroidManifest.xml 审核合规检查
+6. Release 构建验证（iOS Archive → IPA，Android build → APK）
 
 ---
 
-## Phase 4: Flutter — 即时通讯
+## Phase 3: Flutter 审核前修复与代码清理 ✓ 完成
 
-**Goal:** 实现 Flutter App 端的一对一私聊和群聊功能。
+**Goal:** 根据 Phase 2 决策清单，执行最小的代码修改确保审核通过。
 
-**Requirements:** CHAT-01, CHAT-02, CHAT-03, CHAT-04
+**需求:** CLEAN-01, CLEAN-02, CLEAN-03
 
-**Success criteria:**
-1. 用户可发起和接收一对一私聊
-2. 用户可参与群聊
-3. 聊天消息实时送达（通过 WebSocket 或轮询）
-4. 用户可查看聊天历史记录（分页加载）
-5. 新消息时收到推送通知
-6. 聊天界面消息发送状态可感知（发送中/已发送/失败）
+**Scope:**
+1. ✅ 禁用 iOS 端 APK 版本更新弹窗
+2. ✅ 隐藏 Profile 页面提现入口（替换为"即将上线"提示）
+3. ✅ 清理 `debugPrint` 调试日志残留（移除 6 处纯调试日志）
+4. ✅ 修复编译警告（`flutter analyze`: 0 error, 0 warning）
+5. ✅ 处理其他影响审核的问题
 
-**Key context:** 后端已有完整的 WebSocket/FreeIM 支持，小程序已有聊天实现可作为参考。
+**Plans:** 2/2 complete
 
 ---
 
-## Phase 5: Flutter — 个人中心与推送设置
+## Phase 4: App 商店素材与法律合规
 
-**Goal:** 实现个人中心页面、推送通知设置和基础应用设置。
+**Goal:** 准备 App Store 和 Android 应用市场上架所需所有材料。
 
-**Requirements:** PROF-01, PROF-02, PROF-03
+**需求:** STORE-01, STORE-02, STORE-03
 
-**Success criteria:**
-1. 用户可查看和编辑个人头像、昵称、手机号
-2. 用户可开启/关闭推送通知
-3. 用户可查看应用版本信息和关于页面
-4. 退出登录功能正常
-5. 个人信息修改后同步显示
+**Scope:**
+1. App Store / Google Play 截图（4 种尺寸）
+2. 应用描述、关键词、宣传文本
+3. 隐私政策（App 版本）
+4. 用户协议（App 版本）
+5. 审核备注说明
 
-**Key context:** 后端已有用户信息相关 API。
+---
+
+## Phase 5: Flutter 提审与上架
+
+**Goal:** Flutter App 成功提交至 App Store 审核，并发布到 Android 应用市场。
+
+**需求:** RELEASE-01, RELEASE-02, RELEASE-03
+
+**Scope:**
+1. iOS 构建 IPA + Transporter/App Store Connect 上传
+2. App Store 审核提交与跟踪
+3. Android 构建 APK/AAB + 应用市场上传
+4. 审核被拒时快速响应修改
+5. 发布后验证（生产环境下载安装测试）
 
 ---
 
@@ -103,7 +97,7 @@
 
 **Goal:** 优化微信小程序 UI/UX 体验，修复已知 Bug，提升性能。
 
-**Requirements:** MP-01, MP-02, MP-03
+**需求:** MP-01, MP-02, MP-03
 
 **Success criteria:**
 1. 至少修复 3 个小程序已知 Bug（如空 catch、定时器未清理）
@@ -112,45 +106,44 @@
 4. 无新的 Console Error
 5. 小程序提交微信审核通过
 
-**Key context:** 小程序已上线运营，修改需谨慎，避免影响现有用户。
+**Key context:** 小程序已上线运营（UniApp），与 Flutter App 共享后端 API，修改需谨慎。
 
 ---
 
-## Phase 7: 测试验证与发布
+## Phase 7: 里程碑收尾
 
-**Goal:** 完成全功能回归测试，Flutter App 成功上架 iOS App Store 和 Android 应用市场。
+**Goal:** 全功能回归测试，CHANGELOG 归档，文档完善，项目复盘。
 
-**Requirements:** QA-01, QA-02, RELEASE-01, RELEASE-02
+**需求:** QA-01, QA-02, QA-03
 
-**Success criteria:**
-1. Flutter App 全部 v1 功能通过回归测试
-2. 微信小程序现有功能无退化
-3. iOS 构建通过，IPA 可正常安装到真机
-4. Android APK 构建通过，可正常安装
-5. Flutter App 提交到 App Store Connect 审核
-6. Flutter App 提交到 Android 应用市场
-
-**Key context:** iOS 上架需要 Apple Developer 账号（已续费，Team ID: WX4RK78D62），需准备发布证书和 Provisioning Profile。
+**Scope:**
+1. Flutter App (iOS+Android) 全功能回归测试
+2. 微信小程序回归测试
+3. CHANGELOG 更新
+4. 项目文档归档
+5. 技术债跟踪表更新
+6. 里程碑复盘
 
 ---
 
 ## Phase Dependencies
 
 ```
-Phase 1 (项目梳理) ─┬─→ Phase 2 (Flutter 登录) ──→ Phase 3 (浏览)
-                    │                                      │
-                    ├─→ Phase 6 (小程序优化) ────────────→ Phase 7 (测试发布)
-                    │
-                    └─→ Phase 4 (聊天) ←───────────────────┘
-                                        │
-                                        └─→ Phase 5 (个人中心)
+Phase 1 (项目梳理) ──→ Phase 2 (发布配置) ──→ Phase 3 (审核修复)
+                                                      │
+                                                      ├──→ Phase 4 (商店素材)
+                                                      │         │
+                                                      │         └──→ Phase 5 (提审上架)
+                                                      │
+                                                      └──→ Phase 6 (小程序优化) ──→ Phase 7 (收尾)
 ```
 
-Phase 1 必须先完成（为所有开发阶段提供输入）。
-Phase 2 → 3 → 4 → 5 按顺序推进（Flutter 模块依赖递进）。
-Phase 6 可并行（小程序优化与 Flutter 开发互不依赖）。
-Phase 7 全部完成后启动。
+**关键约束：**
+- Phase 1 必须先完成（已 ✓ 完成）
+- Phase 2 → Phase 3 → Phase 4 → Phase 5 顺序执行（Flutter 发布流水线）
+- Phase 6 可独立于 Phase 3-5 并行开始（小程序与 Flutter 无代码依赖）
+- Phase 7 必须在 Phase 5 + Phase 6 都完成后才能开始
 
 ---
 
-*Last updated: 2026-05-22 after milestone v1.0 initialization*
+*Last updated: 2026-05-22 (restructured after Phase 1 audit — Flutter App feature-complete, roadmapped as release pipeline)*
