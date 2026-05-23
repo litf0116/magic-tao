@@ -80,7 +80,7 @@ namespace TtWork.Project.Applications.Auctions
                         ShortExpireSeconds = AuctionItemCachePolicy.SHORT_EXPIRE_SECONDS,
                         LongExpireHours = AuctionItemCachePolicy.LONG_EXPIRE_HOURS
                     },
-                    Timestamp = DateTime.UtcNow
+                    Timestamp = DateTime.Now
                 };
             }
             catch (Exception ex)
@@ -121,7 +121,7 @@ namespace TtWork.Project.Applications.Auctions
                     IsHealthy = healthChecks.All(x => !((dynamic)x).Type.ToString().Equals("Error")),
                     HealthChecks = healthChecks,
                     Recommendations = GetHealthRecommendations(),
-                    LastCheckTime = DateTime.UtcNow
+                    LastCheckTime = DateTime.Now
                 };
             }
             catch (Exception ex)
@@ -131,7 +131,7 @@ namespace TtWork.Project.Applications.Auctions
                 {
                     IsHealthy = false,
                     Error = ex.Message,
-                    LastCheckTime = DateTime.UtcNow
+                    LastCheckTime = DateTime.Now
                 };
             }
         }

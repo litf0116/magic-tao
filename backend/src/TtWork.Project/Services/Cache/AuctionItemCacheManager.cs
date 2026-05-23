@@ -418,7 +418,7 @@ namespace TtWork.Project.Services.Cache
                 {
                     CacheEnabled = AuctionItemCachePolicy.IsCacheEnabled(),
                     CacheKeyPatterns = AuctionItemCacheKeys.GetAllCachePatterns(),
-                    Timestamp = DateTime.UtcNow
+                    Timestamp = DateTime.Now
                 };
 
                 return stats;

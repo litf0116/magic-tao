@@ -41,7 +41,7 @@ namespace TtWork.Project.Web.Host {
 
 
         private string CreateToken(IEnumerable<Claim> claims, TimeSpan? expiration = null) {
-            var now = DateTime.UtcNow;
+            var now = DateTime.Now;
 
             var jwtSecurityToken = new JwtSecurityToken(
                 issuer: tokenAuthConfiguration.Issuer,
@@ -84,7 +84,7 @@ namespace TtWork.Project.Web.Host {
                 new[] {
                     new {
                         a = 1, b = userId, c = AppConsts.TokenValidityKey, d = tokenValidityKey,
-                        e = "", f = DateTime.UtcNow.Add(expiration.Value)
+                        e = "", f = DateTime.Now.Add(expiration.Value)
                     }
                 }
             );

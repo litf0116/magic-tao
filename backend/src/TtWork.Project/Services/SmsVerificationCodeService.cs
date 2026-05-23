@@ -46,13 +46,13 @@ public class SmsVerificationCodeService : ISmsVerificationCodeService
                 .OrderByDescending(x => x.CreationTime)
                 .FirstOrDefaultAsync();
 
-            if (recentCode != null && (DateTime.UtcNow - recentCode.CreationTime).TotalSeconds < 60)
+            if (recentCode != null && (DateTime.Now - recentCode.CreationTime).TotalSeconds < 60)
             {
                 throw new UserFriendlyException("发送过于频繁，请稍后再试");
             }
 
             var todayCount = await _smsVerificationCodeRepository.GetAll()
-                .Where(x => x.PhoneNumber == phoneNumber && x.CreationTime >= DateTime.UtcNow.Date)
+                .Where(x => x.PhoneNumber == phoneNumber && x.CreationTime >= DateTime.Now.Date)
                 .CountAsync();
 
             if (todayCount >= 10)

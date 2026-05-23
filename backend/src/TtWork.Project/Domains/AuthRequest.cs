@@ -46,7 +46,7 @@ public class AuthRequest : AuditedEntity<long>
     /// <summary>
     /// 检查是否有效（待扫描且未过期）
     /// </summary>
-    public bool IsValid() => Status == AuthRequestStatus.Pending && DateTime.UtcNow < ExpiresAt;
+    public bool IsValid() => Status == AuthRequestStatus.Pending && DateTime.Now < ExpiresAt;
 
     /// <summary>
     /// 标记为已扫描
@@ -54,7 +54,7 @@ public class AuthRequest : AuditedEntity<long>
     public void MarkAsScanned()
     {
         Status = AuthRequestStatus.Scanned;
-        ScannedAt = DateTime.UtcNow;
+        ScannedAt = DateTime.Now;
     }
 
     /// <summary>
@@ -63,7 +63,7 @@ public class AuthRequest : AuditedEntity<long>
     public void MarkAsConfirmed()
     {
         Status = AuthRequestStatus.Confirmed;
-        ConfirmedAt = DateTime.UtcNow;
+        ConfirmedAt = DateTime.Now;
     }
 
     /// <summary>

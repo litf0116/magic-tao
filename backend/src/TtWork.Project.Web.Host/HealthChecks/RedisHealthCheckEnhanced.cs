@@ -39,9 +39,9 @@ namespace TtWork.Project.Web.Host.HealthChecks
                 }
 
                 // 执行 ping 测试延迟
-                var pingStart = DateTime.UtcNow;
+                var pingStart = DateTime.Now;
                 await _redisClient.Database.PingAsync();
-                var latencyMs = (DateTime.UtcNow - pingStart).TotalMilliseconds;
+                var latencyMs = (DateTime.Now - pingStart).TotalMilliseconds;
 
                 // 获取性能统计
                 var stats = await _performanceMonitor.GetPerformanceStatsAsync();

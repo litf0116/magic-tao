@@ -309,7 +309,7 @@ public class BidEligibilityService : IBidEligibilityService
             {
                 // 非管理员检查禁言状态
                 var banedUser = await _banedUserRepository.FirstOrDefaultAsync(a =>
-                    a.UserId == userId && a.Chan == "-1_auction" && a.EndTime > DateTime.UtcNow);
+                    a.UserId == userId && a.Chan == "-1_auction" && a.EndTime > DateTime.Now);
 
                 if (banedUser != null)
                 {
@@ -541,7 +541,7 @@ public class BidEligibilityService : IBidEligibilityService
             {
                 // 非管理员检查禁言状态
                 var banedUser = await _banedUserRepository.FirstOrDefaultAsync(a =>
-                    a.UserId == userId && a.Chan == "-1_auction" && a.EndTime > DateTime.UtcNow);
+                    a.UserId == userId && a.Chan == "-1_auction" && a.EndTime > DateTime.Now);
 
                 if (banedUser != null)
                 {

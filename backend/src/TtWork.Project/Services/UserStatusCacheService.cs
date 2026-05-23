@@ -117,7 +117,7 @@ namespace TtWork.Project.Services
                 if (groupLevelInfo != null)
                 {
                     _memoryCache.Set(cacheKey, groupLevelInfo, GroupLevelCacheExpiration);
-                    _cacheKeys.TryAdd(cacheKey, DateTime.UtcNow);
+                    _cacheKeys.TryAdd(cacheKey, DateTime.Now);
 
                     if (userId == 14)
                     {
@@ -147,7 +147,7 @@ namespace TtWork.Project.Services
                 if (_memoryCache.TryGetValue(cacheKey, out BanStatusInfo cachedInfo))
                 {
                     // Validate cached ban hasn't expired
-                    if (cachedInfo?.IsBanned == true && cachedInfo.BanEndTime <= DateTime.UtcNow)
+                    if (cachedInfo?.IsBanned == true && cachedInfo.BanEndTime <= DateTime.Now)
                     {
                         // Cache entry is stale, clear it and return fresh data
                         _memoryCache.Remove(cacheKey);
@@ -172,14 +172,14 @@ namespace TtWork.Project.Services
                     if (expiration > TimeSpan.Zero)
                     {
                         _memoryCache.Set(cacheKey, banStatus, expiration);
-                        _cacheKeys.TryAdd(cacheKey, DateTime.UtcNow);
+                        _cacheKeys.TryAdd(cacheKey, DateTime.Now);
                         _logger.LogDebug("用户禁言状态已缓存: UserId={UserId}, Expiration={Expiration}", userId, expiration);
                     }
                 }
                 else
                 {
                     _memoryCache.Set(cacheKey, banStatus, BanStatusCacheExpiration);
-                    _cacheKeys.TryAdd(cacheKey, DateTime.UtcNow);
+                    _cacheKeys.TryAdd(cacheKey, DateTime.Now);
                 }
 
                 return banStatus;
@@ -218,7 +218,7 @@ namespace TtWork.Project.Services
                 if (adminInfo != null)
                 {
                     _memoryCache.Set(cacheKey, adminInfo, AdminInfoCacheExpiration);
-                    _cacheKeys.TryAdd(cacheKey, DateTime.UtcNow);
+                    _cacheKeys.TryAdd(cacheKey, DateTime.Now);
 
                     if (userId == 14)
                     {
@@ -429,7 +429,7 @@ namespace TtWork.Project.Services
             try
             {
                 var banedUser = await _banedUserRepository.FirstOrDefaultAsync(a =>
-                    a.UserId == userId && (a.Chan == null || a.Chan == channel) && a.EndTime > DateTime.UtcNow);
+                    a.UserId == userId && (a.Chan == null || a.Chan == channel) && a.EndTime > DateTime.Now);
 
                 return banedUser != null 
                     ? new BanStatusInfo 

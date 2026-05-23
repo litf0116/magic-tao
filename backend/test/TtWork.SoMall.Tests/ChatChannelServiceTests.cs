@@ -225,7 +225,7 @@ public class ChatChannelServiceTests
         };
         // 使用反射设置受保护的 Time 属性
         var timeProperty = typeof(Message).GetProperty("Time", BindingFlags.Public | BindingFlags.Instance);
-        timeProperty?.SetValue(message, DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+        timeProperty?.SetValue(message, DateTimeOffset.Now.ToUnixTimeSeconds());
 
         // Act
         channel.UpdateLastMessage(message);

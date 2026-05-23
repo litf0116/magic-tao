@@ -145,7 +145,7 @@ public class QrCodeAuthController : AbpControllerBase
 
     private string CreateToken(IEnumerable<Claim> claims, TimeSpan expiration)
     {
-        var now = DateTime.UtcNow;
+        var now = DateTime.Now;
 
         var jwtSecurityToken = new JwtSecurityToken(
             issuer: _tokenAuthConfiguration.Issuer,
@@ -200,7 +200,7 @@ public class QrCodeAuthController : AbpControllerBase
         await _userManager.AddTokenValidityKeyAsync(
             user,
             tokenValidityKey,
-            DateTime.UtcNow.Add(expiration)
+            DateTime.Now.Add(expiration)
         );
 
         return claims;

@@ -801,7 +801,7 @@ namespace TtWork.Project.Web.Controllers
 
         private string CreateToken(IEnumerable<Claim> claims, TimeSpan? expiration = null)
         {
-            var now = DateTime.UtcNow;
+            var now = DateTime.Now;
 
             var jwtSecurityToken = new JwtSecurityToken(
                 issuer: tokenAuthConfiguration.Issuer,
@@ -856,7 +856,7 @@ namespace TtWork.Project.Web.Controllers
             await userManager.AddTokenValidityKeyAsync(
                 user,
                 tokenValidityKey,
-                DateTime.UtcNow.Add(expiration.Value)
+                DateTime.Now.Add(expiration.Value)
             );
 
             return claims;

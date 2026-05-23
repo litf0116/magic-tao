@@ -327,7 +327,7 @@ namespace TtWork.Project.Controllers
                 // 非管理判断是否被禁言
                 var banedUser = await banedUserRepository.FirstOrDefaultAsync(a =>
                     a.UserId == AbpSession.UserId!.Value && (a.Chan == null || a.Chan == input.Chan) &&
-                    a.EndTime > DateTime.UtcNow);
+                    a.EndTime > DateTime.Now);
                 if (banedUser != null)
                 {
                     throw new UserFriendlyException($"您已被禁言,结束时间 {banedUser.EndTime:yyyy-MM-dd HH:mm:ss}");

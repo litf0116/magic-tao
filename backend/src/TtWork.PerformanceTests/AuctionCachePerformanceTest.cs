@@ -366,7 +366,7 @@ namespace TtWork.PerformanceTests
                     if (_cacheStore.ContainsKey(cacheKey))
                     {
                         var cached = _cacheStore[cacheKey];
-                        if (cached.expireTime > DateTime.UtcNow)
+                        if (cached.expireTime > DateTime.Now)
                         {
                             // 缓存命中
                             _cacheHitCount++;
@@ -393,7 +393,7 @@ namespace TtWork.PerformanceTests
                         if (_cacheStore.ContainsKey(cacheKey))
                         {
                             var cached = _cacheStore[cacheKey];
-                            if (cached.expireTime > DateTime.UtcNow)
+                            if (cached.expireTime > DateTime.Now)
                             {
                                 _cacheHitCount++;
                                 stopwatch.Stop();
@@ -424,7 +424,7 @@ namespace TtWork.PerformanceTests
                     lock (_lockDictLock)
                     {
                         var data = $"{{\"id\":{auctionItemId},\"status\":\"{status}\"}}";
-                        var expireTime = DateTime.UtcNow.AddSeconds(expireInSeconds);
+                        var expireTime = DateTime.Now.AddSeconds(expireInSeconds);
                         _cacheStore[cacheKey] = (data, expireTime);
                     }
                 }

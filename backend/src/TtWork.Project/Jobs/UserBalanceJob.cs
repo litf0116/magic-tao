@@ -44,7 +44,7 @@ public class UserBalanceJob(
                 await userBalanceLogRepository.GetAll().Where(x => x.Id == log.Id)
                     .ExecuteUpdateAsync(setter => setter
                         .SetProperty(b => b.IsSuccess, true)
-                        .SetProperty(b => b.SuccessTime, DateTime.UtcNow)
+                        .SetProperty(b => b.SuccessTime, DateTime.Now)
                         .SetProperty(b => b.AfterAmount, afterAmount)
                     );
                 logger.LogInformation($"[UserBalanceJob]用户:{log.CreatorUserId}余额操作成功,当前余额{afterAmount}");

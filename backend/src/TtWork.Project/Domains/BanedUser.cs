@@ -26,7 +26,7 @@ public class BanedUser : Entity<long>, ICreationAudited {
 
     public BanedUser(long userId, long minutes, string chan) {
         UserId = userId;
-        EndTime = DateTime.UtcNow.AddMinutes(minutes);
+        EndTime = DateTime.Now.AddMinutes(minutes);
         Chan = string.IsNullOrWhiteSpace(chan) ? null : chan;
     }
 }

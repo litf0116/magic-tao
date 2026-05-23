@@ -30,7 +30,7 @@ public class QrCodeAuthService : AbpAppServiceBase, IQrCodeAuthService, ITransie
     public async Task<QrCodeGenerateOutputDto> GenerateQrCodeAsync(long userId)
     {
         var code = Guid.NewGuid().ToString("N");
-        var expiresAt = DateTime.UtcNow.AddSeconds(QrCodeExpiresInSeconds);
+        var expiresAt = DateTime.Now.AddSeconds(QrCodeExpiresInSeconds);
 
         var authRequest = new AuthRequest
         {
@@ -101,7 +101,7 @@ public class QrCodeAuthService : AbpAppServiceBase, IQrCodeAuthService, ITransie
             return new QrCodeStatusDto { Status = "expired" };
         }
 
-        if (DateTime.UtcNow > authRequest.ExpiresAt)
+        if (DateTime.Now > authRequest.ExpiresAt)
         {
             return new QrCodeStatusDto { Status = "expired" };
         }
@@ -140,7 +140,7 @@ public class QrCodeAuthService : AbpAppServiceBase, IQrCodeAuthService, ITransie
             throw new UserFriendlyException("二维码不存在");
         }
 
-        if (DateTime.UtcNow > authRequest.ExpiresAt)
+        if (DateTime.Now > authRequest.ExpiresAt)
         {
             authRequest.MarkAsExpired();
             await _authRequestRepository.UpdateAsync(authRequest);

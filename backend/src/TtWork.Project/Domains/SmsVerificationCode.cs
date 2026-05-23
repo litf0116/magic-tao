@@ -18,7 +18,7 @@ public class SmsVerificationCode : AuditedEntity<long>
         Purpose = purpose;
         TenantId = tenantId;
         IsUsed = false;
-        ExpireTime = DateTime.UtcNow.AddMinutes(5);
+        ExpireTime = DateTime.Now.AddMinutes(5);
     }
 
     [StringLength(20)]
@@ -35,7 +35,7 @@ public class SmsVerificationCode : AuditedEntity<long>
 
     public int TenantId { get; set; }
 
-    public bool IsExpired => DateTime.UtcNow > ExpireTime;
+    public bool IsExpired => DateTime.Now > ExpireTime;
 
     public bool IsValid(string phoneNumber, string code, SmsCodePurpose purpose)
     {
