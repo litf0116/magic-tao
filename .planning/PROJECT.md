@@ -6,6 +6,8 @@
 
 全平台覆盖：PC 管理后台 + H5 移动端网页 + 微信小程序 + Flutter App（iOS/Android）。
 
+Flutter App 已于 2026-05 完成 iOS App Store + Android 应用市场双端发布。微信小程序持续运营优化中。
+
 ## Core Value
 
 用户可以快速发布需求、找到合适的服务方，并通过即时通讯高效沟通促成交易。
@@ -20,41 +22,43 @@
 - ✓ H5 移动端网页 — 用户端 H5 页面（已在线上稳定运行）
 - ✓ 微信小程序 — 用户端小程序（已上线运营，有真实用户）
 - ✓ 后端 API（.NET 8 + ABP Framework）— 全功能 API 服务
-- ✓ 用户认证系统 — 微信登录 + 手机号验证码登录
-- ✓ 即时通讯 — 私聊/群聊实时消息
-- ✓ 商品/服务信息发布 — 发布与展示
+- ✓ Flutter App（iOS/Android）— 首次双端发布完成 —— v1.0
+- ✓ 用户认证系统 — 微信登录 + 手机号验证码登录 —— v1.0
+- ✓ 即时通讯 — 私聊/群聊实时消息 —— v1.0
+- ✓ 商品/服务信息发布与浏览 —— v1.0
 - ✓ 微信支付集成 — 支付处理
 - ✓ 极光推送 — iOS/Android 推送通知
-- ✓ 短信服务 — 阿里云短信验证码
+- ✓ 短信服务 — 阿里云短信官方 SDK —— v1.0
+- ✓ 项目技术债识别与分析（18项）—— v1.0
+- ✓ 微信小程序体验优化 —— v1.0
+- ✓ SMS 服务并发安全改造 —— v1.0
+- ✓ 全项目时间统一为北京时间 —— v1.0
+- ✓ 2 项 Critical 技术债修复（AppSecret 硬编码 + HttpClient 反模式）—— v1.0
 
 ### Active
 
 <!-- Current scope. Building toward these. -->
 
-- [ ] **ANAL-01**: 完成现有后端 API 的业务逻辑梳理与需求文档化
-- [ ] **ANAL-02**: 识别并记录当前系统的技术债与优化机会
-- [ ] **FLUTTER-01**: Flutter App 完成核心用户功能开发并发布到 iOS App Store
-- [ ] **FLUTTER-02**: Flutter App 完成核心用户功能开发并发布到 Android 应用市场
-- [ ] **MP-01**: 微信小程序现有功能优化迭代
+下一个里程碑规划中...
 
 ### Out of Scope
 
 <!-- Explicit boundaries. Includes reasoning to prevent re-adding. -->
 
-- PC 端功能改造 — 本里程碑以移动端为主，PC 后台保持现有功能不变
 - 交易担保/担保支付 — 平台定位为信息撮合，不提供交易担保
 - 海外发布 — 仅面向中国大陆用户
 
 ## Context
 
-- **开发周期近 1 年**（2025-05 至今），968 次提交，61 个分支
+- **开发周期近 1 年**（2025-05 至今），968+ 次提交，61+ 个分支
 - **后端**：.NET 8 + ABP Framework 9.1.3 + MySQL + Redis
 - **PC 端**：Vue 3 + TypeScript + Pinia + Element Plus（管理后台）
 - **H5**：Vue 3 + UniApp（移动端网页）
-- **微信小程序**：Vue 3 + UniApp（已上线运营）
-- **Flutter App**：Flutter + Dart（开发中，未上架）
-- 项目为 monorepo 结构，包含后端、PC、H5、小程序、Flutter App 五个子项目
-- 最近完成的技术改造包括：阿里云短信官方 SDK 集成、全项目时间统一为北京时间
+- **微信小程序**：Vue 3 + UniApp（已上线运营，已体验优化）
+- **Flutter App**：Flutter + Dart（iOS + Android 双端已发布）
+- 项目为 monorepo 结构
+- **v1.0 已交付**（2026-05-23）：Flutter 双端上架、SMS 并发安全改造、时间统一、2 项 Critical 技术债修复
+- **剩余技术债**：13 项（7 High / 5 Medium / 2 Low）
 
 ## Constraints
 
@@ -71,10 +75,17 @@
 | 全项目使用 DateTime.Now（北京时间） | 仅在中国运营，无需 UTC 存储 | ✓ Good |
 | 阿里云短信 SDK 替代手动 HMAC 签名 | 官方 SDK 更稳定，减少 80+ 行手动代码 | ✓ Good |
 | 平台定位为信息撮合，非交易担保 | 降低法律合规风险，聚焦核心体验 | ✓ Good |
+| SMS 业务先发后存 | 防止验证码发送失败产生脏数据 | ✓ Good |
+| 微信凭证 IOptions 注入替代硬编码 | 消除密钥泄露风险 | ✓ Good |
+| HttpClient IHttpClientFactory 替代裸注入 | 消除 Socket 泄漏风险 | ✓ Good |
+| iOS + Android 同时首发 | 统一市场策略 | ✓ Good |
+| iOS 审核前禁用更新弹窗 | 避免违反 App Store 审核准则 | ✓ Good |
+| 提现入口审核前隐藏 | 合规要求，后续迭代再开放 | ✓ Good |
+| 微信支付走 H5 引导不接入 IAP | 降低技术复杂度，不走苹果支付分成 | ✓ Good |
 
 ---
 
-*Last updated: 2026-05-22 after milestone v1.0 initialization*
+*Last updated: 2026-05-23 after v1.0 milestone*
 
 ## Evolution
 
