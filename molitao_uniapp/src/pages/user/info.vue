@@ -226,7 +226,7 @@ const afterRead = async (event: any) => {
                 // 不 return，继续执行
             }
 
-            console.log('设置上传状态为 success, fileListLen:', fileListLen, 'uploadResult:', uploadResult)
+            // 设置上传状态为 success
             let item = fileList1.value[fileListLen]
             // 确保索引有效
             if (!item) {

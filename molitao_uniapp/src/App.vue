@@ -35,7 +35,9 @@ onLaunch(() => {
         updateManager.onUpdateFailed(() => {
             // 新的版本下载失败
         })
-    } catch (e) {}
+    } catch (e) {
+        console.error('[App] updateManager 初始化失败:', e)
+    }
 })
 onShow(() => {
     // console.debug("App Show")

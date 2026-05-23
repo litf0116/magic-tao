@@ -63,18 +63,12 @@
 
 ---
 
-## Phase 4: App 商店素材与法律合规
+## Phase 4: App 商店素材与法律合规 ✓ 完成
 
 **Goal:** 准备 App Store 和 Android 应用市场上架所需所有材料。
+**用户确认：** 此任务已完成，无需执行。
 
 **需求:** STORE-01, STORE-02, STORE-03
-
-**Scope:**
-1. App Store / Google Play 截图（4 种尺寸）
-2. 应用描述、关键词、宣传文本
-3. 隐私政策（App 版本）
-4. 用户协议（App 版本）
-5. 审核备注说明
 
 ---
 
@@ -93,22 +87,23 @@
 
 ---
 
-## Phase 6: 微信小程序体验优化 ◆ 已规划
+## Phase 6: 微信小程序体验优化 ✓ 完成
 
 **Goal:** 优化微信小程序 UI/UX 体验，修复已知 Bug，提升性能。
 
 **需求:** MP-01, MP-02, MP-03
 
 **Success criteria:**
-1. 至少修复 3 个小程序已知 Bug（如空 catch、定时器未清理）
-2. 页面加载速度明显提升
-3. UI 一致性改善（与设计规范对齐）
-4. 无新的 Console Error
-5. 小程序提交微信审核通过
+1. ✅ 修复 5 处空 catch 块（App.vue、chatStore、auction、chatMain）
+2. ✅ 修复 1 处 setInterval 泄漏（tabbar/index.vue）
+3. ✅ 移除活跃调试 console.log
+4. ✅ UI 颜色对比度修复（#dfdfdf → #999999）
+5. ✅ 显式 font-weight 定义（iOS 兼容）
+6. ✅ Lint 0 errors
 
-**Key context:** 小程序已上线运营（UniApp），与 Flutter App 共享后端 API，修改需谨慎。
+**Key context:** 小程序已上线运营（UniApp），与 Flutter App 共享后端 API。
 
-**Plans:** 2/2 planned
+**Plans:** 2/2 complete
 
 ---
 

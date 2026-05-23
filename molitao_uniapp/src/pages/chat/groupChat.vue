@@ -16,18 +16,21 @@ onLoad(async (pamams: any) => {
     if (pamams != null) {
         const t = pamams.id + ''
         chan.value = t
-        chatStore.connectServer().then(async () => {
-            if (chatStore.hasGroup(t)) {
-                await chatStore.SetCurrentChatId(parseInt(t.split('_')[0]), t.split('_')[1], true).then(() => {
-                    initGroup()
-                })
-            } else {
-                Tips.error('未找到该群聊')
-                uni.redirectTo({ url: '/pages/chat/index' })
-            }
-        }).catch((e) => {
-            console.error('连接聊天服务器失败:', e)
-        })
+        chatStore
+            .connectServer()
+            .then(async () => {
+                if (chatStore.hasGroup(t)) {
+                    await chatStore.SetCurrentChatId(parseInt(t.split('_')[0]), t.split('_')[1], true).then(() => {
+                        initGroup()
+                    })
+                } else {
+                    Tips.error('未找到该群聊')
+                    uni.redirectTo({ url: '/pages/chat/index' })
+                }
+            })
+            .catch((e) => {
+                console.error('连接聊天服务器失败:', e)
+            })
     }
 })
 

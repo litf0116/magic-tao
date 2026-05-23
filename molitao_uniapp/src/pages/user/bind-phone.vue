@@ -32,7 +32,11 @@
                     </view>
                 </view>
 
-                <button class="w-full bg-[#f4835a] text-white rounded-lg mb-4" :disabled="isLoading" @click="handleBind">
+                <button
+                    class="w-full bg-[#f4835a] text-white rounded-lg mb-4"
+                    :disabled="isLoading"
+                    @click="handleBind"
+                >
                     <text v-if="!isLoading">确认绑定</text>
                     <text v-else>绑定中...</text>
                 </button>
@@ -82,7 +86,7 @@ async function handleBind() {
     try {
         await userStore.bindPhoneWithPassword(form.value.phoneNumber, form.value.password)
         uni.showToast({ icon: 'success', title: '绑定成功' })
-        await new Promise(resolve => setTimeout(resolve, 1500))
+        await new Promise((resolve) => setTimeout(resolve, 1500))
         uni.$emit('refreshView')
         if (callbackUrl && callbackUrl !== '/') {
             uni.redirectTo({ url: callbackUrl })

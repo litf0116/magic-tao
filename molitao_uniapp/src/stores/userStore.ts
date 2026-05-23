@@ -233,24 +233,27 @@ export const useUserStore = defineStore('userStore', () => {
                 provider: 'weixin',
                 success: async (loginRes) => {
                     if (loginRes.errMsg === 'login:ok' && loginRes.code) {
-                        await api.code2session({ code: loginRes.code }).then(async (res: any) => {
-                            if (res.openid) {
-                                openid.value = res.openid
-                                await uni.setStorageSync('openid', res.openid)
-                            }
-                            if (res.session_key) {
-                                sessionKey.value = res.session_key
-                                await uni.setStorageSync('sessionKey', res.session_key)
-                                sessionTime.value = res.time
-                                await uni.setStorageSync('sessionTime', res.session_key)
-                            }
-                            if (res.unionid) {
-                                await uni.setStorageSync('unionid', res.unionid)
-                                unionid.value = res.unionid
-                            }
-                        }).catch((e) => {
-                            console.error('code2session failed:', e)
-                        })
+                        await api
+                            .code2session({ code: loginRes.code })
+                            .then(async (res: any) => {
+                                if (res.openid) {
+                                    openid.value = res.openid
+                                    await uni.setStorageSync('openid', res.openid)
+                                }
+                                if (res.session_key) {
+                                    sessionKey.value = res.session_key
+                                    await uni.setStorageSync('sessionKey', res.session_key)
+                                    sessionTime.value = res.time
+                                    await uni.setStorageSync('sessionTime', res.session_key)
+                                }
+                                if (res.unionid) {
+                                    await uni.setStorageSync('unionid', res.unionid)
+                                    unionid.value = res.unionid
+                                }
+                            })
+                            .catch((e) => {
+                                console.error('code2session failed:', e)
+                            })
                         return resolve(loginRes)
                     } else {
                         return reject()

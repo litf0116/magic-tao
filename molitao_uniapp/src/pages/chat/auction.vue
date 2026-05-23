@@ -676,10 +676,8 @@ function catchImage(e: any) {
             current: list[0], // 当前显示图片的http链接
             urls: list, // 需要预览的图片http链接列表
         })
-
-        // console.log('catchImage', list)
     } catch (e) {
-        // console.log('catchImage', e)
+        console.error('[catchImage] 错误:', e)
     }
 }
 

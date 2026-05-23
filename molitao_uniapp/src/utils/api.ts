@@ -12,7 +12,7 @@ import utils from './utils'
 import { getAppVersion } from './version'
 import { getPlatform } from './platform'
 
-let host: string = 'http://192.168.10.32:5000'
+const host: string = 'http://192.168.10.32:5000'
 
 const getRequest = utils.httpsPromisify(uni.request)
 
@@ -43,7 +43,7 @@ const request = (
             Authorization: `Bearer ${uni.getStorageSync('token') || ''}`,
             'X-Platform': platform,
             'X-App-Version': appVersion,
-            'AppName': 'uniapp',
+            AppName: 'uniapp',
         },
     })
 }

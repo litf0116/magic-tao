@@ -74,24 +74,30 @@ onLoad((query: any) => {
         friend.name = decodeURIComponent(query.name)
         friend.avatar = decodeURIComponent(query.avatar)
 
-        api.user.get({ id: friend.id }).then((res: UserDto) => {
-            user.value = res
-            friend.name = res.name!
-            friend.avatar = res.headImgUrl!
-        }).catch((e) => {
-            console.error('获取用户信息失败:', e)
-        })
-
-        chatStore.connectServer().then(() => {
-            chatStore.addChatList(friend.id, friend.name, friend.avatar)
-            chatStore.SetCurrentChatId(friend.id)
-
-            nextTick(() => {
-                loadHistoryMessage(true)
+        api.user
+            .get({ id: friend.id })
+            .then((res: UserDto) => {
+                user.value = res
+                friend.name = res.name!
+                friend.avatar = res.headImgUrl!
             })
-        }).catch((e) => {
-            console.error('连接聊天服务器失败:', e)
-        })
+            .catch((e) => {
+                console.error('获取用户信息失败:', e)
+            })
+
+        chatStore
+            .connectServer()
+            .then(() => {
+                chatStore.addChatList(friend.id, friend.name, friend.avatar)
+                chatStore.SetCurrentChatId(friend.id)
+
+                nextTick(() => {
+                    loadHistoryMessage(true)
+                })
+            })
+            .catch((e) => {
+                console.error('连接聊天服务器失败:', e)
+            })
     }
 })
 

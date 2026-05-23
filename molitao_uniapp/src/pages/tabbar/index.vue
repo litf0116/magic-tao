@@ -249,13 +249,15 @@ const onConfirm = () => {
 
 .font-title {
     font-size: 22rpx;
+    font-weight: 400;
     margin: 5rpx 0;
-    color: #dfdfdf;
+    color: #999999;
     z-index: 100;
 }
 
 .font-title-active {
     font-size: 22rpx;
+    font-weight: 600;
     margin: 5rpx 0;
     color: #000000;
     z-index: 100;

@@ -134,7 +134,7 @@ export const useChatStore = defineStore('chatStore', () => {
                         }
                         onmessage(msg)
                     } catch (e) {
-                        // console.log('onMessage Error', e)
+                        console.error('[chatStore] onMessage 解析失败:', e)
                         return
                     }
                 })
@@ -653,13 +653,13 @@ export const useChatStore = defineStore('chatStore', () => {
         // #ifdef MP-WEIXIN
         const userStore = useUserStore()
         const openid = userStore.openid
-        
+
         if (type === ChatMessageType.Text && msg) {
             try {
-                const checkResult = await api.contentSecurity.checkText({ 
-                    content: msg, 
-                    scene: 4, 
-                    openid: openid 
+                const checkResult = await api.contentSecurity.checkText({
+                    content: msg,
+                    scene: 4,
+                    openid: openid,
                 })
                 if (!checkResult.isSafe) {
                     uni.showToast({ title: checkResult.message || '内容包含敏感信息', icon: 'none' })
@@ -670,10 +670,10 @@ export const useChatStore = defineStore('chatStore', () => {
             }
         } else if (type === ChatMessageType.Image && payload?.url) {
             try {
-                const checkResult = await api.contentSecurity.checkImage({ 
-                    mediaUrl: payload.url, 
-                    scene: 4, 
-                    openid: openid 
+                const checkResult = await api.contentSecurity.checkImage({
+                    mediaUrl: payload.url,
+                    scene: 4,
+                    openid: openid,
                 })
                 if (!checkResult.isSafe) {
                     uni.showToast({ title: checkResult.message || '图片包含敏感内容', icon: 'none' })
@@ -713,13 +713,13 @@ export const useChatStore = defineStore('chatStore', () => {
         // #ifdef MP-WEIXIN
         const userStore = useUserStore()
         const openid = userStore.openid
-        
+
         if (type === ChatMessageType.Text && msg) {
             try {
-                const checkResult = await api.contentSecurity.checkText({ 
-                    content: msg, 
-                    scene: 4, 
-                    openid: openid 
+                const checkResult = await api.contentSecurity.checkText({
+                    content: msg,
+                    scene: 4,
+                    openid: openid,
                 })
                 if (!checkResult.isSafe) {
                     uni.showToast({ title: checkResult.message || '内容包含敏感信息', icon: 'none' })
@@ -730,10 +730,10 @@ export const useChatStore = defineStore('chatStore', () => {
             }
         } else if (type === ChatMessageType.Image && payload?.url) {
             try {
-                const checkResult = await api.contentSecurity.checkImage({ 
-                    mediaUrl: payload.url, 
-                    scene: 4, 
-                    openid: openid 
+                const checkResult = await api.contentSecurity.checkImage({
+                    mediaUrl: payload.url,
+                    scene: 4,
+                    openid: openid,
                 })
                 if (!checkResult.isSafe) {
                     uni.showToast({ title: checkResult.message || '图片包含敏感内容', icon: 'none' })

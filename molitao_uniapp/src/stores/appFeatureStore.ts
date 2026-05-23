@@ -21,7 +21,14 @@ export const useAppFeatureStore = defineStore('appFeatureStore', () => {
                 isReviewMode.value = res.isReviewMode ?? false
                 platform.value = res.platform || ''
                 version.value = res.version || ''
-                console.log('[AppFeature] isReviewMode:', isReviewMode.value, 'platform:', platform.value, 'version:', version.value)
+                console.log(
+                    '[AppFeature] isReviewMode:',
+                    isReviewMode.value,
+                    'platform:',
+                    platform.value,
+                    'version:',
+                    version.value
+                )
                 uni.setStorageSync(FEATURE_CACHE_KEY, res)
                 isLoaded.value = true
             }
