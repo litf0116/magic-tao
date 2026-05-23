@@ -18,19 +18,21 @@
 
 ## 🔴 Critical
 
-### C-01: 微信 AppSecret 硬编码（CVE-level 风险）
+### C-01: 微信 AppSecret 硬编码（CVE-level 风险） ✅ 已修复
 
-- **文件**: `UserAppService.cs:54-55`
+- **文件**: `UserAppService.cs:54-55` → 已迁移至 `appsettings.json`
 - **问题**: 微信小程序 AppId `wx8178f2258942133d` 和 AppSecret `ec39ddccf124f18474738f15cb57a38e` 直接硬编码在代码中
 - **影响**: 极敏感凭据泄露，任何可读源码的人都能获取微信小程序权限
-- **建议**: 移入用户机密 (User Secrets) 或环境变量
+- **解决方案**: 创建 `WechatSettings` 配置类，`UserAppService` + `ContentSecurityAppService` 均注入 `IOptions<WechatSettings>` 替代静态字段，密钥通过 `appsettings.json` 配置管理
+- **提交**: `d373524`
 
-### C-02: `UserAppService` 使用 `new HttpClient()` 创建实例
+### C-02: `UserAppService` 使用 `new HttpClient()` 创建实例 ✅ 已修复
 
-- **文件**: `UserAppService.cs`
+- **文件**: `UserAppService.cs` → 已改为 `IHttpClientFactory`
 - **问题**: 内部使用 `System.Net.Http.HttpClient _httpClient` 作为字段，构造函数中 `new HttpClient()` 注入
 - **影响**: Socket 资源泄漏风险
-- **建议**: 使用 `IHttpClientFactory` 或 typed HttpClient
+- **解决方案**: `UserAppService` + `ContentSecurityAppService` 均改为注入 `IHttpClientFactory`，每次请求通过 `CreateClient()` 创建（由框架管理生命周期）
+- **提交**: `d373524`
 
 ---
 
