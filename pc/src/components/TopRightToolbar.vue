@@ -279,7 +279,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import {
     Wallet,
@@ -391,9 +391,10 @@ const handleRechargeFromPanel = () => {
     })
 }
 
+const openUserSetting = inject<() => void>('openUserSetting')
 const goToProfile = () => {
     closeUserPanel()
-    ElMessage.info('个人中心功能开发中')
+    openUserSetting?.()
 }
 
 // 打开充值弹窗

@@ -7,6 +7,7 @@
                 <!-- </Suspense> -->
             </template>
         </RouterView>
+        <UserSetting ref="settingRef" />
     </ElConfigProvider>
 </template>
 
@@ -15,6 +16,13 @@ import 'nprogress/nprogress.css'
 import NProgress from 'nprogress'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import '@/style.scss'
+import UserSetting from '@/components/UserSetting.vue'
+
+const settingRef = ref<InstanceType<typeof UserSetting> | null>(null)
+
+function openUserSetting() {
+    settingRef.value?.show(true)
+}
 
 const whiteList = ['/', '/index', '/auth/login', '/register', '/error-page', '/app-download']
 const route = useRoute()
@@ -30,6 +38,7 @@ if (userStore.token) {
 }
 
 provide('path', path)
+provide('openUserSetting', openUserSetting)
 
 router.beforeEach(async (to, from, next) => {
     NProgress.start()

@@ -161,17 +161,28 @@ namespace TtWork.Project.Applications.Core.Users
         [AbpAuthorize]
         public async Task<GetUserForEditOutput> GetCurrentUser()
         {
+            _logger.LogDebug("[GetCurrentUser]入口 UserId={UserId}", _abpSession.UserId);
             var output = new GetUserForEditOutput();
 
-            //Editing an existing user
-            var user = await _userManager.GetUserByIdAsync(_abpSession.UserId!.Value);
+            try
+            {
+                var user = await _userManager.GetUserByIdAsync(_abpSession.UserId!.Value);
+                _logger.LogDebug("[GetCurrentUser]获取用户成功 UserId={UserId}, UserName={UserName}, Name={Name}",
+                    user.Id, user.UserName, user.Name);
 
-            output.User = ObjectMapper.Map<UserEditDto>(user);
-            output.HeadImgUrl = user.HeadImgUrl;
+                output.User = ObjectMapper.Map<UserEditDto>(user);
+                output.HeadImgUrl = user.HeadImgUrl;
 
-            var organizationUnits = await _userManager.GetOrganizationUnitsAsync(user);
-            output.MemberedOrganizationUnits = organizationUnits.Select(ou => ou.Code).ToList();
-            return output;
+                var organizationUnits = await _userManager.GetOrganizationUnitsAsync(user);
+                output.MemberedOrganizationUnits = organizationUnits.Select(ou => ou.Code).ToList();
+                _logger.LogDebug("[GetCurrentUser]完成 UserId={UserId}", _abpSession.UserId);
+                return output;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[GetCurrentUser]异常 UserId={UserId}", _abpSession.UserId);
+                throw;
+            }
         }
 
         [AbpAuthorize(AppPermissions.Administration)]

@@ -132,6 +132,7 @@ const show = async (e: boolean) => {
                 userId.value = res.user.id ?? 0
                 depositBalance.value = res.user.depositBalance ?? 0
                 form.value = {
+                    id: res.user.id ?? 0,
                     name: res.user.name ?? '',
                     userName: res.user.userName ?? '',
                     password: '',

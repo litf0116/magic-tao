@@ -181,8 +181,10 @@ namespace TtWork.Project.Web.Host.Startup
                 services.AddSwaggerMiddleware();
             }
 
-            GlobalConfiguration.Configuration.UseStorage(
-                new MySqlStorage(
+            GlobalConfiguration.Configuration.UseStorage(new Hangfire.MemoryStorage.MemoryStorage());
+            try
+            {
+                var mysqlStorage = new MySqlStorage(
                     _appConfiguration.GetConnectionString("Default"),
                     new MySqlStorageOptions
                     {
@@ -194,7 +196,13 @@ namespace TtWork.Project.Web.Host.Startup
                         DashboardJobListLimit = 50000,
                         TransactionTimeout = TimeSpan.FromMinutes(1),
                         TablesPrefix = "Hangfire"
-                    }));
+                    });
+                GlobalConfiguration.Configuration.UseStorage(mysqlStorage);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[WARN] Hangfire MySQL init failed, using memory storage: {ex.Message}");
+            }
 
             services.AddHangfire(configuration => configuration
                     .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)

@@ -84,7 +84,7 @@ public class ClientAppService(
     /// <param name="amount">支付金额，如果不指定则使用默认保证金金额</param>
     /// <returns></returns>
     /// <exception cref="UserFriendlyException"></exception>
-    [HttpGet]
+    [HttpGet("api/ClientApp/PayDeposit")]
     [AbpAuthorize]
     public async Task<object> PayDeposit(string openid, string type = "jsapi", decimal? amount = null)
     {
@@ -177,7 +177,7 @@ public class ClientAppService(
     /// 获取当前用户的微信 OpenId（App 端）
     /// </summary>
     /// <returns>OpenId 如果存在，否则返回 null</returns>
-    [HttpGet]
+    [HttpGet("api/ClientApp/GetMyWechatOpenId")]
     [AbpAuthorize]
     public async Task<string> GetMyWechatOpenId()
     {
@@ -210,10 +210,12 @@ public class ClientAppService(
     /// <param name="amount">支付金额，如果不指定则使用默认保证金金额</param>
     /// <returns>包含 code_url 和订单号的对象</returns>
     /// <exception cref="UserFriendlyException"></exception>
-    [HttpGet]
+    [HttpGet("api/ClientApp/PayDepositNative")]
     [AbpAuthorize]
     public async Task<object> PayDepositNative(decimal? amount = null)
     {
+        logger.LogDebug("[PayDepositNative]入口 UserId={UserId}, Amount={Amount}",
+            AbpSession.UserId, amount);
         var app = await mediator.Send(new QueryApp("uniapp", false));
         var appid = app.GetValue("appid");
         var mchid = app.GetValue("mchId");
@@ -280,22 +282,29 @@ public class ClientAppService(
     /// </summary>
     /// <param name="outTradeNo">订单号</param>
     /// <returns>订单状态信息</returns>
-    [HttpGet]
+    [HttpGet("api/ClientApp/GetPayOrderStatus")]
     [AbpAuthorize]
     public async Task<PayOrderStatusDto> GetPayOrderStatus(string outTradeNo)
     {
+        logger.LogDebug("[GetPayOrderStatus]入口参数 outTradeNo={OutTradeNo}, UserId={UserId}", outTradeNo, AbpSession.UserId);
+
         if (outTradeNo.IsNullOrWhiteSpace())
         {
+            logger.LogWarning("[GetPayOrderStatus]订单号为空");
             throw new UserFriendlyException("订单号不能为空");
         }
 
+        var userId = AbpSession.UserId;
+        logger.LogDebug("[GetPayOrderStatus]查询订单 outTradeNo={OutTradeNo}, CreatorUserId={UserId}", outTradeNo, userId);
+
         var payOrder = await payOrderRepository.FirstOrDefaultAsync(x =>
             x.OutTradeNo == outTradeNo &&
-            x.CreatorUserId == AbpSession.UserId.Value
+            x.CreatorUserId == userId
         );
 
         if (payOrder == null)
         {
+            logger.LogWarning("[GetPayOrderStatus]订单不存在 outTradeNo={OutTradeNo}, UserId={UserId}", outTradeNo, userId);
             return new PayOrderStatusDto
             {
                 Status = "NOT_FOUND",
@@ -303,18 +312,24 @@ public class ClientAppService(
             };
         }
 
+        logger.LogDebug("[GetPayOrderStatus]订单已找到 OrderId={OrderId}, State={State}, HostType={HostType}, IsSuccessPay={IsSuccessPay}",
+            payOrder.Id, payOrder.State, payOrder.HostType, payOrder.IsSuccessPay);
+
         if (payOrder.State != PayState.PAID)
         {
+            logger.LogDebug("[GetPayOrderStatus]订单未支付，查询微信支付状态");
             var app = await mediator.Send(new QueryApp(payOrder.AppName, false));
             var mchid = app.GetValue("mchId");
             string wwwrootPath = _env.WebRootPath;
             string certPath = Path.Combine(wwwrootPath, app.GetValue("certPath").TrimStart('/', '\\'));
 
             var wechatResult = await v3PayApi.QueryOrderAsync(mchid, outTradeNo, certPath);
+            logger.LogDebug("[GetPayOrderStatus]微信查询结果 TradeState={TradeState}, Code={Code}, Message={Message}",
+                wechatResult.TradeState, wechatResult.Code, wechatResult.Message);
 
             if (!string.IsNullOrEmpty(wechatResult.Code))
             {
-                logger.LogError($"[查询订单状态]微信返回错误：{wechatResult.Code} - {wechatResult.Message}");
+                logger.LogError("[查询订单状态]微信返回错误：{Code} - {Message}", wechatResult.Code, wechatResult.Message);
             }
             else if (wechatResult.TradeState == "SUCCESS")
             {
@@ -324,11 +339,14 @@ public class ClientAppService(
                 }
                 else
                 {
+                    logger.LogDebug("[GetPayOrderStatus]微信确认支付成功，执行 SuccessPay TransactionId={TransactionId}",
+                        wechatResult.TransactionId);
                     payOrder.SuccessPay(wechatResult.TransactionId, wechatResult.SuccessTime);
                     await CurrentUnitOfWork.SaveChangesAsync();
 
                     if (payOrder.HostType == OrderType.保证金)
                     {
+                        logger.LogDebug("[GetPayOrderStatus]保证金订单，检查是否已有处理记录");
                         var existingLog = await userDepositLogRepository.GetAll()
                             .Where(x => x.CreatorUserId == payOrder.CreatorUserId && x.IsSuccess)
                             .Where(x => x.Reason != null && x.Reason.Contains(outTradeNo))
@@ -343,6 +361,9 @@ public class ClientAppService(
                             decimal finalAmount = payOrder.Total <= 100
                                 ? payOrder.Total
                                 : payOrder.Total - 100;
+
+                            logger.LogDebug("[GetPayOrderStatus]创建保证金记录 CreatorUserId={UserId}, Amount={Amount}",
+                                payOrder.CreatorUserId, finalAmount / 100m);
 
                             var depositLog = new UserDepositLog(BalanceLogType.支付, finalAmount / 100m)
                             {
@@ -359,7 +380,18 @@ public class ClientAppService(
                     }
                 }
             }
+            else
+            {
+                logger.LogDebug("[GetPayOrderStatus]微信查询 TradeState={TradeState}，非 SUCCESS 不处理", wechatResult.TradeState);
+            }
         }
+        else
+        {
+            logger.LogDebug("[GetPayOrderStatus]订单状态已是 PAID，直接返回");
+        }
+
+        logger.LogDebug("[GetPayOrderStatus]返回结果 Status={Status}, Amount={Amount}, PaidTime={PaidTime}",
+            payOrder.State, payOrder.Total / 100m, payOrder.SuccessPayTime);
 
         return new PayOrderStatusDto
         {
@@ -390,7 +422,7 @@ public class ClientAppService(
     /// </summary>
     /// <param name="outTradeNo"></param>
     /// <returns></returns>
-    [HttpGet]
+    [HttpGet("api/ClientApp/PayRefund")]
     [AbpAuthorize]
     public async Task PayRefund(string outTradeNo)
     {
@@ -494,7 +526,7 @@ public class ClientAppService(
     /// <param name="parameter">参数</param>
     /// <returns></returns>
     /// <exception cref="UserFriendlyException"></exception>
-    [HttpPost]
+    [HttpPost("api/ClientApp/PayWithdrawal")]
     [AbpAuthorize]
     public async Task PayWithdrawal(WithdrawalData parameter)
     {
@@ -533,7 +565,7 @@ public class ClientAppService(
     /// </summary>
     /// <param name="id">对方用户ID</param>
     /// <returns></returns>
-    [HttpGet]
+    [HttpGet("api/ClientApp/DeleteChatList")]
     [AbpAuthorize]
     public async Task DeleteChatList(long id)
     {
@@ -552,7 +584,7 @@ public class ClientAppService(
     /// 获取聊天列表（实时版本 - 直接从数据库查询）
     /// </summary>
     /// <returns>聊天列表</returns>
-    [HttpGet]
+    [HttpGet("api/ClientApp/GetChatList")]
     public async Task<List<ChatListItem>> GetChatList()
     {
         var userId = AbpSession.UserId ?? 0;
@@ -707,7 +739,7 @@ public class ClientAppService(
     /// <param name="openid"></param>
     /// <returns></returns>
     /// <exception cref="UserFriendlyException"></exception>
-    [HttpGet]
+    [HttpGet("api/ClientApp/TopUp")]
     [AbpAuthorize]
     public async Task<object> TopUp(string openid, decimal amount, string type = "jsapi")
     {
@@ -806,6 +838,7 @@ public class ClientAppService(
     /// 获取用户统计
     /// </summary>
     /// <returns></returns>
+    [HttpGet("api/ClientApp/GetMyCount")]
     [AbpAuthorize]
     public async Task<object> GetMyCount()
     {
@@ -858,7 +891,7 @@ public class ClientAppService(
     /// 将现有消息数据迁移到ChatChannel表
     /// </summary>
     /// <returns></returns>
-    [HttpPost("MigrateChatData")]
+    [HttpPost("api/ClientApp/MigrateChatData")]
     [AbpAuthorize] // 可以考虑添加管理员权限验证
     public async Task<object> MigrateChatData()
     {
@@ -881,7 +914,7 @@ public class ClientAppService(
     /// 用于修复数据不一致问题
     /// </summary>
     /// <returns></returns>
-    [HttpPost("SyncUserDeleteStatus")]
+    [HttpPost("api/ClientApp/SyncUserDeleteStatus")]
     [AbpAuthorize]
     public async Task<object> SyncUserDeleteStatus()
     {
@@ -902,7 +935,7 @@ public class ClientAppService(
     /// 将 T_ChatListDelete 表中所有用户的状态同步到 ChatChannel.UserStatus
     /// </summary>
     /// <returns></returns>
-    [HttpPost("SyncAllUserDeleteStatus")]
+    [HttpPost("api/ClientApp/SyncAllUserDeleteStatus")]
     [AbpAuthorize]
     public async Task<object> SyncAllUserDeleteStatus()
     {
@@ -922,7 +955,7 @@ public class ClientAppService(
     /// 获取用户聊天频道统计信息
     /// </summary>
     /// <returns>聊天频道统计信息</returns>
-    [HttpGet("GetChatChannelStats")]
+    [HttpGet("api/ClientApp/GetChatChannelStats")]
     [AbpAuthorize]
     public async Task<ChatChannelStats> GetChatChannelStats()
     {

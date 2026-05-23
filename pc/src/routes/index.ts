@@ -1,5 +1,6 @@
 import { createRouter, RouteRecordRaw, createWebHashHistory } from 'vue-router'
 import authRoute from './authRoute'
+import profileRoute from './profileRoute'
 
 import Layout from '@/layouts/layout.vue'
 import adminRoute from './adminRoute'
@@ -57,6 +58,7 @@ export const constantRoutes: RouteRecordRaw[] = [
         component: () => import('@/views/payment/PaymentPage.vue'),
     },
     appDownloadRoute,
+    profileRoute,
     {
         path: '/forum',
         component: () => import('@/layouts/layout2.vue'),
