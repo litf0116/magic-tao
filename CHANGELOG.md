@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.0] - 2026-05-22
+
+### Added
+- Docs: 全量代码库分析文档（架构/技术栈/集成/结构/约定/测试/风险）
+- Docs: 业务流程分析文档（用户认证/即时通讯/商品拍卖/订单支付/推送通知）
+- Docs: API 接口清单（14 组 70+ 接口）
+- Docs: 技术债跟踪表（18 项按严重程度分级）
+- Docs: 里程碑复盘总结
+
+### Changed
+- Flutter App: iOS + Android 双端成功上架发布
+- Flutter App: 禁用 iOS 审核期间版本更新弹窗
+- Flutter App: Profile 页面提现入口替换为"即将上线"提示
+- Flutter App: 移除 6 处 `debugPrint` 调试日志
+- 微信小程序: Tabbar 非活跃标签颜色 `#dfdfdf` → `#999999`（WCAG AA 对比度）
+- 微信小程序: Tabbar 添加显式 `font-weight` 定义（iOS 兼容）
+
+### Fixed
+- 微信小程序: 修复 5 处空 catch 块（App.vue、chatStore、auction、chatMain）
+- 微信小程序: 修复 tabbar `setInterval` 定时器泄漏（Tab 切换时时钟堆积）
+- 微信小程序: 移除活跃调试 `console.log`（跨 14 个文件清理）
+
 ## [1.3.1] - 2026-05-23
 
 ### Added

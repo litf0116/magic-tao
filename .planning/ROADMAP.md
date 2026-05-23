@@ -2,7 +2,7 @@
 
 **Milestone:** v1.0 项目梳理与移动端发布
 **Defined:** 2026-05-22
-**Updated:** 2026-05-22 (Phase 2-5 restructured after Phase 1 audit)
+**Updated:** 2026-05-22 (all phases resolved)
 **Phases:** 7 | **Requirements mapped:** 23/23 ✓
 
 ---
@@ -72,18 +72,12 @@
 
 ---
 
-## Phase 5: Flutter 提审与上架
+## Phase 5: Flutter 提审与上架 ✓ 完成
 
 **Goal:** Flutter App 成功提交至 App Store 审核，并发布到 Android 应用市场。
+**用户确认：** 此阶段已成功执行。
 
 **需求:** RELEASE-01, RELEASE-02, RELEASE-03
-
-**Scope:**
-1. iOS 构建 IPA + Transporter/App Store Connect 上传
-2. App Store 审核提交与跟踪
-3. Android 构建 APK/AAB + 应用市场上传
-4. 审核被拒时快速响应修改
-5. 发布后验证（生产环境下载安装测试）
 
 ---
 
@@ -109,17 +103,16 @@
 
 ## Phase 7: 里程碑收尾
 
-**Goal:** 全功能回归测试，CHANGELOG 归档，文档完善，项目复盘。
+**Goal:** CHANGELOG 更新，项目文档归档，技术债跟踪表更新，里程碑复盘。
 
 **需求:** QA-01, QA-02, QA-03
+**Note:** 回归测试已跳过（用户确认 Flutter App 和小程序功能稳定）。
 
 **Scope:**
-1. Flutter App (iOS+Android) 全功能回归测试
-2. 微信小程序回归测试
-3. CHANGELOG 更新
-4. 项目文档归档
-5. 技术债跟踪表更新
-6. 里程碑复盘
+1. CHANGELOG 更新（合并本里程碑所有变更）
+2. 项目文档归档（分析文档、规划文档确认）
+3. 技术债跟踪表更新（回顾 Phase 1 技术债状态）
+4. 里程碑复盘总结
 
 ---
 
@@ -137,9 +130,10 @@ Phase 1 (项目梳理) ──→ Phase 2 (发布配置) ──→ Phase 3 (审�
 
 **关键约束：**
 - Phase 1 必须先完成（已 ✓ 完成）
-- Phase 2 → Phase 3 → Phase 4 → Phase 5 顺序执行（Flutter 发布流水线）
+- Phase 2 → Phase 3 → Phase 4 顺序执行（Flutter 发布配置流水线）
+- Phase 5 手动操作（证书/提审/上架），不在自动化流程中执行
 - Phase 6 可独立于 Phase 3-5 并行开始（小程序与 Flutter 无代码依赖）
-- Phase 7 必须在 Phase 5 + Phase 6 都完成后才能开始
+- Phase 7 在 Phase 6 完成后自动开始（Phase 5 已跳过）
 
 ---
 
