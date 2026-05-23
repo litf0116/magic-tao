@@ -129,6 +129,7 @@ onShow(() => {
     if (userStore.token) {
         getUserFriendCount()
     }
+    if (timer.value) clearInterval(timer.value)
     timer.value = setInterval(() => {
         if (userStore.token) {
             getUserFriendCount()

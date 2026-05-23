@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -216,12 +217,15 @@ class _HomePageState extends ConsumerState<HomePage> {
   Widget build(BuildContext context) {
     final homeState = ref.watch(homeProvider);
 
-    final updateInfo = ref.watch(appUpdateInfoProvider);
-    if (updateInfo != null && !_updateDialogShown) {
-      _updateDialogShown = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _showUpdateDialog(updateInfo);
-      });
+    // iOS 审核期间禁用版本更新弹窗
+    if (!Platform.isIOS) {
+      final updateInfo = ref.watch(appUpdateInfoProvider);
+      if (updateInfo != null && !_updateDialogShown) {
+        _updateDialogShown = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _showUpdateDialog(updateInfo);
+        });
+      }
     }
 
     return Scaffold(

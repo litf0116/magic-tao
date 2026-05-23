@@ -264,10 +264,11 @@ onPressed: () {
                       () => _payDeposit(context),
                     ),
                     _buildWorkToolItem(
-                      '魔力值减少',
-                      Icons.security,
-                      () => _cashOut(context),
+                      '即将上线',
+                      Icons.construction,
+                      () => _showMessage('敬请期待'),
                     ),
+                    // 提现入口审核前隐藏，上线后恢复
                   ],
                 ),
 
