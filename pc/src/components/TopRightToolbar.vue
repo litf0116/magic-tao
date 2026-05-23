@@ -331,9 +331,9 @@ const qrLoginError = ref('')
 let qrLoginPollTimer: number | null = null
 let qrLoginCountdownTimer: number | null = null
 
-// 下载页面二维码
+// Android 下载页二维码
 const downloadQrCode = computed(() => {
-    const pageUrl = 'https://www.molitao.top/#/app-download'
+    const pageUrl = 'https://www.molitao.top/app-download/'
     return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(pageUrl)}`
 })
 

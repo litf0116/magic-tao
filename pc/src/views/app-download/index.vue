@@ -53,17 +53,17 @@
                 </div>
             </div>
 
-            <!-- 二维码区域 -->
-            <div class="qr-section">
+            <!-- 二维码区域（移动端 Android 隐藏，直接显示下载按钮） -->
+            <div v-if="!(currentPlatform === 'android' && isMobile)" class="qr-section">
                 <div class="qr-title">
-                    <template v-if="currentPlatform === 'android'"> 扫码下载 Android APK </template>
+                    <template v-if="currentPlatform === 'android'"> 扫码打开下载页 </template>
                     <template v-else> 扫码访问 H5 网页 </template>
                 </div>
                 <div class="qr-code">
-                    <img :src="currentQrCode" :alt="currentPlatform === 'android' ? 'Android 下载' : 'iOS H5 访问'" />
+                    <img :src="currentQrCode" :alt="currentPlatform === 'android' ? 'Android 下载页' : 'iOS H5 访问'" />
                 </div>
                 <div class="qr-hint">
-                    <template v-if="currentPlatform === 'android'"> 使用手机浏览器或微信扫码下载 APK 安装包 </template>
+                    <template v-if="currentPlatform === 'android'"> 手机扫码可下载 Android App </template>
                     <template v-else> 扫码在 Safari 中打开，可添加到桌面 </template>
                 </div>
             </div>
@@ -169,7 +169,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Clock, Download, InfoFilled, Link } from '@element-plus/icons-vue'
 import logoImage from '@/assets/images/logo.png'
@@ -208,15 +208,16 @@ const showHistoryDialog = ref(false)
 const downloading = ref(false)
 const downloadingVersionId = ref<number | null>(null)
 
-// Android APK 下载二维码
+// 移动端检测
+const isMobile = ref(window.innerWidth < 768)
+function onResize() {
+    isMobile.value = window.innerWidth < 768
+}
+
+// Android 下载页二维码（指向独立 H5 下载页）
 const androidQrCode = computed(() => {
-    if (latestVersion.value?.downloadUrl) {
-        const url = latestVersion.value.downloadUrl.startsWith('http')
-            ? latestVersion.value.downloadUrl
-            : window.location.origin + latestVersion.value.downloadUrl
-        return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`
-    }
-    return ''
+    const pageUrl = 'https://www.molitao.top/app-download/'
+    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(pageUrl)}`
 })
 
 // iOS H5 访问二维码
@@ -265,6 +266,11 @@ const openH5 = () => {
 
 onMounted(async () => {
     await loadLatestVersion()
+    window.addEventListener('resize', onResize)
+})
+
+onUnmounted(() => {
+    window.removeEventListener('resize', onResize)
 })
 
 async function loadLatestVersion() {
