@@ -38,8 +38,6 @@ class _TradingPostPageState extends ConsumerState<TradingPostPage> {
     final state = ref.watch(tradingPostProvider);
     final notifier = ref.read(tradingPostProvider.notifier);
 
-    debugPrint('[TradingPostPage] Building page - posts: ${state.posts.length}, isLoading: ${state.isLoading}, error: ${state.errorMessage}');
-
     return Scaffold(
       appBar: AppBar(
         title: const Text(

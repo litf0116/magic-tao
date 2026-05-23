@@ -345,7 +345,7 @@ class _PrivateChatPageState extends ConsumerState<PrivateChatPage> {
               children: [
                 MessageWidget(
                   message: message,
-                  onTap: () => debugPrint('消息被点击: ${message.id}'),
+                      onTap: () { /* 预留 */ },
                 ),
               ],
             ),

@@ -380,7 +380,7 @@ class _GroupChatPageState extends ConsumerState<GroupChatPage> {
                 const SizedBox(height: 4),
                 MessageWidget(
                   message: message,
-                  onTap: () => debugPrint('消息被点击: ${message.id}'),
+                      onTap: () { /* 预留 */ },
                 ),
               ],
             ),

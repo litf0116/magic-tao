@@ -92,7 +92,7 @@ class _ChatMessagePreviewPageState extends State<ChatMessagePreviewPage> {
   }
 
   void _handleSelectEmoji(String emojiCode) {
-    debugPrint('选择了表情: $emojiCode');
+    // 预留
   }
 
   Widget _buildMessageItem(ChatMessage message) {
@@ -214,7 +214,7 @@ class _ChatMessagePreviewPageState extends State<ChatMessagePreviewPage> {
   }
 
   void _handleMessageTap(ChatMessage message) {
-    debugPrint('消息被点击: ${message.id}, 类型: ${message.type}');
+    // 预留
   }
 
   Color _getAvatarColor(int userId) {
