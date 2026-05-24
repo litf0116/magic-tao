@@ -6,7 +6,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using TtWork.Project.Applications;
 
-namespace TtWork.Project.Caches;
+namespace TtWork.Project.Services.Cache;
 
 /// <summary>
 /// 聊天列表缓存服务 - 使用Redis缓存提升性能

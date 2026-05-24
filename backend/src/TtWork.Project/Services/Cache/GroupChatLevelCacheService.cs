@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using SqlSugar;
 using TtWork.Abp.Entity;
 
-namespace TtWork.Project.Caches;
+namespace TtWork.Project.Services.Cache;
 
 public class GroupChatLevelCacheService
 {

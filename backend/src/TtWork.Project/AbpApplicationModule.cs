@@ -16,7 +16,7 @@ using TtWork.Project.Jobs;
 using TtWork.Project.Localization;
 using TtWork.Project.Services;
 using TtWork.Project.Services.Cache;
-using TtWork.Project.Caches;
+using TtWork.Project.Services.Cache;
 using TtWork.Lib.Http;
 
 namespace TtWork.Project {

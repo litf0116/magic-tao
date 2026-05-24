@@ -12,7 +12,7 @@ using TtWork.Abp;
 using TtWork.Abp.Entity;
 using TtWork.Project.Applications.GroupChatLevelSettings.Dto;
 using TtWork.Project.Applications.MsgConfiguration;
-using TtWork.Project.Caches;
+using TtWork.Project.Services.Cache;
 
 namespace TtWork.Project.Web.Controllers;
 
