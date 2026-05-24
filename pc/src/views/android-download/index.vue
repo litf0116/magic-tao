@@ -423,33 +423,161 @@ $border-color: #ae6f4d;
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
     .android-download-page {
         padding: 20px 15px;
+    }
+
+    .page-header {
+        margin-bottom: 24px;
+
+        .page-title {
+            font-size: 24px;
+        }
+
+        .page-subtitle {
+            font-size: 13px;
+        }
+    }
+
+    .content-wrapper {
+        gap: 16px;
     }
 
     .app-card {
         flex-direction: column;
         text-align: center;
+        padding: 16px;
+        gap: 12px;
+
+        .app-icon {
+            width: 64px;
+            height: 64px;
+        }
+
+        .app-info {
+            .app-name {
+                font-size: 18px;
+            }
+
+            .version-badge {
+                padding: 3px 10px;
+
+                .label {
+                    font-size: 11px;
+                }
+
+                .value {
+                    font-size: 13px;
+                }
+            }
+
+            .file-size {
+                font-size: 12px;
+            }
+        }
+    }
+
+    .description-card {
+        padding: 16px;
+
+        .card-title {
+            font-size: 14px;
+        }
+
+        .description-content {
+            font-size: 13px;
+        }
+    }
+
+    .download-section {
+        gap: 10px;
+
+        .el-button {
+            height: 48px;
+            font-size: 15px;
+        }
+    }
+
+    .other-platforms {
+        padding: 12px;
+
+        .other-platforms-text,
+        .other-platforms-link {
+            font-size: 13px;
+        }
+    }
+
+    .wechat-guide {
+        min-height: 70vh;
+        padding: 30px 15px;
     }
 
     .wechat-guide-content {
-        padding: 30px 20px;
+        padding: 24px 16px;
+
+        .wechat-icon {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 16px;
+
+            svg {
+                width: 36px;
+                height: 36px;
+            }
+        }
 
         h2 {
-            font-size: 20px;
+            font-size: 18px;
+            margin-bottom: 16px;
         }
 
         p {
-            font-size: 14px;
+            font-size: 13px;
         }
     }
 
     .browser-hints {
-        gap: 16px;
+        gap: 12px;
+        margin-top: 16px;
+        padding-top: 16px;
 
-        .hint-item .hint-icon {
-            font-size: 28px;
+        .hint-item {
+            .hint-icon {
+                font-size: 24px;
+            }
+
+            span {
+                font-size: 12px;
+            }
+        }
+    }
+}
+
+@media (max-width: 400px) {
+    .android-download-page {
+        padding: 16px 12px;
+    }
+
+    .app-card {
+        padding: 12px;
+
+        .app-icon {
+            width: 56px;
+            height: 56px;
+        }
+
+        .app-info {
+            .app-name {
+                font-size: 16px;
+            }
+        }
+    }
+
+    .download-section {
+        .el-button {
+            height: 44px;
+            font-size: 14px;
         }
     }
 }
