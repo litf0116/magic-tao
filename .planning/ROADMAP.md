@@ -3,6 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 项目梳理与移动端发布** — Phases 1-7 (shipped 2026-05-23)
+- ✅ **v1.1 问题修复与优化** — (shipped 2026-05-25)
 
 ## Phases
 
@@ -19,18 +20,23 @@
 
 </details>
 
+<details>
+<summary>✅ v1.1 问题修复与优化 — SHIPPED 2026-05-25</summary>
+
+- [x] 后端结构性重构 — Caches/ 合并到 Services/Cache/、Controller 分类整理、配置类独立
+- [x] vue-tsc 1.x → 2.x 升级 — 解决 Node 22 + TypeScript 5.5+ 兼容性问题
+- [x] 后端 Docker 重新部署 — 构建/上传/加载/重启
+- [x] 服务器磁盘整理 — 历史 tar 文件迁移至 /data2（释放 ~14GB）
+
+</details>
+
 ## Progress
 
-| Phase | Milestone | Plans Complete | Status | Completed |
-|-------|-----------|---------------|--------|-----------|
-| 1. 项目梳理与分析 | v1.0 | 3/3 | Complete | 2026-05-22 |
-| 2. Flutter 发布准备 | v1.0 | — | Complete | 2026-05-23 |
-| 3. 审核前修复 | v1.0 | 2/2 | Complete | 2026-05-23 |
-| 4. 商店素材 | v1.0 | — | Skipped | — |
-| 5. 提审上架 | v1.0 | — | Complete | 2026-05-23 |
-| 6. 小程序优化 | v1.0 | 2/2 | Complete | 2026-05-23 |
-| 7. 收尾 | v1.0 | — | Complete | 2026-05-23 |
+| Milestone | Status | Completed |
+|-----------|--------|-----------|
+| v1.0 项目梳理与移动端发布 | ✅ Complete | 2026-05-23 |
+| v1.1 问题修复与优化 | ✅ Complete | 2026-05-25 |
 
 ---
 
-*Last updated: 2026-05-23 (v1.0 milestone shipped)*
+*Last updated: 2026-05-25 (v1.1 milestone shipped)*
