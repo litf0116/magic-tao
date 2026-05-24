@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -30,7 +30,7 @@ using TtWork.Project.Domains.Pays;
 using TtWork.Project.Jobs;
 using Microsoft.AspNetCore.Hosting;
 
-namespace TtWork.Project.Applications;
+namespace TtWork.Project.Controllers;
 
 [Route("/api/PayNotify")]
 public class WeChatPayController(

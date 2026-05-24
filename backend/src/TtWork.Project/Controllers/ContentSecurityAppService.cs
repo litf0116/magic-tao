@@ -14,14 +14,9 @@ using Microsoft.Extensions.Options;
 using TtWork.Abp.DomianServices.Weixin;
 using TtWork.HttpClient.Weixin;
 using TtWork.HttpClient.Weixin.WeixiinResult;
+using TtWork.Project.Applications;
 
-namespace TtWork.Project.Applications;
-
-public class WechatSettings
-{
-    public string AppId { get; set; }
-    public string AppSecret { get; set; }
-}
+namespace TtWork.Project.Controllers;
 
 /// <summary>
 /// 内容安全检查服务
