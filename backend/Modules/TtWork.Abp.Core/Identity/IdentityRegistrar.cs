@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using TtWork.Abp.Authorization;
 using TtWork.Abp.Authorization.Roles;
 using TtWork.Abp.Authorization.Users;
@@ -18,7 +19,7 @@ namespace TtWork.Abp.Identity
         {
             // services.AddLogging();
 
-            return services.AddAbpIdentity<Tenant, User, Role>(option =>
+            var identityBuilder = services.AddAbpIdentity<Tenant, User, Role>(option =>
                 {
                     option.Password.RequireUppercase = false;
                     option.Password.RequiredLength = 6;
@@ -39,6 +40,12 @@ namespace TtWork.Abp.Identity
                 .AddAbpUserClaimsPrincipalFactory<UserClaimsPrincipalFactory>()
                 .AddPermissionChecker<PermissionChecker>()
                 .AddDefaultTokenProviders();
+
+            // 替换默认的 UserValidator，放开 UserName 字符限制
+            // 默认 UserValidator 仅允许 ASCII 字符集，导致中文用户名更新失败
+            services.Replace(ServiceDescriptor.Scoped<IUserValidator<User>, RelaxedUserValidator>());
+
+            return identityBuilder;
         }
     }
 }
