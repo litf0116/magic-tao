@@ -77,6 +77,19 @@
 | **min-bid-price-util.md** | `/docs/min-bid-price-util.md` | 最低出价价格工具 |
 | **auction-api-testing-guide.md** | `/docs/auction-api-testing-guide.md` | 🌟 拍卖 API 测试指南 | 
 
+### 🔄 迁移规划文档
+
+| 文档 | 位置 | 用途 |
+|------|------|------|
+| **backend-migration-plan.md** | `/docs/backend-migration-plan.md` | 后端迁移计划（.NET → Java）——迁移策略、模块优先级、流程规范、API 设计标准 |
+| **java-architecture-design.md** | `/docs/java-architecture-design.md` | Java 后端架构设计与迁移分析——目录结构、API 映射、外部依赖方案、ABP 横切关注点复现方案、Nginx 路由分流 |
+
+### 📖 系统理解文档
+
+| 文档 | 位置 | 用途 |
+|------|------|------|
+| **system-understanding-guide.md** | `/docs/system-understanding-guide.md` | 后端系统理解指南——路由体系、双 ORM、事件总线、缓存结构、审计字段、危险代码模式、项目结构速览、快速参考卡 |
+
 ### 💾 技术实现文档
 
 | 文档 | 位置 | 用途 |
