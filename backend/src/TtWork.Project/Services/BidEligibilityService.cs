@@ -340,61 +340,15 @@ public class BidEligibilityService : IBidEligibilityService
                 return result;
             }
 
-            // 5. 计算最低出价
-            // 简化：如果当前价格为null，直接使用起拍价
-            var basePrice = find.CurrentPrice ?? find?.StartingPrice ?? 5;
-            var minPrice = 0;
-
-            // 6. 检查卡秒状态（从内存缓存获取）
-            // 注意：SetKasecStatus 存储的是字符串 "true"/"false"，必须用字符串类型读取
+            // 5. 检查卡秒状态并计算最低出价
             var kasecCacheKey = $"{KASEC_CACHE_PREFIX}{input.AuctionItemId}";
             bool isKasec = _memoryCache.TryGetValue(kasecCacheKey, out string kasecVal) && kasecVal == "true";
             result.IsKasec = isKasec;
 
-            if (find.CurrentPrice.HasValue)
-            {
-                // 最低加价规则
-                if (find.CurrentPrice.Value < 100)
-                {
-                    minPrice = find.CurrentPrice.Value + 5;
-                }
-                else if (find.CurrentPrice.Value < 1000)
-                {
-                    minPrice = find.CurrentPrice.Value + 5;
-                }
-                else if (find.CurrentPrice.Value < 2000)
-                {
-                    minPrice = find.CurrentPrice.Value + 10;
-                }
-                else if (find.CurrentPrice.Value < 5000)
-                {
-                    minPrice = find.CurrentPrice.Value + 20;
-                }
-                else if (find.CurrentPrice.Value < 10000)
-                {
-                    minPrice = find.CurrentPrice.Value + 50;
-                }
-                else
-                {
-                    minPrice = find.CurrentPrice.Value + 100;
-                }
-
-                // 卡秒模式下三倍加价
-                if (isKasec)
-                {
-                    minPrice = basePrice + ((minPrice - basePrice) * 3);
-                }
-            }
-            else
-            {
-                // 首次出价
-                minPrice = isKasec ? basePrice * 3 : basePrice;
-            }
-
-            result.MinBidPrice = minPrice;
+            result.MinBidPrice = AuctionItem.CalculateMinBidPrice(find.CurrentPrice, find.StartingPrice, isKasec);
 
             // 7. 检查出价金额
-            if (input.BidPrice < minPrice)
+            if (input.BidPrice < result.MinBidPrice)
             {
                 var priceRules = new[]
                 {

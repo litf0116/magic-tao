@@ -455,10 +455,24 @@ public class AuctionItemAppService : AbpAsyncCrudAppService<AuctionItem, Auction
                 throw new UserFriendlyException(1, "找不到商品");
             }
 
-            // 由于 BidEligibilityService 已经检查了商品状态，这里可以简化
             if (find.Status != AuctionStatusEnum.拍卖中)
             {
                 throw new UserFriendlyException(1, "商品不在拍卖中");
+            }
+
+            // ⚠️ 锁内部重新验证出价金额（防止 TOCTOU 并发竞争）
+            // CheckBidEligibilityAsync 在锁外部执行，读取的可能是旧价格
+            // 两个并发请求可能同时通过资格检查，但锁串行后第二个请求的价格可能已失效
+            var kasecKey = $"{KASEC_CACHE_PREFIX}{input.AuctionItemId}";
+            bool isKasec = _memoryCache.TryGetValue(kasecKey, out string kasecVal) && kasecVal == "true";
+
+            var minPrice = AuctionItem.CalculateMinBidPrice(find.CurrentPrice, find.StartingPrice, isKasec);
+
+            if (input.BidPrice < minPrice)
+            {
+                throw new UserFriendlyException(1,
+                    $"当前最新价格已更新为{find.CurrentPrice ?? 0}元，最低出价为{minPrice}元，" +
+                    $"您的出价{input.BidPrice}元已失效，请刷新后重新出价");
             }
 
             var addInfo = ObjectMapper.Map<BidHistory>(input);

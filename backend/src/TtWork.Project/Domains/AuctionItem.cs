@@ -109,6 +109,40 @@ public class AuctionItem : FullAuditedAggregateRoot<long>
         CurrentPriceUserName = inputBidUserName;
     }
 
+    /// <summary>
+    /// 计算最低出价金额（加价规则的中心定义，BidEligibilityService 与 Bid() 锁内校验均调用此方法）
+    /// </summary>
+    /// <param name="currentPrice">当前价格（无出价时为 null）</param>
+    /// <param name="startingPrice">起拍价</param>
+    /// <param name="isKasec">是否处于卡秒模式</param>
+    /// <returns>最低允许出价金额</returns>
+    public static int CalculateMinBidPrice(int? currentPrice, int startingPrice, bool isKasec)
+    {
+        var basePrice = currentPrice ?? startingPrice;
+
+        if (currentPrice.HasValue)
+        {
+            var increment = currentPrice.Value switch
+            {
+                < 100 => 5,
+                < 1000 => 5,
+                < 2000 => 10,
+                < 5000 => 20,
+                < 10000 => 50,
+                _ => 100
+            };
+
+            var minPrice = currentPrice.Value + increment;
+
+            if (isKasec)
+                minPrice = basePrice + ((minPrice - basePrice) * 3);
+
+            return minPrice;
+        }
+
+        return isKasec ? basePrice * 3 : basePrice;
+    }
+
     public void Back()
     {
         Status = AuctionStatusEnum.上架;
