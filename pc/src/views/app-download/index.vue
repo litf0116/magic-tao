@@ -56,7 +56,7 @@
             <!-- 二维码区域（移动端 Android 隐藏，直接显示下载按钮） -->
             <div v-if="!(currentPlatform === 'android' && isMobile)" class="qr-section">
                 <div class="qr-title">
-                    <template v-if="currentPlatform === 'android'"> 扫码打开下载页 </template>
+                    <template v-if="currentPlatform === 'android'"> 扫码下载 Android App </template>
                     <template v-else> 扫码访问 H5 网页 </template>
                 </div>
                 <div class="qr-code">
@@ -214,9 +214,9 @@ function onResize() {
     isMobile.value = window.innerWidth < 768
 }
 
-// Android 下载页二维码（指向 Vue 下载页）
+// Android 下载页二维码（指向独立 Android 下载页）
 const androidQrCode = computed(() => {
-    const pageUrl = 'https://www.molitao.top/#/app-download'
+    const pageUrl = 'https://www.molitao.top/#/android-download'
     return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(pageUrl)}`
 })
 

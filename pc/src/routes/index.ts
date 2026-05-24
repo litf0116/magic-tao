@@ -5,6 +5,7 @@ import Layout from '@/layouts/layout.vue'
 import adminRoute from './adminRoute'
 import chatRoute from './chatRoute'
 import appDownloadRoute from './appDownloadRoute'
+import androidDownloadRoute from './androidDownloadRoute'
 export const constantRoutes: RouteRecordRaw[] = [
     {
         path: '/',
@@ -57,6 +58,7 @@ export const constantRoutes: RouteRecordRaw[] = [
         component: () => import('@/views/payment/PaymentPage.vue'),
     },
     appDownloadRoute,
+    androidDownloadRoute,
     {
         path: '/forum',
         component: () => import('@/layouts/layout2.vue'),
