@@ -24,7 +24,7 @@ function openUserSetting() {
     settingRef.value?.show(true)
 }
 
-const whiteList = ['/', '/index', '/auth/login', '/register', '/error-page', '/app-download']
+const whiteList = ['/', '/index', '/auth/login', '/register', '/error-page', '/app-download', '/android-download']
 const route = useRoute()
 const router = useRouter()
 const path = computed(() => route.path)

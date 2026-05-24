@@ -154,11 +154,12 @@ const handleConfirm = () => {
 
 // 导航到统一支付页面
 const handleDeposit = () => {
+    dialogVisible.value = false
     router.push({
         path: '/payment',
         query: {
             type: 'deposit',
-            returnUrl: '/settings',
+            returnUrl: '/index',
         },
     })
 }

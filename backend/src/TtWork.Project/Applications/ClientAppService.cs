@@ -84,7 +84,7 @@ public class ClientAppService(
     /// <param name="amount">支付金额，如果不指定则使用默认保证金金额</param>
     /// <returns></returns>
     /// <exception cref="UserFriendlyException"></exception>
-    [HttpGet("api/ClientApp/PayDeposit")]
+    [HttpGet("api/services/app/Client/PayDeposit")]
     [AbpAuthorize]
     public async Task<object> PayDeposit(string openid, string type = "jsapi", decimal? amount = null)
     {
@@ -177,7 +177,7 @@ public class ClientAppService(
     /// 获取当前用户的微信 OpenId（App 端）
     /// </summary>
     /// <returns>OpenId 如果存在，否则返回 null</returns>
-    [HttpGet("api/ClientApp/GetMyWechatOpenId")]
+    [HttpGet("api/services/app/Client/GetMyWechatOpenId")]
     [AbpAuthorize]
     public async Task<string> GetMyWechatOpenId()
     {
@@ -210,7 +210,7 @@ public class ClientAppService(
     /// <param name="amount">支付金额，如果不指定则使用默认保证金金额</param>
     /// <returns>包含 code_url 和订单号的对象</returns>
     /// <exception cref="UserFriendlyException"></exception>
-    [HttpGet("api/ClientApp/PayDepositNative")]
+    [HttpGet("api/services/app/Client/PayDepositNative")]
     [AbpAuthorize]
     public async Task<object> PayDepositNative(decimal? amount = null)
     {
@@ -282,7 +282,7 @@ public class ClientAppService(
     /// </summary>
     /// <param name="outTradeNo">订单号</param>
     /// <returns>订单状态信息</returns>
-    [HttpGet("api/ClientApp/GetPayOrderStatus")]
+    [HttpGet("api/services/app/Client/GetPayOrderStatus")]
     [AbpAuthorize]
     public async Task<PayOrderStatusDto> GetPayOrderStatus(string outTradeNo)
     {
@@ -422,7 +422,7 @@ public class ClientAppService(
     /// </summary>
     /// <param name="outTradeNo"></param>
     /// <returns></returns>
-    [HttpGet("api/ClientApp/PayRefund")]
+    [HttpGet("api/services/app/Client/PayRefund")]
     [AbpAuthorize]
     public async Task PayRefund(string outTradeNo)
     {
@@ -565,7 +565,7 @@ public class ClientAppService(
     /// </summary>
     /// <param name="id">对方用户ID</param>
     /// <returns></returns>
-    [HttpGet("api/ClientApp/DeleteChatList")]
+    [HttpGet("api/services/app/Client/DeleteChatList")]
     [AbpAuthorize]
     public async Task DeleteChatList(long id)
     {
@@ -584,7 +584,7 @@ public class ClientAppService(
     /// 获取聊天列表（实时版本 - 直接从数据库查询）
     /// </summary>
     /// <returns>聊天列表</returns>
-    [HttpGet("api/ClientApp/GetChatList")]
+    [HttpGet("api/services/app/Client/GetChatList")]
     public async Task<List<ChatListItem>> GetChatList()
     {
         var userId = AbpSession.UserId ?? 0;
@@ -739,7 +739,7 @@ public class ClientAppService(
     /// <param name="openid"></param>
     /// <returns></returns>
     /// <exception cref="UserFriendlyException"></exception>
-    [HttpGet("api/ClientApp/TopUp")]
+    [HttpGet("api/services/app/Client/TopUp")]
     [AbpAuthorize]
     public async Task<object> TopUp(string openid, decimal amount, string type = "jsapi")
     {
@@ -838,7 +838,7 @@ public class ClientAppService(
     /// 获取用户统计
     /// </summary>
     /// <returns></returns>
-    [HttpGet("api/ClientApp/GetMyCount")]
+    [HttpGet("api/services/app/Client/GetMyCount")]
     [AbpAuthorize]
     public async Task<object> GetMyCount()
     {
@@ -955,7 +955,7 @@ public class ClientAppService(
     /// 获取用户聊天频道统计信息
     /// </summary>
     /// <returns>聊天频道统计信息</returns>
-    [HttpGet("api/ClientApp/GetChatChannelStats")]
+    [HttpGet("api/services/app/Client/GetChatChannelStats")]
     [AbpAuthorize]
     public async Task<ChatChannelStats> GetChatChannelStats()
     {
