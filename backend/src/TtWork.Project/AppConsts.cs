@@ -33,6 +33,52 @@ namespace TtWork.Project {
 
         public const decimal 保证金 = 51m;
 
+        /// <summary>
+        /// 被阻止的头像 URL 前缀
+        /// </summary>
+        public static readonly string[] BlockedHeadImgUrlPrefixes =
+        {
+            "wxfile://",
+            "http://tmp_",
+            "file://"
+        };
+
+        /// <summary>
+        /// 允许的头像 URL 前缀
+        /// </summary>
+        public static readonly string[] AllowedHeadImgUrlPrefixes =
+        {
+            "https://cdn.molitao.top",
+            "http://image.molitao.top",
+            "https://image.molitao.top",
+            "https://thirdwx.qlogo.cn",
+            "https://wx.qlogo.cn",
+            "http://wx.qlogo.cn"
+        };
+
+        /// <summary>
+        /// 校验头像 URL 是否合法（返回 bool，不抛异常）
+        /// </summary>
+        public static bool IsValidHeadImgUrl(string headImgUrl)
+        {
+            if (string.IsNullOrEmpty(headImgUrl))
+                return false;
+
+            foreach (var prefix in BlockedHeadImgUrlPrefixes)
+            {
+                if (headImgUrl.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                    return false;
+            }
+
+            foreach (var prefix in AllowedHeadImgUrlPrefixes)
+            {
+                if (headImgUrl.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+
+            return false;
+        }
+
 
         public static class CacheKeys {
             public const string MyCount = "MyCount-{0}";

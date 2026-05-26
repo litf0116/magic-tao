@@ -483,7 +483,7 @@ namespace TtWork.Project.Web.Controllers
                     Name = $"玩家{Random.Shared.Next(10000, 99999)}",
                     Surname = $"玩家{Random.Shared.Next(10000, 99999)}",
                     EmailAddress = $"{openid}@molitao.top",
-                    HeadImgUrl = "https://cdn.wujiangapp.com.cn/PicGo/202411061606451.png",
+                    HeadImgUrl = AppConsts.UserDefaultAvatar,
                     UserLogins = new Dictionary<string, string>
                     {
                         [Consts.LoginProvider.WeChatApp] = openid
@@ -589,8 +589,17 @@ namespace TtWork.Project.Web.Controllers
                     
                     user.Name = wxUserInfo.nickname;
                     user.Surname = wxUserInfo.nickname;
-                    user.HeadImgUrl = wxUserInfo.headimgurl;
-                    
+
+                    // 校验并更新头像（微信接口返回的 headimgurl 应为 https://thirdwx.qlogo.cn/…）
+                    if (!string.IsNullOrEmpty(wxUserInfo.headimgurl) && AppConsts.IsValidHeadImgUrl(wxUserInfo.headimgurl))
+                    {
+                        user.HeadImgUrl = wxUserInfo.headimgurl;
+                    }
+                    else
+                    {
+                        Logger.Warn($"[AuthenticateWeixinApp] Skipped invalid headimgurl: {wxUserInfo.headimgurl}");
+                    }
+
                     await userManager.UpdateAsync(user);
                     await CurrentUnitOfWork.SaveChangesAsync();
                     
@@ -750,6 +759,11 @@ namespace TtWork.Project.Web.Controllers
             //如果数据库中不存在相同名称的用户,自动重新注册
             if (dbUser == null)
             {
+                // 防御性校验：外部 provider 返回的头像 URL 必须合法
+                var headImgUrl = AppConsts.IsValidHeadImgUrl(externalUser.HeadImgUrl)
+                    ? externalUser.HeadImgUrl
+                    : AppConsts.UserDefaultAvatar;
+
                 dbUser = await userRegistrationManager.RegisterAsync(
                     externalUser.Name,
                     externalUser.Surname,
@@ -759,7 +773,7 @@ namespace TtWork.Project.Web.Controllers
                     externalUser.PhoneNumber,
                     false,
                     externalUser.IsPhoneNumberConfirmed,
-                    externalUser.HeadImgUrl,
+                    headImgUrl,
                     externalUser.FromClient
                 );
                 // await CurrentUnitOfWork.SaveChangesAsync();

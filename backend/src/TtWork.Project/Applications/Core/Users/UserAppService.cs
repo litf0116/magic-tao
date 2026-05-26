@@ -67,6 +67,7 @@ namespace TtWork.Project.Applications.Core.Users
         private readonly ISqlSugarClient _sqlSugarClient;
         private readonly ChatUserCache _chatUserCache;
         private readonly IOptions<WechatSettings> _wechatSettings;
+        private readonly UserAvatarHistoryHelper _avatarHistoryHelper;
 
         public UserAppService(
             IRedisClient redisClient,
@@ -85,7 +86,8 @@ namespace TtWork.Project.Applications.Core.Users
             ILogger<UserAppService> logger,
             ISqlSugarClient sqlSugarClient,
             ChatUserCache chatUserCache,
-            IOptions<WechatSettings> wechatSettings
+            IOptions<WechatSettings> wechatSettings,
+            UserAvatarHistoryHelper avatarHistoryHelper
         )
             : base(repository, iocManager)
         {
@@ -104,6 +106,7 @@ namespace TtWork.Project.Applications.Core.Users
             _sqlSugarClient = sqlSugarClient;
             _chatUserCache = chatUserCache;
             _wechatSettings = wechatSettings;
+            _avatarHistoryHelper = avatarHistoryHelper;
 
             base.GetAllPermissionName = AppPermissions.Administration;
             base.DeletePermissionName = AppPermissions.Administration;
@@ -309,6 +312,8 @@ namespace TtWork.Project.Applications.Core.Users
                 user.Roles.Add(new UserRole(AbpSession.TenantId, user.Id, role.Id));
             }
 
+            ValidateHeadImgUrl(user.HeadImgUrl);
+
             CheckErrors(await UserManager.CreateAsync(user));
             await CurrentUnitOfWork.SaveChangesAsync(); //To get new user's Id.
 
@@ -330,8 +335,18 @@ namespace TtWork.Project.Applications.Core.Users
             if (user == null)
                 throw new UserFriendlyException($"user {input.User.Id} is null");
 
+            // 保存旧头像URL，Map 完成后比对
+            string oldAvatarUrl = user.HeadImgUrl;
+
             //Update user properties
             ObjectMapper.Map(input.User, user); //Passwords is not mapped (see mapping configuration)
+
+            string newHeadImgUrl = user.HeadImgUrl;
+            bool avatarChanged = !string.IsNullOrEmpty(newHeadImgUrl) && newHeadImgUrl != oldAvatarUrl;
+            if (avatarChanged)
+            {
+                ValidateHeadImgUrl(newHeadImgUrl);
+            }
 
             if (!input.User.Password.IsNullOrEmpty())
             {
@@ -340,6 +355,12 @@ namespace TtWork.Project.Applications.Core.Users
             }
 
             CheckErrors(await _userManager.UpdateAsync(user));
+
+            // 记录头像修改历史
+            if (avatarChanged)
+            {
+                await _avatarHistoryHelper.RecordAvatarHistoryAsync(user.Id, oldAvatarUrl, "Admin");
+            }
 
             //Update roles
             CheckErrors(await _userManager.SetRolesAsync(user, input.AssignedRoleNames));
@@ -456,6 +477,12 @@ namespace TtWork.Project.Applications.Core.Users
 
             CheckErrors(await _userManager.UpdateAsync(user));
 
+            // 记录头像修改历史
+            if (avatarChanged)
+            {
+                await _avatarHistoryHelper.RecordAvatarHistoryAsync(user.Id, oldAvatarUrl, "User");
+            }
+
             _chatUserCache.ClearUserCache(user.Id);
 
             return ObjectMapper.Map<UserDto>(user);
@@ -486,42 +513,15 @@ namespace TtWork.Project.Applications.Core.Users
             }
         }
 
-        private static readonly string[] BlockedHeadImgUrlPrefixes =
-        {
-            "wxfile://",
-            "http://tmp_",
-            "file://"
-        };
-
-        private static readonly string[] AllowedHeadImgUrlPrefixes =
-        {
-            "https://cdn.molitao.top",
-            "http://image.molitao.top",
-            "https://image.molitao.top",
-            "https://thirdwx.qlogo.cn",
-            "https://wx.qlogo.cn"
-        };
-
-        private void ValidateHeadImgUrl(string headImgUrl)
+        private static void ValidateHeadImgUrl(string headImgUrl)
         {
             if (string.IsNullOrEmpty(headImgUrl))
                 return;
 
-            foreach (var prefix in BlockedHeadImgUrlPrefixes)
+            if (!AppConsts.IsValidHeadImgUrl(headImgUrl))
             {
-                if (headImgUrl.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-                {
-                    throw new UserFriendlyException($"头像地址格式错误: {headImgUrl}");
-                }
+                throw new UserFriendlyException($"头像地址不正确: {headImgUrl}，请使用CDN地址或微信头像地址");
             }
-
-            foreach (var prefix in AllowedHeadImgUrlPrefixes)
-            {
-                if (headImgUrl.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-                    return;
-            }
-
-            throw new UserFriendlyException($"头像地址不正确: {headImgUrl}，请使用CDN地址或微信头像地址");
         }
 
         /// <summary>
