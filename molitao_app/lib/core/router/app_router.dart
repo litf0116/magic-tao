@@ -16,6 +16,8 @@ import '../../presentation/pages/user/user_info_page.dart';
 import '../../presentation/pages/user/balance_log_page.dart';
 import '../../presentation/pages/user/auction_success_list_page.dart';
 import '../../presentation/pages/announce/announce_list_page.dart';
+import '../../presentation/pages/auth/delete_account_page.dart';
+import '../../presentation/pages/auth/forgot_password_page.dart';
 import '../../presentation/pages/auth/login_page.dart';
 import '../../presentation/pages/auth/qr_code_confirm_page.dart';
 import '../../presentation/pages/settings/settings_page.dart';
@@ -67,6 +69,16 @@ GoRouter _createRouter(AuthNotifier authNotifier) {
           final redirect = state.uri.queryParameters['redirect'];
           return LoginPage(redirectPath: redirect);
         },
+      ),
+      GoRoute(
+        path: '/forgot-password',
+        name: 'forgot-password',
+        builder: (context, state) => const ForgotPasswordPage(),
+      ),
+      GoRoute(
+        path: '/delete-account',
+        name: 'delete-account',
+        builder: (context, state) => const DeleteAccountPage(),
       ),
       GoRoute(
         path: '/qr-code-confirm',

@@ -1144,5 +1144,55 @@ namespace TtWork.Project.Web.Controllers
                 ProviderKey = input.PhoneNumber
             });
         }
+
+        /// <summary>
+        /// 手机号验证码重置密码（无需登录）
+        /// </summary>
+        [HttpPost]
+        public async Task<bool> PhoneResetPassword([FromBody] PhoneResetPasswordInput input)
+        {
+            if (string.IsNullOrWhiteSpace(input.PhoneNumber) ||
+                !System.Text.RegularExpressions.Regex.IsMatch(input.PhoneNumber, PhoneNumberRegex))
+            {
+                throw new UserFriendlyException("请输入正确的手机号");
+            }
+
+            if (string.IsNullOrWhiteSpace(input.NewPassword) || input.NewPassword.Length < 6)
+            {
+                throw new UserFriendlyException("密码至少6位");
+            }
+
+            // 1. 验证短信验证码（使用 ResetPassword 用途）
+            var isValid = await _smsVerificationCodeService.VerifyCodeAsync(
+                input.PhoneNumber, input.Code, SmsCodePurpose.ResetPassword);
+            if (!isValid)
+            {
+                throw new UserFriendlyException("验证码错误或已过期");
+            }
+
+            // 2. 查找手机号绑定的用户
+            var userLogin = await userLoginRepository.GetAll()
+                .FirstOrDefaultAsync(x =>
+                    x.LoginProvider == Consts.LoginProvider.Phone &&
+                    x.ProviderKey == input.PhoneNumber);
+
+            if (userLogin == null)
+            {
+                throw new UserFriendlyException("该手机号未注册账号");
+            }
+
+            var user = await userManager.GetUserByIdAsync(userLogin.UserId);
+            if (!user.IsActive)
+            {
+                throw new UserFriendlyException("用户已被禁用");
+            }
+
+            // 3. 重置密码
+            user.Password = userManager.PasswordHasher.HashPassword(user, input.NewPassword);
+            await userManager.UpdateAsync(user);
+            await CurrentUnitOfWork.SaveChangesAsync();
+
+            return true;
+        }
     }
 }

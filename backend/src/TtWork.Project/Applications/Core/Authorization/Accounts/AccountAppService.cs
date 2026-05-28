@@ -294,5 +294,38 @@ namespace TtWork.Project.Applications.Core.Authorization.Accounts {
             await CurrentUnitOfWork.SaveChangesAsync();
             return true;
         }
+
+        /// <summary>
+        /// 注销账号 - 清除个人信息并禁用登录
+        /// </summary>
+        [HttpPost]
+        public async Task<bool> DeleteAccount([FromBody] DeleteAccountInput input)
+        {
+            var user = await GetCurrentUserAsync();
+
+            // 1. 验证密码
+            if (!await UserManager.CheckPasswordAsync(user, input.Password))
+            {
+                throw new UserFriendlyException("密码错误");
+            }
+
+            // 2. 匿名化个人信息
+            var anonymousSuffix = $"_{user.Id}_{DateTime.Now:yyyyMMdd}";
+            user.Name = "已注销";
+            user.Surname = "已注销";
+            user.UserName = $"deleted{anonymousSuffix}";
+            user.EmailAddress = $"deleted{anonymousSuffix}@molitao.top";
+            user.PhoneNumber = null;
+            user.HeadImgUrl = null;
+            user.Qq = null;
+            user.Wx = null;
+            user.Password = null;
+            user.IsActive = false;
+
+            await UserManager.UpdateAsync(user);
+            await CurrentUnitOfWork.SaveChangesAsync();
+
+            return true;
+        }
     }
 }

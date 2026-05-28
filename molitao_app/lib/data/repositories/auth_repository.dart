@@ -172,6 +172,37 @@ class AuthRepository {
     }
   }
 
+  /// 手机号验证码重置密码
+  Future<bool> phoneResetPassword(
+      String phoneNumber, String code, String newPassword) async {
+    try {
+      await _apiClient.dio.post(
+        ApiEndpoints.phoneResetPassword,
+        data: {
+          'phoneNumber': phoneNumber,
+          'code': code,
+          'newPassword': newPassword,
+        },
+      );
+      return true;
+    } on DioException catch (e) {
+      throw Exception('重置密码失败: ${e.message}');
+    }
+  }
+
+  /// 注销账号
+  Future<bool> deleteAccount(String password) async {
+    try {
+      await _apiClient.dio.post(
+        ApiEndpoints.deleteAccount,
+        data: {'password': password},
+      );
+      return true;
+    } on DioException catch (e) {
+      throw Exception('注销失败: ${e.message}');
+    }
+  }
+
   /// 发送短信验证码
   Future<bool> sendSmsCode(String phoneNumber, {String purpose = 'login'}) async {
     try {

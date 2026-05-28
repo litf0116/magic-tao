@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:fluwx/fluwx.dart' as fluwx;
 import '../../../core/theme/app_colors.dart';
 import '../../../data/repositories/auth_repository.dart';
@@ -484,9 +486,29 @@ class _LoginPageState extends ConsumerState<LoginPage>
                 ),
               ),
               const SizedBox(height: 24),
-              const Text(
-                '登录即代表您已同意《用户协议》',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              RichText(
+                text: TextSpan(
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                  children: [
+                    const TextSpan(text: '登录即代表您已同意'),
+                    TextSpan(
+                      text: '《用户协议》',
+                      style: const TextStyle(color: AppColors.primary),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () => launchUrl(Uri.parse('https://www.molitao.top/#/agreement?type=user-agreement')),
+                    ),
+                    const TextSpan(text: '和'),
+                    TextSpan(
+                      text: '《隐私政策》',
+                      style: const TextStyle(color: AppColors.primary),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () => launchUrl(Uri.parse('https://www.molitao.top/#/agreement?type=privacy-policy')),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -527,7 +549,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
-              onPressed: () {},
+              onPressed: () => context.push('/forgot-password'),
               child: const Text(
                 '忘记密码？',
                 style: TextStyle(color: AppColors.textSecondary),

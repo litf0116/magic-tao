@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -209,6 +210,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage>
                     onTap: () => _showChangePasswordDialog(context),
                     showArrow: true,
                   ),
+                  _buildDivider(),
+                  _buildListTile(
+                    icon: Icons.delete_forever_outlined,
+                    title: '注销账号',
+                    onTap: () => context.push('/delete-account'),
+                    showArrow: true,
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
@@ -245,14 +253,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage>
                   _buildListTile(
                     icon: Icons.description_outlined,
                     title: '用户协议',
-                    onTap: () => context.push('/agreement?type=user-agreement'),
+                    onTap: () => launchUrl(Uri.parse('https://www.molitao.top/#/agreement?type=user-agreement')),
                     showArrow: true,
                   ),
                   _buildDivider(),
                   _buildListTile(
                     icon: Icons.privacy_tip_outlined,
                     title: '隐私政策',
-                    onTap: () => context.push('/agreement?type=privacy-policy'),
+                    onTap: () => launchUrl(Uri.parse('https://www.molitao.top/#/agreement?type=privacy-policy')),
                     showArrow: true,
                   ),
                 ],

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:molitao_app/data/services/agreement_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// 协议展示页面（用户协议/隐私政策）
+/// 自动跳转 PC 网站查看最新协议内容
 class AgreementPage extends StatelessWidget {
   const AgreementPage({super.key});
 
@@ -14,9 +15,15 @@ class AgreementPage extends StatelessWidget {
 
     final isUserAgreement = type == 'user-agreement';
     final title = isUserAgreement ? '用户协议' : '隐私政策';
-    final content = isUserAgreement
-        ? AgreementService.userAgreement
-        : AgreementService.privacyPolicy;
+
+    final url = isUserAgreement
+        ? 'https://www.molitao.top/#/agreement?type=user-agreement'
+        : 'https://www.molitao.top/#/agreement?type=privacy-policy';
+
+    // 自动跳转到浏览器打开
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      launchUrl(Uri.parse(url));
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -27,28 +34,19 @@ class AgreementPage extends StatelessWidget {
         backgroundColor: const Color(0xfff4835a),
         foregroundColor: Colors.white,
       ),
-      body: Container(
-        color: const Color(0xfff6f6f6),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Text(
-            content,
-            style: const TextStyle(
-              fontSize: 14,
-              height: 1.8,
-              color: Color(0xff333333),
+      body: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text(
+              '正在打开浏览器查看最新内容...',
+              style: TextStyle(fontSize: 14, color: Color(0xff999999)),
             ),
-          ),
+          ],
         ),
       ),
     );
   }
 }
-
-/// 路由参数说明：
-/// - type=user-agreement: 显示用户协议
-/// - type=privacy-policy: 显示隐私政策
-///
-/// 使用方式：
-/// context.push('/agreement?type=user-agreement')
-/// context.push('/agreement?type=privacy-policy')

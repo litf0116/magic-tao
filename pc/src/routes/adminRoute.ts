@@ -118,6 +118,14 @@ export default {
                     },
                     component: () => import('@/views/admin/advertisingSpace/list.vue'),
                 },
+                {
+                    path: 'legalAgreement',
+                    name: 'legalAgreementList',
+                    meta: {
+                        title: '法律协议',
+                    },
+                    component: () => import('@/views/admin/website/legalAgreement/list.vue'),
+                },
             ],
         },
         {

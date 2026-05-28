@@ -6,6 +6,11 @@
             <a href="https://beian.miit.gov.cn/">黑ICP备2024017401号-1</a>
             增值电信业务经营许可证：黑B2-20240058
         </div>
+        <div class="mt-2 flex justify-center gap-2">
+            <router-link to="/agreement?type=user-agreement" class="agreement-link">用户协议</router-link>
+            <span class="text-[#999]">|</span>
+            <router-link to="/agreement?type=privacy-policy" class="agreement-link">隐私政策</router-link>
+        </div>
     </div>
 </template>
 
@@ -27,5 +32,8 @@ function toAdmin() {
 <style scoped>
 a {
     @apply text-[#47839E] underline;
+}
+.agreement-link {
+    @apply text-[#47839E] no-underline hover:underline cursor-pointer;
 }
 </style>

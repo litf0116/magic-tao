@@ -5,7 +5,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../../../domain/entities/my_count_entity.dart';
 import '../../../data/api/api_client.dart';
 import '../../../data/api/api_endpoints.dart';
-import '../../../data/repositories/payment_repository.dart';
 import '../../providers/user_provider.dart';
 import '../../../core/widgets/app_bottom_sheet.dart';
 
@@ -250,26 +249,10 @@ onPressed: () {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                GridView.count(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 2,
-                  childAspectRatio: 3.0,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                  children: [
-                    _buildWorkToolItem(
-                      '魔力值增加',
-                      Icons.security,
-                      () => _payDeposit(context),
-                    ),
-                    _buildWorkToolItem(
-                      '即将上线',
-                      Icons.construction,
-                      () => _showMessage('敬请期待'),
-                    ),
-                    // 提现入口审核前隐藏，上线后恢复
-                  ],
+                _buildWorkToolItem(
+                  '魔力值增加',
+                  Icons.security,
+                  () => _payDeposit(context),
                 ),
 
                 const SizedBox(height: 16),
@@ -486,18 +469,6 @@ onPressed: () {
     );
   }
 
-  void _cashOut(BuildContext context) {
-    showAppBottomSheet(
-      context: context,
-      builder: (context) => _WithdrawalBottomSheet(
-        onWithdrawSuccess: () {
-          // 刷新用户数据
-          _loadMyCount();
-        },
-      ),
-    );
-  }
-
   void _showLogoutDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
@@ -666,178 +637,6 @@ class _DepositBottomSheetState extends State<_DepositBottomSheet> {
   }
 }
 
-/// 提现底部弹窗
-class _WithdrawalBottomSheet extends StatefulWidget {
-  final VoidCallback? onWithdrawSuccess;
 
-  const _WithdrawalBottomSheet({this.onWithdrawSuccess});
 
-  @override
-  State<_WithdrawalBottomSheet> createState() => _WithdrawalBottomSheetState();
-}
 
-class _WithdrawalBottomSheetState extends State<_WithdrawalBottomSheet> {
-  final PaymentRepository _paymentRepository = PaymentRepository();
-  final TextEditingController _amountController = TextEditingController();
-  bool _isLoading = false;
-
-  @override
-  void dispose() {
-    _amountController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _handleWithdraw() async {
-    final amountText = _amountController.text.trim();
-    if (amountText.isEmpty) {
-      _showMessage('请输入提现金额');
-      return;
-    }
-
-    final amount = double.tryParse(amountText);
-    if (amount == null || amount <= 0) {
-      _showMessage('请输入有效金额');
-      return;
-    }
-
-    setState(() => _isLoading = true);
-
-    try {
-      // TODO: 提现功能需要商户配置完成后才能使用
-      _showMessage('提现功能正在配置中，即将上线！');
-      Navigator.of(context).pop();
-    } catch (e) {
-      _showMessage('提现失败: ${e.toString()}');
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
-
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 标题栏
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  '提现',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              '平台提现功能尚未完善，魔力值退还请联系管理员',
-              style: TextStyle(color: Colors.grey, fontSize: 12),
-            ),
-            const SizedBox(height: 16),
-
-            // 联系方式
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.orange[50],
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.orange[100]!),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '联系管理员老淡',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 4),
-                  Text('QQ：383875411'),
-                  Text('微信：18845639111'),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // 金额输入（预留）
-            TextField(
-              controller: _amountController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              enabled: false, //暂时禁用，等待功能上线
-              decoration: InputDecoration(
-                labelText: '提现金额',
-                hintText: '功能上线后可输入',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                suffixText: '元',
-                filled: true,
-                fillColor: Colors.grey[100],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // 提示信息
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.blue[50],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.info_outline, color: Colors.blue, size: 20),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      '提现申请提交后，需管理员审核处理',
-                      style: TextStyle(color: Colors.blue, fontSize: 12),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // 提交按钮
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _handleWithdraw,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey[400], // 灰色表示暂时不可用
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text('功能即将上线', style: TextStyle(fontSize: 16)),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

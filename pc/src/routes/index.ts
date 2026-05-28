@@ -52,6 +52,12 @@ export const constantRoutes: RouteRecordRaw[] = [
         ],
     },
     {
+        path: '/agreement',
+        name: 'Agreement',
+        meta: { title: '协议' },
+        component: () => import('@/views/agreement/detail.vue'),
+    },
+    {
         path: '/payment',
         name: 'Payment',
         meta: { title: '支付' },

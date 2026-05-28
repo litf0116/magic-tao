@@ -6,6 +6,7 @@ class ApiEndpoints {
   static const String logout = '/api/TokenAuth/Logout';
   static const String sendSmsCode = '/api/TokenAuth/SendSmsCode';
   static const String phoneAuthenticate = '/api/TokenAuth/PhoneAuthenticate';
+  static const String phoneResetPassword = '/api/TokenAuth/PhoneResetPassword';
 
   // User
   static const String getUser = '/api/services/app/User/Get';
@@ -21,6 +22,8 @@ class ApiEndpoints {
       '/api/services/app/Account/ChangePassword';
   static const String disablePasswordLogin =
       '/api/services/app/Account/DisablePasswordLogin';
+  static const String deleteAccount =
+      '/api/services/app/Account/DeleteAccount';
 
   // Session
   static const String getCurrentLoginInformation =

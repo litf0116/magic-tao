@@ -366,19 +366,6 @@ class _AboutPageState extends ConsumerState<AboutPage> {
               );
             },
           ),
-          _buildDivider(),
-          _buildMenuItem(
-            icon: Icons.feedback_outlined,
-            title: '意见反馈',
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('功能开发中，敬请期待'),
-                  backgroundColor: Color(0xffFF9800),
-                ),
-              );
-            },
-          ),
         ],
       ),
     );
@@ -439,6 +426,29 @@ class _AboutPageState extends ConsumerState<AboutPage> {
         const Text(
           '© 2024-2026 魔力淘 All Rights Reserved',
           style: TextStyle(fontSize: 12, color: Color(0xffCCCCCC)),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          '公司：黑龙江省魔淡网络科技有限公司',
+          style: TextStyle(fontSize: 11, color: Colors.grey[400]),
+        ),
+        const SizedBox(height: 2),
+        GestureDetector(
+          onTap: () async {
+            final uri = Uri.parse('https://beian.miit.gov.cn/');
+            if (await canLaunchUrl(uri)) {
+              await launchUrl(uri, mode: LaunchMode.externalApplication);
+            }
+          },
+          child: Text(
+            'ICP备案号：黑ICP备2024017401号-3A',
+            style: TextStyle(
+              fontSize: 11,
+              color: Colors.grey[400],
+              decoration: TextDecoration.underline,
+              decorationColor: Colors.grey[400],
+            ),
+          ),
         ),
         const SizedBox(height: 16),
       ],
