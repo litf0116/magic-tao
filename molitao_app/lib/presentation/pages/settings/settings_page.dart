@@ -192,7 +192,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage>
                   _buildListTile(
                     icon: Icons.person_outline,
                     title: '个人信息',
-                    onTap: () => context.push('/profile/user-info'),
+                    onTap: () => context.push('/edit-profile'),
                     showArrow: true,
                   ),
                   _buildDivider(),
@@ -409,7 +409,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage>
               children: [
                 Text(
                   title,
-                  style: const TextStyle(fontSize: 16, color: Color(0xff1a1a1a)),
+                  style:
+                      const TextStyle(fontSize: 16, color: Color(0xff1a1a1a)),
                 ),
                 if (subtitle != null) ...[
                   const SizedBox(height: 2),
@@ -417,7 +418,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage>
                     subtitle,
                     style: TextStyle(
                       fontSize: 12,
-                      color: showWarning ? Colors.orange : const Color(0xff999999),
+                      color:
+                          showWarning ? Colors.orange : const Color(0xff999999),
                     ),
                   ),
                 ],

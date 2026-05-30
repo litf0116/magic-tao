@@ -149,19 +149,11 @@ GoRouter _createRouter(AuthNotifier authNotifier) {
                 builder: (context, state) => const ProfilePage(),
                 routes: [
                   GoRoute(
-                    path: 'deposit-log',
+                    path: 'user/depositLog',
                     name: 'deposit-log',
                     builder: (context, state) => const DepositLogPage(),
                   ),
-                  GoRoute(
-                    path: 'user-info',
-                    name: 'user-info',
-                    builder: (context, state) {
-                      final extra = state.extra as Map<String, dynamic>?;
-                      final userId = extra?['userId'] as int?;
-                      return UserInfoPage(userId: userId);
-                    },
-                  ),
+                  // user-info 已迁移到顶层路由 /user-info
                   GoRoute(
                     path: 'balance-log',
                     name: 'balance-log',
@@ -196,6 +188,15 @@ GoRouter _createRouter(AuthNotifier authNotifier) {
         path: '/settings',
         name: 'settings',
         builder: (context, state) => const SettingsPage(),
+      ),
+      GoRoute(
+        path: '/edit-profile',
+        name: 'edit-profile',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          final userId = extra?['userId'] as int?;
+          return UserInfoPage(userId: userId);
+        },
       ),
       GoRoute(
         path: '/account-security',
