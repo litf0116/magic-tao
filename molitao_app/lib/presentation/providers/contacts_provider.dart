@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/api/api_client.dart';
 import '../../data/api/api_endpoints.dart';
+import 'user_provider.dart';
 
 // Friend item model
 class FriendItem {
@@ -85,11 +86,13 @@ class ContactsNotifier extends StateNotifier<ContactsState> {
   }
 
   Future<List<FriendItem>> _loadFriendsList() async {
+    final userId = _ref.read(userProvider).user?.id;
+    if (userId == null) return [];
     try {
       // Get accepted friends (status = true)
       final response = await ApiClient().dio.get(
         ApiEndpoints.getUserFriends,
-        queryParameters: {'status': true},
+        queryParameters: {'id': userId, 'status': true},
       );
 
       if (response.data != null) {
@@ -106,11 +109,13 @@ class ContactsNotifier extends StateNotifier<ContactsState> {
   }
 
   Future<List<FriendItem>> _loadFriendRequests() async {
+    final userId = _ref.read(userProvider).user?.id;
+    if (userId == null) return [];
     try {
       // Get pending friend requests (status = false means pending)
       final response = await ApiClient().dio.get(
         ApiEndpoints.getUserFriends,
-        queryParameters: {'status': false},
+        queryParameters: {'id': userId, 'status': false},
       );
 
       if (response.data != null) {
