@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:fluwx/fluwx.dart' as fluwx;
 import '../../../core/theme/app_colors.dart';
 import '../../../data/repositories/auth_repository.dart';
@@ -498,14 +497,14 @@ class _LoginPageState extends ConsumerState<LoginPage>
                       text: '《用户协议》',
                       style: const TextStyle(color: AppColors.primary),
                       recognizer: TapGestureRecognizer()
-                        ..onTap = () => launchUrl(Uri.parse('https://www.molitao.top/#/agreement?type=user-agreement')),
+                        ..onTap = () => context.push('/agreement?type=user-agreement'),
                     ),
                     const TextSpan(text: '和'),
                     TextSpan(
                       text: '《隐私政策》',
                       style: const TextStyle(color: AppColors.primary),
                       recognizer: TapGestureRecognizer()
-                        ..onTap = () => launchUrl(Uri.parse('https://www.molitao.top/#/agreement?type=privacy-policy')),
+                        ..onTap = () => context.push('/agreement?type=privacy-policy'),
                     ),
                   ],
                 ),
