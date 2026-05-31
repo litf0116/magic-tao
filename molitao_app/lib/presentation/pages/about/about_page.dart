@@ -1,10 +1,8 @@
-import 'dart:io';
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../data/api/api_client.dart';
-import '../../../data/api/api_endpoints.dart';
 
 class AboutPage extends ConsumerStatefulWidget {
   const AboutPage({super.key});
@@ -247,6 +245,7 @@ class _AboutPageState extends ConsumerState<AboutPage> {
         color: const Color(0xfff6f6f6),
         child: SingleChildScrollView(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 40),
               _buildAppInfo(),
@@ -334,24 +333,30 @@ class _AboutPageState extends ConsumerState<AboutPage> {
           ),
         ],
       ),
-      child: _buildMenuItem(
-        icon: Icons.system_update_outlined,
-        title: '检查更新',
-        trailing: _isCheckingUpdate
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Color(0xfff4835a),
-                ),
-              )
-            : const Icon(
-                Icons.chevron_right,
-                color: Color(0xff999999),
-                size: 20,
-              ),
-        onTap: _isCheckingUpdate ? null : _checkUpdate,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildMenuItem(
+            icon: Icons.system_update_outlined,
+            title: '检查更新',
+            trailing: _isCheckingUpdate
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Color(0xfff4835a),
+                    ),
+                  )
+                : const Icon(
+                    Icons.chevron_right,
+                    color: Color(0xff999999),
+                    size: 20,
+                  ),
+            onTap: _isCheckingUpdate ? null : _checkUpdate,
+          ),
+        ],
       ),
     );
   }
