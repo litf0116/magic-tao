@@ -349,6 +349,7 @@ const handleScroll = () => {
 onMounted(() => {
     window.addEventListener('scroll', handleScroll)
     fetchLatestVersion()
+    verifyLoginStatus()
 })
 
 onUnmounted(() => {
@@ -363,6 +364,16 @@ const fetchLatestVersion = async () => {
         latestVersion.value = result
     } catch (error) {
         console.error('获取版本信息失败', error)
+    }
+}
+
+// 页面渲染时通过后端验证登录状态
+const verifyLoginStatus = async () => {
+    if (!userStore.isLogin) return
+    try {
+        await userStore.getUserInfo()
+    } catch {
+        // getUserInfo 失败时已在 store 中调用 logout()
     }
 }
 
