@@ -250,8 +250,10 @@ class _AboutPageState extends ConsumerState<AboutPage> {
             children: [
               const SizedBox(height: 40),
               _buildAppInfo(),
-              const SizedBox(height: 16),
-              _buildMenuItems(),
+              if (Platform.isAndroid) ...[
+                const SizedBox(height: 16),
+                _buildMenuItems(),
+              ],
               const SizedBox(height: 32),
               _buildFooter(),
             ],
@@ -332,41 +334,24 @@ class _AboutPageState extends ConsumerState<AboutPage> {
           ),
         ],
       ),
-      child: Column(
-        children: [
-          _buildMenuItem(
-            icon: Icons.system_update_outlined,
-            title: '检查更新',
-            trailing: _isCheckingUpdate
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Color(0xfff4835a),
-                    ),
-                  )
-                : const Icon(
-                    Icons.chevron_right,
-                    color: Color(0xff999999),
-                    size: 20,
-                  ),
-            onTap: _isCheckingUpdate ? null : _checkUpdate,
-          ),
-          _buildDivider(),
-          _buildMenuItem(
-            icon: Icons.star_outline,
-            title: '给我们评分',
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('感谢您的支持！'),
-                  backgroundColor: Color(0xfff4835a),
+      child: _buildMenuItem(
+        icon: Icons.system_update_outlined,
+        title: '检查更新',
+        trailing: _isCheckingUpdate
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Color(0xfff4835a),
                 ),
-              );
-            },
-          ),
-        ],
+              )
+            : const Icon(
+                Icons.chevron_right,
+                color: Color(0xff999999),
+                size: 20,
+              ),
+        onTap: _isCheckingUpdate ? null : _checkUpdate,
       ),
     );
   }
@@ -419,7 +404,7 @@ class _AboutPageState extends ConsumerState<AboutPage> {
     return Column(
       children: [
         const Text(
-          '专注游戏虚拟物品的实时秒杀拍卖',
+          '让游戏交易更简单、更安全',
           style: TextStyle(fontSize: 14, color: Color(0xff999999)),
         ),
         const SizedBox(height: 8),
