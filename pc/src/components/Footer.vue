@@ -7,9 +7,9 @@
             增值电信业务经营许可证：黑B2-20240058
         </div>
         <div class="mt-2 flex justify-center gap-2">
-            <router-link to="/agreement?type=user-agreement" class="agreement-link">用户协议</router-link>
+            <a href="/agreements/user_agreement.html" class="agreement-link" target="_blank">用户协议</a>
             <span class="text-[#999]">|</span>
-            <router-link to="/agreement?type=privacy-policy" class="agreement-link">隐私政策</router-link>
+            <a href="/agreements/privacy_policy.html" class="agreement-link" target="_blank">隐私政策</a>
         </div>
     </div>
 </template>
