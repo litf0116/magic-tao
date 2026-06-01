@@ -624,9 +624,8 @@ class _LoginPageState extends ConsumerState<LoginPage>
                       ),
                     if (Platform.isIOS)
                       const SizedBox(height: 16),
-                    // 非 iOS 显示微信登录按钮
-                    if (!Platform.isIOS)
-                      GestureDetector(
+                    // 微信登录按钮（全平台显示，iOS 未安装时弹窗引导降级）
+                    GestureDetector(
                         onTap: _isLoading ? null : _handleWeChatLogin,
                         child: Container(
                           width: 44,
