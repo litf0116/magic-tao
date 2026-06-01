@@ -39,6 +39,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
   final _appleService = AppleService();
 
   bool _isLoading = false;
+  bool? _isWeChatInstalled;
   bool _obscurePassword = true;
   String? _focusedField;
   int _countdown = 0;
@@ -87,6 +88,8 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
   Future<void> _initWeChat() async {
     await _wechatService.initialize();
+    final installed = await _wechatService.checkWeChatInstalled();
+    if (mounted) setState(() => _isWeChatInstalled = installed);
   }
 
   @override
@@ -269,37 +272,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
       final installed = await _wechatService.checkWeChatInstalled();
       if (!installed) {
         if (mounted) setState(() => _isLoading = false);
-        if (mounted) {
-          // 弹出 AlertDialog 提示用户
-          showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('提示'),
-              content: const Text('未检测到微信，请使用其他方式登录'),
-              actions: [
-                if (Platform.isIOS)
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      _handleAppleLogin();
-                    },
-                    child: const Text('使用 Apple 登录'),
-                  ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    // 切换到手机号登录 Tab（Tab index 1）
-                    final tabController = DefaultTabController.of(context);
-                    if (tabController.index != 1) {
-                      tabController.animateTo(1);
-                    }
-                  },
-                  child: const Text('使用手机号登录'),
-                ),
-              ],
-            ),
-          );
-        }
         return;
       }
 
@@ -602,51 +574,72 @@ class _LoginPageState extends ConsumerState<LoginPage>
                       ],
                     ),
                     const SizedBox(height: 24),
-                    // iOS 上显示 Apple 登录按钮
-                    if (Platform.isIOS)
-                      GestureDetector(
-                        onTap: _isLoading ? null : _handleAppleLogin,
-                        child: Container(
-                          width: 44,
-                          height: 44,
-                          decoration: const BoxDecoration(
-                            color: Colors.black,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.apple,
-                              size: 28,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    if (Platform.isIOS)
-                      const SizedBox(height: 16),
-                    // 微信登录按钮（全平台显示，iOS 未安装时弹窗引导降级）
-                    GestureDetector(
-                        onTap: _isLoading ? null : _handleWeChatLogin,
-                        child: Container(
-                          width: 44,
-                          height: 44,
-                          decoration: const BoxDecoration(
-                            color: Color(0xff07c160),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Center(
-                            child: SvgPicture.asset(
-                              'assets/images/wechat-icon.svg',
-                              width: 28,
-                              height: 28,
-                              colorFilter: const ColorFilter.mode(
-                                Colors.white,
-                                BlendMode.srcIn,
+                    // 平台登录按钮水平排列
+                    Builder(
+                      builder: (context) {
+                        final buttons = <Widget>[];
+
+                        if (Platform.isIOS) {
+                          buttons.add(
+                            GestureDetector(
+                              onTap: _isLoading ? null : _handleAppleLogin,
+                              child: Container(
+                                width: 44,
+                                height: 44,
+                                decoration: const BoxDecoration(
+                                  color: Colors.black,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.apple,
+                                    size: 28,
+                                    color: Colors.white,
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                      ),
+                          );
+                        }
+
+                        if (_isWeChatInstalled == true) {
+                          if (buttons.isNotEmpty) {
+                            buttons.add(const SizedBox(width: 16));
+                          }
+                          buttons.add(
+                            GestureDetector(
+                              onTap: _isLoading ? null : _handleWeChatLogin,
+                              child: Container(
+                                width: 44,
+                                height: 44,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xff07c160),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Center(
+                                  child: SvgPicture.asset(
+                                    'assets/images/wechat-icon.svg',
+                                    width: 28,
+                                    height: 28,
+                                    colorFilter: const ColorFilter.mode(
+                                      Colors.white,
+                                      BlendMode.srcIn,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+
+                        if (buttons.isEmpty) return const SizedBox.shrink();
+
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: buttons,
+                        );
+                      },
+                    ),
                   ],
                 ),
               ),
