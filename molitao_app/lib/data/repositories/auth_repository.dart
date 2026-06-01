@@ -144,20 +144,17 @@ class AuthRepository {
   /// Apple 登录
   Future<LoginResult> appleLogin({
     required String identityToken,
-    required String userIdentifier,
     String? email,
     String? givenName,
     String? familyName,
   }) async {
     try {
       _debugLog('[AuthRepository] ===== Apple登录请求 =====');
-      _debugLog('[AuthRepository] userIdentifier: $userIdentifier');
 
       final response = await _apiClient.dio.post(
         ApiEndpoints.authenticateApple,
         data: {
           'identityToken': identityToken,
-          'userIdentifier': userIdentifier,
           'email': email,
           'givenName': givenName,
           'familyName': familyName,

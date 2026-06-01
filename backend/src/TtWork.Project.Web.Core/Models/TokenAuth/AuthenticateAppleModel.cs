@@ -8,11 +8,6 @@ public class AuthenticateAppleModel
     public string IdentityToken { get; set; }
 
     /// <summary>
-    /// Apple user identifier (sub) - may already be extracted by client
-    /// </summary>
-    public string UserIdentifier { get; set; }
-
-    /// <summary>
     /// Email address if provided by Apple
     /// </summary>
     public string Email { get; set; }

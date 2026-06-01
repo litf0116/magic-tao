@@ -268,6 +268,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
     try {
       final installed = await _wechatService.checkWeChatInstalled();
       if (!installed) {
+        if (mounted) setState(() => _isLoading = false);
         if (mounted) {
           // 弹出 AlertDialog 提示用户
           showDialog(
@@ -479,7 +480,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
       final loginResult = await _authRepository.appleLogin(
         identityToken: result.identityToken!,
-        userIdentifier: result.userIdentifier!,
         email: result.email,
         givenName: result.givenName,
         familyName: result.familyName,
