@@ -1,14 +1,17 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:fluwx/fluwx.dart' as fluwx;
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../data/services/storage_service.dart';
 import '../../../data/services/wechat_service.dart';
+import '../../../data/services/apple_service.dart';
 import '../../providers/user_provider.dart';
 
 enum LoginTab { password, sms }
@@ -33,6 +36,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
   final _authRepository = AuthRepository();
   final _storageService = StorageService();
   final _wechatService = WeChatService();
+  final _appleService = AppleService();
 
   bool _isLoading = false;
   bool _obscurePassword = true;
@@ -265,8 +269,34 @@ class _LoginPageState extends ConsumerState<LoginPage>
       final installed = await _wechatService.checkWeChatInstalled();
       if (!installed) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('请先安装微信')),
+          // 弹出 AlertDialog 提示用户
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('提示'),
+              content: const Text('未检测到微信，请使用其他方式登录'),
+              actions: [
+                if (Platform.isIOS)
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      _handleAppleLogin();
+                    },
+                    child: const Text('使用 Apple 登录'),
+                  ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    // 切换到手机号登录 Tab（Tab index 1）
+                    final tabController = DefaultTabController.of(context);
+                    if (tabController.index != 1) {
+                      tabController.animateTo(1);
+                    }
+                  },
+                  child: const Text('使用手机号登录'),
+                ),
+              ],
+            ),
           );
         }
         return;
@@ -397,6 +427,119 @@ class _LoginPageState extends ConsumerState<LoginPage>
     }
   }
 
+  Future<void> _handleAppleLogin() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final result = await _appleService.signIn();
+      if (result == null) {
+        // 用户取消或不可用
+        if (mounted) setState(() => _isLoading = false);
+        return;
+      }
+
+      if (result.identityToken == null || result.userIdentifier == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Apple 登录失败，无法获取身份信息')),
+          );
+        }
+        if (mounted) setState(() => _isLoading = false);
+        return;
+      }
+
+      // 显示登录中对话框
+      if (mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return const Dialog(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              child: Center(
+                child: Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(height: 16),
+                        Text('登录中...'),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      }
+
+      final loginResult = await _authRepository.appleLogin(
+        identityToken: result.identityToken!,
+        userIdentifier: result.userIdentifier!,
+        email: result.email,
+        givenName: result.givenName,
+        familyName: result.familyName,
+      );
+
+      if (loginResult.accessToken != null && loginResult.user != null && mounted) {
+        await ref.read(userProvider.notifier).login(
+              loginResult.accessToken!,
+              User(
+                id: loginResult.user!.id,
+                userName: loginResult.user!.userName,
+                fullName: loginResult.user!.fullName,
+                phoneNumber: loginResult.user!.phoneNumber,
+                headImgUrl: loginResult.user!.headImgUrl,
+                depositBalance: loginResult.user!.depositBalance?.toDouble(),
+                permissions: loginResult.user!.permissions ?? [],
+                roleNames: loginResult.user!.roleNames ?? [],
+              ),
+              roles: loginResult.roles,
+            );
+
+        // 隐藏登录中对话框
+        if (mounted && Navigator.canPop(context)) {
+          Navigator.of(context).pop();
+        }
+
+        if (mounted) setState(() => _isLoading = false);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('登录成功')),
+          );
+        }
+        context.go(widget.redirectPath ?? '/home');
+      } else {
+        // 隐藏登录中对话框
+        if (mounted && Navigator.canPop(context)) {
+          Navigator.of(context).pop();
+        }
+        if (mounted) setState(() => _isLoading = false);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Apple 登录失败')),
+          );
+        }
+      }
+    } catch (e) {
+      // 隐藏登录中对话框
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.of(context).pop();
+      }
+      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Apple 登录失败: $e')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -459,28 +602,52 @@ class _LoginPageState extends ConsumerState<LoginPage>
                       ],
                     ),
                     const SizedBox(height: 24),
-                    GestureDetector(
-                      onTap: _isLoading ? null : _handleWeChatLogin,
-                      child: Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: const Color(0xff07c160),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: SvgPicture.asset(
-                            'assets/images/wechat-icon.svg',
-                            width: 28,
-                            height: 28,
-                            colorFilter: const ColorFilter.mode(
-                              Colors.white,
-                              BlendMode.srcIn,
+                    // iOS 上显示 Apple 登录按钮
+                    if (Platform.isIOS)
+                      GestureDetector(
+                        onTap: _isLoading ? null : _handleAppleLogin,
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: const BoxDecoration(
+                            color: Colors.black,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.apple,
+                              size: 28,
+                              color: Colors.white,
                             ),
                           ),
                         ),
                       ),
-                    ),
+                    if (Platform.isIOS)
+                      const SizedBox(height: 16),
+                    // 非 iOS 显示微信登录按钮
+                    if (!Platform.isIOS)
+                      GestureDetector(
+                        onTap: _isLoading ? null : _handleWeChatLogin,
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: const BoxDecoration(
+                            color: Color(0xff07c160),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: SvgPicture.asset(
+                              'assets/images/wechat-icon.svg',
+                              width: 28,
+                              height: 28,
+                              colorFilter: const ColorFilter.mode(
+                                Colors.white,
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),

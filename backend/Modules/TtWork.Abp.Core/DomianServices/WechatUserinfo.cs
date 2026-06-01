@@ -83,6 +83,7 @@ namespace TtWork.Abp.DomianServices {
     public enum FromClient {
         Default = 0,
         WechatMini = 1,
-        WechatPublic = 2
+        WechatPublic = 2,
+        Apple = 3
     }
 }

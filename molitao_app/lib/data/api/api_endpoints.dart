@@ -3,6 +3,7 @@ class ApiEndpoints {
   static const String authenticate = '/api/TokenAuth/Authenticate';
   static const String authenticateWeixinApp =
       '/api/TokenAuth/AuthenticateWeixinApp';
+  static const String authenticateApple = '/api/TokenAuth/AuthenticateApple';
   static const String logout = '/api/TokenAuth/Logout';
   static const String sendSmsCode = '/api/TokenAuth/SendSmsCode';
   static const String phoneAuthenticate = '/api/TokenAuth/PhoneAuthenticate';

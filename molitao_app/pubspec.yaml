@@ -48,6 +48,9 @@ dependencies:
   # 微信登录/支付
   fluwx: ^5.7.5
 
+  # Apple 登录（满足 App Store Guideline 4.8 第三方登录合规要求）
+  sign_in_with_apple: ^6.1.1
+
   # 极光推送
   jpush_flutter: ^3.4.4
 
