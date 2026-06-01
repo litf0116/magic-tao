@@ -1240,15 +1240,6 @@ namespace TtWork.Project.Web.Controllers
                 {
                     Logger.Info($"[AuthenticateApple] Existing user found, UserId: {loginResult.User.Id}");
 
-                    // 如果用户没有 AppleUserId，记录一下
-                    if (string.IsNullOrEmpty(loginResult.User.AppleUserId))
-                    {
-                        loginResult.User.AppleUserId = appleUser.Sub;
-                        await userManager.UpdateAsync(loginResult.User);
-                        await CurrentUnitOfWork.SaveChangesAsync();
-                        Logger.Info($"[AuthenticateApple] AppleUserId updated for existing user");
-                    }
-
                     return await ExternalAuthenticateResultModel(loginResult, authUserInfo, new ExternalAuthenticateModel
                     {
                         AuthProvider = Consts.LoginProvider.Apple,
@@ -1257,13 +1248,8 @@ namespace TtWork.Project.Web.Controllers
                 }
 
                 // 5. 用户不存在，创建新用户
-                Logger.Info($"[AuthenticateApple] New user, creating account with AppleUserId: {appleUser.Sub}");
-                var newUser = await RegisterExternalUserAsync(authUserInfo);
-
-                // 确保新用户有 AppleUserId
-                newUser.AppleUserId = appleUser.Sub;
-                await userManager.UpdateAsync(newUser);
-                await CurrentUnitOfWork.SaveChangesAsync();
+                Logger.Info($"[AuthenticateApple] New user, creating account with Apple Sub: {appleUser.Sub}");
+                await RegisterExternalUserAsync(authUserInfo);
 
                 // 重新登录
                 loginResult = await logInManager.LoginAsync(

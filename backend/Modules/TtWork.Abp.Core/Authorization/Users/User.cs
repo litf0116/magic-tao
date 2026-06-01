@@ -29,13 +29,6 @@ namespace TtWork.Abp.Authorization.Users {
         public string Wx { get; set; }
 
         /// <summary>
-        /// Apple 登录用户唯一标识符（sub claim）
-        /// </summary>
-        [StringLength(256)]
-        public string AppleUserId { get; set; }
-
-
-        /// <summary>
         /// 帐户余额
         /// </summary>
         [Column(TypeName = "decimal(18, 2)")]
