@@ -14,6 +14,7 @@ import '../../../data/models/auction_item_model.dart';
 import '../../../data/models/chat_message_model.dart';
 import '../../../data/repositories/announce_repository.dart';
 import '../../../data/repositories/auth_repository.dart';
+import '../../../data/repositories/blocked_user_repository.dart';
 import '../../../data/repositories/chat_repository.dart';
 import '../../../data/repositories/friend_repository.dart';
 import '../../../data/repositories/user_repository.dart';
@@ -1175,6 +1176,24 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
       ));
     }
 
+    // 拉黑该用户（不是自己的消息）
+    if (!isSelf) {
+      actions.add(ActionSheetItem(
+        icon: Icons.block,
+        title: '拉黑该用户',
+        onTap: () => _blockUser(message),
+      ));
+    }
+
+    // 举报消息（不是自己的消息）
+    if (!isSelf) {
+      actions.add(ActionSheetItem(
+        icon: Icons.flag,
+        title: '举报消息',
+        onTap: () => _reportMessage(message),
+      ));
+    }
+
     showAppBottomSheet(
       context: context,
       builder: (context) => AppActionSheet(
@@ -1289,6 +1308,34 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
         _showTopSnackBar(context, errorText, isError: true);
       }
     }
+  }
+
+  /// 拉黑用户
+  Future<void> _blockUser(ChatMessage message) async {
+    if (message.from == null) return;
+
+    try {
+      final repository = BlockedUserRepository();
+      await repository.blockUser(message.from!);
+      if (mounted) {
+        _showTopSnackBar(context, '已拉黑该用户');
+      }
+    } catch (e) {
+      if (mounted) {
+        final errorText = e.toString().replaceAll('Exception: ', '');
+        _showTopSnackBar(context, errorText, isError: true);
+      }
+    }
+  }
+
+  /// 举报消息
+  void _reportMessage(ChatMessage message) {
+    if (message.id == null || message.from == null) return;
+    context.push('/report', extra: {
+      'messageId': message.id,
+      'reportedUserId': message.from,
+      'chan': _channel,
+    });
   }
 
   /// 收藏至表情（图片消息）

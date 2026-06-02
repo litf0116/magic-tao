@@ -349,6 +349,14 @@ namespace TtWork.Project.Web.Host.Startup
 
             // 通用HttpClient (用于图片下载等功能)
             services.AddHttpClient();
+
+            // Apple Auth HttpClient
+            services.AddHttpClient("AppleAuth", cfg =>
+                {
+                    cfg.BaseAddress = new Uri("https://appleid.apple.com/");
+                    cfg.Timeout = TimeSpan.FromSeconds(30);
+                })
+                .ConfigurePrimaryHttpMessageHandler(_ => new HttpClientHandler { Proxy = null, UseProxy = false });
         }
 
 

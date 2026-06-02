@@ -335,6 +335,18 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
                                     _getBinding(LoginBindingType.password)!)
                               : null,
                         ),
+                        _buildDivider(),
+                        _buildBindingTile(
+                          icon: Icons.apple,
+                          iconColor: Colors.black,
+                          title: 'Apple 登录',
+                          binding: _getBinding(LoginBindingType.apple),
+                          onBind: null, // Apple 绑定不在 App 内完成
+                          onUnbind: _hasBinding(LoginBindingType.apple)
+                              ? () => _showUnbindDialog(
+                                    _getBinding(LoginBindingType.apple)!)
+                              : null,
+                        ),
                       ],
                     ),
                   ),

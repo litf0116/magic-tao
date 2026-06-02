@@ -33,6 +33,8 @@ namespace TtWork.Project.EntityFrameworkCore {
         public DbSet<BidHistory> BidHistories { get; set; }
         public DbSet<Announce> Announces { get; set; }
         public DbSet<BanedUser> BanedUsers { get; set; }
+        public DbSet<BlockedUser> BlockedUsers { get; set; }
+        public DbSet<UserReport> UserReports { get; set; }
         public DbSet<SensitiveWord> SensitiveWords { get; set; }
         public DbSet<AuctionStartNotify> AuctionStartNotify { get; set; }
         public DbSet<PushSubscription> PushSubscriptions { get; set; }
@@ -93,6 +95,20 @@ namespace TtWork.Project.EntityFrameworkCore {
             builder.Entity<BanedUser>()
                 .HasIndex(ba => new { ba.UserId, ba.EndTime, ba.Chan })
                 .IsDescending();
+
+            builder.Entity<BlockedUser>(b =>
+            {
+                b.HasIndex(ba => new { ba.BlockerId, ba.BlockedUserId })
+                    .IsUnique()
+                    .HasDatabaseName("UQ_BlockerId_BlockedUserId");
+                b.HasIndex(ba => ba.BlockedUserId)
+                    .HasDatabaseName("IX_BlockedUserId");
+            });
+
+            builder.Entity<UserReport>(b => {
+                b.HasIndex(x => x.ReporterId);
+                b.HasIndex(x => x.Status);
+            });
 
             builder.Entity<ChatListDelete>()
                 .HasKey(ba => new { ba.UserId, ba.ToUserId });

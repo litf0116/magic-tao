@@ -15,6 +15,7 @@ namespace TtWork.Abp {
 
             public const string Phone = "Phone";
             public const string Password = "Password";
+            public const string Apple = "Apple";
         }
     }
 }

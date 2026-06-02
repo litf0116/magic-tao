@@ -1,48 +1,47 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import '../../presentation/pages/tabbar/main_tab_page.dart';
-import '../../presentation/pages/home/home_page.dart';
-import '../../presentation/pages/chat/chat_list_page.dart';
-import '../../presentation/pages/chat/group_chat_page.dart';
-import '../../presentation/pages/chat/private_chat_page.dart';
-import '../../presentation/pages/chat/auction_chat_page.dart';
-import '../../presentation/pages/trading_post/trading_post_page.dart';
-import '../../presentation/pages/trading_post/post_detail_page.dart';
-import '../../presentation/pages/trading_post/add_post_page.dart';
-import '../../presentation/pages/contacts/contacts_page.dart';
-import '../../presentation/pages/profile/profile_page.dart';
-import '../../presentation/pages/user/deposit_log_page.dart';
-import '../../presentation/pages/user/user_info_page.dart';
-import '../../presentation/pages/user/balance_log_page.dart';
-import '../../presentation/pages/user/auction_success_list_page.dart';
-import '../../presentation/pages/announce/announce_list_page.dart';
-import '../../presentation/pages/auth/delete_account_page.dart';
-import '../../presentation/pages/auth/forgot_password_page.dart';
-import '../../presentation/pages/auth/login_page.dart';
-import '../../presentation/pages/auth/qr_code_confirm_page.dart';
-import '../../presentation/pages/settings/settings_page.dart';
-import '../../presentation/pages/settings/account_security_page.dart';
-import '../../presentation/pages/about/about_page.dart';
-import '../../presentation/pages/agreement/agreement_page.dart';
+import "package:flutter_riverpod/flutter_riverpod.dart";
+import "package:go_router/go_router.dart";
+import 'package:molitao_app/presentation/pages/tabbar/main_tab_page.dart';
+import 'package:molitao_app/presentation/pages/home/home_page.dart';
+import 'package:molitao_app/presentation/pages/chat/chat_list_page.dart';
+import 'package:molitao_app/presentation/pages/chat/group_chat_page.dart';
+import "../../presentation/pages/chat/private_chat_page.dart";
+import 'package:molitao_app/presentation/pages/chat/auction_chat_page.dart';
+import 'package:molitao_app/presentation/pages/trading_post/trading_post_page.dart';
+import 'package:molitao_app/presentation/pages/trading_post/post_detail_page.dart';
+import 'package:molitao_app/presentation/pages/trading_post/add_post_page.dart';
+import 'package:molitao_app/presentation/pages/contacts/contacts_page.dart';
+import 'package:molitao_app/presentation/pages/profile/profile_page.dart';
+import 'package:molitao_app/presentation/pages/user/deposit_log_page.dart';
+import 'package:molitao_app/presentation/pages/user/user_info_page.dart';
+import 'package:molitao_app/presentation/pages/user/balance_log_page.dart';
+import "../../presentation/pages/user/auction_success_list_page.dart";
+import 'package:molitao_app/presentation/pages/announce/announce_list_page.dart';
+import 'package:molitao_app/presentation/pages/auth/delete_account_page.dart';
+import 'package:molitao_app/presentation/pages/auth/forgot_password_page.dart';
+import 'package:molitao_app/presentation/pages/auth/login_page.dart';
+import 'package:molitao_app/presentation/pages/auth/qr_code_confirm_page.dart';
+import 'package:molitao_app/presentation/pages/settings/settings_page.dart';
+import 'package:molitao_app/presentation/pages/settings/account_security_page.dart';
+import 'package:molitao_app/presentation/pages/settings/report_page.dart';
+import 'package:molitao_app/presentation/pages/settings/block_list_page.dart';
+import 'package:molitao_app/presentation/pages/about/about_page.dart';
+import 'package:molitao_app/presentation/pages/agreement/agreement_page.dart';
 
-import '../../presentation/providers/auth_notifier.dart';
+import 'package:molitao_app/presentation/providers/auth_notifier.dart';
 
 /// 需要登录才能访问的路由
 const List<String> _protectedRoutes = [
-  '/chat',
-  '/trading-post',
-  '/contacts',
-  '/profile',
+  "/chat",
+  "/trading-post",
+  "/contacts",
+  "/profile",
 ];
 
 /// 检查路由是否需要登录
-bool _requiresAuth(String location) {
-  return _protectedRoutes.any((route) => location.startsWith(route));
-}
+bool _requiresAuth(final String location) => _protectedRoutes.any((route) => location.startsWith(route));
 
 /// 创建 GoRouter
-GoRouter _createRouter(AuthNotifier authNotifier) {
-  return GoRouter(
+GoRouter _createRouter(final AuthNotifier authNotifier) => GoRouter(
     initialLocation: '/home',
     refreshListenable: authNotifier,
     redirect: (context, state) {
@@ -190,6 +189,11 @@ GoRouter _createRouter(AuthNotifier authNotifier) {
         builder: (context, state) => const SettingsPage(),
       ),
       GoRoute(
+        path: '/block-list',
+        name: 'block-list',
+        builder: (context, state) => const BlockListPage(),
+      ),
+      GoRoute(
         path: '/edit-profile',
         name: 'edit-profile',
         builder: (context, state) {
@@ -202,6 +206,21 @@ GoRouter _createRouter(AuthNotifier authNotifier) {
         path: '/account-security',
         name: 'account-security',
         builder: (context, state) => const AccountSecurityPage(),
+      ),
+      GoRoute(
+        path: '/report',
+        name: 'report',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          final messageId = extra?['messageId'] as int? ?? 0;
+          final reportedUserId = extra?['reportedUserId'] as int? ?? 0;
+          final chan = extra?['chan'] as String? ?? '';
+          return ReportPage(
+            messageId: messageId,
+            reportedUserId: reportedUserId,
+            chan: chan,
+          );
+        },
       ),
       GoRoute(
         path: '/about',
@@ -251,10 +270,9 @@ GoRouter _createRouter(AuthNotifier authNotifier) {
       ),
     ],
   );
-}
 
 /// Router Provider
-final routerProvider = Provider<GoRouter>((ref) {
-  final authNotifier = ref.watch(authNotifierProvider);
+final routerProvider = Provider<GoRouter>((final ref) {
+  var authNotifier = ref.watch(authNotifierProvider);
   return _createRouter(authNotifier);
 });

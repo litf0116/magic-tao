@@ -262,6 +262,25 @@ class _SettingsPageState extends ConsumerState<SettingsPage>
                     onTap: () => context.push('/agreement?type=privacy-policy'),
                     showArrow: true,
                   ),
+                  _buildDivider(),
+                  _buildListTile(
+                    icon: Icons.block,
+                    title: '黑名单管理',
+                    onTap: () => context.push('/block-list'),
+                    showArrow: true,
+                  ),
+                  _buildDivider(),
+                  _buildListTile(
+                    icon: Icons.support_agent,
+                    title: '联系客服',
+                    trailing: const Text(
+                      'molitao_service@163.com',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Color(0xff999999),
+                      ),
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 24),

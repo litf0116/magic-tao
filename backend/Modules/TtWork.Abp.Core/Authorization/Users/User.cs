@@ -28,7 +28,6 @@ namespace TtWork.Abp.Authorization.Users {
         [StringLength(AbpUserBase.MaxPhoneNumberLength)]
         public string Wx { get; set; }
 
-
         /// <summary>
         /// 帐户余额
         /// </summary>

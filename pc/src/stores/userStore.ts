@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import {
     getToken,
+    getTokenExpireTime,
     removeToken,
     setToken,
     setRefreshToken,
@@ -44,7 +45,15 @@ export const useUserStore = defineStore('user', () => {
     const permissions = ref([] as string[])
 
     // Getter
-    const isLogin: Ref<boolean> = computed(() => !!~user.value.id!)
+    const isLogin: Ref<boolean> = computed(() => {
+        if (!user.value.id || user.value.id === -1) return false
+        // token 不存在 = 未登录
+        if (!getToken()) return false
+        // 存储了过期时间且已过期 = 视为未登录
+        const expireTime = getTokenExpireTime()
+        if (expireTime && Date.now() > expireTime) return false
+        return true
+    })
     const isAdmin: Ref<boolean> = computed(() => !!~roles.value.indexOf('Admin'))
 
     const isChatAdmin: Ref<boolean> = computed(
