@@ -6,9 +6,11 @@ using Abp.Dependency;
 using Abp.Domain.Repositories;
 using Abp.Linq.Extensions;
 using Abp.UI;
+using Microsoft.EntityFrameworkCore;
 using TtWork.Abp;
 using TtWork.Abp.Applications.Dtos;
 using TtWork.Abp.Caches;
+using TtWork.Abp.Definitions;
 using TtWork.Project.Domains;
 
 namespace TtWork.Project.Applications;
@@ -41,7 +43,7 @@ public class BlockedUserAppService : AbpAsyncCrudAppService<BlockedUser, Blocked
         var currentUserId = AbpSession.UserId!.Value;
 
         // Check for duplicate block
-        var exists = await _repository.AnyAsync(b => b.BlockerId == currentUserId && b.BlockedUserId == input.BlockedUserId);
+        var exists = await _repository.GetAll().AnyAsync(b => b.BlockerId == currentUserId && b.BlockedUserId == input.BlockedUserId);
         if (exists) {
             throw new UserFriendlyException("已拉黑该用户");
         }
@@ -62,7 +64,7 @@ public class BlockedUserAppService : AbpAsyncCrudAppService<BlockedUser, Blocked
         var currentUserId = AbpSession.UserId!.Value;
 
         // Check for duplicate block
-        var exists = await _repository.AnyAsync(b => b.BlockerId == currentUserId && b.BlockedUserId == input.BlockedUserId);
+        var exists = await _repository.GetAll().AnyAsync(b => b.BlockerId == currentUserId && b.BlockedUserId == input.BlockedUserId);
         if (exists) {
             throw new UserFriendlyException("已拉黑该用户");
         }
@@ -81,12 +83,12 @@ public class BlockedUserAppService : AbpAsyncCrudAppService<BlockedUser, Blocked
 
     public async Task<CheckBlockedResultDto> CheckAsync(long blockedUserId) {
         var currentUserId = AbpSession.UserId!.Value;
-        var isBlocked = await _repository.AnyAsync(b => b.BlockerId == currentUserId && b.BlockedUserId == blockedUserId);
+        var isBlocked = await _repository.GetAll().AnyAsync(b => b.BlockerId == currentUserId && b.BlockedUserId == blockedUserId);
         return new CheckBlockedResultDto { IsBlocked = isBlocked };
     }
 
     protected override IQueryable<BlockedUser> CreateFilteredQuery(AppResultRequestDto input) {
-        var currentUserId = AbpSession.UserId?.Value ?? 0;
+        var currentUserId = AbpSession.UserId ?? 0;
         return base.CreateFilteredQuery(input)
             .Where(b => b.BlockerId == currentUserId);
     }

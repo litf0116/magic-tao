@@ -1,5 +1,6 @@
 import "package:dio/dio.dart";
 import 'package:molitao_app/data/api/api_client.dart';
+import 'package:molitao_app/data/api/api_endpoints.dart';
 
 class ReportRepository {
   final ApiClient _apiClient = ApiClient();
@@ -14,7 +15,7 @@ class ReportRepository {
   }) async {
     try {
       await _apiClient.dio.post(
-        "/api/services/app/UserReport",
+        ApiEndpoints.userReport,
         data: {
           "messageId": messageId,
           "reportedUserId": reportedUserId,
@@ -40,12 +41,16 @@ class ReportRepository {
   }) async {
     try {
       var response = await _apiClient.dio.get(
-        "/api/services/app/UserReport",
+        ApiEndpoints.userReport,
         queryParameters: {"page": page, "pageSize": pageSize},
       );
       var items = response.data["items"] as List? ?? [];
       return items.cast<Map<String, dynamic>>();
     } on DioException catch (e) {
+      var errorMessage = e.response?.data?["error"]?["message"];
+      if (errorMessage != null) {
+        throw Exception(errorMessage);
+      }
       throw Exception("Failed to get my reports: ${e.message}");
     }
   }

@@ -1,3 +1,4 @@
+import "package:cached_network_image/cached_network_image.dart";
 import "package:flutter/material.dart";
 import "package:molitao_app/data/repositories/blocked_user_repository.dart";
 
@@ -24,12 +25,17 @@ class _BlockListPageState extends State<BlockListPage> {
       final result = await _repository.getBlockedList();
       if (mounted) {
         setState(() {
-          _blockedUsers = result
-              .map((e) => {
-                    "id": e.blockedUserId,
-                    "username": "用户${e.blockedUserId}",
-                  })
-              .toList();
+_blockedUsers = result
+          .map((e) => {
+                "id": e.blockedUserId,
+                "username": e.blockedUserName ?? "用户${e.blockedUserId}",
+                "avatar": e.blockedUserAvatar != null
+                    ? (e.blockedUserAvatar!.startsWith('http')
+                        ? e.blockedUserAvatar
+                        : 'https://image.molitao.top/${e.blockedUserAvatar}')
+                    : null,
+              })
+          .toList();
           _loading = false;
         });
       }
@@ -88,10 +94,34 @@ class _BlockListPageState extends State<BlockListPage> {
                   itemBuilder: (context, index) {
                     final item = _blockedUsers[index];
                     return ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.grey[300],
-                        child: const Icon(Icons.person, color: Colors.grey),
-                      ),
+                      leading: item["avatar"] != null
+                          ? CircleAvatar(
+                              backgroundColor: Colors.grey[300],
+                              child: ClipOval(
+                                child: CachedNetworkImage(
+                                  imageUrl: item["avatar"] as String,
+                                  width: 40,
+                                  height: 40,
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) => const Icon(
+                                    Icons.person,
+                                    color: Colors.grey,
+                                  ),
+                                  errorWidget: (context, url, error) =>
+                                      const Icon(
+                                    Icons.person,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
+                            )
+                          : CircleAvatar(
+                              backgroundColor: Colors.grey[300],
+                              child: const Icon(
+                                Icons.person,
+                                color: Colors.grey,
+                              ),
+                            ),
                       title: Text(item["username"] as String),
                       trailing: TextButton(
                         onPressed: () => _unblockUser(item),

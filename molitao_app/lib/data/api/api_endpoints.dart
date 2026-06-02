@@ -85,6 +85,15 @@ class ApiEndpoints {
   static const String getUserFriendCount =
       '/api/services/app/UserFriend/GetUserFriendCount';
 
+  // BlockedUser
+  static const String blockedUser = '/api/services/app/BlockedUser';
+  static const String blockedUserGetAll = '/api/services/app/BlockedUser/GetAll';
+  static const String blockedUserCheck = '/api/services/app/BlockedUser/Check';
+
+  // UserReport
+  static const String userReport = '/api/services/app/UserReport';
+  static const String userReportGetMy = '/api/services/app/UserReport/GetMy';
+
   // Announce
   static const String getLatestAnnounce =
       '/api/services/app/Announce/GetLatest';
