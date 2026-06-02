@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Abp.Application.Services.Dto;
+using Abp.Authorization;
 using Abp.Dependency;
 using Abp.Domain.Repositories;
 using Abp.Linq.Extensions;
@@ -40,7 +41,7 @@ public class BlockedUserAppService : AbpAsyncCrudAppService<BlockedUser, Blocked
     public override Task DeleteAsync(EntityDto<long> input) => throw new UserFriendlyException("NOT SUPPORTED");
 
     public async Task<BlockedUserDto> CreateBlockedUserAsync(BlockedUserDto input) {
-        var currentUserId = AbpSession.UserId!.Value;
+        var currentUserId = AbpSession.UserId ?? 0;
 
         // Check for duplicate block
         var exists = await _repository.GetAll().AnyAsync(b => b.BlockerId == currentUserId && b.BlockedUserId == input.BlockedUserId);
@@ -61,7 +62,7 @@ public class BlockedUserAppService : AbpAsyncCrudAppService<BlockedUser, Blocked
     }
 
     public async Task<BlockedUserDto> CreateAsync(CreateBlockedUserDto input) {
-        var currentUserId = AbpSession.UserId!.Value;
+        var currentUserId = AbpSession.UserId ?? 0;
 
         // Check for duplicate block
         var exists = await _repository.GetAll().AnyAsync(b => b.BlockerId == currentUserId && b.BlockedUserId == input.BlockedUserId);
@@ -81,8 +82,9 @@ public class BlockedUserAppService : AbpAsyncCrudAppService<BlockedUser, Blocked
         return await MapToEntityDto(entity);
     }
 
+    [AbpAuthorize]
     public async Task<CheckBlockedResultDto> CheckAsync(long blockedUserId) {
-        var currentUserId = AbpSession.UserId!.Value;
+        var currentUserId = AbpSession.UserId ?? 0;
         var isBlocked = await _repository.GetAll().AnyAsync(b => b.BlockerId == currentUserId && b.BlockedUserId == blockedUserId);
         return new CheckBlockedResultDto { IsBlocked = isBlocked };
     }
