@@ -25,17 +25,17 @@ class _BlockListPageState extends State<BlockListPage> {
       final result = await _repository.getBlockedList();
       if (mounted) {
         setState(() {
-_blockedUsers = result
-          .map((e) => {
-                "id": e.blockedUserId,
-                "username": e.blockedUserName ?? "用户${e.blockedUserId}",
-                "avatar": e.blockedUserAvatar != null
-                    ? (e.blockedUserAvatar!.startsWith('http')
-                        ? e.blockedUserAvatar
-                        : 'https://image.molitao.top/${e.blockedUserAvatar}')
-                    : null,
-              })
-          .toList();
+          _blockedUsers = result
+              .map((e) => {
+                    "recordId": e.id,
+                    "username": e.blockedUserName ?? "用户${e.blockedUserId}",
+                    "avatar": e.blockedUserAvatar != null
+                        ? (e.blockedUserAvatar!.startsWith('http')
+                            ? e.blockedUserAvatar
+                            : 'https://image.molitao.top/${e.blockedUserAvatar}')
+                        : null,
+                  })
+              .toList();
           _loading = false;
         });
       }
@@ -53,7 +53,7 @@ _blockedUsers = result
 
   Future<void> _unblockUser(Map<String, dynamic> item) async {
     try {
-      await _repository.unblockUser(item["id"] as int);
+      await _repository.unblockUser(item["recordId"] as int);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("已解除拉黑")),

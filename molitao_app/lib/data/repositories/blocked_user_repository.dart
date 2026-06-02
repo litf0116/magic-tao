@@ -73,12 +73,16 @@ class BlockedUserRepository {
 class BlockedUserDto {
   final int id;
   final int blockedUserId;
+  final String? blockedUserName;
+  final String? blockedUserAvatar;
   final String? reason;
   final DateTime creationTime;
 
   BlockedUserDto({
     required this.id,
     required this.blockedUserId,
+    this.blockedUserName,
+    this.blockedUserAvatar,
     this.reason,
     required this.creationTime,
   });
@@ -87,6 +91,8 @@ class BlockedUserDto {
     return BlockedUserDto(
       id: json["id"] as int,
       blockedUserId: json["blockedUserId"] as int,
+      blockedUserName: json["blockedUserName"] as String?,
+      blockedUserAvatar: json["blockedUserAvatar"] as String?,
       reason: json["reason"] as String?,
       creationTime: DateTime.parse(json["creationTime"] as String),
     );
