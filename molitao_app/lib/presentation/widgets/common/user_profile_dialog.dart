@@ -1,26 +1,23 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import '../../../data/models/user_model.dart';
+import "package:flutter/material.dart";
+import "package:flutter/services.dart";
+import "package:cached_network_image/cached_network_image.dart";
+import 'package:molitao_app/data/models/user_model.dart';
 
 /// 用户资料弹窗
 /// 显示用户头像、编号、QQ、微信等信息
 class UserProfileDialog extends StatelessWidget {
-  final UserDto user;
 
   const UserProfileDialog({super.key, required this.user});
+  final UserDto user;
 
   /// 显示用户资料弹窗
-  static Future<void> show(BuildContext context, UserDto user) {
-    return showDialog(
+  static Future<void> show(final BuildContext context, final UserDto user) => showDialog(
       context: context,
       builder: (context) => UserProfileDialog(user: user),
     );
-  }
 
   @override
-  Widget build(BuildContext context) {
-    return Dialog(
+  Widget build(final BuildContext context) => Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         padding: const EdgeInsets.all(20),
@@ -98,17 +95,16 @@ class UserProfileDialog extends StatelessWidget {
         ),
       ),
     );
-  }
 
   /// 构建头像
   Widget _buildAvatar() {
     String? avatarUrl;
     if (user.headImgUrl != null) {
-      final headImg = user.headImgUrl!;
-      if (headImg.startsWith('http')) {
+      var headImg = user.headImgUrl!;
+      if (headImg.startsWith("http")) {
         avatarUrl = headImg;
       } else {
-        avatarUrl = 'https://image.molitao.top/$headImg';
+        avatarUrl = "https://image.molitao.top/$headImg";
       }
     }
 
@@ -117,13 +113,13 @@ class UserProfileDialog extends StatelessWidget {
       return Container(
         width: 64,
         height: 64,
-        decoration: BoxDecoration(
-          color: const Color(0xFFf4835a),
+        decoration: const BoxDecoration(
+          color: Color(0xFFf4835a),
           shape: BoxShape.circle,
         ),
         child: Center(
           child: Text(
-            _getAvatarText(user.name ?? user.fullName ?? '用户'),
+            _getAvatarText(user.name ?? user.fullName ?? "用户"),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 20,
@@ -141,22 +137,22 @@ class UserProfileDialog extends StatelessWidget {
         width: 64,
         height: 64,
         fit: BoxFit.cover,
-        placeholder: (context, url) => Container(
+        placeholder: (final context, final url) => Container(
           width: 64,
           height: 64,
           color: Colors.grey.shade200,
           child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
         ),
-        errorWidget: (context, url, error) => Container(
+        errorWidget: (final context, final url, final error) => Container(
           width: 64,
           height: 64,
-          decoration: BoxDecoration(
-            color: const Color(0xFFf4835a),
+          decoration: const BoxDecoration(
+            color: Color(0xFFf4835a),
             shape: BoxShape.circle,
           ),
           child: Center(
             child: Text(
-              _getAvatarText(user.name ?? user.fullName ?? '用户'),
+              _getAvatarText(user.name ?? user.fullName ?? "用户"),
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 20,
@@ -171,12 +167,11 @@ class UserProfileDialog extends StatelessWidget {
 
   /// 构建信息行
   Widget _buildInfoRow(
-    BuildContext context, {
-    required String label,
-    required String value,
-    bool copyable = false,
-  }) {
-    return Padding(
+    final BuildContext context, {
+    required final String label,
+    required final String value,
+    final bool copyable = false,
+  }) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
@@ -210,14 +205,13 @@ class UserProfileDialog extends StatelessWidget {
         ],
       ),
     );
-  }
 
   /// 复制到剪贴板
-  void _copyToClipboard(BuildContext context, String text) {
+  void _copyToClipboard(final BuildContext context, final String text) {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('已复制到剪贴板'),
+        content: Text("已复制到剪贴板"),
         duration: Duration(seconds: 1),
         behavior: SnackBarBehavior.floating,
       ),
@@ -225,13 +219,19 @@ class UserProfileDialog extends StatelessWidget {
   }
 
   /// 获取头像文字
-  String _getAvatarText(String name) {
-    if (name.isEmpty) return '用户';
+  String _getAvatarText(final String name) {
+    if (name.isEmpty) return "用户";
     // 取第一个字符（如果是中文）或前两个字符
-    final runes = name.runes.toList();
+    var runes = name.runes.toList();
     if (runes.length == 1) {
       return String.fromCharCode(runes.first);
     }
     return name.substring(0, 2);
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<UserDto>('user', user));
   }
 }

@@ -1,34 +1,35 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import "dart:async";
+import "dart:convert";
+import "dart:io";
+import "package:cached_network_image/cached_network_image.dart";
+import "package:flutter/material.dart";
+import "package:flutter_html/flutter_html.dart";
+import "package:flutter_riverpod/flutter_riverpod.dart";
+import "package:go_router/go_router.dart";
+import "package:image_picker/image_picker.dart";
+import "package:shared_preferences/shared_preferences.dart";
 
-import '../../../data/models/announce_model.dart';
-import '../../../data/models/auction_item_model.dart';
-import '../../../data/models/chat_message_model.dart';
-import '../../../data/repositories/announce_repository.dart';
-import '../../../data/repositories/auth_repository.dart';
-import '../../../data/repositories/chat_repository.dart';
-import '../../../data/repositories/friend_repository.dart';
-import '../../../data/repositories/user_repository.dart';
-import '../../../data/services/notification_permission_service.dart';
-import '../../../data/services/upload_service.dart';
-import '../../../data/services/wechat_service.dart';
-import '../../../core/widgets/app_bottom_sheet.dart';
-import '../../providers/auction_provider.dart';
-import '../../providers/chat_emoji_store.dart';
-import '../../providers/chat_store.dart';
-import '../../providers/user_provider.dart';
-import '../../widgets/chat/chat_input_area.dart';
-import '../../widgets/chat/messages/message_widget.dart';
-import '../../widgets/common/user_profile_dialog.dart';
-import '../announce/announce_list_page.dart';
+import 'package:molitao_app/data/models/announce_model.dart';
+import "../../../data/models/auction_item_model.dart";
+import 'package:molitao_app/data/models/chat_message_model.dart';
+import 'package:molitao_app/data/repositories/announce_repository.dart';
+import 'package:molitao_app/data/repositories/auth_repository.dart';
+import 'package:molitao_app/data/repositories/chat_repository.dart';
+import 'package:molitao_app/data/repositories/blocked_user_repository.dart';
+import 'package:molitao_app/data/repositories/friend_repository.dart';
+import 'package:molitao_app/data/repositories/user_repository.dart';
+import 'package:molitao_app/data/services/notification_permission_service.dart';
+import "../../../data/services/upload_service.dart";
+import "../../../data/services/wechat_service.dart";
+import 'package:molitao_app/core/widgets/app_bottom_sheet.dart';
+import 'package:molitao_app/presentation/providers/auction_provider.dart';
+import 'package:molitao_app/presentation/providers/chat_emoji_store.dart';
+import 'package:molitao_app/presentation/providers/chat_store.dart';
+import 'package:molitao_app/presentation/providers/user_provider.dart';
+import 'package:molitao_app/presentation/widgets/chat/chat_input_area.dart';
+import 'package:molitao_app/presentation/widgets/chat/messages/message_widget.dart';
+import 'package:molitao_app/presentation/widgets/common/user_profile_dialog.dart';
+import "../announce/announce_list_page.dart";
 
 /// 拍卖聊天页面（秒杀场）
 /// 与 UniApp auction.vue 保持一致
@@ -48,7 +49,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
 
   // UI 状态
   bool _showAuctionList = false;
-  bool _showUnreadNotification = false;
+  final bool _showUnreadNotification = false;
   bool _isUploadingImage = false;
   bool _isLoadingMessages = false;
 
@@ -56,12 +57,12 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   AnnounceDto? _currentAnnounce;
   bool _showAnnouncementDialog = false;
   bool _isShowingAnnouncementDialog = false; // 防止重复弹窗
-  static const String _auctionNoticeKey = 'auctionNotice';
+  static const String _auctionNoticeKey = "auctionNotice";
   static const int _announceCategoryId = 2;
 
   // 历史消息加载状态
   bool _isLoadingHistory = false;
-  bool _hasMoreHistory = true;
+  final bool _hasMoreHistory = true;
 
   // 动画控制器
   late AnimationController _auctionListAnimationController;
@@ -69,9 +70,9 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   late Animation<Offset> _auctionListAnimation;
   late Animation<Offset> _unreadAnimation;
 
-  static const String _channel = '-1_auction';
+  static const String _channel = "-1_auction";
   static const int _channelId = -1;
-  static const String _channelName = '秒杀场';
+  static const String _channelName = "秒杀场";
 
   @override
   void initState() {
@@ -83,7 +84,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
       vsync: this,
     );
     _auctionListAnimation =
-        Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero).animate(
+        Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero).animate(
           CurvedAnimation(
             parent: _auctionListAnimationController,
             curve: Curves.easeOut,
@@ -95,14 +96,14 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
       vsync: this,
     );
     _unreadAnimation =
-        Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero).animate(
+        Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero).animate(
           CurvedAnimation(
             parent: _unreadAnimationController,
             curve: Curves.easeOut,
           ),
         );
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
+    WidgetsBinding.instance.addPostFrameCallback((final _) async {
       ref.read(auctionProvider.notifier).loadAuctions();
 
       await ref.read(chatStoreProvider.notifier).connectServer();
@@ -125,17 +126,17 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
 
       // 监听消息变化，自动滚动到底部（只在初始化时注册一次）
       ref.listenManual<List<ChatMessage>>(currentChatMessagesProvider, (
-        previous,
-        next,
+        final previous,
+        final next,
       ) {
-        print('[AuctionChat] ========== ref.listen 触发 (initState) ==========');
-        print('[AuctionChat] previous.length = ${previous?.length}');
-        print('[AuctionChat] next.length = ${next.length}');
-        print('[AuctionChat] _isLoadingHistory = $_isLoadingHistory');
+        print("[AuctionChat] ========== ref.listen 触发 (initState) ==========");
+        print("[AuctionChat] previous.length = ${previous?.length}");
+        print("[AuctionChat] next.length = ${next.length}");
+        print("[AuctionChat] _isLoadingHistory = $_isLoadingHistory");
 
         // 消息数量增加且不在加载历史消息，说明有新消息
         if (next.length > previous!.length && !_isLoadingHistory) {
-          print('[AuctionChat] ✅ 检测到新消息，准备滚动到底部');
+          print("[AuctionChat] ✅ 检测到新消息，准备滚动到底部");
           // 添加额外检查，确保组件已挂载且不在加载状态
           if (mounted && !_isLoadingMessages) {
             // 延迟执行，确保新消息已经渲染到界面上
@@ -146,7 +147,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
             });
           }
         } else {
-          print('[AuctionChat] ❌ 不满足滚动条件');
+          print("[AuctionChat] ❌ 不满足滚动条件");
         }
       });
     });
@@ -166,9 +167,9 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
     if (_scrollController.position.pixels <= 0 &&
         !_isLoadingHistory &&
         _hasMoreHistory) {
-      final messages = ref.read(currentChatMessagesProvider);
+      var messages = ref.read(currentChatMessagesProvider);
       if (messages.isNotEmpty) {
-        final firstTime = messages.first.time;
+        var firstTime = messages.first.time;
         if (firstTime != null) {
           setState(() {
             _isLoadingHistory = true;
@@ -177,7 +178,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
           ref
               .read(chatStoreProvider.notifier)
               .getGroupHistory(_channel, lastTime: firstTime)
-              .then((_) {
+              .then((final _) {
                 if (mounted) {
                   setState(() {
                     _isLoadingHistory = false;
@@ -185,7 +186,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                   });
                 }
               })
-              .catchError((error) {
+              .catchError((final error) {
                 if (mounted) {
                   setState(() {
                     _isLoadingHistory = false;
@@ -198,36 +199,36 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   }
 
   void _scrollToBottom() {
-    print('[AuctionChat] _scrollToBottom() 被调用');
+    print("[AuctionChat] _scrollToBottom() 被调用");
     print(
-      '[AuctionChat] _scrollController.hasClients = ${_scrollController.hasClients}',
+      "[AuctionChat] _scrollController.hasClients = ${_scrollController.hasClients}",
     );
 
     // 使用更安全的滚动策略 - 添加额外延迟确保组件完全构建
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((final _) {
       Future.delayed(const Duration(milliseconds: 100), () {
         if (!mounted) {
-          print('[AuctionChat] ❌ 组件已卸载，跳过滚动');
+          print("[AuctionChat] ❌ 组件已卸载，跳过滚动");
           return;
         }
 
         if (!_scrollController.hasClients) {
-          print('[AuctionChat] ❌ hasClients = false，无法滚动');
+          print("[AuctionChat] ❌ hasClients = false，无法滚动");
           return;
         }
 
         try {
-          final currentPixels = _scrollController.position.pixels;
-          final extent = _scrollController.position.maxScrollExtent;
-          final viewportDimension =
+          var currentPixels = _scrollController.position.pixels;
+          var extent = _scrollController.position.maxScrollExtent;
+          var viewportDimension =
               _scrollController.position.viewportDimension;
 
-          print('[AuctionChat] ========== 滚动位置信息 ==========');
-          print('[AuctionChat] 当前位置 pixels = $currentPixels');
-          print('[AuctionChat] 最大滚动位置 maxScrollExtent = $extent');
-          print('[AuctionChat] 视口高度 viewportDimension = $viewportDimension');
-          print('[AuctionChat] 是否需要滚动 = ${currentPixels < extent}');
-          print('[AuctionChat] =====================================');
+          print("[AuctionChat] ========== 滚动位置信息 ==========");
+          print("[AuctionChat] 当前位置 pixels = $currentPixels");
+          print("[AuctionChat] 最大滚动位置 maxScrollExtent = $extent");
+          print("[AuctionChat] 视口高度 viewportDimension = $viewportDimension");
+          print("[AuctionChat] 是否需要滚动 = ${currentPixels < extent}");
+          print("[AuctionChat] =====================================");
 
           // 只在有内容需要滚动时才滚动
           if (currentPixels < extent) {
@@ -236,33 +237,32 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeOut,
             );
-            print('[AuctionChat] ✅ 已调用 animateTo 滚动到 $extent');
+            print("[AuctionChat] ✅ 已调用 animateTo 滚动到 $extent");
           } else {
-            print('[AuctionChat] ℹ️ 无需滚动，已在底部或内容不足');
+            print("[AuctionChat] ℹ️ 无需滚动，已在底部或内容不足");
           }
         } catch (e, stackTrace) {
-          print('[AuctionChat] ❌ 滚动异常: $e');
-          print('[AuctionChat] StackTrace: $stackTrace');
+          print("[AuctionChat] ❌ 滚动异常: $e");
+          print("[AuctionChat] StackTrace: $stackTrace");
         }
       });
     });
-    print('[AuctionChat] 滚动请求已注册，等待渲染完成');
+    print("[AuctionChat] 滚动请求已注册，等待渲染完成");
   }
 
-  Future<void> _onSendText(String text) async {
+  Future<void> _onSendText(final String text) async {
     await ref
         .read(chatStoreProvider.notifier)
         .sendChannelMsg(
           channel: _channel,
           message: text,
-          type: ChatMessageType.text,
         );
     _scrollToBottom();
   }
 
   Future<void> _onPickImage() async {
     try {
-      final XFile? image = await _imagePicker.pickImage(
+      image = await _imagePicker.pickImage(
         source: ImageSource.gallery,
         maxWidth: 1024,
         maxHeight: 1024,
@@ -271,7 +271,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
 
       if (image != null) {
         // 获取当前用户 ID
-        final userId = _getCurrentUserId();
+        var userId = _getCurrentUserId();
 
         // 显示上传中状态
         setState(() {
@@ -280,21 +280,21 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
 
         try {
           // 上传图片
-          final imageUrl = await _uploadService.uploadImage(
+          var imageUrl = await _uploadService.uploadImage(
             image.path,
             userId: userId?.toString(),
           );
 
           if (imageUrl != null) {
             // 获取图片尺寸
-            final file = File(image.path);
-            final bytes = await file.readAsBytes();
-            final decodedImage = await decodeImageFromList(bytes);
-            final width = decodedImage.width;
-            final height = decodedImage.height;
+            var file = File(image.path);
+            var bytes = await file.readAsBytes();
+            var decodedImage = await decodeImageFromList(bytes);
+            var width = decodedImage.width;
+            var height = decodedImage.height;
 
             // 构建 payload，与 UniApp 保持一致
-            final payload = {'url': imageUrl, 'width': width, 'height': height};
+            var payload = {"url": imageUrl, "width": width, "height": height};
 
             // 发送图片消息
             await ref
@@ -310,7 +310,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
             if (mounted) {
               ScaffoldMessenger.of(
                 context,
-              ).showSnackBar(const SnackBar(content: Text('图片上传失败，请重试')));
+              ).showSnackBar(const SnackBar(content: Text("图片上传失败，请重试")));
             }
           }
         } finally {
@@ -329,14 +329,14 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
         });
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('选择图片失败：$e')));
+        ).showSnackBar(SnackBar(content: Text("选择图片失败：$e")));
       }
     }
   }
 
   /// 计算最低出价（与 UniApp calculateMinBidPrice 保持一致）
-  int _calculateMinBidPrice(double currentPrice, bool isKasec) {
-    int minPrice = 5;
+  int _calculateMinBidPrice(final double currentPrice, final bool isKasec) {
+    var minPrice = 5;
 
     if (currentPrice > 0) {
       if (currentPrice < 100) {
@@ -364,28 +364,28 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
 
   /// 显示出价对话框（参照 UniApp auction.vue bid() 函数）
   Future<void> _showBidDialog() async {
-    final auctionState = ref.read(auctionProvider);
-    final onAuctionItem = auctionState.onAuctionItem;
+    var auctionState = ref.read(auctionProvider);
+    var onAuctionItem = auctionState.onAuctionItem;
 
     if (onAuctionItem == null || onAuctionItem.id == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('没有正在秒杀的商品')));
+      ).showSnackBar(const SnackBar(content: Text("没有正在秒杀的商品")));
       return;
     }
 
-    final auctionItemId = onAuctionItem.id!;
+    var auctionItemId = onAuctionItem.id!;
 
     // 显示加载中
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
+      builder: (final context) => const Center(child: CircularProgressIndicator()),
     );
 
     try {
       // 1. 获取实时的秒杀商品详情
-      final auctionItemDetail = await ref
+      var auctionItemDetail = await ref
           .read(auctionProvider.notifier)
           .getAuctionDetail(auctionItemId);
 
@@ -394,7 +394,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
           Navigator.pop(context); // 关闭加载框
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(const SnackBar(content: Text('获取商品信息失败，请稍后重试')));
+          ).showSnackBar(const SnackBar(content: Text("获取商品信息失败，请稍后重试")));
         }
         return;
       }
@@ -405,32 +405,32 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
           Navigator.pop(context); // 关闭加载框
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(const SnackBar(content: Text('商品不在秒杀中')));
+          ).showSnackBar(const SnackBar(content: Text("商品不在秒杀中")));
         }
         return;
       }
 
       // 3. 同步卡秒状态
-      final isKasecMode = await ref
+      var isKasecMode = await ref
           .read(auctionProvider.notifier)
           .syncKasecStatus(auctionItemId);
 
       // 4. 计算最低出价
-      final currentPrice =
+      var currentPrice =
           auctionItemDetail.currentPrice ??
           auctionItemDetail.startingPrice ??
           0;
-      final minPrice = _calculateMinBidPrice(currentPrice, isKasecMode);
+      var minPrice = _calculateMinBidPrice(currentPrice, isKasecMode);
 
       if (!mounted) return;
       Navigator.pop(context); // 关闭加载框
 
       // 5. 显示出价对话框
-      final TextEditingController priceController = TextEditingController();
+      priceController = TextEditingController();
 
       showDialog(
         context: context,
-        builder: (dialogContext) => Dialog(
+        builder: (final dialogContext) => Dialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           child: Container(
             padding: const EdgeInsets.all(20),
@@ -439,7 +439,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
               children: [
                 // 标题
                 Text(
-                  isKasecMode ? '卡秒出价 - 需三倍加价' : '出价',
+                  isKasecMode ? "卡秒出价 - 需三倍加价" : "出价",
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -458,14 +458,14 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      '您已卡秒出价，需加够三倍加价才有效\n（最低出价：$minPrice R）',
+                      "您已卡秒出价，需加够三倍加价才有效\n（最低出价：$minPrice R）",
                       style: const TextStyle(color: Colors.red, fontSize: 14),
                       textAlign: TextAlign.center,
                     ),
                   )
                 else
                   Text(
-                    '最低出价 $minPrice R',
+                    "最低出价 $minPrice R",
                     style: const TextStyle(color: Color(0xFF666666), fontSize: 14),
                   ),
 
@@ -478,8 +478,8 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 16),
                   decoration: InputDecoration(
-                    hintText: '请输入出价金额',
-                    suffixText: 'R',
+                    hintText: "请输入出价金额",
+                    suffixText: "R",
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                     border: OutlineInputBorder(
@@ -514,7 +514,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Text(
-                            '取消',
+                            "取消",
                             style: TextStyle(fontSize: 16, color: Color(0xFF333333)),
                           ),
                         ),
@@ -525,38 +525,38 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                     Expanded(
                       child: GestureDetector(
                         onTap: () async {
-                          final price = int.tryParse(priceController.text);
+                          var price = int.tryParse(priceController.text);
                           if (price == null) {
                             ScaffoldMessenger.of(dialogContext).showSnackBar(
-                              const SnackBar(content: Text('请输入数字')),
+                              const SnackBar(content: Text("请输入数字")),
                             );
                             return;
                           }
 
                           if (price < 5) {
                             ScaffoldMessenger.of(dialogContext).showSnackBar(
-                              const SnackBar(content: Text('最低出价为5R，请重新出价')),
+                              const SnackBar(content: Text("最低出价为5R，请重新出价")),
                             );
                             return;
                           }
 
                           if (isKasecMode && price < minPrice) {
                             ScaffoldMessenger.of(dialogContext).showSnackBar(
-                              SnackBar(content: Text('卡秒模式需要三倍加价，最低出价为$minPrice')),
+                              SnackBar(content: Text("卡秒模式需要三倍加价，最低出价为$minPrice")),
                             );
                             return;
                           }
 
                           Navigator.pop(dialogContext);
 
-                          final success = await ref
+                          var success = await ref
                               .read(auctionProvider.notifier)
                               .bid(auctionItemId, price.toDouble());
 
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(success ? '出价成功: $price R' : '出价失败，请重试'),
+                                content: Text(success ? "出价成功: $price R" : "出价失败，请重试"),
                               ),
                             );
                             if (success) {
@@ -578,7 +578,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Text(
-                            '确定',
+                            "确定",
                             style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold),
                           ),
                         ),
@@ -596,7 +596,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
         Navigator.pop(context); // 关闭加载框
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('获取商品信息失败，请稍后重试')));
+        ).showSnackBar(const SnackBar(content: Text("获取商品信息失败，请稍后重试")));
       }
     }
   }
@@ -614,17 +614,17 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   }
 
   @override
-  Widget build(BuildContext context) {
-    final messages = ref.watch(currentChatMessagesProvider);
-    final chatState = ref.watch(chatStoreProvider);
-    final auctionState = ref.watch(auctionProvider);
-    final onAuctionItem = auctionState.onAuctionItem;
+  Widget build(final BuildContext context) {
+    var messages = ref.watch(currentChatMessagesProvider);
+    var chatState = ref.watch(chatStoreProvider);
+    var auctionState = ref.watch(auctionProvider);
+    var onAuctionItem = auctionState.onAuctionItem;
 
     // 自动显示公告弹窗 - 添加防重复检查
     if (_showAnnouncementDialog &&
         _currentAnnounce != null &&
         !_isShowingAnnouncementDialog) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((final _) {
         if (_showAnnouncementDialog &&
             mounted &&
             !_isShowingAnnouncementDialog) {
@@ -635,9 +635,9 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           _channelName,
-          style: const TextStyle(fontSize: 20, color: Colors.white),
+          style: TextStyle(fontSize: 20, color: Colors.white),
         ),
         backgroundColor: const Color(0xFFF4835A),
         foregroundColor: Colors.white,
@@ -648,7 +648,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
             children: [
               _buildAnnouncementBar(),
               Expanded(
-                child: Container(
+                child: ColoredBox(
                   color: const Color(0xFFFAF1F0),
                    child: _buildUnifiedMessageList(messages),
                 ),
@@ -673,8 +673,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
     );
   }
 
-  Widget _buildMessageLoadingOverlay() {
-    return Container(
+  Widget _buildMessageLoadingOverlay() => Container(
       color: Colors.black.withOpacity(0.3),
       child: Center(
         child: Container(
@@ -704,10 +703,8 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
         ),
       ),
     );
-  }
 
-  Widget _buildLoadingOverlay() {
-    return Container(
+  Widget _buildLoadingOverlay() => Container(
       color: Colors.black.withOpacity(0.3),
       child: Center(
         child: Container(
@@ -737,10 +734,8 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
         ),
       ),
     );
-  }
 
-  Widget _buildRightSideButtons(dynamic onAuctionItem) {
-    return Positioned(
+  Widget _buildRightSideButtons(final onAuctionItem) => Positioned(
       right: 0,
       top: 100,
       child: Column(
@@ -822,7 +817,6 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
         ],
       ),
     );
-  }
 
   Widget _buildAnnouncementBar() {
     // 如果没有公告，不显示通知栏
@@ -830,9 +824,9 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
       return const SizedBox.shrink();
     }
 
-    final content = _currentAnnounce!.content ?? '';
-    final displayText = content.length > 18
-        ? '${content.substring(0, 18)}...'
+    var content = _currentAnnounce!.content ?? "";
+    var displayText = content.length > 18
+        ? "${content.substring(0, 18)}..."
         : content;
 
     return GestureDetector(
@@ -862,7 +856,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   /// 加载秒杀场公告
   Future<void> _loadAnnouncement() async {
     try {
-      final announce = await _announceRepository.getLatestAnnounce(
+      var announce = await _announceRepository.getLatestAnnounce(
         categoryId: _announceCategoryId,
       );
       if (announce != null && mounted) {
@@ -873,15 +867,15 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
         await _checkAndShowAnnouncementDialog(announce);
       }
     } catch (e) {
-      debugPrint('[AuctionChat] 加载公告失败: $e');
+      debugPrint("[AuctionChat] 加载公告失败: $e");
     }
   }
 
   /// 检查并显示公告弹窗（首次进入时）
-  Future<void> _checkAndShowAnnouncementDialog(AnnounceDto announce) async {
+  Future<void> _checkAndShowAnnouncementDialog(final AnnounceDto announce) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final storedNotice = prefs.getString(_auctionNoticeKey);
+      var prefs = await SharedPreferences.getInstance();
+      var storedNotice = prefs.getString(_auctionNoticeKey);
 
       if (storedNotice == null || storedNotice.isEmpty) {
         // 从未显示过公告，弹窗显示
@@ -892,8 +886,8 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
         }
       } else {
         // 检查存储的公告 ID 是否与当前一致
-        final storedData = jsonDecode(storedNotice) as Map<String, dynamic>;
-        final storedId = storedData['id'];
+        var storedData = jsonDecode(storedNotice) as Map<String, dynamic>;
+        var storedId = storedData["id"];
         if (storedId != announce.id) {
           // 公告有更新，显示弹窗
           if (mounted) {
@@ -904,7 +898,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
         }
       }
     } catch (e) {
-      debugPrint('[AuctionChat] 检查公告弹窗失败: $e');
+      debugPrint("[AuctionChat] 检查公告弹窗失败: $e");
     }
   }
 
@@ -914,7 +908,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
     // 使用 rootNavigator 避免与 go_router navigation shell 冲突
     Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
-        builder: (context) => AnnounceListPage(categoryId: _announceCategoryId),
+        builder: (final context) => const AnnounceListPage(categoryId: _announceCategoryId),
       ),
     );
   }
@@ -928,10 +922,10 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
+      builder: (final context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
-          '公告',
+          "公告",
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
@@ -951,9 +945,9 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                       imageUrl: _currentAnnounce!.imageUrl!,
                       fit: BoxFit.contain,
                       height: 200,
-                      placeholder: (_, __) =>
+                      placeholder: (final _, final __) =>
                           const Center(child: CircularProgressIndicator()),
-                      errorWidget: (_, __, ___) => const Icon(
+                      errorWidget: (final _, final __, final ___) => const Icon(
                         Icons.broken_image,
                         size: 64,
                         color: Colors.grey,
@@ -966,7 +960,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                 const SizedBox(height: 16),
               // 公告内容
               Text(
-                _currentAnnounce!.content ?? '',
+                _currentAnnounce!.content ?? "",
                 style: const TextStyle(fontSize: 14, height: 1.5),
               ),
             ],
@@ -978,7 +972,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
               _closeAnnouncementDialog();
               Navigator.pop(context);
             },
-            child: const Text('确定'),
+            child: const Text("确定"),
           ),
         ],
       ),
@@ -988,8 +982,8 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   /// 关闭公告弹窗并保存状态
   Future<void> _closeAnnouncementDialog() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final noticeData = jsonEncode(_currentAnnounce!.toJson());
+      var prefs = await SharedPreferences.getInstance();
+      var noticeData = jsonEncode(_currentAnnounce!.toJson());
       await prefs.setString(_auctionNoticeKey, noticeData);
       if (mounted) {
         setState(() {
@@ -997,23 +991,22 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
         });
       }
     } catch (e) {
-      debugPrint('[AuctionChat] 保存公告状态失败: $e');
+      debugPrint("[AuctionChat] 保存公告状态失败: $e");
     }
   }
 
   /// 预览图片
-  void _previewImage(String url) {
+  void _previewImage(final String url) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            _ImagePreviewPage(imageUrls: [url], initialIndex: 0),
+        builder: (final context) =>
+            _ImagePreviewPage(imageUrls: [url]),
       ),
     );
   }
 
-  Widget _buildEmptyState() {
-    return Center(
+  Widget _buildEmptyState() => Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -1026,10 +1019,8 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
         ],
       ),
     );
-  }
 
-  Widget _buildUnifiedMessageList(List<ChatMessage> messages) {
-    return ListView.builder(
+  Widget _buildUnifiedMessageList(final List<ChatMessage> messages) => ListView.builder(
       controller: _scrollController, // 始终绑定滚动控制器
       // 底部预留输入框高度（56px）+ 额外空间，避免消息被遮挡
       padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 16),
@@ -1042,10 +1033,9 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
         return _buildMessageItem(message);
       },
     );
-  }
 
-  Widget _buildMessageItem(ChatMessage message) {
-    final isSelf = message.from != null && message.from == _getCurrentUserId();
+  Widget _buildMessageItem(final ChatMessage message) {
+    var isSelf = message.from != null && message.from == _getCurrentUserId();
 
     if (message.type == ChatMessageType.welcome ||
         message.type == ChatMessageType.banUser ||
@@ -1094,7 +1084,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   }
 
   /// 处理消息点击事件
-  void _onMessageTap(ChatMessage message) {
+  void _onMessageTap(final ChatMessage message) {
     // 拍卖相关消息点击后显示拍品详情
     if (message.type == ChatMessageType.auctionStart ||
         message.type == ChatMessageType.auctionBid ||
@@ -1105,79 +1095,97 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   }
 
   /// 处理头像点击事件
-  void _onAvatarTap(ChatMessage message) {
+  void _onAvatarTap(final ChatMessage message) {
     _showMessageActionSheet(message, isAvatarTap: true);
   }
 
   /// 处理消息长按事件
-  void _onMessageLongPress(ChatMessage message) {
-    _showMessageActionSheet(message, isAvatarTap: false);
+  void _onMessageLongPress(final ChatMessage message) {
+    _showMessageActionSheet(message);
   }
 
   /// 显示消息操作菜单
   void _showMessageActionSheet(
-    ChatMessage message, {
-    bool isAvatarTap = false,
+    final ChatMessage message, {
+    final bool isAvatarTap = false,
   }) {
-    final currentUserId = _getCurrentUserId();
-    final isSelf = message.from == currentUserId;
-    final isImage = message.type == ChatMessageType.image;
-    final isAdmin = ref.read(userProvider.notifier).isAdmin;
-    final senderIsAdmin = message.fromAdmin ?? false;
+    var currentUserId = _getCurrentUserId();
+    var isSelf = message.from == currentUserId;
+    var isImage = message.type == ChatMessageType.image;
+    var isAdmin = ref.read(userProvider.notifier).isAdmin;
+    var senderIsAdmin = message.fromAdmin ?? false;
 
     // 关闭键盘
     FocusScope.of(context).unfocus();
 
-    final actions = <ActionSheetItem>[];
+    var actions = <ActionSheetItem>[];
 
     // 图片消息：收藏至表情（与 UniApp 一致，所有图片消息都可收藏）
     if (isImage) {
       actions.add(ActionSheetItem(
         icon: Icons.favorite_border,
-        title: '收藏至表情',
+        title: "收藏至表情",
         onTap: () => _addToFavorites(message),
-      ));
+      ),);
     }
 
     // 撤销（仅自己的消息）
     if (isSelf) {
       actions.add(ActionSheetItem(
         icon: Icons.undo,
-        title: '撤销',
+        title: "撤销",
         onTap: () => _backoutMessage(message),
-      ));
+      ),);
     }
 
     // 加为好友（不是自己的消息）
     if (!isSelf) {
       actions.add(ActionSheetItem(
         icon: Icons.person_add,
-        title: '加为好友',
+        title: "加为好友",
         onTap: () => _addFriend(message),
-      ));
+      ),);
     }
 
     // 私聊（管理员或发送者是管理员，且不是自己）
     if ((isAdmin || senderIsAdmin) && !isSelf) {
       actions.add(ActionSheetItem(
         icon: Icons.chat_bubble_outline,
-        title: '私聊',
+        title: "私聊",
         onTap: () => _startPrivateChat(message),
-      ));
+      ),);
     }
 
     // 查看资料（不是自己的消息）
     if (!isSelf) {
       actions.add(ActionSheetItem(
         icon: Icons.person,
-        title: '查看资料',
+        title: "查看资料",
         onTap: () => _viewUserInfo(message),
-      ));
+      ),);
+    }
+
+    // 拉黑该用户（不是自己的消息）
+    if (!isSelf) {
+      actions.add(ActionSheetItem(
+        icon: Icons.block,
+        title: "拉黑该用户",
+        onTap: () => _showBlockUserDialog(message),
+      ),);
+    }
+
+    // 举报消息（不是自己的消息）
+    if (!isSelf) {
+      actions.add(ActionSheetItem(
+        icon: Icons.flag,
+        title: "举报消息",
+        onTap: () => _reportMessage(message),
+      ),);
     }
 
     showAppBottomSheet(
       context: context,
-      builder: (context) => AppActionSheet(
+      builder: (final context) => AppActionSheet(
         actions: actions,
         onCancel: () {},
       ),
@@ -1186,9 +1194,9 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
 
   /// 显示顶部 SnackBar 消息
   void _showTopSnackBar(
-    BuildContext context,
-    String message, {
-    bool isError = false,
+    final BuildContext context,
+    final String message, {
+    final bool isError = false,
   }) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -1210,48 +1218,104 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   }
 
   /// 添加好友
-  Future<void> _addFriend(ChatMessage message) async {
+  Future<void> _addFriend(final ChatMessage message) async {
     if (message.from == null) return;
 
     try {
-      final friendRepository = FriendRepository();
+      var friendRepository = FriendRepository();
       await friendRepository.addFriend(message.from!);
       if (mounted) {
-        _showTopSnackBar(context, '已发送好友申请');
+        _showTopSnackBar(context, "已发送好友申请");
       }
     } catch (e) {
       if (mounted) {
-        final errorText = e.toString().replaceAll('Exception: ', '');
+        var errorText = e.toString().replaceAll("Exception: ", "");
         _showTopSnackBar(context, errorText, isError: true);
       }
     }
   }
 
   /// 发起私聊
-  void _startPrivateChat(ChatMessage message) {
+  void _startPrivateChat(final ChatMessage message) {
     if (message.from == null) return;
-    final friendId = message.from!;
-    final friendName = message.fromName ?? '用户';
-    final friendAvatar = message.avatar;
+    var friendId = message.from!;
+    var friendName = message.fromName ?? "用户";
+    var friendAvatar = message.avatar;
     context.push(
       '/chat/private/$friendId?name=$friendName${friendAvatar != null ? '&avatar=$friendAvatar' : ''}',
     );
   }
 
+  /// 显示拉黑用户确认弹窗
+  Future<void> _showBlockUserDialog(final ChatMessage message) async {
+    if (message.from == null) return;
+    var senderUserId = message.from!;
+
+    try {
+      var blockedUserRepository = BlockedUserRepository();
+      var isAlreadyBlocked = await blockedUserRepository.checkBlocked(senderUserId);
+
+      if (!mounted) return;
+
+      if (isAlreadyBlocked) {
+        _showTopSnackBar(context, "已在黑名单中");
+        return;
+      }
+
+      var confirm = await showDialog<bool>(
+        context: context,
+        builder: (final context) => AlertDialog(
+          title: const Text("确定拉黑该用户？"),
+          content: const Text("拉黑后对方无法给您发消息"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text("取消"),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text("确定"),
+            ),
+          ],
+        ),
+      );
+
+      if (confirm != true) return;
+
+      await blockedUserRepository.blockUser(senderUserId);
+
+      if (!mounted) return;
+      _showTopSnackBar(context, "已拉黑");
+    } catch (e) {
+      if (!mounted) return;
+      var errorText = e.toString().replaceAll("Exception: ", "");
+      _showTopSnackBar(context, errorText, isError: true);
+    }
+  }
+
+  /// 举报消息
+  void _reportMessage(final ChatMessage message) {
+    if (message.from == null) return;
+    var senderUserId = message.from!;
+    context.push(
+      '/report/message/$senderUserId?messageId=${message.id}&channelName=$_channelName',
+    );
+  }
+
   /// 查看用户资料
-  Future<void> _viewUserInfo(ChatMessage message) async {
+  Future<void> _viewUserInfo(final ChatMessage message) async {
     if (message.from == null) return;
 
     // 显示加载中
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
+      builder: (final context) => const Center(child: CircularProgressIndicator()),
     );
 
     try {
-      final userRepository = UserRepository();
-      final user = await userRepository.getUserById(message.from!);
+      var userRepository = UserRepository();
+      var user = await userRepository.getUserById(message.from!);
 
       if (!mounted) return;
 
@@ -1261,45 +1325,45 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
       if (user != null) {
         UserProfileDialog.show(context, user);
       } else {
-        _showTopSnackBar(context, '获取用户信息失败', isError: true);
+        _showTopSnackBar(context, "获取用户信息失败", isError: true);
       }
     } catch (e) {
       if (!mounted) return;
       Navigator.pop(context);
-      final errorText = e.toString().replaceAll('Exception: ', '');
+      var errorText = e.toString().replaceAll("Exception: ", "");
       _showTopSnackBar(context, errorText, isError: true);
     }
   }
 
   /// 撤回消息
-  Future<void> _backoutMessage(ChatMessage message) async {
+  Future<void> _backoutMessage(final ChatMessage message) async {
     if (message.id == null) return;
 
     try {
-      final chatRepository = ChatRepository();
+      var chatRepository = ChatRepository();
       await chatRepository.backoutMessage(message.id!);
       // 从本地消息列表移除
       ref.read(chatStoreProvider.notifier).removeMessage(message.id!);
       if (mounted) {
-        _showTopSnackBar(context, '已撤回');
+        _showTopSnackBar(context, "已撤回");
       }
     } catch (e) {
       if (mounted) {
-        final errorText = e.toString().replaceAll('Exception: ', '');
+        var errorText = e.toString().replaceAll("Exception: ", "");
         _showTopSnackBar(context, errorText, isError: true);
       }
     }
   }
 
   /// 收藏至表情（图片消息）
-  Future<void> _addToFavorites(ChatMessage message) async {
-    final payload = message.payload;
+  Future<void> _addToFavorites(final ChatMessage message) async {
+    var payload = message.payload;
     if (payload == null) return;
 
     // 获取图片 URL
     String? imageUrl;
     if (payload is Map<String, dynamic>) {
-      imageUrl = payload['url'] as String?;
+      imageUrl = payload["url"] as String?;
     } else if (payload is String) {
       imageUrl = payload;
     }
@@ -1308,14 +1372,14 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('无法获取图片地址')));
+        ).showSnackBar(const SnackBar(content: Text("无法获取图片地址")));
       }
       return;
     }
 
     try {
       // 调用收藏表情 API
-      final success = await ref
+      var success = await ref
           .read(userEmojiProvider.notifier)
           .addToEmoji(imageUrl);
 
@@ -1323,29 +1387,29 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
         if (success) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(const SnackBar(content: Text('已添加到收藏表情')));
+          ).showSnackBar(const SnackBar(content: Text("已添加到收藏表情")));
         } else {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(const SnackBar(content: Text('添加失败，请重试')));
+          ).showSnackBar(const SnackBar(content: Text("添加失败，请重试")));
         }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('添加失败: $e')));
+        ).showSnackBar(SnackBar(content: Text("添加失败: $e")));
       }
     }
   }
 
   /// 选择收藏表情发送（发送图片消息）
-  void _onSelectFavoriteEmoji(dynamic emoji) {
-    final url = emoji.url;
+  void _onSelectFavoriteEmoji(final emoji) {
+    var url = emoji.url;
     if (url == null || url.isEmpty) return;
 
     // 构建 payload，与 UniApp 保持一致
-    final payload = {'url': url, 'width': 200, 'height': 200};
+    var payload = {"url": url, "width": 200, "height": 200};
 
     // 发送图片消息
     ref
@@ -1358,37 +1422,37 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
         );
 
     // 滚动到底部
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((final _) {
       _scrollToBottom();
     });
   }
 
   /// 从消息中提取拍品信息并显示详情
-  void _showAuctionDetailFromMessage(ChatMessage message) {
-    final payload = message.payload;
+  void _showAuctionDetailFromMessage(final ChatMessage message) {
+    var payload = message.payload;
     if (payload == null) return;
 
     // payload 已经在 ChatMessage.fromJson 中解析为 Map
     if (payload is Map<String, dynamic>) {
       // 使用 AuctionItemDto.fromJson 解析拍品信息
-      final item = AuctionItemDto.fromJson(payload);
+      var item = AuctionItemDto.fromJson(payload);
       _showAuctionDetail(item);
     }
   }
 
   int? _getCurrentUserId() {
-    final userState = ref.read(userProvider);
+    var userState = ref.read(userProvider);
     return userState.user?.id;
   }
 
-  Widget _buildAvatar(ChatMessage message, {VoidCallback? onTap}) {
+  Widget _buildAvatar(final ChatMessage message, {final VoidCallback? onTap}) {
     // 优先使用消息中的 avatar 字段
     String? avatarUrl;
     if (message.avatar != null) {
-      final avatar = message.avatar!;
-      avatarUrl = avatar.startsWith('http')
+      var avatar = message.avatar!;
+      avatarUrl = avatar.startsWith("http")
           ? avatar
-          : 'https://image.molitao.top/$avatar';
+          : "https://image.molitao.top/$avatar";
     }
 
     Widget avatarWidget;
@@ -1404,7 +1468,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
         ),
         child: Center(
           child: Text(
-            _getAvatarText(message.fromName ?? '用户'),
+            _getAvatarText(message.fromName ?? "用户"),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 12,
@@ -1431,8 +1495,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
     return GestureDetector(onTap: onTap, child: avatarWidget);
   }
 
-  Widget _buildUserName(ChatMessage message) {
-    return Row(
+  Widget _buildUserName(final ChatMessage message) => Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         if (message.fromAdmin == true) ...[
@@ -1477,10 +1540,9 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
         ),
       ],
     );
-  }
 
-  Color _getLevelBackgroundColor(Map<String, dynamic> level) {
-    final levelNum = level['level'] as int? ?? 0;
+  Color _getLevelBackgroundColor(final Map<String, dynamic> level) {
+    var levelNum = level["level"] as int? ?? 0;
     if (levelNum == 7) {
       return Colors.black; // 第7级：黑底金字
     }
@@ -1488,43 +1550,43 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
       return const Color(0xFF000000); // 第8级：炫彩渐变
     }
     // 其他等级：渐变背景
-    final borderColor = level['borderColor'] as String? ?? '#F4835A';
+    var borderColor = level["borderColor"] as String? ?? "#F4835A";
     return _parseColor(borderColor);
   }
 
-  Color _getLevelTextColor(Map<String, dynamic> level) {
-    final levelNum = level['level'] as int? ?? 0;
+  Color _getLevelTextColor(final Map<String, dynamic> level) {
+    var levelNum = level["level"] as int? ?? 0;
     if (levelNum == 7 || levelNum == 8) {
       return const Color(0xFFFFD700); // 金色
     }
     return Colors.white;
   }
 
-  Color _parseColor(String colorStr) {
+  Color _parseColor(final String colorStr) {
     try {
-      if (colorStr.startsWith('#') && colorStr.length >= 7) {
-        final hex = colorStr.replaceFirst('#', '');
-        return Color(int.parse('FF$hex', radix: 16));
+      if (colorStr.startsWith("#") && colorStr.length >= 7) {
+        var hex = colorStr.replaceFirst("#", "");
+        return Color(int.parse("FF$hex", radix: 16));
       }
     } catch (_) {}
     return const Color(0xFFF4835A); // 默认主题色
   }
 
-  void _showAuctionDetail(AuctionItemDto item) {
+  void _showAuctionDetail(final AuctionItemDto item) {
     // 提取 description 中的图片 URL 列表（用于预览）
-    final imageUrls = _extractImageUrls(item.description);
+    var imageUrls = _extractImageUrls(item.description);
 
     // 关闭键盘，防止关闭 modal 后键盘弹出
     FocusScope.of(context).unfocus();
 
     showScrollableBottomSheet(
       context: context,
-      builder: (context) => DraggableScrollableSheet(
+      builder: (final context) => DraggableScrollableSheet(
         initialChildSize: 0.6,
         minChildSize: 0.3,
         maxChildSize: 0.9,
         expand: false,
-        builder: (context, scrollController) => SingleChildScrollView(
+        builder: (final context, final scrollController) => SingleChildScrollView(
           controller: scrollController,
           child: Container(
             padding: const EdgeInsets.all(16),
@@ -1538,7 +1600,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                   children: [
                     Expanded(
                       child: Text(
-                        item.name ?? '拍品详情',
+                        item.name ?? "拍品详情",
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -1570,7 +1632,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: const Text('开拍通知'),
+                      child: const Text("开拍通知"),
                     ),
                   ),
                 // 商品内容区域
@@ -1584,28 +1646,28 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   }
 
   /// 从 description HTML 中提取图片 URL 列表
-  List<String> _extractImageUrls(String? description) {
+  List<String> _extractImageUrls(final String? description) {
     if (description == null || description.isEmpty) return [];
 
-    final urls = <String>[];
+    var urls = <String>[];
 
     // 提取 data-url 属性
-    final dataUrlRegex = RegExp(
+    var dataUrlRegex = RegExp(
       r'<img[^>]+data-url=["\x27"]([^"\x27"]+)["\x27"]',
     );
-    final dataUrlMatches = dataUrlRegex.allMatches(description);
-    for (final match in dataUrlMatches) {
+    var dataUrlMatches = dataUrlRegex.allMatches(description);
+    for (var match in dataUrlMatches) {
       urls.add(match.group(1)!);
     }
 
     // 如果没有 data-url，提取 src 属性
     if (urls.isEmpty) {
-      final srcRegex = RegExp(r'<img[^>]+src=["\x27"]([^"\x27"]+)["\x27"]');
-      final srcMatches = srcRegex.allMatches(description);
-      for (final match in srcMatches) {
-        final url = match.group(1)!;
+      var srcRegex = RegExp(r'<img[^>]+src=["\x27"]([^"\x27"]+)["\x27"]');
+      var srcMatches = srcRegex.allMatches(description);
+      for (var match in srcMatches) {
+        var url = match.group(1)!;
         // 移除缩略图参数 !w300
-        final cleanUrl = url.replaceAll(RegExp(r'!w300$'), '');
+        var cleanUrl = url.replaceAll(RegExp(r"!w300$"), "");
         urls.add(cleanUrl);
       }
     }
@@ -1621,32 +1683,32 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
     url = url.trim();
 
     // 处理 file:// 协议（无效的本地文件协议）
-    if (url.startsWith('file://')) {
+    if (url.startsWith("file://")) {
       // 提取路径部分，假设是相对路径
-      url = url.replaceFirst('file://', '');
-      if (!url.startsWith('/')) {
-        url = '/$url';
+      url = url.replaceFirst("file://", "");
+      if (!url.startsWith("/")) {
+        url = "/$url";
       }
     }
 
     // 处理绝对路径（以 / 开头）
-    if (url.startsWith('/')) {
-      return 'https://image.molitao.top$url';
-    } else if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    if (url.startsWith("/")) {
+      return "https://image.molitao.top$url";
+    } else if (!url.startsWith("http://") && !url.startsWith("https://")) {
       // 处理相对路径
-      return 'https://image.molitao.top/$url';
+      return "https://image.molitao.top/$url";
     }
 
     return url;
   }
 
   /// 构建拍品内容（参考 UniApp getStartContent）
-  Widget _buildAuctionContent(AuctionItemDto item, List<String> imageUrls) {
-    final description = item.description;
+  Widget _buildAuctionContent(final AuctionItemDto item, final List<String> imageUrls) {
+    var description = item.description;
 
     // 如果没有 description，显示 imageUrl
     if (description == null || description.trim().isEmpty) {
-      final imageUrl = _convertImageUrl(item.imageUrl);
+      var imageUrl = _convertImageUrl(item.imageUrl);
       if (imageUrl != null && imageUrl.isNotEmpty) {
         return GestureDetector(
           onTap: () => _previewImages([imageUrl]),
@@ -1657,7 +1719,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
               width: double.infinity,
               height: 200,
               fit: BoxFit.cover,
-              placeholder: (_, __) => Container(
+              placeholder: (final _, final __) => Container(
                 height: 200,
                 color: Colors.grey.shade200,
                 child: const Center(
@@ -1668,7 +1730,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                   ),
                 ),
               ),
-              errorWidget: (_, __, ___) => Container(
+              errorWidget: (final _, final __, final ___) => Container(
                 height: 200,
                 color: Colors.grey.shade200,
                 child: const Center(
@@ -1693,19 +1755,19 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
       child: Html(
         data: description,
         style: {
-          "body": Style(margin: Margins.zero, padding: HtmlPaddings.zero),
-          "img": Style(width: Width(double.infinity)),
-          "div": Style(fontSize: FontSize(14), color: Colors.black87),
-          "span": Style(fontSize: FontSize(14), color: Colors.black87),
+          'body': Style(margin: Margins.zero, padding: HtmlPaddings.zero),
+          'img': Style(width: Width(double.infinity)),
+          'div': Style(fontSize: FontSize(14), color: Colors.black87),
+          'span': Style(fontSize: FontSize(14), color: Colors.black87),
         },
         extensions: [
           TagExtension(
-            tagsToExtend: {"img"},
-            builder: (extensionContext) {
+            tagsToExtend: {'img'},
+            builder: (final extensionContext) {
               // 优先使用 data-url，其次使用 src
-              final dataUrl = extensionContext.attributes['data-url'];
-              final src = extensionContext.attributes['src'];
-              String? imageUrl = dataUrl ?? src;
+              var dataUrl = extensionContext.attributes["data-url"];
+              var src = extensionContext.attributes["src"];
+              var imageUrl = dataUrl ?? src;
 
               if (imageUrl == null) return const SizedBox.shrink();
 
@@ -1713,24 +1775,24 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
               imageUrl = imageUrl.trim();
 
               // 移除缩略图参数 !w300
-              imageUrl = imageUrl.replaceAll(RegExp(r'!w300$'), '');
+              imageUrl = imageUrl.replaceAll(RegExp(r"!w300$"), "");
 
               // 处理 file:// 协议（无效的本地文件协议）
-              if (imageUrl.startsWith('file://')) {
+              if (imageUrl.startsWith("file://")) {
                 // 提取路径部分，假设是相对路径
-                imageUrl = imageUrl.replaceFirst('file://', '');
-                if (!imageUrl.startsWith('/')) {
-                  imageUrl = '/$imageUrl';
+                imageUrl = imageUrl.replaceFirst("file://", "");
+                if (!imageUrl.startsWith("/")) {
+                  imageUrl = "/$imageUrl";
                 }
               }
 
               // 处理绝对路径（以 / 开头）
-              if (imageUrl.startsWith('/')) {
-                imageUrl = 'https://image.molitao.top$imageUrl';
-              } else if (!imageUrl.startsWith('http://') &&
-                  !imageUrl.startsWith('https://')) {
+              if (imageUrl.startsWith("/")) {
+                imageUrl = "https://image.molitao.top$imageUrl";
+              } else if (!imageUrl.startsWith("http://") &&
+                  !imageUrl.startsWith("https://")) {
                 // 处理相对路径
-                imageUrl = 'https://image.molitao.top/$imageUrl';
+                imageUrl = "https://image.molitao.top/$imageUrl";
               }
 
               return GestureDetector(
@@ -1747,7 +1809,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                     imageUrl: imageUrl,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    placeholder: (_, __) => Container(
+                    placeholder: (final _, final __) => Container(
                       height: 150,
                       color: Colors.grey.shade200,
                       child: const Center(
@@ -1758,7 +1820,7 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
                         ),
                       ),
                     ),
-                    errorWidget: (_, __, ___) => const SizedBox.shrink(),
+                    errorWidget: (final _, final __, final ___) => const SizedBox.shrink(),
                   ),
                 ),
               );
@@ -1770,38 +1832,35 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
   }
 
   /// 预览图片
-  void _previewImages(List<String> urls) {
+  void _previewImages(final List<String> urls) {
     if (urls.isEmpty) return;
 
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            _ImagePreviewPage(imageUrls: urls, initialIndex: 0),
+        builder: (final context) =>
+            _ImagePreviewPage(imageUrls: urls),
       ),
     );
   }
 
   /// 构建状态标签
-  Widget _buildStatusBadge(AuctionStatusEnum? status) {
+  Widget _buildStatusBadge(final AuctionStatusEnum? status) {
     String text;
     Color color;
 
     switch (status) {
       case AuctionStatusEnum.auctioning:
-        text = '拍卖中';
+        text = "拍卖中";
         color = const Color(0xFF4CAF50);
-        break;
       case AuctionStatusEnum.listed:
-        text = '待拍卖';
+        text = "待拍卖";
         color = const Color(0xFF999999);
-        break;
       case AuctionStatusEnum.sold:
-        text = '已成交';
+        text = "已成交";
         color = const Color(0xFF4CAF50);
-        break;
       default:
-        text = '未知状态';
+        text = "未知状态";
         color = const Color(0xFF999999);
     }
 
@@ -1820,47 +1879,46 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
 
   /// 订阅开拍通知
   /// 支持微信一次性订阅消息 + 极光推送
-  Future<void> _subscribeNotification(int? auctionItemId) async {
-    debugPrint('[订阅通知] 开始订阅, auctionItemId=$auctionItemId');
+  Future<void> _subscribeNotification(final int? auctionItemId) async {
+    debugPrint("[订阅通知] 开始订阅, auctionItemId=$auctionItemId");
     if (auctionItemId == null) {
-      debugPrint('[订阅通知] auctionItemId 为空，返回');
+      debugPrint("[订阅通知] auctionItemId 为空，返回");
       return;
     }
 
     // 1. 检查 APP 通知权限
-    final permissionService = NotificationPermissionService();
-    final hasPermission = await permissionService.checkPermission();
+    var permissionService = NotificationPermissionService();
+    var hasPermission = await permissionService.checkPermission();
     if (!hasPermission) {
-      debugPrint('[订阅通知] 没有通知权限，弹窗提示');
+      debugPrint("[订阅通知] 没有通知权限，弹窗提示");
       await permissionService.showPermissionDialog(context);
       return;
     }
 
     // 2. 获取用户微信 OpenId
-    final authRepository = AuthRepository();
-    final openId = await authRepository.getMyWechatOpenId();
-    debugPrint('[订阅通知] 用户 OpenId: $openId');
+    var authRepository = AuthRepository();
+    var openId = await authRepository.getMyWechatOpenId();
+    debugPrint("[订阅通知] 用户 OpenId: $openId");
 
     // 3. 如果有 OpenId，调用微信一次性订阅消息授权
     String? subscribedOpenId;
     if (openId != null && openId.isNotEmpty) {
       try {
-        final weChatService = WeChatService();
+        var weChatService = WeChatService();
         // 使用带回调的方法，等待用户实际授权结果
         // 用户同意则 subscribed=true，用户拒绝或超时则 subscribed=false
-        final subscribed = await weChatService.requestSubscribeMessageWithCallback(
-          scene: 1,
+        var subscribed = await weChatService.requestSubscribeMessageWithCallback(
           reserved: auctionItemId.toString(),
         );
-        debugPrint('[订阅通知] 微信订阅用户操作结果: $subscribed');
+        debugPrint("[订阅通知] 微信订阅用户操作结果: $subscribed");
         if (subscribed) {
           subscribedOpenId = openId;
         }
       } catch (e) {
-        debugPrint('[订阅通知] 微信订阅异常: $e');
+        debugPrint("[订阅通知] 微信订阅异常: $e");
       }
     } else {
-      debugPrint('[订阅通知] 用户没有 OpenId，跳过微信订阅');
+      debugPrint("[订阅通知] 用户没有 OpenId，跳过微信订阅");
     }
 
     // 4. 调用后端保存订阅记录
@@ -1868,31 +1926,31 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
     await _saveSubscription(auctionItemId, openid: subscribedOpenId);
   }
 
-  Future<void> _saveSubscription(int auctionItemId, {String? openid}) async {
-    debugPrint('[订阅] 开始保存订阅记录, auctionItemId=$auctionItemId, openid=$openid');
+  Future<void> _saveSubscription(final int auctionItemId, {final String? openid}) async {
+    debugPrint("[订阅] 开始保存订阅记录, auctionItemId=$auctionItemId, openid=$openid");
     try {
-      final success = await ref
+      var success = await ref
           .read(auctionProvider.notifier)
           .subscribeStartNotification(auctionItemId, openid: openid);
-      debugPrint('[订阅] 保存订阅结果: success=$success');
+      debugPrint("[订阅] 保存订阅结果: success=$success");
 
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(success ? '订阅成功，秒杀开始时将推送通知' : '订阅失败，请重试'),
+            content: Text(success ? "订阅成功，秒杀开始时将推送通知" : "订阅失败，请重试"),
             backgroundColor: success ? const Color(0xFF4CAF50) : Colors.red,
           ),
         );
       }
     } catch (e, stack) {
-      debugPrint('[订阅] 保存订阅异常: $e');
-      debugPrint('[订阅] 堆栈: $stack');
+      debugPrint("[订阅] 保存订阅异常: $e");
+      debugPrint("[订阅] 堆栈: $stack");
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('订阅失败: $e'),
+            content: Text("订阅失败: $e"),
             backgroundColor: Colors.red,
           ),
         );
@@ -1900,8 +1958,8 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
     }
   }
 
-  Color _getAvatarColor(int userId) {
-    final colors = [
+  Color _getAvatarColor(final int userId) {
+    var colors = [
       const Color(0xFFF4835A),
       const Color(0xFF1890FF),
       const Color(0xFFFF4D4F),
@@ -1912,13 +1970,12 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
     return colors[userId % colors.length];
   }
 
-  String _getAvatarText(String name) {
-    if (name.isEmpty) return '用';
+  String _getAvatarText(final String name) {
+    if (name.isEmpty) return "用";
     return name.length > 2 ? name.substring(0, 2) : name;
   }
 
-  Widget _buildNewMessageButton(int unreadCount) {
-    return Positioned(
+  Widget _buildNewMessageButton(final int unreadCount) => Positioned(
       right: 60,
       top: 60,
       child: SlideTransition(
@@ -1942,10 +1999,8 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
         ),
       ),
     );
-  }
 
-  Widget _buildAuctionListPanel(dynamic auctionState) {
-    return Positioned.fill(
+  Widget _buildAuctionListPanel(final auctionState) => Positioned.fill(
       child: GestureDetector(
         onTap: _toggleAuctionList,
         child: Container(
@@ -2291,18 +2346,24 @@ class _AuctionChatPageState extends ConsumerState<AuctionChatPage>
         ),
       ),
     );
-  }
 }
 
 /// 图片预览页面
 class _ImagePreviewPage extends StatefulWidget {
+
+  const _ImagePreviewPage({required this.imageUrls, this.initialIndex = 0});
   final List<String> imageUrls;
   final int initialIndex;
 
-  const _ImagePreviewPage({required this.imageUrls, this.initialIndex = 0});
-
   @override
   State<_ImagePreviewPage> createState() => _ImagePreviewPageState();
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(IterableProperty<String>('imageUrls', imageUrls));
+    properties.add(IntProperty('initialIndex', initialIndex));
+  }
 }
 
 class _ImagePreviewPageState extends State<_ImagePreviewPage> {
@@ -2323,8 +2384,7 @@ class _ImagePreviewPageState extends State<_ImagePreviewPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+  Widget build(final BuildContext context) => Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
@@ -2367,5 +2427,4 @@ class _ImagePreviewPageState extends State<_ImagePreviewPage> {
         },
       ),
     );
-  }
 }
