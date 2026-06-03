@@ -1,0 +1,33 @@
+server:
+  port: 9091
+
+spring:
+  application:
+    name: molitao-server
+
+  jackson:
+    # CamelCase 命名 — 与 ABP 默认行为一致
+    property-naming-strategy: LOWER_CAMEL_CASE
+    # 日期格式
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+    # 不输出 null 字段
+    default-property-inclusion: non_null
+    # 不使用时间戳
+    serialization:
+      write-dates-as-timestamps: false
+
+# JWT 配置（需与 ABP 原有密钥一致）
+jwt:
+  secret: ${JWT_SECRET:your-256-bit-secret}
+  access-token-expiration-seconds: 86400
+  refresh-token-expiration-seconds: 604800
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+server:
+  port: 9091
