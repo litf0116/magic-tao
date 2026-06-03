@@ -1,7 +1,6 @@
 ﻿using Abp.Authorization;
 using Abp.Runtime.Session;
 using Abp.UI;
-using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -20,7 +19,6 @@ using TtWork.Abp.Entity;
 using TtWork.Project.PostBar.Dto;
 using TtWork.Abp.Core;
 using System.Drawing.Printing;
-using TtWork.Project.Events;
 
 namespace TtWork.Project.PostBar
 {
@@ -32,40 +30,11 @@ namespace TtWork.Project.PostBar
     {
         private readonly ISqlSugarClient _sqlSugarClient;
         private readonly IAbpSession _abpSession;
-        private readonly IMediator _mediator;
 
-        public PostService(ISqlSugarClient sqlSugar, IAbpSession abpSession, IMediator mediator)
+        public PostService(ISqlSugarClient sqlSugar, IAbpSession abpSession)
         {
             _sqlSugarClient = sqlSugar;
             _abpSession = abpSession;
-            _mediator = mediator;
-        }
-
-        private async Task<List<string>> CheckSensitiveWordsAsync(string content)
-        {
-            if (string.IsNullOrEmpty(content))
-                return new List<string>();
-
-            var cacheWords = await _mediator.Send(new QueryCacheWords());
-            var foundWords = new List<string>();
-
-            ReadOnlySpan<char> textSpan = content;
-            foreach (var word in cacheWords)
-            {
-                if (string.IsNullOrEmpty(word))
-                    continue;
-
-                for (int i = 0; i <= textSpan.Length - word.Length; i++)
-                {
-                    if (textSpan.Slice(i, word.Length).Equals(word, StringComparison.OrdinalIgnoreCase))
-                    {
-                        foundWords.Add(word);
-                        break;
-                    }
-                }
-            }
-
-            return foundWords;
         }
 
         /// <summary>
@@ -268,13 +237,7 @@ namespace TtWork.Project.PostBar
                 {
                     throw new UserFriendlyException("用户身份验证异常，请重新登录");
                 }
-
-                var sensitiveWords = await CheckSensitiveWordsAsync(input.content);
-                if (sensitiveWords.Count > 0)
-                {
-                    throw new UserFriendlyException($"帖子内容包含敏感词「{sensitiveWords[0]}」，请修改后提交");
-                }
-
+                
                 input.userId = _abpSession.UserId.Value;
                 await _sqlSugarClient.Insertable(input)
                     .IgnoreColumns(it => new { it.createdAt, it.updatedAt }).ExecuteCommandAsync();
@@ -306,12 +269,6 @@ namespace TtWork.Project.PostBar
                 if (info.status == 3)
                 {
                     throw new UserFriendlyException($"已删除的帖子无法修改");
-                }
-
-                var sensitiveWords = await CheckSensitiveWordsAsync(input.content);
-                if (sensitiveWords.Count > 0)
-                {
-                    throw new UserFriendlyException($"帖子内容包含敏感词「{sensitiveWords[0]}」，请修改后提交");
                 }
 
                 // 只更新允许编辑的字段，避免覆盖其他字段

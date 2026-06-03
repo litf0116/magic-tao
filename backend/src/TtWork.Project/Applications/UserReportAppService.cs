@@ -93,7 +93,7 @@ public class UserReportDto : EntityDto<long>, ICreationAudited {
 
     public int Status { get; set; }
 
-    public string? AdminNote { get; set; }
+    public string AdminNote { get; set; }
 
     public DateTime? ProcessedTime { get; set; }
 

@@ -2,11 +2,13 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Abp.Application.Services.Dto;
+using Abp.AutoMapper;
 using Abp.Authorization;
 using Abp.Dependency;
 using Abp.Domain.Repositories;
 using Abp.Linq.Extensions;
 using Abp.UI;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TtWork.Abp;
 using TtWork.Abp.Applications.Dtos;
@@ -30,9 +32,11 @@ public class BlockedUserAppService : AbpAsyncCrudAppService<BlockedUser, Blocked
         _repository = repository;
         _userCache = userCache;
 
-        base.GetAllPermissionName = AppPermissions.Pages.ChatManager;
-        base.CreatePermissionName = AppPermissions.Pages.ChatManager;
-        base.UpdatePermissionName = AppPermissions.Pages.ChatManager;
+        base.GetAllPermissionName = null;
+        base.CreatePermissionName = null;
+        base.UpdatePermissionName = null;
+        base.DeletePermissionName = null;
+        base.GetPermissionName = null;
         base.GetUser = true;
         base.GetCreatorUser = true;
     }
@@ -49,12 +53,6 @@ public class BlockedUserAppService : AbpAsyncCrudAppService<BlockedUser, Blocked
         await _repository.DeleteAsync(input.Id);
     }
 
-    protected override BlockedUser MapToEntity(CreateBlockedUserDto createInput)
-    {
-        var currentUserId = AbpSession.UserId ?? 0;
-        return new BlockedUser(currentUserId, createInput.BlockedUserId, createInput.Reason);
-    }
-
     public override async Task<BlockedUserDto> CreateAsync(CreateBlockedUserDto input)
     {
         var currentUserId = AbpSession.UserId ?? 0;
@@ -64,10 +62,55 @@ public class BlockedUserAppService : AbpAsyncCrudAppService<BlockedUser, Blocked
             throw new UserFriendlyException("已拉黑该用户");
         if (currentUserId == input.BlockedUserId)
             throw new UserFriendlyException("不能拉黑自己");
-        return await base.CreateAsync(input);
+
+        var entity = new BlockedUser(currentUserId, input.BlockedUserId, input.Reason);
+        entity = await _repository.InsertAsync(entity);
+
+        var dto = new BlockedUserDto {
+            Id = entity.Id,
+            BlockedUserId = entity.BlockedUserId,
+            Reason = entity.Reason,
+            CreationTime = entity.CreationTime
+        };
+        var blockedUserCache = await _userCache.GetAsync(entity.BlockedUserId);
+        if (blockedUserCache != null)
+        {
+            dto.BlockedUserName = blockedUserCache.Name ?? blockedUserCache.UserName ?? "用户";
+            dto.BlockedUserAvatar = blockedUserCache.HeadImgUrl;
+        }
+        return dto;
+    }
+
+    public override async Task<PagedResultDto<BlockedUserDto>> GetAllAsync(AppResultRequestDto input)
+    {
+        var query = CreateFilteredQuery(input);
+
+        var total = await query.CountAsync();
+        var items = await query.ToListAsync();
+
+        var dtos = new System.Collections.Generic.List<BlockedUserDto>();
+        foreach (var entity in items)
+        {
+            var dto = new BlockedUserDto {
+                Id = entity.Id,
+                BlockedUserId = entity.BlockedUserId,
+                Reason = entity.Reason,
+                CreationTime = entity.CreationTime
+            };
+            var blockedUserCache = await _userCache.GetAsync(entity.BlockedUserId);
+            if (blockedUserCache != null)
+            {
+                dto.BlockedUserName = blockedUserCache.Name ?? blockedUserCache.UserName ?? "用户";
+                dto.BlockedUserAvatar = blockedUserCache.HeadImgUrl;
+            }
+            dtos.Add(dto);
+        }
+
+        return new PagedResultDto<BlockedUserDto>(total, dtos);
     }
 
     [AbpAuthorize]
+    [HttpGet]
     public async Task<CheckBlockedResultDto> CheckAsync(long blockedUserId)
     {
         var currentUserId = AbpSession.UserId ?? 0;
@@ -82,21 +125,6 @@ public class BlockedUserAppService : AbpAsyncCrudAppService<BlockedUser, Blocked
         return base.CreateFilteredQuery(input)
             .Where(b => b.BlockerId == currentUserId);
     }
-
-    private new async Task<BlockedUserDto> MapToEntityDto(BlockedUser entity)
-    {
-        var dto = base.MapToEntityDto(entity);
-
-        // Lookup blocked user info for display
-        var blockedUserCache = await _userCache.GetAsync(entity.BlockedUserId);
-        if (blockedUserCache != null)
-        {
-            dto.BlockedUserName = blockedUserCache.Name ?? blockedUserCache.UserName ?? "用户";
-            dto.BlockedUserAvatar = blockedUserCache.HeadImgUrl;
-        }
-
-        return dto;
-    }
 }
 
 public class CreateBlockedUserDto : EntityDto<long>
@@ -105,6 +133,7 @@ public class CreateBlockedUserDto : EntityDto<long>
     public string Reason { get; set; }
 }
 
+[AutoMap(typeof(BlockedUser))]
 public class BlockedUserDto : EntityDto<long>
 {
     public long BlockedUserId { get; set; }

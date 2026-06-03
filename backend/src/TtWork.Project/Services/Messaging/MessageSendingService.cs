@@ -36,7 +36,6 @@ namespace TtWork.Project.Services.Messaging
         private readonly IUserStatusCacheService _userStatusCacheService;
         private readonly IRepository<Message, Guid> _messageRepository;
         private readonly IRepository<BanedUser, long> _banedUserRepository;
-        private readonly IRepository<BlockedUser, long> _blockedUserRepository;
         private readonly IRepository<ChatListDelete> _chatListDeleteRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMediator _mediator;
@@ -51,7 +50,6 @@ namespace TtWork.Project.Services.Messaging
             IUserStatusCacheService userStatusCacheService,
             IRepository<Message, Guid> messageRepository,
             IRepository<BanedUser, long> banedUserRepository,
-            IRepository<BlockedUser, long> blockedUserRepository,
             IRepository<ChatListDelete> chatListDeleteRepository,
             IHttpContextAccessor httpContextAccessor,
             IMediator mediator,
@@ -65,7 +63,6 @@ namespace TtWork.Project.Services.Messaging
             _userStatusCacheService = userStatusCacheService;
             _messageRepository = messageRepository;
             _banedUserRepository = banedUserRepository;
-            _blockedUserRepository = blockedUserRepository;
             _chatListDeleteRepository = chatListDeleteRepository;
             _httpContextAccessor = httpContextAccessor;
             _mediator = mediator;
@@ -177,7 +174,7 @@ namespace TtWork.Project.Services.Messaging
             try
             {
                 // 1. 验证和增强消息
-                var (isValid, errorMessage, enrichedMessage, userInfo) = await ValidateAndEnrichMessageAsync(fromUserId, message, null, options, toUserId);
+                var (isValid, errorMessage, enrichedMessage, userInfo) = await ValidateAndEnrichMessageAsync(fromUserId, message, null, options);
                 if (!isValid)
                 {
                     return SendMessageResult.CreateFailure(errorMessage);
@@ -356,7 +353,7 @@ namespace TtWork.Project.Services.Messaging
         /// 验证和增强消息
         /// </summary>
         private async Task<(bool isValid, string errorMessage, ChatMessage enrichedMessage, (bool isAdmin, string adminTag, string tagClass) userInfo)> ValidateAndEnrichMessageAsync(
-            long fromUserId, ChatMessage message, string channel, MessageSendOptions options, long? toUserId = null)
+            long fromUserId, ChatMessage message, string channel, MessageSendOptions options)
         {
             try
             {
@@ -467,17 +464,6 @@ namespace TtWork.Project.Services.Messaging
                     if (banStatus.IsBanned)
                     {
                         return (false, $"您已被禁言,结束时间 {banStatus.BanEndTime:yyyy-MM-dd HH:mm:ss}", null, (isAdmin, adminTag, tagClass));
-                    }
-                }
-
-                // 拉黑检查 - 如果接收者已拉黑发送者，则阻止消息
-                if (!isAdmin && toUserId.HasValue && toUserId.Value > 0 && fromUserId > 0 && toUserId.Value != fromUserId)
-                {
-                    var blockedUser = await _blockedUserRepository.FirstOrDefaultAsync(b =>
-                        b.BlockerId == toUserId.Value && b.BlockedUserId == fromUserId);
-                    if (blockedUser != null)
-                    {
-                        return (false, "对方已将您拉黑", null, (isAdmin, adminTag, tagClass));
                     }
                 }
 

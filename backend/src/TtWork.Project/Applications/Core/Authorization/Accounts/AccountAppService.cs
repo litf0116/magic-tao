@@ -249,20 +249,6 @@ namespace TtWork.Project.Applications.Core.Authorization.Accounts {
                 BoundTime = null
             });
 
-            var appleBinding = bindings.FirstOrDefault(x => x.LoginProvider == Consts.LoginProvider.Apple);
-            if (appleBinding != null)
-            {
-                result.Add(new LoginBindingDto
-                {
-                    LoginProvider = Consts.LoginProvider.Apple,
-                    ProviderKey = appleBinding.ProviderKey ?? "",
-                    DisplayName = "Apple",
-                    Icon = "apple",
-                    IsBound = true,
-                    BoundTime = null
-                });
-            }
-
             return new LoginBindingListOutput
             {
                 Items = result

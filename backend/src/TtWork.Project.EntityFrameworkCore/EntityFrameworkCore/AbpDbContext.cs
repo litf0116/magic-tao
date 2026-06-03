@@ -33,8 +33,6 @@ namespace TtWork.Project.EntityFrameworkCore {
         public DbSet<BidHistory> BidHistories { get; set; }
         public DbSet<Announce> Announces { get; set; }
         public DbSet<BanedUser> BanedUsers { get; set; }
-        public DbSet<BlockedUser> BlockedUsers { get; set; }
-        public DbSet<UserReport> UserReports { get; set; }
         public DbSet<SensitiveWord> SensitiveWords { get; set; }
         public DbSet<AuctionStartNotify> AuctionStartNotify { get; set; }
         public DbSet<PushSubscription> PushSubscriptions { get; set; }
@@ -43,6 +41,8 @@ namespace TtWork.Project.EntityFrameworkCore {
         public DbSet<ChatListDelete> ChatListDelete { get; set; }
         public DbSet<ChatChannel> ChatChannels { get; set; }
 
+        public DbSet<BlockedUser> BlockedUsers { get; set; }
+        public DbSet<UserReport> UserReports { get; set; }
 
         public DbSet<UserDepositLog> UserDepositLog { get; set; }
         public DbSet<UserBalanceLog> UserBalanceLog { get; set; }
@@ -69,7 +69,6 @@ namespace TtWork.Project.EntityFrameworkCore {
         public AbpDbContext(DbContextOptions<AbpDbContext> options)
             : base(options) {
             base.SuppressAutoSetTenantId = false;
-            // Database.Migrate();
         }
 
         protected override void OnModelCreating(ModelBuilder builder) {
@@ -78,15 +77,11 @@ namespace TtWork.Project.EntityFrameworkCore {
             builder.Entity<Edition>().HasMany<EditionFeatureSetting>().WithOne(b => b.Edition).IsRequired(false);
             builder.ConfigureAppManagement();
 
-
             builder.Entity<WechatUserinfo>().HasKey(ba => new { ba.openid, ba.TenantId });
 
             builder.Entity<UserFriend>().HasKey(ba => new { ba.UserId, ba.FriendId });
             builder.Entity<Message>(b => {
                 b.HasKey(x => x.Id);
-                // b.HasIndex(x => x.Time)
-                //     .IsDescending();
-                // b.HasIndex(x => x.Chan);
                 b.HasIndex(ba => new { ba.Chan, ba.Time })
                     .IsDescending();
                 b.HasIndex(ba => new { ba.From, ba.To, ba.Time })
@@ -96,41 +91,23 @@ namespace TtWork.Project.EntityFrameworkCore {
                 .HasIndex(ba => new { ba.UserId, ba.EndTime, ba.Chan })
                 .IsDescending();
 
-            builder.Entity<BlockedUser>(b =>
-            {
-                b.HasIndex(ba => new { ba.BlockerId, ba.BlockedUserId })
-                    .IsUnique()
-                    .HasDatabaseName("UQ_BlockerId_BlockedUserId");
-                b.HasIndex(ba => ba.BlockedUserId)
-                    .HasDatabaseName("IX_BlockedUserId");
-            });
-
-            builder.Entity<UserReport>(b => {
-                b.HasIndex(x => x.ReporterId);
-                b.HasIndex(x => x.Status);
-            });
-
             builder.Entity<ChatListDelete>()
                 .HasKey(ba => new { ba.UserId, ba.ToUserId });
-                
 
             builder.Entity<SensitiveWord>()
                 .HasIndex(ba => ba.Content);
 
             builder.Entity<ChatEmoji>(b => {
                 b.HasIndex(ba => new { ba.CreatorUserId, ba.CreationTime })
-                    .IsDescending()
-                    ;
+                    .IsDescending();
             });
 
-            // AuthRequest 扫码登录授权请求
             builder.Entity<AuthRequest>(b => {
                 b.HasIndex(x => x.Code).IsUnique();
                 b.HasIndex(x => new { x.UserId, x.Status });
                 b.HasIndex(x => x.ExpiresAt);
             });
 
-            // SmsVerificationCode: 复合索引优化手机号+用途查询和频率限制检查
             builder.Entity<SmsVerificationCode>(b => {
                 b.HasIndex(ba => new { ba.PhoneNumber, ba.Purpose, ba.CreationTime })
                     .IsDescending(false, false, true);
@@ -146,13 +123,8 @@ namespace TtWork.Project.EntityFrameworkCore {
                     .IsDescending();
             });
 
-
             builder.Entity<WechatPaymentNotification>(b => {
                 b.HasKey(x => x.Id);
-                // b.Property(x => x.RawData).HasConversion(
-                //     v => v.ToJsonString(false, false),
-                //     v => v.FromJsonStringExt<WeChatPayPaidEventModel>()
-                // );
             });
 
             builder.Entity<UserGroupLevel>(b => {
@@ -162,28 +134,29 @@ namespace TtWork.Project.EntityFrameworkCore {
             builder.Entity<GroupChatLevelSetting>(b => {
                 b.HasIndex(x => x.Level);
             });
-        }
 
+            builder.Entity<BlockedUser>(b => {
+                b.HasIndex(x => new { x.BlockerId, x.BlockedUserId }).IsUnique();
+                b.HasIndex(x => x.BlockedUserId);
+            });
+
+            builder.Entity<UserReport>(b => {
+                b.HasIndex(x => new { x.ReporterId, x.ReportedUserId });
+                b.HasIndex(x => x.Status);
+            });
+        }
 
         protected override void CheckAndSetMayHaveTenantIdProperty(object entityAsObj) {
             if (SuppressAutoSetTenantId) {
                 return;
             }
 
-            //Only works for single tenant applications
-            // if (MultiTenancyConfig?.IsEnabled ?? false)
-            // {
-            //     return;
-            // }
-
-            //Only set IMayHaveTenant entities
             if (!(entityAsObj is IMayHaveTenant)) {
                 return;
             }
 
             var entity = entityAsObj.As<IMayHaveTenant>();
 
-            //Don't set if it's already set
             if (entity.TenantId != null) {
                 return;
             }
@@ -198,11 +171,8 @@ namespace TtWork.Project.EntityFrameworkCore {
         protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder) {
             configurationBuilder
                 .Properties<Ulid>()
-                .HaveConversion<UlidToStringConverter>()
-                // .HaveConversion<UlidToBytesConverter>()
-                ;
+                .HaveConversion<UlidToStringConverter>();
         }
-
 
         public class UlidToBytesConverter : ValueConverter<Ulid, byte[]> {
             private static readonly ConverterMappingHints defaultHints = new ConverterMappingHints(size: 16);
@@ -233,7 +203,6 @@ namespace TtWork.Project.EntityFrameworkCore {
                 if (string.IsNullOrEmpty(value))
                     return default;
 
-                // Handle non-standard Ulid lengths by padding
                 if (value.Length < 26)
                     value = value.PadLeft(26, '0');
                 else if (value.Length > 26)

@@ -141,69 +141,6 @@ class AuthRepository {
     }
   }
 
-  /// Apple 登录
-  Future<LoginResult> appleLogin({
-    required String identityToken,
-    String? email,
-    String? givenName,
-    String? familyName,
-  }) async {
-    try {
-      _debugLog('[AuthRepository] ===== Apple登录请求 =====');
-
-      final response = await _apiClient.dio.post(
-        ApiEndpoints.authenticateApple,
-        data: {
-          'identityToken': identityToken,
-          'email': email,
-          'givenName': givenName,
-          'familyName': familyName,
-        },
-      );
-
-      _debugLog('[AuthRepository] Apple登录响应: ${jsonEncode(response.data)}');
-
-      if (response.data != null) {
-        final data = response.data as Map<String, dynamic>;
-        final accessToken = data['accessToken'] as String?;
-
-        // 保存 token
-        if (accessToken != null) {
-          await _storageService.setToken(accessToken);
-        }
-
-        // 获取用户信息
-        UserDto? user;
-        List<String>? roles;
-        if (accessToken != null) {
-          try {
-            _debugLog('[AuthRepository] Apple登录成功，开始获取用户信息...');
-            final userInfo = await getCurrentLoginInformations();
-            _debugLog('[AuthRepository] 用户信息响应: $userInfo');
-            if (userInfo != null) {
-              user = userInfo['user'] != null
-                  ? UserDto.fromJson(userInfo['user'] as Map<String, dynamic>)
-                  : null;
-              roles = (userInfo['roles'] as List<dynamic>?)
-                  ?.map((e) => e.toString())
-                  .toList();
-              _debugLog(
-                '[AuthRepository] 解析后 user: id=${user?.id}, userName=${user?.userName}, fullName=${user?.fullName}',
-              );
-            }
-          } catch (e) {
-            _debugLog('[AuthRepository] 获取用户信息失败: $e');
-          }
-        }
-
-        return LoginResult(accessToken: accessToken, user: user, roles: roles);
-      }
-      return const LoginResult();
-    } on DioException catch (e) {
-      throw Exception('Apple 登录失败: ${e.message}');
-    }
-  }
-
   /// 获取当前登录用户信息
   Future<Map<String, dynamic>?> getCurrentLoginInformations() async {
     try {

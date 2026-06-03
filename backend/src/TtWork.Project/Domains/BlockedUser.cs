@@ -2,30 +2,19 @@ using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using Abp.Domain.Entities;
 using Abp.Domain.Entities.Auditing;
+using Abp.MultiTenancy;
 
 namespace TtWork.Project.Domains;
 
 [Table("T_BlockedUsers")]
-public class BlockedUser : Entity<long>, ICreationAudited
+public class BlockedUser : Entity<long>, ICreationAudited, IMayHaveTenant
 {
-    /// <summary>
-    /// The user who initiated the block
-    /// </summary>
     public long BlockerId { get; private set; }
-
-    /// <summary>
-    /// The user who was blocked
-    /// </summary>
     public long BlockedUserId { get; private set; }
-
-    /// <summary>
-    /// Optional reason for blocking
-    /// </summary>
     public string Reason { get; private set; }
-
     public DateTime CreationTime { get; set; }
-
     public long? CreatorUserId { get; set; }
+    public int? TenantId { get; set; }
 
     public BlockedUser()
     {

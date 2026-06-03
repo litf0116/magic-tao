@@ -2,7 +2,6 @@ enum LoginBindingType {
   wechat,
   phone,
   password,
-  apple,
 }
 
 class LoginBindingDto {
@@ -61,8 +60,6 @@ class LoginBindingDto {
         return LoginBindingType.phone;
       case 'password':
         return LoginBindingType.password;
-      case 'apple':
-        return LoginBindingType.apple;
       default:
         return null;
     }
@@ -76,8 +73,6 @@ class LoginBindingDto {
         return 'phone';
       case LoginBindingType.password:
         return 'password';
-      case LoginBindingType.apple:
-        return 'apple';
       default:
         return 'unknown';
     }

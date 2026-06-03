@@ -39,7 +39,6 @@ using TtWork.Abp.Authorization.Users;
 using TtWork.Abp.Core.MultiTenancy;
 using TtWork.Abp.Definitions;
 using TtWork.Abp.DomianServices.Weixin;
-using TtWork.Abp.DomianServices;
 using TtWork.HttpClient.Weixin;
 using TtWork.Lib.Redis;
 using TtWork.Project.Applications.Core.Authorization;
@@ -80,8 +79,7 @@ namespace TtWork.Project.Web.Controllers
         IRepository<UserLogin, long> userLoginRepository,
         AbpUserClaimsPrincipalFactory<User, Role> claimsPrincipalFactory,
         IPasswordHasher<User> passwordHasher,
-        ISmsVerificationCodeService smsVerificationCodeService,
-        AppleAuthProviderApi appleAuthProvider
+        ISmsVerificationCodeService smsVerificationCodeService
     )
         : AbpControllerBase
     {
@@ -1195,88 +1193,6 @@ namespace TtWork.Project.Web.Controllers
             await CurrentUnitOfWork.SaveChangesAsync();
 
             return true;
-        }
-
-        /// <summary>
-        /// Apple 登录
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        [HttpPost]
-        public async Task<ExternalAuthenticateResultModel> AuthenticateApple([FromBody] AuthenticateAppleModel model)
-        {
-            try
-            {
-                Logger.Info($"[AuthenticateApple] Request received for identityToken: {(string.IsNullOrEmpty(model.IdentityToken) ? "NULL" : "present")}");
-
-                // 1. 验证 Apple identity_token
-                var appleUser = await appleAuthProvider.ValidateIdentityTokenAsync(model.IdentityToken);
-                Logger.Info($"[AuthenticateApple] Token validated - Sub: {appleUser.Sub}, Email: {appleUser.Email ?? "N/A"}");
-
-                // 2. 构建 ExternalAuthUserInfo
-                var authUserInfo = new ExternalAuthUserInfo
-                {
-                    ProviderKey = appleUser.Sub,
-                    Provider = Consts.LoginProvider.Apple,
-                    UserName = $"apple_{appleUser.Sub}",
-                    Name = !string.IsNullOrEmpty(model.GivenName) ? model.GivenName : $"Apple{Random.Shared.Next(10000, 99999)}",
-                    Surname = !string.IsNullOrEmpty(model.FamilyName) ? model.FamilyName : "",
-                    EmailAddress = appleUser.Email ?? (!string.IsNullOrEmpty(model.Email) ? model.Email : $"{appleUser.Sub}@molitao.top"),
-                    HeadImgUrl = AppConsts.UserDefaultAvatar,
-                    FromClient = FromClient.Apple,
-                    UserLogins = new Dictionary<string, string>
-                    {
-                        [Consts.LoginProvider.Apple] = appleUser.Sub
-                    }
-                };
-
-                // 3. 尝试通过 Apple userId 查找现有用户
-                var loginResult = await logInManager.LoginAsync(
-                    new UserLoginInfo(Consts.LoginProvider.Apple, appleUser.Sub, Consts.LoginProvider.Apple),
-                    GetTenancyNameOrNull());
-
-                // 4. 处理登录结果
-                if (loginResult.Result == AbpLoginResultType.Success)
-                {
-                    Logger.Info($"[AuthenticateApple] Existing user found, UserId: {loginResult.User.Id}");
-
-                    return await ExternalAuthenticateResultModel(loginResult, authUserInfo, new ExternalAuthenticateModel
-                    {
-                        AuthProvider = Consts.LoginProvider.Apple,
-                        ProviderKey = appleUser.Sub
-                    });
-                }
-
-                // 5. 用户不存在，创建新用户
-                Logger.Info($"[AuthenticateApple] New user, creating account with Apple Sub: {appleUser.Sub}");
-                await RegisterExternalUserAsync(authUserInfo);
-
-                // 重新登录
-                loginResult = await logInManager.LoginAsync(
-                    new UserLoginInfo(Consts.LoginProvider.Apple, appleUser.Sub, Consts.LoginProvider.Apple),
-                    GetTenancyNameOrNull());
-
-                if (loginResult.Result != AbpLoginResultType.Success)
-                {
-                    throw abpLoginResultTypeHelper.CreateExceptionForFailedLoginAttempt(
-                        loginResult.Result, appleUser.Sub, GetTenancyNameOrNull());
-                }
-
-                return await ExternalAuthenticateResultModel(loginResult, authUserInfo, new ExternalAuthenticateModel
-                {
-                    AuthProvider = Consts.LoginProvider.Apple,
-                    ProviderKey = appleUser.Sub
-                });
-            }
-            catch (UserFriendlyException)
-            {
-                throw;
-            }
-            catch (Exception e)
-            {
-                Logger.Error(e.Message, e);
-                throw new UserFriendlyException("Apple登录失败,请重试");
-            }
         }
     }
 }

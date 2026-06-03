@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../data/models/user_model.dart';
-import '../../../data/repositories/blocked_user_repository.dart';
 
 /// 用户资料弹窗
 /// 显示用户头像、编号、QQ、微信等信息
@@ -78,25 +77,6 @@ class UserProfileDialog extends StatelessWidget {
               ),
 
             const SizedBox(height: 20),
-
-            // 拉黑按钮
-            if (user.id != null)
-              SizedBox(
-                width: double.infinity,
-                child: TextButton(
-                  onPressed: () => _showBlockConfirmDialog(context),
-                  style: TextButton.styleFrom(
-                    backgroundColor: Colors.grey[200],
-                    foregroundColor: Colors.red,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text('拉黑该用户'),
-                ),
-              ),
-            const SizedBox(height: 10),
 
             // 关闭按钮
             SizedBox(
@@ -253,44 +233,5 @@ class UserProfileDialog extends StatelessWidget {
       return String.fromCharCode(runes.first);
     }
     return name.substring(0, 2);
-  }
-
-  Future<void> _showBlockConfirmDialog(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('确认拉黑'),
-        content: Text('确定要拉黑用户 ${user.name ?? user.fullName ?? '该用户'} 吗？'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('确认拉黑', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) return;
-
-    try {
-      final repository = BlockedUserRepository();
-      await repository.blockUser(user.id!);
-      if (context.mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('已拉黑该用户')),
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('拉黑失败: $e')),
-        );
-      }
-    }
   }
 }

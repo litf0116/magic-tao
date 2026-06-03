@@ -3,7 +3,6 @@ class ApiEndpoints {
   static const String authenticate = '/api/TokenAuth/Authenticate';
   static const String authenticateWeixinApp =
       '/api/TokenAuth/AuthenticateWeixinApp';
-  static const String authenticateApple = '/api/TokenAuth/AuthenticateApple';
   static const String logout = '/api/TokenAuth/Logout';
   static const String sendSmsCode = '/api/TokenAuth/SendSmsCode';
   static const String phoneAuthenticate = '/api/TokenAuth/PhoneAuthenticate';
@@ -84,15 +83,6 @@ class ApiEndpoints {
   static const String agreeFriend = '/api/services/app/UserFriend/Agree';
   static const String getUserFriendCount =
       '/api/services/app/UserFriend/GetUserFriendCount';
-
-  // BlockedUser
-  static const String blockedUser = '/api/services/app/BlockedUser';
-  static const String blockedUserGetAll = '/api/services/app/BlockedUser/GetAll';
-  static const String blockedUserCheck = '/api/services/app/BlockedUser/Check';
-
-  // UserReport
-  static const String userReport = '/api/services/app/UserReport';
-  static const String userReportGetMy = '/api/services/app/UserReport/GetMy';
 
   // Announce
   static const String getLatestAnnounce =
