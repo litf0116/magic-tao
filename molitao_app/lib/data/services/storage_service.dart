@@ -84,6 +84,11 @@ class StorageService {
     await clearToken();
     await clearRefreshToken();
     await clearTokenExpireTime();
+    // 防御：清理 shared_preferences 中可能残留的旧 token
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_tokenKey);
+    await prefs.remove(_refreshTokenKey);
+    await prefs.remove(_tokenExpireTimeKey);
   }
 
   // ===================== Migration (shared_preferences → SecureStorage) =====================
