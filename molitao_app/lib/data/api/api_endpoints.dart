@@ -22,8 +22,16 @@ class ApiEndpoints {
       '/api/services/app/Account/ChangePassword';
   static const String disablePasswordLogin =
       '/api/services/app/Account/DisablePasswordLogin';
-  static const String deleteAccount =
-      '/api/services/app/Account/DeleteAccount';
+  static const String deleteAccount = '/api/services/app/Account/DeleteAccount';
+
+  // BlockedUser (UGC 1.2 - 黑名单)
+  static const String blockedUser = '/api/services/app/BlockedUser';
+  static const String blockedUserGetAll = '/api/services/app/BlockedUser/GetAll';
+  static const String blockedUserCheck = '/api/services/app/BlockedUser/Check';
+
+  // UserReport (UGC 1.2 - 举报)
+  static const String userReport = '/api/services/app/UserReport';
+  static const String userReportGetAll = '/api/services/app/UserReport/GetAll';
 
   // Session
   static const String getCurrentLoginInformation =
@@ -103,7 +111,8 @@ class ApiEndpoints {
   static const String deleteChatList =
       '/api/services/app/Client/DeleteChatList';
   static const String payWithdrawal = '/api/services/app/Client/PayWithdrawal';
-  static const String getMyWechatOpenId = '/api/services/app/Client/GetMyWechatOpenId';
+  static const String getMyWechatOpenId =
+      '/api/services/app/Client/GetMyWechatOpenId';
 
   // UserBalanceLog
   static const String getUserBalanceLog =
@@ -149,7 +158,8 @@ class ApiEndpoints {
   static const String getLoginBindings =
       '/api/services/app/LoginBinding/GetLoginBindings';
   static const String bindPhone = '/api/services/app/LoginBinding/BindPhone';
-  static const String unbindLogin = '/api/services/app/LoginBinding/UnbindLogin';
+  static const String unbindLogin =
+      '/api/services/app/LoginBinding/UnbindLogin';
 
   // QrCode Login
   static const String qrCodeUserInfo = '/api/auth/qrcode';

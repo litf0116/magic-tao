@@ -47,7 +47,9 @@ public class BlockedUserAppService : AbpAsyncCrudAppService<BlockedUser, Blocked
     public override async Task DeleteAsync(EntityDto<long> input)
     {
         var currentUserId = AbpSession.UserId ?? 0;
-        var record = await _repository.GetAsync(input.Id);
+        var record = await _repository.FirstOrDefaultAsync(x => x.Id == input.Id);
+        if (record == null)
+            throw new UserFriendlyException("拉黑记录不存在");
         if (record.BlockerId != currentUserId)
             throw new UserFriendlyException("无权操作，该拉黑记录不属于当前用户");
         await _repository.DeleteAsync(input.Id);

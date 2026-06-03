@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import '../../providers/user_provider.dart';
 import '../../../data/services/notification_permission_service.dart';
+import '../../../data/repositories/auth_repository.dart';
 import '../../../core/theme/app_colors.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
@@ -25,6 +26,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage>
   String _appVersion = '';
 
   final _permissionService = NotificationPermissionService();
+  final _authRepository = AuthRepository();
 
   @override
   void initState() {
@@ -525,7 +527,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage>
               child: const Text('取消'),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 if (newPasswordController.text.isEmpty ||
                     oldPasswordController.text.isEmpty) {
                   ScaffoldMessenger.of(
@@ -547,9 +549,23 @@ class _SettingsPageState extends ConsumerState<SettingsPage>
                   return;
                 }
                 Navigator.of(context).pop();
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text('密码修改成功')));
+                try {
+                  await _authRepository.changePassword(
+                    oldPasswordController.text,
+                    newPasswordController.text,
+                  );
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('密码修改成功')),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('密码修改失败: $e')),
+                    );
+                  }
+                }
               },
               child: const Text(
                 '确定',

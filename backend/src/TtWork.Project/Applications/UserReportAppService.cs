@@ -3,11 +3,14 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using Abp.Application.Services.Dto;
+using Abp.Authorization;
 using Abp.AutoMapper;
 using Abp.Dependency;
 using Abp.Domain.Entities.Auditing;
 using Abp.Domain.Repositories;
 using Abp.Linq.Extensions;
+using Abp.Timing;
+using Abp.UI;
 using Microsoft.AspNetCore.Mvc;
 using TtWork.Abp;
 using TtWork.Abp.Applications.Dtos;
@@ -31,16 +34,17 @@ public class UserReportAppService : AbpAsyncCrudAppService<UserReport, UserRepor
         return base.CreateAsync(input);
     }
 
+    [AbpAuthorize(AppPermissions.Pages.ChatManager)]
     [HttpPost]
     public async Task ProcessAsync(long id, string adminNote, int status) {
         var report = await Repository.GetAsync(id);
         if (report == null) {
-            throw new Exception("Report not found");
+            throw new UserFriendlyException("Report not found");
         }
 
         report.Status = status;
         report.AdminNote = adminNote;
-        report.ProcessedTime = DateTime.Now;
+        report.ProcessedTime = Clock.Now;
 
         await Repository.UpdateAsync(report);
     }

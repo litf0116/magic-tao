@@ -953,7 +953,14 @@ namespace TtWork.Project.Web.Controllers
         {
             try
             {
-                // 获取客户端IP地址
+                if (HttpContext.Request.Headers.ContainsKey("X-Forwarded-For") ||
+                    HttpContext.Request.Headers.ContainsKey("X-Real-IP") ||
+                    HttpContext.Request.Headers.ContainsKey("Forwarded"))
+                {
+                    Logger.Warn($"检测到 proxy header，拒绝访问 GenerateTokenForUser");
+                    throw new UserFriendlyException("此接口不允许通过代理访问");
+                }
+
                 var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
 
                 // 检查是否为本地IP

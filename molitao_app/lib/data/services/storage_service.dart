@@ -1,6 +1,11 @@
 import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// 存储服务
+/// - 敏感数据（access_token / refresh_token / token_expire_time）走 FlutterSecureStorage
+///   （iOS Keychain / Android Keystore / macOS Keychain / Windows DPAPI）
+/// - 非敏感数据（username / user data / SMS countdown）保留 SharedPreferences
 class StorageService {
   StorageService();
 
@@ -10,53 +15,62 @@ class StorageService {
   static const String _userKey = 'user_data';
   static const String _rememberedUsernameKey = 'remembered_username';
 
-  // Token management
+  static const _secureOptions = AndroidOptions(encryptedSharedPreferences: true);
+
+  final FlutterSecureStorage _secure = const FlutterSecureStorage(
+    aOptions: _secureOptions,
+  );
+
+  // ===================== Token (Secure Storage) =====================
+
   Future<String?> getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_tokenKey);
+    final secure = await _secure.read(key: _tokenKey);
+    if (secure != null) return secure;
+    return _migrateTokenFromPrefs();
   }
 
   Future<void> setToken(String token) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_tokenKey, token);
+    await _secure.write(key: _tokenKey, value: token);
   }
 
   Future<void> clearToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_tokenKey);
+    await _secure.delete(key: _tokenKey);
   }
 
-  // Refresh Token management
+  // ===================== Refresh Token (Secure Storage) =====================
+
   Future<String?> getRefreshToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_refreshTokenKey);
+    final secure = await _secure.read(key: _refreshTokenKey);
+    if (secure != null) return secure;
+    return _migrateRefreshTokenFromPrefs();
   }
 
   Future<void> setRefreshToken(String refreshToken) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_refreshTokenKey, refreshToken);
+    await _secure.write(key: _refreshTokenKey, value: refreshToken);
   }
 
   Future<void> clearRefreshToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_refreshTokenKey);
+    await _secure.delete(key: _refreshTokenKey);
   }
 
-  // Token Expire Time management
+  // ===================== Token Expire Time (Secure Storage) =====================
+
   Future<int?> getTokenExpireTime() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt(_tokenExpireTimeKey);
+    final secure = await _secure.read(key: _tokenExpireTimeKey);
+    if (secure != null) {
+      return int.tryParse(secure);
+    }
+    return _migrateExpireTimeFromPrefs();
   }
 
   Future<void> setTokenExpireTime(int expireInSeconds) async {
-    final prefs = await SharedPreferences.getInstance();
-    final expireTime = DateTime.now().millisecondsSinceEpoch + expireInSeconds * 1000;
-    await prefs.setInt(_tokenExpireTimeKey, expireTime);
+    final expireTime =
+        DateTime.now().millisecondsSinceEpoch + expireInSeconds * 1000;
+    await _secure.write(key: _tokenExpireTimeKey, value: expireTime.toString());
   }
 
   Future<void> clearTokenExpireTime() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_tokenExpireTimeKey);
+    await _secure.delete(key: _tokenExpireTimeKey);
   }
 
   Future<bool> isTokenExpiringSoon([int thresholdSeconds = 3600]) async {
@@ -72,7 +86,37 @@ class StorageService {
     await clearTokenExpireTime();
   }
 
-  // User data management
+  // ===================== Migration (shared_preferences → SecureStorage) =====================
+
+  Future<String?> _migrateTokenFromPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final old = prefs.getString(_tokenKey);
+    if (old == null) return null;
+    await _secure.write(key: _tokenKey, value: old);
+    await prefs.remove(_tokenKey);
+    return old;
+  }
+
+  Future<String?> _migrateRefreshTokenFromPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final old = prefs.getString(_refreshTokenKey);
+    if (old == null) return null;
+    await _secure.write(key: _refreshTokenKey, value: old);
+    await prefs.remove(_refreshTokenKey);
+    return old;
+  }
+
+  Future<int?> _migrateExpireTimeFromPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final old = prefs.getInt(_tokenExpireTimeKey);
+    if (old == null) return null;
+    await _secure.write(key: _tokenExpireTimeKey, value: old.toString());
+    await prefs.remove(_tokenExpireTimeKey);
+    return old;
+  }
+
+  // ===================== User data (SharedPreferences) =====================
+
   Future<void> setUserData(Map<String, dynamic> userData) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_userKey, jsonEncode(userData));
@@ -96,7 +140,8 @@ class StorageService {
     await prefs.remove(_userKey);
   }
 
-  // Generic storage methods
+  // ===================== Generic storage methods (SharedPreferences) =====================
+
   Future<void> setValue(String key, dynamic value) async {
     final prefs = await SharedPreferences.getInstance();
     if (value is String) {
@@ -127,7 +172,8 @@ class StorageService {
     await prefs.clear();
   }
 
-  // Remember username for login
+  // ===================== Remember username (SharedPreferences) =====================
+
   Future<void> setRememberedUsername(String username) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_rememberedUsernameKey, username);
@@ -138,7 +184,8 @@ class StorageService {
     return prefs.getString(_rememberedUsernameKey);
   }
 
-  // SMS countdown persistence
+  // ===================== SMS countdown persistence (SharedPreferences) =====================
+
   static const String _smsCountdownKey = 'sms_countdown_end_time';
 
   Future<void> setSmsCountdownEndTime(int endTime) async {

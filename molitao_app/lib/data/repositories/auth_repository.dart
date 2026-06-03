@@ -1,15 +1,15 @@
 import 'dart:convert';
+import 'dart:io' show Platform;
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show kDebugMode, debugPrint;
 import '../api/api_client.dart';
 import '../api/api_endpoints.dart';
 import '../models/user_model.dart';
 import '../services/storage_service.dart';
 
-/// 调试日志开关
-const bool _kDebugLog = true;
-
+/// 调试日志开关：仅在 Debug 模式下打印
 void _debugLog(String message) {
-  if (_kDebugLog) print(message);
+  if (kDebugMode) debugPrint(message);
 }
 
 /// 登录响应结果
@@ -94,7 +94,7 @@ class AuthRepository {
         ApiEndpoints.authenticateWeixinApp,
         data: {
           'authCode': code, // ✅ 修复：使用 authCode 而不是 code
-          'platform': 'android', // 平台标识
+          'platform': _detectPlatform(), // 平台标识（Android/iOS/Other）
         },
       );
 
@@ -203,6 +203,26 @@ class AuthRepository {
     }
   }
 
+  /// 修改密码（当前登录用户）
+  Future<bool> changePassword(String currentPassword, String newPassword) async {
+    try {
+      await _apiClient.dio.post(
+        ApiEndpoints.changePassword,
+        data: {
+          'currentPassword': currentPassword,
+          'newPassword': newPassword,
+        },
+      );
+      return true;
+    } on DioException catch (e) {
+      var errorMessage = e.response?.data?["error"]?["message"];
+      if (errorMessage != null && errorMessage.toString().isNotEmpty) {
+        throw Exception(errorMessage);
+      }
+      throw Exception('修改密码失败: ${e.message}');
+    }
+  }
+
   /// 发送短信验证码
   Future<bool> sendSmsCode(String phoneNumber, {String purpose = 'login'}) async {
     try {
@@ -279,5 +299,12 @@ class AuthRepository {
       _debugLog('[AuthRepository] 获取微信 OpenId 失败: ${e.message}');
       return null;
     }
+  }
+
+  /// 检测当前运行平台（用于微信登录等需要区分平台的接口）
+  String _detectPlatform() {
+    if (Platform.isAndroid) return 'android';
+    if (Platform.isIOS) return 'ios';
+    return 'other';
   }
 }

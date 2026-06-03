@@ -59,7 +59,11 @@ class BlockedUserRepository {
         ApiEndpoints.blockedUserCheck,
         queryParameters: {"blockedUserId": userId},
       );
-      return response.data?["result"] ?? false;
+      final result = response.data?["result"];
+      if (result is Map) {
+        return result["isBlocked"] as bool? ?? false;
+      }
+      return false;
     } on DioException catch (e) {
       var errorMessage = e.response?.data?["error"]?["message"];
       if (errorMessage != null) {
@@ -89,12 +93,23 @@ class BlockedUserDto {
 
   factory BlockedUserDto.fromJson(final Map<String, dynamic> json) {
     return BlockedUserDto(
-      id: json["id"] as int,
-      blockedUserId: json["blockedUserId"] as int,
+      id: (json["id"] as num?)?.toInt() ?? 0,
+      blockedUserId: (json["blockedUserId"] as num?)?.toInt() ?? 0,
       blockedUserName: json["blockedUserName"] as String?,
       blockedUserAvatar: json["blockedUserAvatar"] as String?,
       reason: json["reason"] as String?,
-      creationTime: DateTime.parse(json["creationTime"] as String),
+      creationTime: _parseDateTime(json["creationTime"]),
     );
+  }
+
+  /// 安全解析时间字符串，后端未填充时返回 epoch
+  static DateTime _parseDateTime(dynamic raw) {
+    if (raw == null) return DateTime.fromMillisecondsSinceEpoch(0);
+    if (raw is DateTime) return raw;
+    final s = raw.toString();
+    if (s.isEmpty || s.startsWith("0001-01-01")) {
+      return DateTime.fromMillisecondsSinceEpoch(0);
+    }
+    return DateTime.tryParse(s) ?? DateTime.fromMillisecondsSinceEpoch(0);
   }
 }

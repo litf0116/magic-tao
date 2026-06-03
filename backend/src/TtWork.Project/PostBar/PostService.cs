@@ -110,7 +110,11 @@ namespace TtWork.Project.PostBar
                     .Where(a => a.status == 1) // 只返回正常状态的帖子 (1=正常, 2=关闭, 3=删除)
                     .WhereIF(!string.IsNullOrEmpty(input.Keyword),
                         (a, c) => a.title.Contains(input.Keyword) || a.content.Contains(input.Keyword))
-                    .WhereIF(input.Type != -1, (a, c) => a.categoryId.Contains(input.Type.ToString()))
+                    .WhereIF(input.Type != -1, (a, c) =>
+                        a.categoryId == input.Type.ToString() ||
+                        a.categoryId.StartsWith(input.Type.ToString() + ",") ||
+                        a.categoryId.EndsWith("," + input.Type.ToString()) ||
+                        a.categoryId.Contains("," + input.Type.ToString() + ","))
                     .WhereIF(input.IsTop.HasValue, (a, c) => a.isTop == input.IsTop.Value) // New filter condition
                     .Select((a, c) => new PostDto
                     {
